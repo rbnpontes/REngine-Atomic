@@ -1,2 +1,2 @@
 @ECHO OFF
-Build\Windows\node\node.exe ./Build/Scripts/Bootstrap.js --task=build:genvs2022 %*
+node ./Build/Scripts/Bootstrap.js --task=build:genvs2022 %*
