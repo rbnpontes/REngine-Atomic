@@ -67,7 +67,7 @@ namespace('build', function() {
         var netCmd = host.atomicTool + " net compile " + atomicRoot + "Script/AtomicNET/AtomicNETProject.json " + platforms + " -config " + config["config"];
 
         if (os.platform() == 'win32') {
-
+          // TODO: refactor this
           var vsver = (config["vs2017"] ? "VS2017" : "VS2015");
           netCmd += " -toolversion " + vsver;
 

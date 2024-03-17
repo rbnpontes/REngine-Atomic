@@ -10,6 +10,7 @@
   },
   "engineStrict": true,
   "scripts": {
+    "build" : "jake -f ./Scripts/Bootstrap.js",
     "build:vs2022": "node ./Scripts/Bootstrap.js --task=build:genvs2022"
   },
   "dependencies": {
