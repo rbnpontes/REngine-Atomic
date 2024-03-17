@@ -104,4 +104,6 @@ if (ATOMIC_PROFILING)
 endif ()
 
 
-add_subdirectory(DiligentCore)
+if (RENGINE_DILIGENT)
+    add_subdirectory(DiligentCore)
+endif()

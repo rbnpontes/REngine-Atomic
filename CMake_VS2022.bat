@@ -1,2 +1,2 @@
 @ECHO OFF
-node ./Build/Scripts/Bootstrap.js --task=build:genvs2022 %*
+yarn --cwd ./Build build:vs2022 %*

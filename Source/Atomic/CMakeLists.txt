@@ -32,9 +32,7 @@ elseif (ATOMIC_DATABASE_ODBC)
 endif ()
 
 if (WIN32)
-    if (ATOMIC_D3D9) # DirectX 9
-        file (GLOB GRAPHICS_IMPL_SOURCE Graphics/Direct3D9/*.cpp Graphics/Direct3D9/*.h)
-    elseif (ATOMIC_OPENGL) # OpenGL
+    if (ATOMIC_OPENGL) # OpenGL
         file (GLOB GRAPHICS_IMPL_SOURCE Graphics/OpenGL/*.cpp Graphics/OpenGL/*.h)
     elseif(ATOMIC_D3D11) # DirectX 11
         file (GLOB GRAPHICS_IMPL_SOURCE Graphics/Direct3D11/*.cpp Graphics/Direct3D11/*.h)
@@ -154,6 +152,10 @@ endif ()
 
 if (ATOMIC_OPENGL)
     target_compile_definitions(Atomic PUBLIC -DATOMIC_OPENGL=1)
+endif ()
+
+if(RENGINE_DILIGENT)
+    target_compile_definitions(Atomci PUBLIC -DRENGINE_DILIGENT=1)
 endif ()
 
 if (ATOMIC_DESKTOP)

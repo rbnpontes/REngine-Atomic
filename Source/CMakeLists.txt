@@ -9,6 +9,7 @@ option(ATOMIC_DATABASE_SQLITE "Enable SQLite database subsystem" OFF)
 option(ATOMIC_DATABASE_ODBC "Enable ODBC database subsystem" OFF)
 option(ATOMIC_IK "Enable inverse kinematics subsystem" OFF)
 option(ATOMIC_PROFILING "Enable profiler" ${ATOMIC_RELEASE_OFF})
+option(RENGINE_DILIGENT "Enable Diligent Core rendering" OFF)
 
 if (WIN32)
     option (ATOMIC_D3D9 "Use DirectX 9" OFF)

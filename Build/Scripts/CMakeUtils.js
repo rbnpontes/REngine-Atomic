@@ -7,7 +7,7 @@ const config = require('./BuildConfig');
  */
 function getCMakeFlags(isDevBuild) {
     const flags = [];
-    const appendFlag = (flagName, flagProp) => flags.push(`-D${flagName}=${Boolean(flagProp) ? 'ON' : 'OFF'}`);
+    const appendFlag = (flagName, flagProp) => flags.push(`-D${flagName}=${Boolean(config[flagProp]) ? 'ON' : 'OFF'}`);
     
     // local cmake builds are always dev builds 
     flags.push(`-DATOMIC_DEV_BUILD=${isDevBuild ? 1 : 0}`);
