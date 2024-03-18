@@ -21,6 +21,8 @@ file (GLOB PHYSICS_SOURCE Physics/*.cpp Physics/*.h)
 file (GLOB NAVIGATION_SOURCE Navigation/*.cpp Navigation/*.h)
 file (GLOB ENVIRONMENT_SOURCE Environment/*.cpp Environment/*.h)
 file (GLOB GRAPHICS_SOURCE Graphics/*.cpp Graphics/*.h Graphics/Text3D/*.cpp Graphics/Text3D/*.h)
+file (GLOB RHI_SOURCE RHI/*.cpp RHI/*.h)
+
 if (ATOMIC_IK)
     file (GLOB IK_SOURCE IK/*.cpp IK/*.h)
 endif ()
@@ -59,6 +61,10 @@ if (NOT WEB)
   set (SOURCE_FILES ${SOURCE_FILES} ${NETWORK_SOURCE})
 endif()
 
+if (RENGINE_DILIGENT)
+    set (SOURCE_FILES ${SOURCE_FILES} ${RHI_SOURCE})
+endif ()
+
 GroupSources("Atomic2D")
 GroupSources("Atomic3D")
 GroupSources("Audio")
@@ -82,6 +88,10 @@ GroupSources("Script")
 GroupSources("Metrics")
 GroupSources("BuildInfo")
 GroupSources("IK")
+
+if (RENGINE_DILIGENT)
+    GroupSources("RHI")
+endif ()
 
 # Handle Git Revision
 include(GetGitRevisionDescription)

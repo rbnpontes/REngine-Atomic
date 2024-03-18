@@ -35,6 +35,13 @@
 
 struct SDL_Window;
 
+#ifdef RENGINE_DILIGENT
+namespace REngine
+{
+    class DriverInstance;
+}
+#endif
+
 namespace Atomic
 {
 
@@ -43,7 +50,9 @@ class File;
 class Image;
 class IndexBuffer;
 class GPUObject;
+#ifndef RENGINE_DILIGENT
 class GraphicsImpl;
+#endif
 class RenderSurface;
 class Shader;
 class ShaderPrecache;
@@ -256,8 +265,11 @@ public:
     bool IsInitialized() const;
 
     /// Return graphics implementation, which holds the actual API-specific resources.
+#if RENGINE_DILIGENT
+    REngine::DriverInstance* GetImpl() const { return impl_; }
+#else
     GraphicsImpl* GetImpl() const { return impl_; }
-
+#endif
     /// Return OS-specific external window handle. Null if not in use.
     void* GetExternalWindow() const { return externalWindow_; }
 
@@ -644,7 +656,11 @@ private:
     /// Mutex for accessing the GPU objects vector from several threads.
     Mutex gpuObjectMutex_;
     /// Implementation.
+#if RENGINE_DILIGENT
+    REngine::DriverInstance* impl_;
+#else
     GraphicsImpl* impl_;
+#endif
     /// SDL window.
     SDL_Window* window_;
     /// Window title.

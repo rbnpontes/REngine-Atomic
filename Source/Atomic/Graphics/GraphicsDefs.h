@@ -37,6 +37,14 @@ class Vector3;
 #define DESKTOP_GRAPHICS
 #endif
 
+enum class GraphicsBackend
+{
+    D3D11,
+    D3D12,
+    Vulkan,
+    OpenGL
+};
+    
 /// Primitive type.
 enum PrimitiveType
 {
@@ -44,8 +52,7 @@ enum PrimitiveType
     LINE_LIST,
     POINT_LIST,
     TRIANGLE_STRIP,
-    LINE_STRIP,
-    TRIANGLE_FAN
+    LINE_STRIP
 };
 
 /// %Geometry type for vertex shader geometry variations.
