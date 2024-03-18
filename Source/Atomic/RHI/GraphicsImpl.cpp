@@ -1,6 +1,5 @@
 #include "../Precompiled.h"
 
-#include "./DriverInstance.h"
 
 #include "../Core/Context.h"
 #include "../Core/ProcessUtils.h"
@@ -20,6 +19,11 @@
 #include "../IO/File.h"
 #include "../IO/Log.h"
 #include "../Resource/ResourceCache.h"
+
+// RHI BEGIN
+#include "./DriverInstance.h"
+#include "./GraphicsState.h"
+// RHI END
 
 #include <DiligentCore/Graphics/GraphicsEngine/interface/GraphicsTypes.h>
 
@@ -217,9 +221,8 @@ Graphics::Graphics(Context* context) :
     shaderPath_("Shaders/HLSL/"),
     shaderExtension_(".hlsl"),
     orientations_("LandscapeLeft LandscapeRight"),
-    apiName_("D3D11")
+    apiName_("DiligentCore")
 {
-    SetTextureUnitMappings();
     ResetCachedState();
 
     context_->RequireSDL(SDL_INIT_VIDEO);
@@ -2394,79 +2397,30 @@ void Graphics::CheckFeatureSupport()
 
 void Graphics::ResetCachedState()
 {
-    throw new std::exception("Not implemented");
-    // for (unsigned i = 0; i < MAX_VERTEX_STREAMS; ++i)
-    // {
-    //     vertexBuffers_[i] = 0;
-    //     impl_->vertexBuffers_[i] = 0;
-    //     impl_->vertexSizes_[i] = 0;
-    //     impl_->vertexOffsets_[i] = 0;
-    // }
-    //
-    // for (unsigned i = 0; i < MAX_TEXTURE_UNITS; ++i)
-    // {
-    //     textures_[i] = 0;
-    //     impl_->shaderResourceViews_[i] = 0;
-    //     impl_->samplers_[i] = 0;
-    // }
-    //
-    // for (unsigned i = 0; i < MAX_RENDERTARGETS; ++i)
-    // {
-    //     renderTargets_[i] = 0;
-    //     impl_->renderTargetViews_[i] = 0;
-    // }
-    //
-    // for (unsigned i = 0; i < MAX_SHADER_PARAMETER_GROUPS; ++i)
-    // {
-    //     impl_->constantBuffers_[VS][i] = 0;
-    //     impl_->constantBuffers_[PS][i] = 0;
-    // }
-    //
-    // depthStencil_ = 0;
-    // impl_->depthStencilView_ = 0;
-    // viewport_ = IntRect(0, 0, width_, height_);
-    //
-    // indexBuffer_ = 0;
-    // vertexDeclarationHash_ = 0;
-    // primitiveType_ = 0;
-    // vertexShader_ = 0;
-    // pixelShader_ = 0;
-    // blendMode_ = BLEND_REPLACE;
-    // alphaToCoverage_ = false;
-    // colorWrite_ = true;
-    // cullMode_ = CULL_CCW;
-    // constantDepthBias_ = 0.0f;
-    // slopeScaledDepthBias_ = 0.0f;
-    // depthTestMode_ = CMP_LESSEQUAL;
-    // depthWrite_ = true;
-    // fillMode_ = FILL_SOLID;
-    // lineAntiAlias_ = false;
-    // scissorTest_ = false;
-    // scissorRect_ = IntRect::ZERO;
-    // stencilTest_ = false;
-    // stencilTestMode_ = CMP_ALWAYS;
-    // stencilPass_ = OP_KEEP;
-    // stencilFail_ = OP_KEEP;
-    // stencilZFail_ = OP_KEEP;
-    // stencilRef_ = 0;
-    // stencilCompareMask_ = M_MAX_UNSIGNED;
-    // stencilWriteMask_ = M_MAX_UNSIGNED;
-    // useClipPlane_ = false;
-    // impl_->shaderProgram_ = 0;
-    // impl_->renderTargetsDirty_ = true;
-    // impl_->texturesDirty_ = true;
-    // impl_->vertexDeclarationDirty_ = true;
-    // impl_->blendStateDirty_ = true;
-    // impl_->depthStateDirty_ = true;
-    // impl_->rasterizerStateDirty_ = true;
-    // impl_->scissorRectDirty_ = true;
-    // impl_->stencilRefDirty_ = true;
-    // impl_->blendStateHash_ = M_MAX_UNSIGNED;
-    // impl_->depthStateHash_ = M_MAX_UNSIGNED;
-    // impl_->rasterizerStateHash_ = M_MAX_UNSIGNED;
-    // impl_->firstDirtyTexture_ = impl_->lastDirtyTexture_ = M_MAX_UNSIGNED;
-    // impl_->firstDirtyVB_ = impl_->lastDirtyVB_ = M_MAX_UNSIGNED;
-    // impl_->dirtyConstantBuffers_.Clear();
+    auto command = REngine::default_render_command_get();
+    
+    for (unsigned i = 0; i < MAX_VERTEX_STREAMS; ++i)
+    {
+        command.vertex_buffers[i] = nullptr;
+        command.vertex_offsets[i] = command.vertex_sizes[i] = 0;
+    }
+    command.index_buffer = nullptr;
+
+    for (auto& render_target : command.render_targets)
+        render_target = nullptr;
+    command.depth_stencil = nullptr;
+
+    command.pipeline_hash = 0;
+    command.pipeline_state = nullptr;
+    command.pipeline_state_info = {};
+    command.shader_resource_binding = nullptr;
+
+    command.viewport = IntRect(0, 0, width_, height_);
+    command.scissor = IntRect::ZERO;
+    command.stencil_ref = 0;
+    command.use_clip_plane = false;
+
+    REngine::default_render_command_set(command);
 }
 
 void Graphics::PrepareDraw()
@@ -2733,23 +2687,6 @@ void Graphics::CreateResolveTexture()
 
 void Graphics::SetTextureUnitMappings()
 {
-    throw new std::exception("Not implemented");
-    // textureUnits_["DiffMap"] = TU_DIFFUSE;
-    // textureUnits_["DiffCubeMap"] = TU_DIFFUSE;
-    // textureUnits_["NormalMap"] = TU_NORMAL;
-    // textureUnits_["SpecMap"] = TU_SPECULAR;
-    // textureUnits_["EmissiveMap"] = TU_EMISSIVE;
-    // textureUnits_["EnvMap"] = TU_ENVIRONMENT;
-    // textureUnits_["EnvCubeMap"] = TU_ENVIRONMENT;
-    // textureUnits_["LightRampMap"] = TU_LIGHTRAMP;
-    // textureUnits_["LightSpotMap"] = TU_LIGHTSHAPE;
-    // textureUnits_["LightCubeMap"] = TU_LIGHTSHAPE;
-    // textureUnits_["ShadowMap"] = TU_SHADOWMAP;
-    // textureUnits_["FaceSelectCubeMap"] = TU_FACESELECT;
-    // textureUnits_["IndirectionCubeMap"] = TU_INDIRECTION;
-    // textureUnits_["VolumeMap"] = TU_VOLUMEMAP;
-    // textureUnits_["ZoneCubeMap"] = TU_ZONE;
-    // textureUnits_["ZoneVolumeMap"] = TU_ZONE;
 }
 
 // ATOMIC BEGIN

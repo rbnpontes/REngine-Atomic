@@ -466,6 +466,7 @@ static const unsigned MASK_OBJECTINDEX = 0x2000;
 static const int MAX_RENDERTARGETS = 4;
 static const int MAX_VERTEX_STREAMS = 4;
 static const int MAX_CONSTANT_REGISTERS = 256;
-
+static const int MAX_IMMUTABLE_SAMPLERS = 16;
+    
 static const int BITS_PER_COMPONENT = 8;
 }

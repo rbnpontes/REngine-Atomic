@@ -3,6 +3,7 @@
 namespace REngine
 {
     static GraphicsState s_state = {};
+    static RenderCommandState s_default_command = {};
 
     const GraphicsState& graphics_state_get()
     {
@@ -14,4 +15,14 @@ namespace REngine
         s_state = state;
     }
 
+
+    const RenderCommandState& default_render_command_get()
+    {
+        return s_default_command;
+    }
+
+    void default_render_command_set(const RenderCommandState state)
+    {
+        s_default_command = state;
+    }
 }
