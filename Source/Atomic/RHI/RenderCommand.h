@@ -51,4 +51,9 @@ namespace REngine
      * \param state 
      */
     void render_command_process(const RenderCommandProcessDesc& desc, RenderCommandState& state);
+    /**
+     * \brief reset render command state
+     * \param state 
+     */
+    void render_command_reset(const Atomic::Graphics* graphics, RenderCommandState& state);
 }
