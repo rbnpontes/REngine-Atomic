@@ -105,14 +105,14 @@ namespace REngine
      * \param hash output pipeline hash
      * \return 
      */
-    Diligent::IPipelineState* pipeline_state_builder_acquire(DriverInstance* driver, const PipelineStateInfo& info,
+    Diligent::RefCntAutoPtr<Diligent::IPipelineState> pipeline_state_builder_acquire(DriverInstance* driver, const PipelineStateInfo& info,
                                                              unsigned& hash);
     /**
      * \brief get cached pipeline state from pipeline hash
      * \param pipeline_hash 
      * \return 
      */
-    Diligent::IPipelineState* pipeline_state_builder_get(const unsigned pipeline_hash);
+    Diligent::RefCntAutoPtr<Diligent::IPipelineState> pipeline_state_builder_get(const unsigned pipeline_hash);
     /**
      * \brief release cached pipeline states
      */

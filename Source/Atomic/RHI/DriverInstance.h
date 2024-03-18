@@ -5,6 +5,7 @@
 #include <DiligentCore/Graphics/GraphicsEngine/interface/EngineFactory.h>
 #include <DiligentCore/Graphics/GraphicsEngine/interface/RenderDevice.h>
 #include <DiligentCore/Graphics/GraphicsEngine/interface/SwapChain.h>
+#include <DiligentCore/Common/interface/RefCntAutoPtr.hpp>
 
 namespace REngine
 {
@@ -20,9 +21,9 @@ namespace REngine
     private:
         Atomic::GraphicsBackend backend_;
         
-        Diligent::IEngineFactory* engine_factory_;
-        Diligent::IDeviceContext* device_context_;
-        Diligent::IRenderDevice* render_device_;
-        Diligent::ISwapChain* swap_chain_;
+        Diligent::RefCntAutoPtr<Diligent::IEngineFactory> engine_factory_;
+        Diligent::RefCntAutoPtr<Diligent::IDeviceContext> device_context_;
+        Diligent::RefCntAutoPtr<Diligent::IRenderDevice> render_device_;
+        Diligent::RefCntAutoPtr<Diligent::ISwapChain> swap_chain_;
     };
 }

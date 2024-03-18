@@ -162,11 +162,16 @@ namespace REngine
     static Diligent::LayoutElement s_tmp_layout_elements[Diligent::MAX_LAYOUT_ELEMENTS] = {};
     static Diligent::ImmutableSamplerDesc s_tmp_immutable_samplers[Atomic::MAX_IMMUTABLE_SAMPLERS] = {};
 
-    Diligent::IPipelineState* pipeline_state_builder_acquire(DriverInstance* driver, const PipelineStateInfo& info,
+    Diligent::RefCntAutoPtr<Diligent::IPipelineState> pipeline_state_builder_acquire(DriverInstance* driver, const PipelineStateInfo& info,
                                                              unsigned& hash)
     {
         if (hash == 0)
             hash = pipeline_state_builder_build_hash(info);
+
+        // If hash matches from previous stored pipeline state
+        // then return it instead.
+        if(s_pipelines.Contains(hash))
+            return s_pipelines[hash];
 
         Diligent::GraphicsPipelineStateCreateInfo ci;
         ci.PSODesc.Name = info.debug_name.CString();
@@ -288,10 +293,12 @@ namespace REngine
         return result;
     }
 
-    Diligent::IPipelineState* pipeline_state_builder_get(const unsigned pipeline_hash)
+    Diligent::RefCntAutoPtr<Diligent::IPipelineState> pipeline_state_builder_get(const unsigned pipeline_hash)
     {
         const auto it = s_pipelines.Find(pipeline_hash);
-        return it == s_pipelines.End() ? nullptr : it->second_;
+        if(it == s_pipelines.End())
+            return {};
+        return it->second_;
     }
 
     void pipeline_state_builder_release()
@@ -349,11 +356,11 @@ namespace REngine
         Atomic::CombineHash(hash, info.read_only_depth);
 
         // Shaders
-        Atomic::CombineHash(hash, Atomic::MakeHash(info.vs_shader));
-        Atomic::CombineHash(hash, Atomic::MakeHash(info.ps_shader));
-        Atomic::CombineHash(hash, Atomic::MakeHash(info.ds_shader));
-        Atomic::CombineHash(hash, Atomic::MakeHash(info.hs_shader));
-        Atomic::CombineHash(hash, Atomic::MakeHash(info.gs_shader));
+        Atomic::CombineHash(hash, Atomic::MakeHash(info.vs_shader.ConstPtr()));
+        Atomic::CombineHash(hash, Atomic::MakeHash(info.ps_shader.ConstPtr()));
+        Atomic::CombineHash(hash, Atomic::MakeHash(info.ds_shader.ConstPtr()));
+        Atomic::CombineHash(hash, Atomic::MakeHash(info.hs_shader.ConstPtr()));
+        Atomic::CombineHash(hash, Atomic::MakeHash(info.gs_shader.ConstPtr()));
 
         return hash;
     }

@@ -449,19 +449,9 @@ void Graphics::SetDither(bool enable)
 
 void Graphics::SetFlushGPU(bool enable)
 {
-    throw std::exception("Not implemented");
-    // flushGPU_ = enable;
-    //
-    // if (impl_->device_)
-    // {
-    //     IDXGIDevice1* dxgiDevice;
-    //     impl_->device_->QueryInterface(IID_IDXGIDevice1, (void**)&dxgiDevice);
-    //     if (dxgiDevice)
-    //     {
-    //         dxgiDevice->SetMaximumFrameLatency(enable ? 1 : 3);
-    //         dxgiDevice->Release();
-    //     }
-    // }
+    flushGPU_ = enable;
+    if(impl_->GetSwapChain())
+        impl_->GetSwapChain()->SetMaximumFrameLatency(enable ? 1 : 3);
 }
 
 void Graphics::SetForceGL2(bool enable)
