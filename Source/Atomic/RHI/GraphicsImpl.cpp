@@ -2129,31 +2129,30 @@ namespace Atomic
 
     bool Graphics::OpenWindow(int width, int height, bool resizable, bool borderless)
     {
-        throw new std::exception("Not implemented");
-        // if (!externalWindow_)
-        // {
-        //     unsigned flags = 0;
-        //     if (resizable)
-        //         flags |= SDL_WINDOW_RESIZABLE;
-        //     if (borderless)
-        //         flags |= SDL_WINDOW_BORDERLESS;
-        //
-        //     window_ = SDL_CreateWindow(windowTitle_.CString(), position_.x_, position_.y_, width, height, flags);
-        // }
-        // else
-        //     window_ = SDL_CreateWindowFrom(externalWindow_, 0);
-        //
-        // if (!window_)
-        // {
-        //     ATOMIC_LOGERRORF("Could not create window, root cause: '%s'", SDL_GetError());
-        //     return false;
-        // }
-        //
-        // SDL_GetWindowPosition(window_, &position_.x_, &position_.y_);
-        //
-        // CreateWindowIcon();
-        //
-        // return true;
+        if (!externalWindow_)
+        {
+            unsigned flags = 0;
+            if (resizable)
+                flags |= SDL_WINDOW_RESIZABLE;
+            if (borderless)
+                flags |= SDL_WINDOW_BORDERLESS;
+        
+            window_ = SDL_CreateWindow(windowTitle_.CString(), position_.x_, position_.y_, width, height, flags);
+        }
+        else
+            window_ = SDL_CreateWindowFrom(externalWindow_, 0);
+        
+        if (!window_)
+        {
+            ATOMIC_LOGERRORF("Could not create window, root cause: '%s'", SDL_GetError());
+            return false;
+        }
+        
+        SDL_GetWindowPosition(window_, &position_.x_, &position_.y_);
+        
+        CreateWindowIcon();
+        
+        return true;
     }
 
     void Graphics::AdjustWindow(int& newWidth, int& newHeight, bool& newFullscreen, bool& newBorderless, int& monitor)
