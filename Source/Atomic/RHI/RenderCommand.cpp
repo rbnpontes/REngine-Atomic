@@ -42,12 +42,13 @@ namespace REngine
                 state.pipeline_state = pipeline_state_builder_acquire(driver, state.pipeline_state_info, pipeline_hash);
             }
 
-            state.dirty_state ^= static_cast<unsigned>(RenderCommandDirtyState::pipeline);
+            if(pipeline_hash != 0 && state.pipeline_state)
+                state.dirty_state ^= static_cast<unsigned>(RenderCommandDirtyState::pipeline);
         }
 
         // bind textures
         Atomic::HashMap<Atomic::String, Diligent::IDeviceObject*> resources;
-        if ((state.dirty_state & static_cast<unsigned>(RenderCommandDirtyState::textures)) != 0)
+        if ((state.dirty_state & static_cast<unsigned>(RenderCommandDirtyState::textures)) != 0 && state.pipeline_state)
         {
             for (const auto& it : state.textures)
             {
@@ -59,7 +60,7 @@ namespace REngine
         }
 
         // bind constant buffers
-        if ((state.dirty_state & static_cast<unsigned>(RenderCommandDirtyState::constant_buffers)) != 0)
+        if ((state.dirty_state & static_cast<unsigned>(RenderCommandDirtyState::constant_buffers)) != 0 && state.pipeline_state)
         {
             Atomic::HashMap<Atomic::String, Diligent::RefCntAutoPtr<Diligent::IBuffer>> buffers[] = {
                 state.vs_constant_buffers,
@@ -79,7 +80,7 @@ namespace REngine
         }
 
         // build shader resource binding if is necessary
-        if(resources.Size() > 0)
+        if(resources.Size() > 0 && state.pipeline_state)
             state.shader_resource_binding = pipeline_state_builder_get_or_create_srb(state.pipeline_hash, resources);
 
         // bind render targets if is necessary
@@ -114,6 +115,9 @@ namespace REngine
 
             state.dirty_state ^= static_cast<unsigned>(RenderCommandDirtyState::scissor);
         }
+
+        if(state.pipeline_state)
+            context->SetPipelineState(state.pipeline_state);
     }
 
     void render_command_reset(const Atomic::Graphics* graphics, RenderCommandState& state)
@@ -134,7 +138,10 @@ namespace REngine
         state.pipeline_state_info = {};
         state.shader_resource_binding = nullptr;
 
-        state.viewport = Atomic::IntRect(0, 0, graphics->GetWidth(), graphics->GetHeight());
+        if(graphics->IsInitialized())
+            state.viewport = Atomic::IntRect(0, 0, graphics->GetWidth(), graphics->GetHeight());
+        else
+            state.viewport = Atomic::IntRect::ZERO;
         state.scissor = Atomic::IntRect::ZERO;
         state.stencil_ref = 0;
 
@@ -146,5 +153,20 @@ namespace REngine
             it.second_ = nullptr;
 
         state.dirty_state = static_cast<unsigned>(RenderCommandDirtyState::all);
+    }
+
+    void render_command_clear(const RenderCommandClearDesc& desc)
+    {
+        const auto driver = desc.driver;
+        const auto context = driver->GetDeviceContext();
+
+        if(desc.flags & Atomic::CLEAR_COLOR)
+            context->ClearRenderTarget(desc.render_target, desc.clear_color.Data(), Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
+        if(desc.flags & (Atomic::CLEAR_DEPTH | Atomic::CLEAR_STENCIL))
+            context->ClearDepthStencil(desc.depth_stencil,
+                desc.clear_stencil_flags,
+                desc.clear_depth,
+                desc.clear_stencil,
+                Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
     }
 }

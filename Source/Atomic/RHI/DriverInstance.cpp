@@ -68,7 +68,7 @@ namespace REngine
         if(init_desc.backend == GraphicsBackend::OpenGL)
             num_deferred_contexts = 0;
         device_contexts_.Resize(num_deferred_contexts + 1);
-        memset(device_contexts_.Buffer(), 0x0, sizeof(Diligent::IDeviceContext) * device_contexts_.Size());
+        memset(device_contexts_.Buffer(), 0x0, sizeof(Diligent::IDeviceContext*) * device_contexts_.Size());
         
 
         auto device_contexts = new IDeviceContext*[num_deferred_contexts + 1];

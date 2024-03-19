@@ -60,6 +60,18 @@ namespace REngine
         DriverInstance* driver;
     };
 
+    struct RenderCommandClearDesc
+    {
+        DriverInstance* driver{nullptr};
+        Diligent::ITextureView* render_target{nullptr};
+        Diligent::ITextureView* depth_stencil{nullptr};
+        Atomic::Color clear_color{Atomic::Color::BLACK};
+        float clear_depth{0};
+        uint8_t clear_stencil{0};
+        Diligent::CLEAR_DEPTH_STENCIL_FLAGS clear_stencil_flags{Diligent::CLEAR_DEPTH_FLAG_NONE};
+        unsigned flags{0};
+    };
+
     /**
      * \brief Process Render Command State. This method creates PipelineState, Shader Resource Binding
      * And any other required items required to render.
@@ -72,4 +84,6 @@ namespace REngine
      * \param state 
      */
     void render_command_reset(const Atomic::Graphics* graphics, RenderCommandState& state);
+
+    void render_command_clear(const RenderCommandClearDesc& desc);
 }

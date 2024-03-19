@@ -176,6 +176,13 @@ namespace REngine
         if (s_pipelines.Contains(hash))
             return s_pipelines[hash];
 
+        if(info.vs_shader == nullptr || info.ps_shader == nullptr)
+        {
+            ATOMIC_LOGWARNING("Vertex Shader and Pixel Shader is required to build pipeline state.");
+            hash = 0;
+            return {};
+        }
+        
         Diligent::GraphicsPipelineStateCreateInfo ci;
         ci.PSODesc.Name = info.debug_name.CString();
         ci.pVS = info.vs_shader;
