@@ -404,9 +404,10 @@ public:
     /// Return current pixel shader.
     ShaderVariation* GetPixelShader() const { return pixelShader_; }
 
+#ifndef RENGINE_DILIGENT
     /// Return shader program. This is an API-specific class and should not be used by applications.
     ShaderProgram* GetShaderProgram() const;
-
+#endif
     /// Return texture unit index by name.
     TextureUnit GetTextureUnit(const String& name);
     /// Return texture unit name by index.

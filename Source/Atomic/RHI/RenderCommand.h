@@ -4,15 +4,28 @@
 #include "./DriverInstance.h"
 #include "../Math/Rect.h"
 #include "../Graphics/Graphics.h"
+#include "../Container/HashMap.h"
 
 #include <DiligentCore/Common/interface/RefCntAutoPtr.hpp>
 #include <DiligentCore/Graphics/GraphicsEngine/interface/Buffer.h>
 #include <DiligentCore/Graphics/GraphicsEngine/interface/PipelineState.h>
 #include <DiligentCore/Graphics/GraphicsEngine/interface/ShaderResourceBinding.h>
 
-
 namespace REngine
 {
+    enum class RenderCommandDirtyState : unsigned
+    {
+        none = 0x0,
+        render_targets = 1 << 0,
+        depth_stencil = 1 << 1,
+        pipeline = 1 << 2,
+        textures = 1 << 3,
+        constant_buffers = 1 << 4,
+        viewport = 1 << 5,
+        scissor = 1 << 6,
+        all = render_targets | depth_stencil | pipeline | textures | viewport | scissor
+    };
+    
     struct RenderCommandState
     {
         Diligent::RefCntAutoPtr<Diligent::IBuffer> vertex_buffers[Atomic::MAX_VERTEX_STREAMS]{};
@@ -34,8 +47,11 @@ namespace REngine
         Atomic::IntRect scissor{Atomic::IntRect::ZERO};
         uint8_t stencil_ref{};
 
-        // NOTE: idk if this is really necessary
-        bool use_clip_plane{false};
+        Atomic::HashMap<Atomic::String, Diligent::RefCntAutoPtr<Diligent::ITextureView>> textures{};
+        Atomic::HashMap<Atomic::String, Diligent::RefCntAutoPtr<Diligent::IBuffer>> vs_constant_buffers{};
+        Atomic::HashMap<Atomic::String, Diligent::RefCntAutoPtr<Diligent::IBuffer>> ps_constant_buffers{};
+
+        unsigned dirty_state{static_cast<unsigned>(RenderCommandDirtyState::all)};
     };
 
     struct RenderCommandProcessDesc

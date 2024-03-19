@@ -2,12 +2,12 @@
 #include "./DriverInstance.h"
 #include "../Graphics/GraphicsDefs.h"
 #include "../Container/Str.h"
-#include "../Container/Vector.h"
 
 #include <DiligentCore/Graphics/GraphicsEngine/interface/PipelineState.h>
+#include <DiligentCore/Graphics/GraphicsEngine/interface/ShaderResourceBinding.h>
 #include <DiligentCore/Common/interface/RefCntAutoPtr.hpp>
 
-#include "Math/MathDefs.h"
+#include "../Container/HashMap.h"
 
 namespace REngine
 {
@@ -123,4 +123,12 @@ namespace REngine
      * \return 
      */
     unsigned pipeline_state_builder_build_hash(const PipelineStateInfo& info);
+
+    /**
+     * \brief get or create a shader resource binding from an pipeline hash
+     * \param pipeline_hash 
+     * \param resources 
+     * \return 
+     */
+    Diligent::RefCntAutoPtr<Diligent::IShaderResourceBinding> pipeline_state_builder_get_or_create_srb(const unsigned pipeline_hash, const Atomic::HashMap<Atomic::String, Diligent::IDeviceObject*>& resources);
 }

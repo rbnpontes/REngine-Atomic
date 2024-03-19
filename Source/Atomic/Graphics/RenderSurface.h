@@ -25,6 +25,11 @@
 #include "../Graphics/GraphicsDefs.h"
 #include "../Graphics/Viewport.h"
 
+#ifdef RENGINE_DILIGENT
+#include <DiligentCore/Graphics/GraphicsEngine/interface/Texture.h>
+#include <DiligentCore/Common/interface/RefCntAutoPtr.hpp>
+#endif
+
 namespace Atomic
 {
 
@@ -103,6 +108,9 @@ public:
     /// Return parent texture.
     Texture* GetParentTexture() const { return parentTexture_; }
 
+#if RENGINE_DILIGENT
+    Diligent::RefCntAutoPtr<Diligent::ITextureView> GetRenderTargetView() const { return view_; }
+#else
     /// Return Direct3D9 surface.
     void* GetSurface() const { return surface_; }
 
@@ -117,7 +125,7 @@ public:
 
     /// Return OpenGL renderbuffer if created.
     unsigned GetRenderBuffer() const { return renderBuffer_; }
-
+#endif
     /// Return whether multisampled rendertarget needs resolve.
     bool IsResolveDirty() const { return resolveDirty_; }
 
@@ -126,7 +134,7 @@ public:
 
 private:
 
-// ATOMIC BEGIN
+    // ATOMIC BEGIN
      
     /// ATOMIC: changing to WeakPtr to prevent double release when parentTexture is deleted first
     /// Parent texture.
@@ -134,7 +142,9 @@ private:
 
     // ATOMIC_END
 
-
+#if RENGINE_DILIGENT
+    Diligent::RefCntAutoPtr<Diligent::ITextureView> view_;
+#else
     union
     {
         /// Direct3D9 surface.
@@ -152,6 +162,7 @@ private:
         /// OpenGL target.
         unsigned target_;
     };
+#endif
 
     /// Viewports.
     Vector<SharedPtr<Viewport> > viewports_;

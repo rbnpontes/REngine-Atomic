@@ -58,9 +58,14 @@ static const char* filterModeNames[] =
 Texture::Texture(Context* context) :
     ResourceWithMetadata(context),
     GPUObject(GetSubsystem<Graphics>()),
+#ifdef RENGINE_DILIGENT
+    view_(nullptr),
+    texture_(nullptr),
+#else
     shaderResourceView_(0),
     sampler_(0),
     resolveTexture_(0),
+#endif
     format_(0),
     usage_(TEXTURE_STATIC),
     levels_(0),
@@ -309,4 +314,22 @@ void Texture::CheckTextureBudget(StringHash type)
         cache->ReleaseResources(Material::GetTypeStatic());
 }
 
+#if RENGINE_DILIGENT
+void Texture::GetSamplerDesc(REngine::SamplerDesc& desc) const
+{
+    desc.filter_mode = filterMode_;
+    desc.anisotropy = static_cast<uint8_t>(anisotropy_);
+    desc.shadow_compare = shadowCompare_;
+    
+    if(desc.filter_mode == FILTER_DEFAULT)
+        desc.filter_mode = graphics_->GetDefaultTextureFilterMode();
+    if(desc.anisotropy == 0)
+        desc.anisotropy = static_cast<uint8_t>(graphics_->GetDefaultTextureAnisotropy());
+    
+    desc.address_u = addressMode_[COORD_U];
+    desc.address_v = addressMode_[COORD_V];
+    desc.address_w = addressMode_[COORD_W];
+}
+#endif
+    
 }

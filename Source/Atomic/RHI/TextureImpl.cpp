@@ -52,7 +52,7 @@ void Texture::SetSRGB(bool enable)
 
 bool Texture::GetParametersDirty() const
 {
-    return parametersDirty_ || !sampler_;
+    return parametersDirty_;
 }
 
 bool Texture::IsCompressed() const

@@ -3,10 +3,12 @@
 #include "../Container/Hash.h"
 
 #include "DiligentCore/Common/interface/RefCntAutoPtr.hpp"
+#include "IO/Log.h"
 
 namespace REngine
 {
     static Atomic::HashMap<unsigned, Diligent::RefCntAutoPtr<Diligent::IPipelineState>> s_pipelines;
+    static Atomic::HashMap<unsigned, Diligent::RefCntWeakPtr<Diligent::IShaderResourceBinding>> s_srb;
 
     static uint8_t s_num_components_tbl[] = {
         1,
@@ -162,15 +164,16 @@ namespace REngine
     static Diligent::LayoutElement s_tmp_layout_elements[Diligent::MAX_LAYOUT_ELEMENTS] = {};
     static Diligent::ImmutableSamplerDesc s_tmp_immutable_samplers[Atomic::MAX_IMMUTABLE_SAMPLERS] = {};
 
-    Diligent::RefCntAutoPtr<Diligent::IPipelineState> pipeline_state_builder_acquire(DriverInstance* driver, const PipelineStateInfo& info,
-                                                             unsigned& hash)
+    Diligent::RefCntAutoPtr<Diligent::IPipelineState> pipeline_state_builder_acquire(
+        DriverInstance* driver, const PipelineStateInfo& info,
+        unsigned& hash)
     {
         if (hash == 0)
             hash = pipeline_state_builder_build_hash(info);
 
         // If hash matches from previous stored pipeline state
         // then return it instead.
-        if(s_pipelines.Contains(hash))
+        if (s_pipelines.Contains(hash))
             return s_pipelines[hash];
 
         Diligent::GraphicsPipelineStateCreateInfo ci;
@@ -228,7 +231,7 @@ namespace REngine
         ci.GraphicsPipeline.PrimitiveTopology = s_primitive_topologies_tbl[info.primitive_type];
 
         ci.GraphicsPipeline.NumRenderTargets = info.output.num_rts;
-        for(unsigned i = 0; i < info.output.num_rts; ++i)
+        for (unsigned i = 0; i < info.output.num_rts; ++i)
             ci.GraphicsPipeline.RTVFormats[i] = info.output.render_target_formats[i];
         ci.GraphicsPipeline.DSVFormat = info.output.depth_stencil_format;
         ci.GraphicsPipeline.SmplDesc.Count = info.output.multi_sample;
@@ -236,7 +239,7 @@ namespace REngine
         ci.GraphicsPipeline.BlendDesc.AlphaToCoverageEnable = info.alpha_to_coverage_enabled;
         ci.GraphicsPipeline.BlendDesc.IndependentBlendEnable = false;
 
-        if(info.output.num_rts > 0)
+        if (info.output.num_rts > 0)
         {
             const auto blend_mode = info.blend_mode;
             ci.GraphicsPipeline.BlendDesc.RenderTargets[0].BlendEnable = s_is_blend_enabled_tbl[blend_mode];
@@ -257,22 +260,31 @@ namespace REngine
         ci.GraphicsPipeline.DepthStencilDesc.StencilEnable = info.stencil_test_enabled;
         ci.GraphicsPipeline.DepthStencilDesc.StencilReadMask = info.stencil_cmp_mask;
         ci.GraphicsPipeline.DepthStencilDesc.StencilWriteMask = info.stencil_write_mask;
-        ci.GraphicsPipeline.DepthStencilDesc.FrontFace.StencilFailOp = s_stencil_operations_tbl[info.stencil_op_on_stencil_failed];
-        ci.GraphicsPipeline.DepthStencilDesc.FrontFace.StencilDepthFailOp = s_stencil_operations_tbl[info.stencil_op_depth_failed];
-        ci.GraphicsPipeline.DepthStencilDesc.FrontFace.StencilPassOp = s_stencil_operations_tbl[info.stencil_op_on_passed];
-        ci.GraphicsPipeline.DepthStencilDesc.FrontFace.StencilFunc = s_comparison_functions_tbl[info.stencil_cmp_function];
-        ci.GraphicsPipeline.DepthStencilDesc.BackFace.StencilFailOp = s_stencil_operations_tbl[info.stencil_op_on_stencil_failed];
-        ci.GraphicsPipeline.DepthStencilDesc.BackFace.StencilDepthFailOp = s_stencil_operations_tbl[info.stencil_op_depth_failed];
-        ci.GraphicsPipeline.DepthStencilDesc.BackFace.StencilPassOp = s_stencil_operations_tbl[info.stencil_op_on_passed];
-        ci.GraphicsPipeline.DepthStencilDesc.BackFace.StencilFunc = s_comparison_functions_tbl[info.stencil_cmp_function];
+        ci.GraphicsPipeline.DepthStencilDesc.FrontFace.StencilFailOp = s_stencil_operations_tbl[info.
+            stencil_op_on_stencil_failed];
+        ci.GraphicsPipeline.DepthStencilDesc.FrontFace.StencilDepthFailOp = s_stencil_operations_tbl[info.
+            stencil_op_depth_failed];
+        ci.GraphicsPipeline.DepthStencilDesc.FrontFace.StencilPassOp = s_stencil_operations_tbl[info.
+            stencil_op_on_passed];
+        ci.GraphicsPipeline.DepthStencilDesc.FrontFace.StencilFunc = s_comparison_functions_tbl[info.
+            stencil_cmp_function];
+        ci.GraphicsPipeline.DepthStencilDesc.BackFace.StencilFailOp = s_stencil_operations_tbl[info.
+            stencil_op_on_stencil_failed];
+        ci.GraphicsPipeline.DepthStencilDesc.BackFace.StencilDepthFailOp = s_stencil_operations_tbl[info.
+            stencil_op_depth_failed];
+        ci.GraphicsPipeline.DepthStencilDesc.BackFace.StencilPassOp = s_stencil_operations_tbl[info.
+            stencil_op_on_passed];
+        ci.GraphicsPipeline.DepthStencilDesc.BackFace.StencilFunc = s_comparison_functions_tbl[info.
+            stencil_cmp_function];
 
         unsigned depth_bits = 24;
         auto is_not_opengl = driver->GetBackend() == Atomic::GraphicsBackend::OpenGL;
-        if(info.output.depth_stencil_format == Diligent::TEX_FORMAT_D16_UNORM)
+        if (info.output.depth_stencil_format == Diligent::TEX_FORMAT_D16_UNORM)
             depth_bits = 16;
         const int scaled_depth_bias = is_not_opengl
-            ? static_cast<int>(info.constant_depth_bias * static_cast<float>((1 << depth_bits)))
-            : 0; 
+                                          ? static_cast<int>(info.constant_depth_bias * static_cast<float>((1 <<
+                                              depth_bits)))
+                                          : 0;
 
         ci.GraphicsPipeline.RasterizerDesc.FillMode = s_fill_mode_tbl[info.fill_mode];
         ci.GraphicsPipeline.RasterizerDesc.CullMode = s_cull_mode_tbl[info.cull_mode];
@@ -296,7 +308,7 @@ namespace REngine
     Diligent::RefCntAutoPtr<Diligent::IPipelineState> pipeline_state_builder_get(const unsigned pipeline_hash)
     {
         const auto it = s_pipelines.Find(pipeline_hash);
-        if(it == s_pipelines.End())
+        if (it == s_pipelines.End())
             return {};
         return it->second_;
     }
@@ -304,6 +316,7 @@ namespace REngine
     void pipeline_state_builder_release()
     {
         s_pipelines.Clear();
+        s_srb.Clear();
     }
 
     unsigned pipeline_state_builder_build_hash(const PipelineStateInfo& info)
@@ -363,5 +376,52 @@ namespace REngine
         Atomic::CombineHash(hash, Atomic::MakeHash(info.gs_shader.ConstPtr()));
 
         return hash;
+    }
+
+    Diligent::RefCntAutoPtr<Diligent::IShaderResourceBinding> pipeline_state_builder_get_or_create_srb(
+        const unsigned pipeline_hash, const Atomic::HashMap<Atomic::String, Diligent::IDeviceObject*>& resources)
+    {
+        unsigned key = pipeline_hash;
+        // build key from resource pointers
+        for (const auto& it : resources)
+            Atomic::CombineHash(key, Atomic::MakeHash(it.second_));
+
+        if(s_srb.Contains(key))
+        {
+            auto srb = s_srb[key];
+            // If shader resource binding is not expired. then return it.
+            if(srb.IsValid())
+                return srb.Lock();
+        }
+
+        const auto pipeline = s_pipelines[pipeline_hash];
+        if(!pipeline)
+        {
+            ATOMIC_LOGERRORF("Not found pipeline with hash #%u", pipeline_hash);
+            return {};
+        }
+
+        Diligent::RefCntAutoPtr<Diligent::IShaderResourceBinding> srb;
+        pipeline->CreateShaderResourceBinding(&srb, true);
+
+        s_srb[key] = srb;
+
+        // bind resources into shader resource binding
+        // TODO: add here the other shader types
+        constexpr Diligent::SHADER_TYPE shader_types[] = {
+            Diligent::SHADER_TYPE_VERTEX,
+            Diligent::SHADER_TYPE_PIXEL
+        };
+        for(const auto& it : resources)
+        {
+            for(const auto shader_type : shader_types)
+            {
+                const auto var = srb->GetVariableByName(shader_type, it.first_.CString());
+                if(var)
+                    var->Set(it.second_);
+            }
+        }
+        
+        return srb;
     }
 }

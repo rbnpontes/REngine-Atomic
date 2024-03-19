@@ -26,11 +26,13 @@
 // RHI END
 
 #include <DiligentCore/Graphics/GraphicsEngine/interface/GraphicsTypes.h>
+#include <DiligentCore/Graphics/GraphicsEngine/interface/TextureView.h>
 
 // ATOMIC BEGIN
 #include <SDL/include/SDL.h>
 #include <SDL/include/SDL_syswm.h>
 // ATOMIC END
+
 
 #include "../DebugNew.h"
 
@@ -231,6 +233,8 @@ namespace Atomic
 
     Graphics::~Graphics()
     {
+        impl_->Release();
+        delete impl_;
         throw std::exception("Not implemented");
         // {
         //     MutexLock lock(gpuObjectMutex_);
@@ -1267,14 +1271,13 @@ namespace Atomic
 
     bool Graphics::NeedParameterUpdate(ShaderParameterGroup group, const void* source)
     {
-        throw std::exception("Not implemented");
-        // if ((unsigned)(size_t)shaderParameterSources_[group] == M_MAX_UNSIGNED || shaderParameterSources_[group] != source)
-        // {
-        //     shaderParameterSources_[group] = source;
-        //     return true;
-        // }
-        // else
-        //     return false;
+        if ((unsigned)(size_t)shaderParameterSources_[group] == M_MAX_UNSIGNED || shaderParameterSources_[group] != source)
+        {
+            shaderParameterSources_[group] = source;
+            return true;
+        }
+        else
+            return false;
     }
 
     bool Graphics::HasShaderParameter(StringHash param)
@@ -1285,80 +1288,65 @@ namespace Atomic
 
     bool Graphics::HasTextureUnit(TextureUnit unit)
     {
-        throw std::exception("Not implemented");
-        // return (vertexShader_ && vertexShader_->HasTextureUnit(unit)) || (pixelShader_ && pixelShader_->HasTextureUnit(unit));
+        return (vertexShader_ && vertexShader_->HasTextureUnit(unit)) || (pixelShader_ && pixelShader_->HasTextureUnit(unit));
     }
 
     void Graphics::ClearParameterSource(ShaderParameterGroup group)
     {
-        throw std::exception("Not implemented");
-        // shaderParameterSources_[group] = (const void*)M_MAX_UNSIGNED;
+        shaderParameterSources_[group] = (const void*)M_MAX_UNSIGNED;
     }
 
     void Graphics::ClearParameterSources()
     {
-        throw std::exception("Not implemented");
-        // for (unsigned i = 0; i < MAX_SHADER_PARAMETER_GROUPS; ++i)
-        //     shaderParameterSources_[i] = (const void*)M_MAX_UNSIGNED;
+        for (unsigned i = 0; i < MAX_SHADER_PARAMETER_GROUPS; ++i)
+            shaderParameterSources_[i] = (const void*)M_MAX_UNSIGNED;
     }
 
     void Graphics::ClearTransformSources()
     {
-        throw std::exception("Not implemented");
-        // shaderParameterSources_[SP_CAMERA] = (const void*)M_MAX_UNSIGNED;
-        // shaderParameterSources_[SP_OBJECT] = (const void*)M_MAX_UNSIGNED;
+        shaderParameterSources_[SP_CAMERA] = (const void*)M_MAX_UNSIGNED;
+        shaderParameterSources_[SP_OBJECT] = (const void*)M_MAX_UNSIGNED;
     }
 
     void Graphics::SetTexture(unsigned index, Texture* texture)
     {
-        throw std::exception("Not implemented");
-        // if (index >= MAX_TEXTURE_UNITS)
-        //     return;
-        //
-        // // Check if texture is currently bound as a rendertarget. In that case, use its backup texture, or blank if not defined
-        // if (texture)
-        // {
-        //     if (renderTargets_[0] && renderTargets_[0]->GetParentTexture() == texture)
-        //         texture = texture->GetBackupTexture();
-        //     else
-        //     {
-        //         // Resolve multisampled texture now as necessary
-        //         if (texture->GetMultiSample() > 1 && texture->GetAutoResolve() && texture->IsResolveDirty())
-        //         {
-        //             if (texture->GetType() == Texture2D::GetTypeStatic())
-        //                 ResolveToTexture(static_cast<Texture2D*>(texture));
-        //             if (texture->GetType() == TextureCube::GetTypeStatic())
-        //                 ResolveToTexture(static_cast<TextureCube*>(texture));
-        //         }
-        //     }
-        //
-        //     if (texture->GetLevelsDirty())
-        //         texture->RegenerateLevels();
-        // }
-        //
-        // if (texture && texture->GetParametersDirty())
-        // {
-        //     texture->UpdateParameters();
-        //     textures_[index] = 0; // Force reassign
-        // }
-        //
-        // if (texture != textures_[index])
-        // {
-        //     if (impl_->firstDirtyTexture_ == M_MAX_UNSIGNED)
-        //         impl_->firstDirtyTexture_ = impl_->lastDirtyTexture_ = index;
-        //     else
-        //     {
-        //         if (index < impl_->firstDirtyTexture_)
-        //             impl_->firstDirtyTexture_ = index;
-        //         if (index > impl_->lastDirtyTexture_)
-        //             impl_->lastDirtyTexture_ = index;
-        //     }
-        //
-        //     textures_[index] = texture;
-        //     impl_->shaderResourceViews_[index] = texture ? (ID3D11ShaderResourceView*)texture->GetShaderResourceView() : 0;
-        //     impl_->samplers_[index] = texture ? (ID3D11SamplerState*)texture->GetSampler() : 0;
-        //     impl_->texturesDirty_ = true;
-        // }
+        if (index >= MAX_TEXTURE_UNITS)
+            return;
+        
+        // Check if texture is currently bound as a rendertarget. In that case, use its backup texture, or blank if not defined
+        if (texture)
+        {
+            if (renderTargets_[0] && renderTargets_[0]->GetParentTexture() == texture)
+                texture = texture->GetBackupTexture();
+            else
+            {
+                // Resolve multisampled texture now as necessary
+                if (texture->GetMultiSample() > 1 && texture->GetAutoResolve() && texture->IsResolveDirty())
+                {
+                    if (texture->GetType() == Texture2D::GetTypeStatic())
+                        ResolveToTexture(static_cast<Texture2D*>(texture));
+                    if (texture->GetType() == TextureCube::GetTypeStatic())
+                        ResolveToTexture(static_cast<TextureCube*>(texture));
+                }
+            }
+        
+            if (texture->GetLevelsDirty())
+                texture->RegenerateLevels();
+        }
+        
+        if (texture && texture->GetParametersDirty())
+        {
+            texture->UpdateParameters();
+            textures_[index] = nullptr; // Force reassign
+        }
+        
+        if (texture != textures_[index])
+        {
+            textures_[index] = texture;
+            auto command = REngine::default_render_command_get();
+            command.dirty_state |= static_cast<unsigned>(REngine::RenderCommandDirtyState::textures);
+            REngine::default_render_command_set(command);
+        }
     }
 
     void SetTextureForUpdate(Texture* texture)
@@ -1368,24 +1356,21 @@ namespace Atomic
 
     void Graphics::SetDefaultTextureFilterMode(TextureFilterMode mode)
     {
-        throw std::exception("Not implemented");
-        // if (mode != defaultTextureFilterMode_)
-        // {
-        //     defaultTextureFilterMode_ = mode;
-        //     SetTextureParametersDirty();
-        // }
+        if(mode == defaultTextureFilterMode_)
+            return;
+        defaultTextureFilterMode_ = mode;
+        SetTextureParametersDirty();
     }
 
     void Graphics::SetDefaultTextureAnisotropy(unsigned level)
     {
-        throw std::exception("Not implemented");
-        // level = Max(level, 1U);
-        //
-        // if (level != defaultTextureAnisotropy_)
-        // {
-        //     defaultTextureAnisotropy_ = level;
-        //     SetTextureParametersDirty();
-        // }
+        level = Max(level, 1U);
+        
+        if (level == defaultTextureAnisotropy_)
+            return;
+        
+        defaultTextureAnisotropy_ = level;
+        SetTextureParametersDirty();
     }
 
     void Graphics::Restore()
@@ -1395,70 +1380,69 @@ namespace Atomic
 
     void Graphics::SetTextureParametersDirty()
     {
-        throw std::exception("Not implemented");
-        // MutexLock lock(gpuObjectMutex_);
-        //
-        // for (PODVector<GPUObject*>::Iterator i = gpuObjects_.Begin(); i != gpuObjects_.End(); ++i)
-        // {
-        //     Texture* texture = dynamic_cast<Texture*>(*i);
-        //     if (texture)
-        //         texture->SetParametersDirty();
-        // }
+        MutexLock lock(gpuObjectMutex_);
+        
+        for (PODVector<GPUObject*>::Iterator i = gpuObjects_.Begin(); i != gpuObjects_.End(); ++i)
+        {
+            Texture* texture = dynamic_cast<Texture*>(*i);
+            if (texture)
+                texture->SetParametersDirty();
+        }
     }
 
     void Graphics::ResetRenderTargets()
     {
-        throw std::exception("Not implemented");
-        // for (unsigned i = 0; i < MAX_RENDERTARGETS; ++i)
-        //     SetRenderTarget(i, (RenderSurface*)0);
-        // SetDepthStencil((RenderSurface*)0);
-        // SetViewport(IntRect(0, 0, width_, height_));
+        for (unsigned i = 0; i < MAX_RENDERTARGETS; ++i)
+            SetRenderTarget(i, static_cast<RenderSurface*>(nullptr));
+        SetDepthStencil(static_cast<RenderSurface*>(nullptr));
+        SetViewport(IntRect(0, 0, width_, height_));
     }
 
     void Graphics::ResetRenderTarget(unsigned index)
     {
-        SetRenderTarget(index, (RenderSurface*)0);
+        SetRenderTarget(index, static_cast<RenderSurface*>(nullptr));
     }
 
     void Graphics::ResetDepthStencil()
     {
-        SetDepthStencil((RenderSurface*)0);
+        SetDepthStencil(static_cast<RenderSurface*>(nullptr));
     }
 
     void Graphics::SetRenderTarget(unsigned index, RenderSurface* renderTarget)
     {
-        throw std::exception("Not implemented");
-        // if (index >= MAX_RENDERTARGETS)
-        //     return;
-        //
-        // if (renderTarget != renderTargets_[index])
-        // {
-        //     renderTargets_[index] = renderTarget;
-        //     impl_->renderTargetsDirty_ = true;
-        //
-        //     // If the rendertarget is also bound as a texture, replace with backup texture or null
-        //     if (renderTarget)
-        //     {
-        //         Texture* parentTexture = renderTarget->GetParentTexture();
-        //
-        //         for (unsigned i = 0; i < MAX_TEXTURE_UNITS; ++i)
-        //         {
-        //             if (textures_[i] == parentTexture)
-        //                 SetTexture(i, textures_[i]->GetBackupTexture());
-        //         }
-        //
-        //         // If multisampled, mark the texture & surface needing resolve
-        //         if (parentTexture->GetMultiSample() > 1 && parentTexture->GetAutoResolve())
-        //         {
-        //             parentTexture->SetResolveDirty(true);
-        //             renderTarget->SetResolveDirty(true);
-        //         }
-        //
-        //         // If mipmapped, mark the levels needing regeneration
-        //         if (parentTexture->GetLevels() > 1)
-        //             parentTexture->SetLevelsDirty();
-        //     }
-        // }
+        if (index >= MAX_RENDERTARGETS)
+            return;
+
+        if(renderTarget == renderTargets_[index])
+            return;
+        
+        renderTargets_[index] = renderTarget;
+        auto command = REngine::default_render_command_get();
+        command.dirty_state |= static_cast<unsigned>(REngine::RenderCommandDirtyState::render_targets);
+        REngine::default_render_command_set(command);
+        
+        if (renderTarget == nullptr)
+            return;
+        
+        // If the rendertarget is also bound as a texture, replace with backup texture or null
+        Texture* parentTexture = renderTarget->GetParentTexture();
+
+        for (unsigned i = 0; i < MAX_TEXTURE_UNITS; ++i)
+        {
+            if (textures_[i] == parentTexture)
+                SetTexture(i, textures_[i]->GetBackupTexture());
+        }
+
+        // If multisampled, mark the texture & surface needing resolve
+        if (parentTexture->GetMultiSample() > 1 && parentTexture->GetAutoResolve())
+        {
+            parentTexture->SetResolveDirty(true);
+            renderTarget->SetResolveDirty(true);
+        }
+
+        // If mipmapped, mark the levels needing regeneration
+        if (parentTexture->GetLevels() > 1)
+            parentTexture->SetLevelsDirty();
     }
 
     void Graphics::SetRenderTarget(unsigned index, Texture2D* texture)
@@ -1472,330 +1456,334 @@ namespace Atomic
 
     void Graphics::SetDepthStencil(RenderSurface* depthStencil)
     {
-        throw std::exception("Not implemented");
-        // if (depthStencil != depthStencil_)
-        // {
-        //     depthStencil_ = depthStencil;
-        //     impl_->renderTargetsDirty_ = true;
-        // }
+        if(depthStencil == depthStencil_)
+            return;
+        depthStencil_ = depthStencil;
+        auto command = REngine::default_render_command_get();
+        command.dirty_state |= static_cast<unsigned>(REngine::RenderCommandDirtyState::render_targets);
+        REngine::default_render_command_set(command);
     }
 
     void Graphics::SetDepthStencil(Texture2D* texture)
     {
-        throw std::exception("Not implemented");
-        // RenderSurface* depthStencil = 0;
-        // if (texture)
-        //     depthStencil = texture->GetRenderSurface();
-        //
-        // SetDepthStencil(depthStencil);
-        // // Constant depth bias depends on the bitdepth
-        // impl_->rasterizerStateDirty_ = true;
+        RenderSurface* depthStencil = 0;
+        if (texture)
+            depthStencil = texture->GetRenderSurface();
+        
+        SetDepthStencil(depthStencil);
     }
 
     void Graphics::SetViewport(const IntRect& rect)
     {
-        throw std::exception("Not implemented");
-        // IntVector2 size = GetRenderTargetDimensions();
-        //
-        // IntRect rectCopy = rect;
-        //
-        // if (rectCopy.right_ <= rectCopy.left_)
-        //     rectCopy.right_ = rectCopy.left_ + 1;
-        // if (rectCopy.bottom_ <= rectCopy.top_)
-        //     rectCopy.bottom_ = rectCopy.top_ + 1;
-        // rectCopy.left_ = Clamp(rectCopy.left_, 0, size.x_);
-        // rectCopy.top_ = Clamp(rectCopy.top_, 0, size.y_);
-        // rectCopy.right_ = Clamp(rectCopy.right_, 0, size.x_);
-        // rectCopy.bottom_ = Clamp(rectCopy.bottom_, 0, size.y_);
-        //
-        // static D3D11_VIEWPORT d3dViewport;
-        // d3dViewport.TopLeftX = (float)rectCopy.left_;
-        // d3dViewport.TopLeftY = (float)rectCopy.top_;
-        // d3dViewport.Width = (float)(rectCopy.right_ - rectCopy.left_);
-        // d3dViewport.Height = (float)(rectCopy.bottom_ - rectCopy.top_);
-        // d3dViewport.MinDepth = 0.0f;
-        // d3dViewport.MaxDepth = 1.0f;
-        //
-        // impl_->deviceContext_->RSSetViewports(1, &d3dViewport);
-        //
-        // viewport_ = rectCopy;
-        //
-        // // Disable scissor test, needs to be re-enabled by the user
-        // SetScissorTest(false);
+        IntVector2 size = GetRenderTargetDimensions();
+        
+        IntRect rectCopy = rect;
+        
+        if (rectCopy.right_ <= rectCopy.left_)
+            rectCopy.right_ = rectCopy.left_ + 1;
+        if (rectCopy.bottom_ <= rectCopy.top_)
+            rectCopy.bottom_ = rectCopy.top_ + 1;
+        rectCopy.left_ = Clamp(rectCopy.left_, 0, size.x_);
+        rectCopy.top_ = Clamp(rectCopy.top_, 0, size.y_);
+        rectCopy.right_ = Clamp(rectCopy.right_, 0, size.x_);
+        rectCopy.bottom_ = Clamp(rectCopy.bottom_, 0, size.y_);
+
+        auto command = REngine::default_render_command_get();
+        command.viewport = rectCopy;
+        command.dirty_state |= static_cast<unsigned>(REngine::RenderCommandDirtyState::viewport);
+        REngine::default_render_command_set(command);
+        
+        viewport_ = rectCopy;
+        
+        // Disable scissor test, needs to be re-enabled by the user
+        SetScissorTest(false);
     }
 
     void Graphics::SetBlendMode(BlendMode mode, bool alphaToCoverage)
     {
-        throw std::exception("Not implemented");
-        // if (mode != blendMode_ || alphaToCoverage != alphaToCoverage_)
-        // {
-        //     blendMode_ = mode;
-        //     alphaToCoverage_ = alphaToCoverage;
-        //     impl_->blendStateDirty_ = true;
-        // }
+        if(mode == blendMode_ && alphaToCoverage == alphaToCoverage_)
+            return;
+        auto command = REngine::default_render_command_get();
+        command.pipeline_state_info.blend_mode = blendMode_ = mode;
+        command.pipeline_state_info.alpha_to_coverage_enabled = alphaToCoverage_ = alphaToCoverage;
+        command.dirty_state |= static_cast<unsigned>(REngine::RenderCommandDirtyState::pipeline);
+        REngine::default_render_command_set(command);
     }
 
     void Graphics::SetColorWrite(bool enable)
     {
-        throw std::exception("Not implemented");
-        // if (enable != colorWrite_)
-        // {
-        //     colorWrite_ = enable;
-        //     impl_->blendStateDirty_ = true;
-        // }
+        if(colorWrite_ == enable)
+            return;
+        auto command = REngine::default_render_command_get();
+        command.pipeline_state_info.color_write_enabled = colorWrite_ = enable;
+        command.dirty_state |= static_cast<unsigned>(REngine::RenderCommandDirtyState::pipeline);
+        REngine::default_render_command_set(command);
     }
 
     void Graphics::SetCullMode(CullMode mode)
     {
-        throw std::exception("Not implemented");
-        // if (mode != cullMode_)
-        // {
-        //     cullMode_ = mode;
-        //     impl_->rasterizerStateDirty_ = true;
-        // }
+        if(cullMode_ == mode)
+            return;
+        
+        auto command = REngine::default_render_command_get();
+        command.pipeline_state_info.cull_mode = cullMode_ = mode;
+        command.dirty_state |= static_cast<unsigned>(REngine::RenderCommandDirtyState::pipeline);
+        REngine::default_render_command_set(command);
     }
 
     void Graphics::SetDepthBias(float constantBias, float slopeScaledBias)
     {
-        throw std::exception("Not implemented");
-        // if (constantBias != constantDepthBias_ || slopeScaledBias != slopeScaledDepthBias_)
-        // {
-        //     constantDepthBias_ = constantBias;
-        //     slopeScaledDepthBias_ = slopeScaledBias;
-        //     impl_->rasterizerStateDirty_ = true;
-        // }
+        if(constantBias == constantDepthBias_ || slopeScaledDepthBias_ == slopeScaledBias)
+            return;
+
+        auto command = REngine::default_render_command_get();
+        command.pipeline_state_info.constant_depth_bias = constantDepthBias_ = constantBias;
+        command.pipeline_state_info.slope_scaled_depth_bias = slopeScaledDepthBias_ = slopeScaledBias;
+        command.dirty_state |= static_cast<unsigned>(REngine::RenderCommandDirtyState::pipeline);
+        REngine::default_render_command_set(command);
     }
 
     void Graphics::SetDepthTest(CompareMode mode)
     {
-        throw std::exception("Not implemented");
-        // if (mode != depthTestMode_)
-        // {
-        //     depthTestMode_ = mode;
-        //     impl_->depthStateDirty_ = true;
-        // }
+        if(mode == depthTestMode_)
+            return;
+
+        depthTestMode_ = mode;
+        auto command = REngine::default_render_command_get();
+        command.pipeline_state_info.depth_cmp_function = mode;
+        command.dirty_state |= static_cast<unsigned>(REngine::RenderCommandDirtyState::pipeline);
+        REngine::default_render_command_set(command);
     }
 
     void Graphics::SetDepthWrite(bool enable)
     {
-        throw std::exception("Not implemented");
-        // if (enable != depthWrite_)
-        // {
-        //     depthWrite_ = enable;
-        //     impl_->depthStateDirty_ = true;
-        //     // Also affects whether a read-only version of depth-stencil should be bound, to allow sampling
-        //     impl_->renderTargetsDirty_ = true;
-        // }
+        if(enable == depthWrite_)
+            return;
+
+        depthWrite_ = enable;
+        auto command = REngine::default_render_command_get();
+        command.pipeline_state_info.depth_write_enabled = enable;
+        command.dirty_state |= static_cast<unsigned>(REngine::RenderCommandDirtyState::pipeline);
+        REngine::default_render_command_set(command);
     }
 
     void Graphics::SetFillMode(FillMode mode)
     {
-        throw std::exception("Not implemented");
-        // if (mode != fillMode_)
-        // {
-        //     fillMode_ = mode;
-        //     impl_->rasterizerStateDirty_ = true;
-        // }
+        if(mode == fillMode_)
+            return;
+
+        fillMode_ = mode;
+        auto command = REngine::default_render_command_get();
+        command.pipeline_state_info.fill_mode = mode;
+        command.dirty_state |= static_cast<unsigned>(REngine::RenderCommandDirtyState::pipeline);
+        REngine::default_render_command_set(command);
     }
 
     void Graphics::SetLineAntiAlias(bool enable)
     {
-        throw std::exception("Not implemented");
-        // if (enable != lineAntiAlias_)
-        // {
-        //     lineAntiAlias_ = enable;
-        //     impl_->rasterizerStateDirty_ = true;
-        // }
+        if(enable == lineAntiAlias_)
+            return;
+
+        lineAntiAlias_ = enable;
+        auto command = REngine::default_render_command_get();
+        command.pipeline_state_info.line_anti_alias = enable;
+        command.dirty_state |= static_cast<unsigned>(REngine::RenderCommandDirtyState::pipeline);
+        REngine::default_render_command_set(command);
     }
 
     void Graphics::SetScissorTest(bool enable, const Rect& rect, bool borderInclusive)
     {
-        throw std::exception("Not implemented");
+        auto command = REngine::default_render_command_get();
         // During some light rendering loops, a full rect is toggled on/off repeatedly.
         // Disable scissor in that case to reduce state changes
-        // if (rect.min_.x_ <= 0.0f && rect.min_.y_ <= 0.0f && rect.max_.x_ >= 1.0f && rect.max_.y_ >= 1.0f)
-        //     enable = false;
-        //
-        // if (enable)
-        // {
-        //     IntVector2 rtSize(GetRenderTargetDimensions());
-        //     IntVector2 viewSize(viewport_.Size());
-        //     IntVector2 viewPos(viewport_.left_, viewport_.top_);
-        //     IntRect intRect;
-        //     int expand = borderInclusive ? 1 : 0;
-        //
-        //     intRect.left_ = Clamp((int)((rect.min_.x_ + 1.0f) * 0.5f * viewSize.x_) + viewPos.x_, 0, rtSize.x_ - 1);
-        //     intRect.top_ = Clamp((int)((-rect.max_.y_ + 1.0f) * 0.5f * viewSize.y_) + viewPos.y_, 0, rtSize.y_ - 1);
-        //     intRect.right_ = Clamp((int)((rect.max_.x_ + 1.0f) * 0.5f * viewSize.x_) + viewPos.x_ + expand, 0, rtSize.x_);
-        //     intRect.bottom_ = Clamp((int)((-rect.min_.y_ + 1.0f) * 0.5f * viewSize.y_) + viewPos.y_ + expand, 0, rtSize.y_);
-        //
-        //     if (intRect.right_ == intRect.left_)
-        //         intRect.right_++;
-        //     if (intRect.bottom_ == intRect.top_)
-        //         intRect.bottom_++;
-        //
-        //     if (intRect.right_ < intRect.left_ || intRect.bottom_ < intRect.top_)
-        //         enable = false;
-        //
-        //     if (enable && intRect != scissorRect_)
-        //     {
-        //         scissorRect_ = intRect;
-        //         impl_->scissorRectDirty_ = true;
-        //     }
-        // }
-        //
-        // if (enable != scissorTest_)
-        // {
-        //     scissorTest_ = enable;
-        //     impl_->rasterizerStateDirty_ = true;
-        // }
+        if (rect.min_.x_ <= 0.0f && rect.min_.y_ <= 0.0f && rect.max_.x_ >= 1.0f && rect.max_.y_ >= 1.0f)
+            enable = false;
+        
+        if (enable)
+        {
+            IntVector2 rtSize(GetRenderTargetDimensions());
+            IntVector2 viewSize(viewport_.Size());
+            IntVector2 viewPos(viewport_.left_, viewport_.top_);
+            IntRect intRect;
+            int expand = borderInclusive ? 1 : 0;
+        
+            intRect.left_ = Clamp((int)((rect.min_.x_ + 1.0f) * 0.5f * viewSize.x_) + viewPos.x_, 0, rtSize.x_ - 1);
+            intRect.top_ = Clamp((int)((-rect.max_.y_ + 1.0f) * 0.5f * viewSize.y_) + viewPos.y_, 0, rtSize.y_ - 1);
+            intRect.right_ = Clamp((int)((rect.max_.x_ + 1.0f) * 0.5f * viewSize.x_) + viewPos.x_ + expand, 0, rtSize.x_);
+            intRect.bottom_ = Clamp((int)((-rect.min_.y_ + 1.0f) * 0.5f * viewSize.y_) + viewPos.y_ + expand, 0, rtSize.y_);
+        
+            if (intRect.right_ == intRect.left_)
+                intRect.right_++;
+            if (intRect.bottom_ == intRect.top_)
+                intRect.bottom_++;
+        
+            if (intRect.right_ < intRect.left_ || intRect.bottom_ < intRect.top_)
+                enable = false;
+        
+            if (enable && intRect != scissorRect_)
+            {
+                scissorRect_ = intRect;
+                command.scissor = intRect;
+                command.dirty_state |= static_cast<unsigned>(REngine::RenderCommandDirtyState::scissor);
+            }
+        }
+        
+        if (enable != scissorTest_)
+        {
+            scissorTest_ = enable;
+            command.pipeline_state_info.scissor_test_enabled = enable;
+            command.dirty_state |= static_cast<unsigned>(REngine::RenderCommandDirtyState::pipeline);
+        }
+
+        REngine::default_render_command_set(command);
     }
 
     void Graphics::SetScissorTest(bool enable, const IntRect& rect)
     {
-        throw std::exception("Not implemented");
-        // IntVector2 rtSize(GetRenderTargetDimensions());
-        // IntVector2 viewPos(viewport_.left_, viewport_.top_);
-        //
-        // if (enable)
-        // {
-        //     IntRect intRect;
-        //     intRect.left_ = Clamp(rect.left_ + viewPos.x_, 0, rtSize.x_ - 1);
-        //     intRect.top_ = Clamp(rect.top_ + viewPos.y_, 0, rtSize.y_ - 1);
-        //     intRect.right_ = Clamp(rect.right_ + viewPos.x_, 0, rtSize.x_);
-        //     intRect.bottom_ = Clamp(rect.bottom_ + viewPos.y_, 0, rtSize.y_);
-        //
-        //     if (intRect.right_ == intRect.left_)
-        //         intRect.right_++;
-        //     if (intRect.bottom_ == intRect.top_)
-        //         intRect.bottom_++;
-        //
-        //     if (intRect.right_ < intRect.left_ || intRect.bottom_ < intRect.top_)
-        //         enable = false;
-        //
-        //     if (enable && intRect != scissorRect_)
-        //     {
-        //         scissorRect_ = intRect;
-        //         impl_->scissorRectDirty_ = true;
-        //     }
-        // }
-        //
-        // if (enable != scissorTest_)
-        // {
-        //     scissorTest_ = enable;
-        //     impl_->rasterizerStateDirty_ = true;
-        // }
+        auto command = REngine::default_render_command_get();
+        IntVector2 rtSize(GetRenderTargetDimensions());
+        IntVector2 viewPos(viewport_.left_, viewport_.top_);
+        
+        if (enable)
+        {
+            IntRect intRect;
+            intRect.left_ = Clamp(rect.left_ + viewPos.x_, 0, rtSize.x_ - 1);
+            intRect.top_ = Clamp(rect.top_ + viewPos.y_, 0, rtSize.y_ - 1);
+            intRect.right_ = Clamp(rect.right_ + viewPos.x_, 0, rtSize.x_);
+            intRect.bottom_ = Clamp(rect.bottom_ + viewPos.y_, 0, rtSize.y_);
+        
+            if (intRect.right_ == intRect.left_)
+                intRect.right_++;
+            if (intRect.bottom_ == intRect.top_)
+                intRect.bottom_++;
+        
+            if (intRect.right_ < intRect.left_ || intRect.bottom_ < intRect.top_)
+                enable = false;
+        
+            if (enable && intRect != scissorRect_)
+            {
+                scissorRect_ = intRect;
+                command.scissor = intRect;
+                command.dirty_state |= static_cast<unsigned>(REngine::RenderCommandDirtyState::scissor);
+            }
+        }
+        
+        if (enable != scissorTest_)
+        {
+            scissorTest_ = enable;
+            command.pipeline_state_info.scissor_test_enabled = enable;
+            command.dirty_state |= static_cast<unsigned>(REngine::RenderCommandDirtyState::pipeline);
+        }
+
+        REngine::default_render_command_set(command);
     }
 
     void Graphics::SetStencilTest(bool enable, CompareMode mode, StencilOp pass, StencilOp fail, StencilOp zFail,
                                   unsigned stencilRef,
                                   unsigned compareMask, unsigned writeMask)
     {
-        throw std::exception("Not implemented");
-        // if (enable != stencilTest_)
-        // {
-        //     stencilTest_ = enable;
-        //     impl_->depthStateDirty_ = true;
-        // }
-        //
-        // if (enable)
-        // {
-        //     if (mode != stencilTestMode_)
-        //     {
-        //         stencilTestMode_ = mode;
-        //         impl_->depthStateDirty_ = true;
-        //     }
-        //     if (pass != stencilPass_)
-        //     {
-        //         stencilPass_ = pass;
-        //         impl_->depthStateDirty_ = true;
-        //     }
-        //     if (fail != stencilFail_)
-        //     {
-        //         stencilFail_ = fail;
-        //         impl_->depthStateDirty_ = true;
-        //     }
-        //     if (zFail != stencilZFail_)
-        //     {
-        //         stencilZFail_ = zFail;
-        //         impl_->depthStateDirty_ = true;
-        //     }
-        //     if (compareMask != stencilCompareMask_)
-        //     {
-        //         stencilCompareMask_ = compareMask;
-        //         impl_->depthStateDirty_ = true;
-        //     }
-        //     if (writeMask != stencilWriteMask_)
-        //     {
-        //         stencilWriteMask_ = writeMask;
-        //         impl_->depthStateDirty_ = true;
-        //     }
-        //     if (stencilRef != stencilRef_)
-        //     {
-        //         stencilRef_ = stencilRef;
-        //         impl_->stencilRefDirty_ = true;
-        //         impl_->depthStateDirty_ = true;
-        //     }
-        // }
+        auto command = REngine::default_render_command_get();
+        if (enable != stencilTest_)
+        {
+            stencilTest_ = enable;
+            command.pipeline_state_info.stencil_test_enabled = enable;
+            command.dirty_state |= static_cast<unsigned>(REngine::RenderCommandDirtyState::pipeline);
+        }
+        
+        if (enable)
+        {
+            if (mode != stencilTestMode_)
+            {
+                stencilTestMode_ = mode;
+                command.pipeline_state_info.stencil_cmp_function = mode;
+                command.dirty_state |= static_cast<unsigned>(REngine::RenderCommandDirtyState::pipeline);
+            }
+            if (pass != stencilPass_)
+            {
+                stencilPass_ = pass;
+                command.pipeline_state_info.stencil_op_on_passed = pass;
+                command.dirty_state |= static_cast<unsigned>(REngine::RenderCommandDirtyState::pipeline);
+            }
+            if (fail != stencilFail_)
+            {
+                stencilFail_ = fail;
+                command.pipeline_state_info.stencil_op_on_stencil_failed = fail;
+                command.dirty_state |= static_cast<unsigned>(REngine::RenderCommandDirtyState::pipeline);
+            }
+            if (zFail != stencilZFail_)
+            {
+                stencilZFail_ = zFail;
+                command.pipeline_state_info.stencil_op_depth_failed = zFail;
+                command.dirty_state |= static_cast<unsigned>(REngine::RenderCommandDirtyState::pipeline);
+            }
+            if (compareMask != stencilCompareMask_)
+            {
+                stencilCompareMask_ = compareMask;
+                command.pipeline_state_info.stencil_cmp_mask = static_cast<uint8_t>(compareMask);
+                command.dirty_state |= static_cast<unsigned>(REngine::RenderCommandDirtyState::pipeline);
+            }
+            if (writeMask != stencilWriteMask_)
+            {
+                stencilWriteMask_ = writeMask;
+                command.pipeline_state_info.stencil_write_mask = static_cast<uint8_t>(writeMask);
+                command.dirty_state |= static_cast<unsigned>(REngine::RenderCommandDirtyState::pipeline);
+            }
+            if (stencilRef != stencilRef_)
+            {
+                stencilRef_ = stencilRef;
+                command.stencil_ref = static_cast<uint8_t>(stencilRef);
+                command.dirty_state |= static_cast<unsigned>(REngine::RenderCommandDirtyState::pipeline);
+            }
+        }
+
+        REngine::default_render_command_set(command);
     }
 
     void Graphics::SetClipPlane(bool enable, const Plane& clipPlane, const Matrix3x4& view, const Matrix4& projection)
     {
-        throw std::exception("Not implemented");
-        // useClipPlane_ = enable;
-        //
-        // if (enable)
-        // {
-        //     Matrix4 viewProj = projection * view;
-        //     clipPlane_ = clipPlane.Transformed(viewProj).ToVector4();
-        //     SetShaderParameter(VSP_CLIPPLANE, clipPlane_);
-        // }
+        useClipPlane_ = enable;
+        
+        if (!enable)
+            return;
+        
+        Matrix4 viewProj = projection * view;
+        clipPlane_ = clipPlane.Transformed(viewProj).ToVector4();
+        SetShaderParameter(VSP_CLIPPLANE, clipPlane_);
     }
 
     bool Graphics::IsInitialized() const
     {
-        throw std::exception("Not implemented");
-        // return window_ != 0 && impl_->GetDevice() != 0;
+        return window_ != nullptr && impl_->IsInitialized();
     }
 
     PODVector<int> Graphics::GetMultiSampleLevels() const
     {
-        throw std::exception("Not implemented");
-        // PODVector<int> ret;
-        // ret.Push(1);
-        //
-        // if (impl_->device_)
-        // {
-        //     for (unsigned i = 2; i <= 16; ++i)
-        //     {
-        //         if (impl_->CheckMultiSampleSupport(sRGB_ ? DXGI_FORMAT_R8G8B8A8_UNORM_SRGB : DXGI_FORMAT_R8G8B8A8_UNORM, i))
-        //             ret.Push(i);
-        //     }
-        // }
-        //
-        // return ret;
+        if(!impl_->IsInitialized())
+            return {};
+        return impl_->GetMultiSampleLevels(impl_->GetSwapChain()->GetDesc().ColorBufferFormat,
+            impl_->GetSwapChain()->GetDesc().DepthBufferFormat);
     }
 
     unsigned Graphics::GetFormat(CompressedFormat format) const
     {
-        throw std::exception("Not implemented");
-        // switch (format)
-        // {
-        // case CF_RGBA:
-        //     return DXGI_FORMAT_R8G8B8A8_UNORM;
-        //
-        // case CF_DXT1:
-        //     return DXGI_FORMAT_BC1_UNORM;
-        //
-        // case CF_DXT3:
-        //     return DXGI_FORMAT_BC2_UNORM;
-        //
-        // case CF_DXT5:
-        //     return DXGI_FORMAT_BC3_UNORM;
-        //
-        // default:
-        //     return 0;
-        // }
+        using namespace Diligent;
+        switch (format)
+        {
+        case CF_RGBA:
+            return TEX_FORMAT_RGBA8_UNORM;
+        
+        case CF_DXT1:
+            return TEX_FORMAT_BC1_UNORM;
+        
+        case CF_DXT3:
+            return TEX_FORMAT_BC2_UNORM;
+        
+        case CF_DXT5:
+            return TEX_FORMAT_BC3_UNORM;
+        
+        default:
+            return 0;
+        }
     }
 
     ShaderVariation* Graphics::GetShader(ShaderType type, const String& name, const String& defines) const
@@ -1805,90 +1793,77 @@ namespace Atomic
 
     ShaderVariation* Graphics::GetShader(ShaderType type, const char* name, const char* defines) const
     {
-        throw std::exception("Not implemented");
-        // if (lastShaderName_ != name || !lastShader_)
-        // {
-        //     ResourceCache* cache = GetSubsystem<ResourceCache>();
-        //
-        //     String fullShaderName = shaderPath_ + name + shaderExtension_;
-        //     // Try to reduce repeated error log prints because of missing shaders
-        //     if (lastShaderName_ == name && !cache->Exists(fullShaderName))
-        //         return 0;
-        //
-        //     lastShader_ = cache->GetResource<Shader>(fullShaderName);
-        //     lastShaderName_ = name;
-        // }
-        //
-        // return lastShader_ ? lastShader_->GetVariation(type, defines) : (ShaderVariation*)0;
+        if (lastShaderName_ != name || !lastShader_)
+        {
+            ResourceCache* cache = GetSubsystem<ResourceCache>();
+        
+            String fullShaderName = shaderPath_ + name + shaderExtension_;
+            // Try to reduce repeated error log prints because of missing shaders
+            if (lastShaderName_ == name && !cache->Exists(fullShaderName))
+                return nullptr;
+        
+            lastShader_ = cache->GetResource<Shader>(fullShaderName);
+            lastShaderName_ = name;
+        }
+        
+        return lastShader_ ? lastShader_->GetVariation(type, defines) : nullptr;
     }
 
     VertexBuffer* Graphics::GetVertexBuffer(unsigned index) const
     {
-        throw std::exception("Not implemented");
-        // return index < MAX_VERTEX_STREAMS ? vertexBuffers_[index] : 0;
-    }
-
-    ShaderProgram* Graphics::GetShaderProgram() const
-    {
-        throw std::exception("Not implemented");
-        // return impl_->shaderProgram_;
+        return index < MAX_VERTEX_STREAMS ? vertexBuffers_[index] : nullptr;
     }
 
     TextureUnit Graphics::GetTextureUnit(const String& name)
     {
-        throw std::exception("Not implemented");
-        // HashMap<String, TextureUnit>::Iterator i = textureUnits_.Find(name);
-        // if (i != textureUnits_.End())
-        //     return i->second_;
-        // else
-        //     return MAX_TEXTURE_UNITS;
+        HashMap<String, TextureUnit>::Iterator i = textureUnits_.Find(name);
+        if (i != textureUnits_.End())
+            return i->second_;
+        else
+            return MAX_TEXTURE_UNITS;
     }
 
     const String& Graphics::GetTextureUnitName(TextureUnit unit)
     {
-        throw std::exception("Not implemented");
-        // for (HashMap<String, TextureUnit>::Iterator i = textureUnits_.Begin(); i != textureUnits_.End(); ++i)
-        // {
-        //     if (i->second_ == unit)
-        //         return i->first_;
-        // }
-        // return String::EMPTY;
+        for (HashMap<String, TextureUnit>::Iterator i = textureUnits_.Begin(); i != textureUnits_.End(); ++i)
+        {
+            if (i->second_ == unit)
+                return i->first_;
+        }
+        return String::EMPTY;
     }
 
     Texture* Graphics::GetTexture(unsigned index) const
     {
-        throw std::exception("Not implemented");
-        // return index < MAX_TEXTURE_UNITS ? textures_[index] : 0;
+        return index < MAX_TEXTURE_UNITS ? textures_[index] : nullptr;
     }
 
     RenderSurface* Graphics::GetRenderTarget(unsigned index) const
     {
-        throw std::exception("Not implemented");
-        // return index < MAX_RENDERTARGETS ? renderTargets_[index] : 0;
+        return index < MAX_RENDERTARGETS ? renderTargets_[index] : nullptr;
     }
 
     IntVector2 Graphics::GetRenderTargetDimensions() const
     {
-        throw std::exception("Not implemented");
-        // int width, height;
-        //
-        // if (renderTargets_[0])
-        // {
-        //     width = renderTargets_[0]->GetWidth();
-        //     height = renderTargets_[0]->GetHeight();
-        // }
-        // else if (depthStencil_) // Depth-only rendering
-        // {
-        //     width = depthStencil_->GetWidth();
-        //     height = depthStencil_->GetHeight();
-        // }
-        // else
-        // {
-        //     width = width_;
-        //     height = height_;
-        // }
-        //
-        // return IntVector2(width, height);
+        int width, height;
+        
+        if (renderTargets_[0])
+        {
+            width = renderTargets_[0]->GetWidth();
+            height = renderTargets_[0]->GetHeight();
+        }
+        else if (depthStencil_) // Depth-only rendering
+        {
+            width = depthStencil_->GetWidth();
+            height = depthStencil_->GetHeight();
+        }
+        else
+        {
+            width = width_;
+            height = height_;
+        }
+        
+        return IntVector2(width, height);
     }
 
     bool Graphics::GetDither() const
@@ -1904,73 +1879,61 @@ namespace Atomic
 
     void Graphics::OnWindowResized()
     {
-        throw std::exception("Not implemented");
-        // if (!impl_->device_ || !window_)
-        //     return;
-        //
-        // int newWidth, newHeight;
-        //
-        // SDL_GetWindowSize(window_, &newWidth, &newHeight);
-        // if (newWidth == width_ && newHeight == height_)
-        //     return;
-        //
-        // UpdateSwapChain(newWidth, newHeight);
-        //
-        // // Reset rendertargets and viewport for the new screen size
-        // ResetRenderTargets();
-        //
-        // ATOMIC_LOGDEBUGF("Window was resized to %dx%d", width_, height_);
-        //
-        // using namespace ScreenMode;
-        //
-        // VariantMap& eventData = GetEventDataMap();
-        // eventData[P_WIDTH] = width_;
-        // eventData[P_HEIGHT] = height_;
-        // eventData[P_FULLSCREEN] = fullscreen_;
-        // eventData[P_RESIZABLE] = resizable_;
-        // eventData[P_BORDERLESS] = borderless_;
-        // eventData[P_HIGHDPI] = highDPI_;
-        // SendEvent(E_SCREENMODE, eventData);
+        if (!IsInitialized())
+            return;
+        
+        int newWidth, newHeight;
+        
+        SDL_GetWindowSize(window_, &newWidth, &newHeight);
+        if (newWidth == width_ && newHeight == height_)
+            return;
+        
+        UpdateSwapChain(newWidth, newHeight);
+        
+        // Reset rendertargets and viewport for the new screen size
+        ResetRenderTargets();
+        
+        ATOMIC_LOGDEBUGF("Window was resized to %dx%d", width_, height_);
+        
+        using namespace ScreenMode;
+        
+        VariantMap& eventData = GetEventDataMap();
+        eventData[P_WIDTH] = width_;
+        eventData[P_HEIGHT] = height_;
+        eventData[P_FULLSCREEN] = fullscreen_;
+        eventData[P_RESIZABLE] = resizable_;
+        eventData[P_BORDERLESS] = borderless_;
+        eventData[P_HIGHDPI] = highDPI_;
+        SendEvent(E_SCREENMODE, eventData);
     }
 
     void Graphics::OnWindowMoved()
     {
-        throw std::exception("Not implemented");
-        // if (!impl_->device_ || !window_ || fullscreen_)
-        //     return;
-        //
-        // int newX, newY;
-        //
-        // SDL_GetWindowPosition(window_, &newX, &newY);
-        // if (newX == position_.x_ && newY == position_.y_)
-        //     return;
-        //
-        // position_.x_ = newX;
-        // position_.y_ = newY;
-        //
-        // ATOMIC_LOGDEBUGF("Window was moved to %d,%d", position_.x_, position_.y_);
-        //
-        // using namespace WindowPos;
-        //
-        // VariantMap& eventData = GetEventDataMap();
-        // eventData[P_X] = position_.x_;
-        // eventData[P_Y] = position_.y_;
-        // SendEvent(E_WINDOWPOS, eventData);
+        if (!IsInitialized() || fullscreen_)
+            return;
+        
+        int newX, newY;
+        
+        SDL_GetWindowPosition(window_, &newX, &newY);
+        if (newX == position_.x_ && newY == position_.y_)
+            return;
+        
+        position_.x_ = newX;
+        position_.y_ = newY;
+        
+        ATOMIC_LOGDEBUGF("Window was moved to %d,%d", position_.x_, position_.y_);
+        
+        using namespace WindowPos;
+        
+        VariantMap& eventData = GetEventDataMap();
+        eventData[P_X] = position_.x_;
+        eventData[P_Y] = position_.y_;
+        SendEvent(E_WINDOWPOS, eventData);
     }
 
     void Graphics::CleanupShaderPrograms(ShaderVariation* variation)
     {
         throw std::exception("Not implemented");
-        // for (ShaderProgramMap::Iterator i = impl_->shaderPrograms_.Begin(); i != impl_->shaderPrograms_.End();)
-        // {
-        //     if (i->first_.first_ == variation || i->first_.second_ == variation)
-        //         i = impl_->shaderPrograms_.Erase(i);
-        //     else
-        //         ++i;
-        // }
-        //
-        // if (vertexShader_ == variation || pixelShader_ == variation)
-        //     impl_->shaderProgram_ = 0;
     }
 
     void Graphics::CleanupRenderSurface(RenderSurface* surface)
@@ -1980,19 +1943,16 @@ namespace Atomic
 
     ConstantBuffer* Graphics::GetOrCreateConstantBuffer(ShaderType type, unsigned index, unsigned size)
     {
-        throw std::exception("Not implemented");
         // Ensure that different shader types and index slots get unique buffers, even if the size is same
-        // unsigned key = type | (index << 1) | (size << 4);
-        // ConstantBufferMap::Iterator i = impl_->allConstantBuffers_.Find(key);
-        // if (i != impl_->allConstantBuffers_.End())
-        //     return i->second_.Get();
-        // else
-        // {
-        //     SharedPtr<ConstantBuffer> newConstantBuffer(new ConstantBuffer(context_));
-        //     newConstantBuffer->SetSize(size);
-        //     impl_->allConstantBuffers_[key] = newConstantBuffer;
-        //     return newConstantBuffer.Get();
-        // }
+        unsigned key = type | (index << 1) | (size << 4);
+        auto constant_buffer = REngine::graphics_state_get_constant_buffer(key);
+
+        if(constant_buffer)
+            return constant_buffer;
+
+        constant_buffer = SharedPtr<ConstantBuffer>(new ConstantBuffer(context_));
+        REngine::graphics_state_add_constant_buffer(key, constant_buffer);
+        return constant_buffer;
     }
 
     unsigned Graphics::GetAlphaFormat()
@@ -2157,235 +2117,91 @@ namespace Atomic
 
     void Graphics::AdjustWindow(int& newWidth, int& newHeight, bool& newFullscreen, bool& newBorderless, int& monitor)
     {
-        throw new std::exception("Not implemented");
-        // if (!externalWindow_)
-        // {
-        //     if (!newWidth || !newHeight)
-        //     {
-        //         SDL_MaximizeWindow(window_);
-        //         SDL_GetWindowSize(window_, &newWidth, &newHeight);
-        //     }
-        //     else 
-        //     {
-        //         SDL_Rect display_rect;
-        //         SDL_GetDisplayBounds(monitor, &display_rect);
-        //
-        //         if (newFullscreen || (newBorderless && newWidth >= display_rect.w && newHeight >= display_rect.h))
-        //         {
-        //             // Reposition the window on the specified monitor if it's supposed to cover the entire monitor
-        //             SDL_SetWindowPosition(window_, display_rect.x, display_rect.y);
-        //         }
-        //
-        //         SDL_SetWindowSize(window_, newWidth, newHeight);
-        //     }
-        //
-        //     // Hack fix: on SDL 2.0.4 a fullscreen->windowed transition results in a maximized window when the D3D device is reset, so hide before
-        //     SDL_HideWindow(window_);
-        //     SDL_SetWindowFullscreen(window_, newFullscreen ? SDL_WINDOW_FULLSCREEN : 0);
-        //     SDL_SetWindowBordered(window_, newBorderless ? SDL_FALSE : SDL_TRUE);
-        //     SDL_ShowWindow(window_);
-        // }
-        // else
-        // {
-        //     // If external window, must ask its dimensions instead of trying to set them
-        //     SDL_GetWindowSize(window_, &newWidth, &newHeight);
-        //     newFullscreen = false;
-        // }
+        if (!externalWindow_)
+        {
+            if (!newWidth || !newHeight)
+            {
+                SDL_MaximizeWindow(window_);
+                SDL_GetWindowSize(window_, &newWidth, &newHeight);
+            }
+            else 
+            {
+                SDL_Rect display_rect;
+                SDL_GetDisplayBounds(monitor, &display_rect);
+        
+                if (newFullscreen || (newBorderless && newWidth >= display_rect.w && newHeight >= display_rect.h))
+                {
+                    // Reposition the window on the specified monitor if it's supposed to cover the entire monitor
+                    SDL_SetWindowPosition(window_, display_rect.x, display_rect.y);
+                }
+        
+                SDL_SetWindowSize(window_, newWidth, newHeight);
+            }
+        
+            // Hack fix: on SDL 2.0.4 a fullscreen->windowed transition results in a maximized window when the D3D device is reset, so hide before
+            SDL_HideWindow(window_);
+            SDL_SetWindowFullscreen(window_, newFullscreen ? SDL_WINDOW_FULLSCREEN : 0);
+            SDL_SetWindowBordered(window_, newBorderless ? SDL_FALSE : SDL_TRUE);
+            SDL_ShowWindow(window_);
+        }
+        else
+        {
+            // If external window, must ask its dimensions instead of trying to set them
+            SDL_GetWindowSize(window_, &newWidth, &newHeight);
+            newFullscreen = false;
+        }
     }
 
     bool Graphics::CreateDevice(int width, int height, int multiSample)
     {
-        throw new std::exception("Not implemented");
-        // // Device needs only to be created once
-        // if (!impl_->device_)
-        // {
-        //     HRESULT hr = D3D11CreateDevice(
-        //         0,
-        //         D3D_DRIVER_TYPE_HARDWARE,
-        //         0,
-        //         0,
-        //         0,
-        //         0,
-        //         D3D11_SDK_VERSION,
-        //         &impl_->device_,
-        //         0,
-        //         &impl_->deviceContext_
-        //     );
-        //
-        //     if (FAILED(hr))
-        //     {
-        //         ATOMIC_SAFE_RELEASE(impl_->device_);
-        //         ATOMIC_SAFE_RELEASE(impl_->deviceContext_);
-        //         ATOMIC_LOGD3DERROR("Failed to create D3D11 device", hr);
-        //         return false;
-        //     }
-        //
-        //     CheckFeatureSupport();
-        //     // Set the flush mode now as the device has been created
-        //     SetFlushGPU(flushGPU_);
-        // }
-        //
-        // // Check that multisample level is supported
-        // PODVector<int> multiSampleLevels = GetMultiSampleLevels();
-        // if (!multiSampleLevels.Contains(multiSample))
-        //     multiSample = 1;
-        //
-        // // Create swap chain. Release old if necessary
-        // if (impl_->swapChain_)
-        // {
-        //     impl_->swapChain_->Release();
-        //     impl_->swapChain_ = 0;
-        // }
-        //
-        // DXGI_SWAP_CHAIN_DESC swapChainDesc;
-        // memset(&swapChainDesc, 0, sizeof swapChainDesc);
-        // swapChainDesc.BufferCount = 1;
-        // swapChainDesc.BufferDesc.Width = (UINT)width;
-        // swapChainDesc.BufferDesc.Height = (UINT)height;
-        // swapChainDesc.BufferDesc.Format = sRGB_ ? DXGI_FORMAT_R8G8B8A8_UNORM_SRGB : DXGI_FORMAT_R8G8B8A8_UNORM;
-        // swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-        // swapChainDesc.OutputWindow = GetWindowHandle(window_);
-        // swapChainDesc.SampleDesc.Count = (UINT)multiSample;
-        // swapChainDesc.SampleDesc.Quality = impl_->GetMultiSampleQuality(swapChainDesc.BufferDesc.Format, multiSample);
-        // swapChainDesc.Windowed = TRUE;
-        // swapChainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
-        //
-        // IDXGIDevice* dxgiDevice = 0;
-        // impl_->device_->QueryInterface(IID_IDXGIDevice, (void**)&dxgiDevice);
-        // IDXGIAdapter* dxgiAdapter = 0;
-        // dxgiDevice->GetParent(IID_IDXGIAdapter, (void**)&dxgiAdapter);
-        // IDXGIFactory* dxgiFactory = 0;
-        // dxgiAdapter->GetParent(IID_IDXGIFactory, (void**)&dxgiFactory);
-        // HRESULT hr = dxgiFactory->CreateSwapChain(impl_->device_, &swapChainDesc, &impl_->swapChain_);
-        // // After creating the swap chain, disable automatic Alt-Enter fullscreen/windowed switching
-        // // (the application will switch manually if it wants to)
-        // dxgiFactory->MakeWindowAssociation(GetWindowHandle(window_), DXGI_MWA_NO_ALT_ENTER);
-        //
-        // dxgiFactory->Release();
-        // dxgiAdapter->Release();
-        // dxgiDevice->Release();
-        //
-        // if (FAILED(hr))
-        // {
-        //     ATOMIC_SAFE_RELEASE(impl_->swapChain_);
-        //     ATOMIC_LOGD3DERROR("Failed to create D3D11 swap chain", hr);
-        //     return false;
-        // }
-        //
-        // multiSample_ = multiSample;
-        // return true;
+        REngine::DriverInstanceInitDesc desc;
+#if WIN32
+        desc.window = Diligent::NativeWindow(GetWindowHandle(window_));
+#else
+        throw std::exception("Not implemented window acquire");
+#endif
+        desc.window_size = IntVector2(width, height);
+        desc.multisample = static_cast<uint8_t>(multiSample);
+        desc.color_buffer_format = sRGB_ ? Diligent::TEX_FORMAT_RGBA8_UNORM_SRGB : Diligent::TEX_FORMAT_RGBA8_UNORM;
+        desc.depth_buffer_format = Diligent::TEX_FORMAT_D24_UNORM_S8_UINT;
+
+        if(impl_->IsInitialized())
+            impl_->Release();
+        
+        if(impl_->InitDevice(desc))
+        {
+            CheckFeatureSupport();
+            SetFlushGPU(flushGPU_);
+            multiSample_ = impl_->GetMultiSample();
+            return true;
+        }
+
+        ATOMIC_LOGERROR("Failed to initialize graphics driver.");
+        return false;
     }
 
     bool Graphics::UpdateSwapChain(int width, int height)
     {
-        throw new std::exception("Not implemented");
-        // bool success = true;
-        //
-        // ID3D11RenderTargetView* nullView = 0;
-        // impl_->deviceContext_->OMSetRenderTargets(1, &nullView, 0);
-        // if (impl_->defaultRenderTargetView_)
-        // {
-        //     impl_->defaultRenderTargetView_->Release();
-        //     impl_->defaultRenderTargetView_ = 0;
-        // }
-        // if (impl_->defaultDepthStencilView_)
-        // {
-        //     impl_->defaultDepthStencilView_->Release();
-        //     impl_->defaultDepthStencilView_ = 0;
-        // }
-        // if (impl_->defaultDepthTexture_)
-        // {
-        //     impl_->defaultDepthTexture_->Release();
-        //     impl_->defaultDepthTexture_ = 0;
-        // }
-        // if (impl_->resolveTexture_)
-        // {
-        //     impl_->resolveTexture_->Release();
-        //     impl_->resolveTexture_ = 0;
-        // }
-        //
-        // impl_->depthStencilView_ = 0;
-        // for (unsigned i = 0; i < MAX_RENDERTARGETS; ++i)
-        //     impl_->renderTargetViews_[i] = 0;
-        // impl_->renderTargetsDirty_ = true;
-        //
-        // impl_->swapChain_->ResizeBuffers(1, (UINT)width, (UINT)height, DXGI_FORMAT_UNKNOWN, DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH);
-        //
-        // // Create default rendertarget view representing the backbuffer
-        // ID3D11Texture2D* backbufferTexture;
-        // HRESULT hr = impl_->swapChain_->GetBuffer(0, IID_ID3D11Texture2D, (void**)&backbufferTexture);
-        // if (FAILED(hr))
-        // {
-        //     ATOMIC_SAFE_RELEASE(backbufferTexture);
-        //     ATOMIC_LOGD3DERROR("Failed to get backbuffer texture", hr);
-        //     success = false;
-        // }
-        // else
-        // {
-        //     hr = impl_->device_->CreateRenderTargetView(backbufferTexture, 0, &impl_->defaultRenderTargetView_);
-        //     backbufferTexture->Release();
-        //     if (FAILED(hr))
-        //     {
-        //         ATOMIC_SAFE_RELEASE(impl_->defaultRenderTargetView_);
-        //         ATOMIC_LOGD3DERROR("Failed to create backbuffer rendertarget view", hr);
-        //         success = false;
-        //     }
-        // }
-        //
-        // // Create default depth-stencil texture and view
-        // D3D11_TEXTURE2D_DESC depthDesc;
-        // memset(&depthDesc, 0, sizeof depthDesc);
-        // depthDesc.Width = (UINT)width;
-        // depthDesc.Height = (UINT)height;
-        // depthDesc.MipLevels = 1;
-        // depthDesc.ArraySize = 1;
-        // depthDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-        // depthDesc.SampleDesc.Count = (UINT)multiSample_;
-        // depthDesc.SampleDesc.Quality = impl_->GetMultiSampleQuality(depthDesc.Format, multiSample_);
-        // depthDesc.Usage = D3D11_USAGE_DEFAULT;
-        // depthDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
-        // depthDesc.CPUAccessFlags = 0;
-        // depthDesc.MiscFlags = 0;
-        // hr = impl_->device_->CreateTexture2D(&depthDesc, 0, &impl_->defaultDepthTexture_);
-        // if (FAILED(hr))
-        // {
-        //     ATOMIC_SAFE_RELEASE(impl_->defaultDepthTexture_);
-        //     ATOMIC_LOGD3DERROR("Failed to create backbuffer depth-stencil texture", hr);
-        //     success = false;
-        // }
-        // else
-        // {
-        //     hr = impl_->device_->CreateDepthStencilView(impl_->defaultDepthTexture_, 0, &impl_->defaultDepthStencilView_);
-        //     if (FAILED(hr))
-        //     {
-        //         ATOMIC_SAFE_RELEASE(impl_->defaultDepthStencilView_);
-        //         ATOMIC_LOGD3DERROR("Failed to create backbuffer depth-stencil view", hr);
-        //         success = false;
-        //     }
-        // }
-        //
-        // // Update internally held backbuffer size
-        // width_ = width;
-        // height_ = height;
-        //
-        // ResetRenderTargets();
-        // return success;
+        if(impl_->GetSwapChain() == nullptr)
+            return CreateDevice(width, height, multiSample_);
+
+        impl_->GetSwapChain()->Resize(width, height);
+        ResetRenderTargets();
+        return true;
     }
 
-    void Graphics::CheckFeatureSupport()
-    {
-        throw new std::exception("Not implemented");
-        // anisotropySupport_ = true;
-        // dxtTextureSupport_ = true;
-        // lightPrepassSupport_ = true;
-        // deferredSupport_ = true;
-        // hardwareShadowSupport_ = true;
-        // instancingSupport_ = true;
-        // shadowMapFormat_ = DXGI_FORMAT_R16_TYPELESS;
-        // hiresShadowMapFormat_ = DXGI_FORMAT_R32_TYPELESS;
-        // dummyColorFormat_ = DXGI_FORMAT_UNKNOWN;
-        // sRGBSupport_ = true;
-        // sRGBWriteSupport_ = true;
+    void Graphics::CheckFeatureSupport()    {
+        anisotropySupport_ = true;
+        dxtTextureSupport_ = true;
+        lightPrepassSupport_ = true;
+        deferredSupport_ = true;
+        hardwareShadowSupport_ = true;
+        instancingSupport_ = true;
+        shadowMapFormat_ = Diligent::TEX_FORMAT_R16_TYPELESS;
+        hiresShadowMapFormat_ = Diligent::TEX_FORMAT_R32_TYPELESS;
+        dummyColorFormat_ = Diligent::TEX_FORMAT_UNKNOWN;
+        sRGBSupport_ = true;
+        sRGBWriteSupport_ = true;
     }
 
     void Graphics::ResetCachedState()
@@ -2397,238 +2213,69 @@ namespace Atomic
 
     void Graphics::PrepareDraw()
     {
-        throw new std::exception("Not implemented");
-        // if (impl_->renderTargetsDirty_)
-        // {
-        //     impl_->depthStencilView_ =
-        //         (depthStencil_ && depthStencil_->GetUsage() == TEXTURE_DEPTHSTENCIL) ?
-        //             (ID3D11DepthStencilView*)depthStencil_->GetRenderTargetView() : impl_->defaultDepthStencilView_;
-        //
-        //     // If possible, bind a read-only depth stencil view to allow reading depth in shader
-        //     if (!depthWrite_ && depthStencil_ && depthStencil_->GetReadOnlyView())
-        //         impl_->depthStencilView_ = (ID3D11DepthStencilView*)depthStencil_->GetReadOnlyView();
-        //
-        //     for (unsigned i = 0; i < MAX_RENDERTARGETS; ++i)
-        //         impl_->renderTargetViews_[i] =
-        //             (renderTargets_[i] && renderTargets_[i]->GetUsage() == TEXTURE_RENDERTARGET) ?
-        //                 (ID3D11RenderTargetView*)renderTargets_[i]->GetRenderTargetView() : 0;
-        //     // If rendertarget 0 is null and not doing depth-only rendering, render to the backbuffer
-        //     // Special case: if rendertarget 0 is null and depth stencil has same size as backbuffer, assume the intention is to do
-        //     // backbuffer rendering with a custom depth stencil
-        //     if (!renderTargets_[0] &&
-        //         (!depthStencil_ || (depthStencil_ && depthStencil_->GetWidth() == width_ && depthStencil_->GetHeight() == height_)))
-        //         impl_->renderTargetViews_[0] = impl_->defaultRenderTargetView_;
-        //
-        //     impl_->deviceContext_->OMSetRenderTargets(MAX_RENDERTARGETS, &impl_->renderTargetViews_[0], impl_->depthStencilView_);
-        //     impl_->renderTargetsDirty_ = false;
-        // }
-        //
-        // if (impl_->texturesDirty_ && impl_->firstDirtyTexture_ < M_MAX_UNSIGNED)
-        // {
-        //     // Set also VS textures to enable vertex texture fetch to work the same way as on OpenGL
-        //     impl_->deviceContext_->VSSetShaderResources(impl_->firstDirtyTexture_, impl_->lastDirtyTexture_ - impl_->firstDirtyTexture_ + 1,
-        //         &impl_->shaderResourceViews_[impl_->firstDirtyTexture_]);
-        //     impl_->deviceContext_->VSSetSamplers(impl_->firstDirtyTexture_, impl_->lastDirtyTexture_ - impl_->firstDirtyTexture_ + 1,
-        //         &impl_->samplers_[impl_->firstDirtyTexture_]);
-        //     impl_->deviceContext_->PSSetShaderResources(impl_->firstDirtyTexture_, impl_->lastDirtyTexture_ - impl_->firstDirtyTexture_ + 1,
-        //         &impl_->shaderResourceViews_[impl_->firstDirtyTexture_]);
-        //     impl_->deviceContext_->PSSetSamplers(impl_->firstDirtyTexture_, impl_->lastDirtyTexture_ - impl_->firstDirtyTexture_ + 1,
-        //         &impl_->samplers_[impl_->firstDirtyTexture_]);
-        //
-        //     impl_->firstDirtyTexture_ = impl_->lastDirtyTexture_ = M_MAX_UNSIGNED;
-        //     impl_->texturesDirty_ = false;
-        // }
-        //
-        // if (impl_->vertexDeclarationDirty_ && vertexShader_ && vertexShader_->GetByteCode().Size())
-        // {
-        //     if (impl_->firstDirtyVB_ < M_MAX_UNSIGNED)
-        //     {
-        //         impl_->deviceContext_->IASetVertexBuffers(impl_->firstDirtyVB_, impl_->lastDirtyVB_ - impl_->firstDirtyVB_ + 1,
-        //             &impl_->vertexBuffers_[impl_->firstDirtyVB_], &impl_->vertexSizes_[impl_->firstDirtyVB_], &impl_->vertexOffsets_[impl_->firstDirtyVB_]);
-        //
-        //         impl_->firstDirtyVB_ = impl_->lastDirtyVB_ = M_MAX_UNSIGNED;
-        //     }
-        //
-        //     unsigned long long newVertexDeclarationHash = 0;
-        //     for (unsigned i = 0; i < MAX_VERTEX_STREAMS; ++i)
-        //     {
-        //         if (vertexBuffers_[i])
-        //             newVertexDeclarationHash |= vertexBuffers_[i]->GetBufferHash(i);
-        //     }
-        //     // Do not create input layout if no vertex buffers / elements
-        //     if (newVertexDeclarationHash)
-        //     {
-        //         /// \todo Using a 64bit total hash for vertex shader and vertex buffer elements hash may not guarantee uniqueness
-        //         newVertexDeclarationHash += vertexShader_->GetElementHash();
-        //         if (newVertexDeclarationHash != vertexDeclarationHash_)
-        //         {
-        //             VertexDeclarationMap::Iterator i =
-        //                 impl_->vertexDeclarations_.Find(newVertexDeclarationHash);
-        //             if (i == impl_->vertexDeclarations_.End())
-        //             {
-        //                 SharedPtr<VertexDeclaration> newVertexDeclaration(new VertexDeclaration(this, vertexShader_, vertexBuffers_));
-        //                 i = impl_->vertexDeclarations_.Insert(MakePair(newVertexDeclarationHash, newVertexDeclaration));
-        //             }
-        //             impl_->deviceContext_->IASetInputLayout((ID3D11InputLayout*)i->second_->GetInputLayout());
-        //             vertexDeclarationHash_ = newVertexDeclarationHash;
-        //         }
-        //     }
-        //
-        //     impl_->vertexDeclarationDirty_ = false;
-        // }
-        //
-        // if (impl_->blendStateDirty_)
-        // {
-        //     unsigned newBlendStateHash = (unsigned)((colorWrite_ ? 1 : 0) | (alphaToCoverage_ ? 2 : 0) | (blendMode_ << 2));
-        //     if (newBlendStateHash != impl_->blendStateHash_)
-        //     {
-        //         HashMap<unsigned, ID3D11BlendState*>::Iterator i = impl_->blendStates_.Find(newBlendStateHash);
-        //         if (i == impl_->blendStates_.End())
-        //         {
-        //             ATOMIC_PROFILE(CreateBlendState);
-        //
-        //             D3D11_BLEND_DESC stateDesc;
-        //             memset(&stateDesc, 0, sizeof stateDesc);
-        //             stateDesc.AlphaToCoverageEnable = alphaToCoverage_ ? TRUE : FALSE;
-        //             stateDesc.IndependentBlendEnable = false;
-        //             stateDesc.RenderTarget[0].BlendEnable = d3dBlendEnable[blendMode_];
-        //             stateDesc.RenderTarget[0].SrcBlend = d3dSrcBlend[blendMode_];
-        //             stateDesc.RenderTarget[0].DestBlend = d3dDestBlend[blendMode_];
-        //             stateDesc.RenderTarget[0].BlendOp = d3dBlendOp[blendMode_];
-        //             stateDesc.RenderTarget[0].SrcBlendAlpha = d3dSrcBlend[blendMode_];
-        //             stateDesc.RenderTarget[0].DestBlendAlpha = d3dDestBlend[blendMode_];
-        //             stateDesc.RenderTarget[0].BlendOpAlpha = d3dBlendOp[blendMode_];
-        //             stateDesc.RenderTarget[0].RenderTargetWriteMask = colorWrite_ ? D3D11_COLOR_WRITE_ENABLE_ALL : 0x0;
-        //
-        //             ID3D11BlendState* newBlendState = 0;
-        //             HRESULT hr = impl_->device_->CreateBlendState(&stateDesc, &newBlendState);
-        //             if (FAILED(hr))
-        //             {
-        //                 ATOMIC_SAFE_RELEASE(newBlendState);
-        //                 ATOMIC_LOGD3DERROR("Failed to create blend state", hr);
-        //             }
-        //
-        //             i = impl_->blendStates_.Insert(MakePair(newBlendStateHash, newBlendState));
-        //         }
-        //
-        //         impl_->deviceContext_->OMSetBlendState(i->second_, 0, M_MAX_UNSIGNED);
-        //         impl_->blendStateHash_ = newBlendStateHash;
-        //     }
-        //
-        //     impl_->blendStateDirty_ = false;
-        // }
-        //
-        // if (impl_->depthStateDirty_)
-        // {
-        //     unsigned newDepthStateHash =
-        //         (depthWrite_ ? 1 : 0) | (stencilTest_ ? 2 : 0) | (depthTestMode_ << 2) | ((stencilCompareMask_ & 0xff) << 5) |
-        //         ((stencilWriteMask_ & 0xff) << 13) | (stencilTestMode_ << 21) |
-        //         ((stencilFail_ + stencilZFail_ * 5 + stencilPass_ * 25) << 24);
-        //     if (newDepthStateHash != impl_->depthStateHash_ || impl_->stencilRefDirty_)
-        //     {
-        //         HashMap<unsigned, ID3D11DepthStencilState*>::Iterator i = impl_->depthStates_.Find(newDepthStateHash);
-        //         if (i == impl_->depthStates_.End())
-        //         {
-        //             ATOMIC_PROFILE(CreateDepthState);
-        //
-        //             D3D11_DEPTH_STENCIL_DESC stateDesc;
-        //             memset(&stateDesc, 0, sizeof stateDesc);
-        //             stateDesc.DepthEnable = TRUE;
-        //             stateDesc.DepthWriteMask = depthWrite_ ? D3D11_DEPTH_WRITE_MASK_ALL : D3D11_DEPTH_WRITE_MASK_ZERO;
-        //             stateDesc.DepthFunc = d3dCmpFunc[depthTestMode_];
-        //             stateDesc.StencilEnable = stencilTest_ ? TRUE : FALSE;
-        //             stateDesc.StencilReadMask = (unsigned char)stencilCompareMask_;
-        //             stateDesc.StencilWriteMask = (unsigned char)stencilWriteMask_;
-        //             stateDesc.FrontFace.StencilFailOp = d3dStencilOp[stencilFail_];
-        //             stateDesc.FrontFace.StencilDepthFailOp = d3dStencilOp[stencilZFail_];
-        //             stateDesc.FrontFace.StencilPassOp = d3dStencilOp[stencilPass_];
-        //             stateDesc.FrontFace.StencilFunc = d3dCmpFunc[stencilTestMode_];
-        //             stateDesc.BackFace.StencilFailOp = d3dStencilOp[stencilFail_];
-        //             stateDesc.BackFace.StencilDepthFailOp = d3dStencilOp[stencilZFail_];
-        //             stateDesc.BackFace.StencilPassOp = d3dStencilOp[stencilPass_];
-        //             stateDesc.BackFace.StencilFunc = d3dCmpFunc[stencilTestMode_];
-        //
-        //             ID3D11DepthStencilState* newDepthState = 0;
-        //             HRESULT hr = impl_->device_->CreateDepthStencilState(&stateDesc, &newDepthState);
-        //             if (FAILED(hr))
-        //             {
-        //                 ATOMIC_SAFE_RELEASE(newDepthState);
-        //                 ATOMIC_LOGD3DERROR("Failed to create depth state", hr);
-        //             }
-        //
-        //             i = impl_->depthStates_.Insert(MakePair(newDepthStateHash, newDepthState));
-        //         }
-        //
-        //         impl_->deviceContext_->OMSetDepthStencilState(i->second_, stencilRef_);
-        //         impl_->depthStateHash_ = newDepthStateHash;
-        //     }
-        //
-        //     impl_->depthStateDirty_ = false;
-        //     impl_->stencilRefDirty_ = false;
-        // }
-        //
-        // if (impl_->rasterizerStateDirty_)
-        // {
-        //     unsigned depthBits = 24;
-        //     if (depthStencil_ && depthStencil_->GetParentTexture()->GetFormat() == DXGI_FORMAT_R16_TYPELESS)
-        //         depthBits = 16;
-        //     int scaledDepthBias = (int)(constantDepthBias_ * (1 << depthBits));
-        //
-        //     unsigned newRasterizerStateHash =
-        //         (scissorTest_ ? 1 : 0) | (lineAntiAlias_ ? 2 : 0) | (fillMode_ << 2) | (cullMode_ << 4) |
-        //         ((scaledDepthBias & 0x1fff) << 6) | (((int)(slopeScaledDepthBias_ * 100.0f) & 0x1fff) << 19);
-        //     if (newRasterizerStateHash != impl_->rasterizerStateHash_)
-        //     {
-        //         HashMap<unsigned, ID3D11RasterizerState*>::Iterator i = impl_->rasterizerStates_.Find(newRasterizerStateHash);
-        //         if (i == impl_->rasterizerStates_.End())
-        //         {
-        //             ATOMIC_PROFILE(CreateRasterizerState);
-        //
-        //             D3D11_RASTERIZER_DESC stateDesc;
-        //             memset(&stateDesc, 0, sizeof stateDesc);
-        //             stateDesc.FillMode = d3dFillMode[fillMode_];
-        //             stateDesc.CullMode = d3dCullMode[cullMode_];
-        //             stateDesc.FrontCounterClockwise = FALSE;
-        //             stateDesc.DepthBias = scaledDepthBias;
-        //             stateDesc.DepthBiasClamp = M_INFINITY;
-        //             stateDesc.SlopeScaledDepthBias = slopeScaledDepthBias_;
-        //             stateDesc.DepthClipEnable = TRUE;
-        //             stateDesc.ScissorEnable = scissorTest_ ? TRUE : FALSE;
-        //             stateDesc.MultisampleEnable = lineAntiAlias_ ? FALSE : TRUE;
-        //             stateDesc.AntialiasedLineEnable = lineAntiAlias_ ? TRUE : FALSE;
-        //
-        //             ID3D11RasterizerState* newRasterizerState = 0;
-        //             HRESULT hr = impl_->device_->CreateRasterizerState(&stateDesc, &newRasterizerState);
-        //             if (FAILED(hr))
-        //             {
-        //                 ATOMIC_SAFE_RELEASE(newRasterizerState);
-        //                 ATOMIC_LOGD3DERROR("Failed to create rasterizer state", hr);
-        //             }
-        //
-        //             i = impl_->rasterizerStates_.Insert(MakePair(newRasterizerStateHash, newRasterizerState));
-        //         }
-        //
-        //         impl_->deviceContext_->RSSetState(i->second_);
-        //         impl_->rasterizerStateHash_ = newRasterizerStateHash;
-        //     }
-        //
-        //     impl_->rasterizerStateDirty_ = false;
-        // }
-        //
-        // if (impl_->scissorRectDirty_)
-        // {
-        //     D3D11_RECT d3dRect;
-        //     d3dRect.left = scissorRect_.left_;
-        //     d3dRect.top = scissorRect_.top_;
-        //     d3dRect.right = scissorRect_.right_;
-        //     d3dRect.bottom = scissorRect_.bottom_;
-        //     impl_->deviceContext_->RSSetScissorRects(1, &d3dRect);
-        //     impl_->scissorRectDirty_ = false;
-        // }
-        //
-        // for (unsigned i = 0; i < impl_->dirtyConstantBuffers_.Size(); ++i)
-        //     impl_->dirtyConstantBuffers_[i]->Apply();
-        // impl_->dirtyConstantBuffers_.Clear();
+        REngine::RenderCommandProcessDesc process_desc;
+        process_desc.driver = impl_;
+        process_desc.graphics = this;
+        
+        auto command = REngine::default_render_command_get();
+
+        // setup depth stencil
+        if(command.dirty_state & static_cast<unsigned>(REngine::RenderCommandDirtyState::depth_stencil))
+        {
+            const auto depth_stencil = (depthStencil_ && depthStencil_->GetUsage() == TEXTURE_DEPTHSTENCIL) ?
+                                           depthStencil_->GetRenderTargetView() : impl_->GetSwapChain()->GetDepthBufferDSV();
+
+            if(command.depth_stencil != depth_stencil)
+                command.depth_stencil = depth_stencil;
+        }
+
+        // setup render targets
+        if(command.dirty_state & static_cast<unsigned>(REngine::RenderCommandDirtyState::render_targets))
+        {
+
+            unsigned num_rts = 0;
+            for(unsigned i = 0; i < MAX_RENDERTARGETS; ++i)
+            {
+                if(!renderTargets_[i])
+                {
+                    num_rts = i + 1;
+                    break;
+                }
+
+                command.render_targets[i] = (renderTargets_[i] && renderTargets_[i]->GetUsage() == TEXTURE_RENDERTARGET)
+                    ? renderTargets_[i]->GetRenderTargetView() : Diligent::RefCntAutoPtr<Diligent::ITextureView>();
+            }
+            command.num_rts = static_cast<uint8_t>(num_rts);
+
+            if (!renderTargets_[0] &&
+                (!depthStencil_ || (depthStencil_ && depthStencil_->GetWidth() == width_ && depthStencil_->GetHeight() == height_)))
+                command.render_targets[0] = impl_->GetSwapChain()->GetCurrentBackBufferRTV();
+        }
+
+        // setup textures
+        if(command.dirty_state & static_cast<unsigned>(REngine::RenderCommandDirtyState::textures))
+        {
+            unsigned next_tex_idx = 0;
+            for(unsigned i = 0; i < MAX_TEXTURE_UNITS; ++i)
+            {
+                if(textures_[i] == nullptr)
+                    continue;
+                String tex_name = GetTextureUnitName(static_cast<TextureUnit>(i));
+                REngine::SamplerDesc sampler_desc;
+                textures_[i]->GetSamplerDesc(sampler_desc);
+
+                // setup immutable samplers
+                command.pipeline_state_info.immutable_samplers[next_tex_idx].name = tex_name;
+                command.pipeline_state_info.immutable_samplers[next_tex_idx].sampler = sampler_desc;
+                command.textures[tex_name] = textures_[i]->GetShaderResourceView();
+                ++next_tex_idx;
+            }
+
+            command.dirty_state |= static_cast<unsigned>(REngine::RenderCommandDirtyState::pipeline);
+        }
+        
+        REngine::render_command_process(process_desc, command);
+        REngine::default_render_command_set(command);
     }
 
     void Graphics::CreateResolveTexture()

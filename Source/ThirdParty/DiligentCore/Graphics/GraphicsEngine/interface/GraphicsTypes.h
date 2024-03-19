@@ -3312,6 +3312,11 @@ struct GraphicsAdapterInfo
                Features        == RHS.Features        &&
                memcmp(Description, RHS.Description, sizeof(Description)) == 0;
     }
+
+    bool operator!=(const GraphicsAdapterInfo& RHS) const noexcept
+    {
+        return !(*this == RHS);
+    }
 #endif
 
 };

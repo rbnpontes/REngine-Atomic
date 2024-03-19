@@ -27,6 +27,13 @@
 #include "../Math/Color.h"
 #include "../Resource/Resource.h"
 
+#if RENGINE_DILIGENT
+#include "../RHI/PipelineStateBuilder.h"
+
+#include <DiligentCore/Graphics/GraphicsEngine/interface/Texture.h>
+#include <DiligentCore/Common/interface/RefCntAutoPtr.hpp>
+#endif
+
 namespace Atomic
 {
 
@@ -153,9 +160,12 @@ public:
     /// Update dirty parameters to the texture object. Called by Graphics when assigning the texture.
     void UpdateParameters();
 
+#if RENGINE_DILIGENT
+    Diligent::RefCntAutoPtr<Diligent::ITextureView> GetShaderResourceView() const { return view_;}
+    void GetSamplerDesc(REngine::SamplerDesc& sample_desc) const;
+#else
     /// Return shader resource view. Only used on Direct3D11.
     void* GetShaderResourceView() const { return shaderResourceView_; }
-
     /// Return sampler state object. Only used on Direct3D11.
     void* GetSampler() const { return sampler_; }
 
@@ -164,6 +174,7 @@ public:
 
     /// Return texture's target. Only used on OpenGL.
     unsigned GetTarget() const { return target_; }
+#endif
 
     /// Convert format to sRGB. Not used on Direct3D9.
     unsigned GetSRGBFormat(unsigned format);
@@ -195,6 +206,10 @@ protected:
     /// Create the GPU texture. Implemented in subclasses.
     virtual bool Create() { return true; }
 
+#if RENGINE_DILIGENT
+    Diligent::RefCntAutoPtr<Diligent::ITextureView> view_;
+    Diligent::RefCntAutoPtr<Diligent::ITexture> texture_;
+#else
     union
     {
         /// Direct3D11 shader resource view.
@@ -202,11 +217,11 @@ protected:
         /// OpenGL target.
         unsigned target_;
     };
-
     /// Direct3D11 sampler state object.
     void* sampler_;
     /// Direct3D11 resolve texture object when multisample with autoresolve is used.
     void* resolveTexture_;
+#endif
 
     /// Texture format.
     unsigned format_;

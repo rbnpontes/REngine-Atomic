@@ -37,7 +37,7 @@ class Vector3;
 #define DESKTOP_GRAPHICS
 #endif
 
-enum class GraphicsBackend
+enum class GraphicsBackend : uint8_t
 {
     D3D11,
     D3D12,
