@@ -1090,7 +1090,8 @@ Texture* Renderer::GetScreenBuffer(int width, int height, unsigned format, int m
         {
             SharedPtr<TextureCube> newTexCube(new TextureCube(context_));
             newTexCube->SetNumLevels(1);
-            newTexCube->SetSize(width, format, TEXTURE_RENDERTARGET, multiSample);
+            // TODO: fix this cast
+            newTexCube->SetSize(width, static_cast<TextureFormat>(format), TEXTURE_RENDERTARGET, multiSample);
 
             newBuffer = newTexCube;
         }
@@ -1576,7 +1577,7 @@ void Renderer::RemoveUnusedBuffers()
             if (buffer->GetUseTimer() > MAX_BUFFER_AGE)
             {
                 ATOMIC_LOGDEBUG("Removed unused screen buffer size " + String(buffer->GetWidth()) + "x" + String(buffer->GetHeight()) +
-                         " format " + String(buffer->GetFormat()));
+                         " format " + String(static_cast<unsigned>(buffer->GetFormat())));
                 buffers.Erase(j);
             }
         }

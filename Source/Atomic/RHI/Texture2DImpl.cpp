@@ -13,8 +13,6 @@
 #include "../Resource/ResourceCache.h"
 #include "../Resource/XMLFile.h"
 
-#include "./DiligentUtils.h"
-
 #include "../DebugNew.h"
 
 namespace Atomic
@@ -42,6 +40,7 @@ namespace Atomic
 
         if (renderSurface_)
             renderSurface_->Release();
+        object_ = nullptr;
     }
 
     bool Texture2D::SetData(unsigned level, int x, int y, int width, int height, const void* data)
@@ -88,7 +87,6 @@ namespace Atomic
         const auto src = static_cast<const unsigned char*>(data);
         const auto row_size = GetRowDataSize(width);
         const auto row_start = GetRowDataSize(x);
-        const auto sub_resource = REngine::utils_calc_sub_resource(level, 0, levels_);
         const auto texture = object_.Cast<Diligent::ITexture>(Diligent::IID_Texture);
 
         if (usage_ == TEXTURE_STATIC)
@@ -107,7 +105,7 @@ namespace Atomic
 
             graphics_->GetImpl()->GetDeviceContext()->UpdateTexture(
                 texture,
-                sub_resource,
+                level,
                 0,
                 box,
                 sub_res_data,
@@ -125,7 +123,7 @@ namespace Atomic
         Diligent::MappedTextureSubresource mapped_data = {};
         graphics_->GetImpl()->GetDeviceContext()->MapTextureSubresource(
             texture,
-            sub_resource,
+            level,
             0,
             Diligent::MAP_WRITE,
             Diligent::MAP_FLAG_DISCARD,
@@ -141,7 +139,7 @@ namespace Atomic
         for (int row = 0; row < height; ++row)
             memcpy(static_cast<unsigned char*>(mapped_data.pData) + (row + y) * mapped_data.Stride + row_start,
                    src + row * row_size, row_size);
-        graphics_->GetImpl()->GetDeviceContext()->UnmapTextureSubresource(texture, sub_resource, 0);
+        graphics_->GetImpl()->GetDeviceContext()->UnmapTextureSubresource(texture, level, 0);
         return true;
     }
 
@@ -324,9 +322,8 @@ namespace Atomic
         }
 
         const auto src_resource = resolve_texture_ ? resolve_texture_ : object_;
-        const auto src_sub_resource = REngine::utils_calc_sub_resource(level, 0, levels_);
-
-        Diligent::Box src_box = {};
+        
+        Diligent::Box src_box;
         src_box.MinX = 0;
         src_box.MaxX = level_width;
         src_box.MinY = 0;
@@ -343,7 +340,7 @@ namespace Atomic
         copy_attribs.DstZ = 0;
         copy_attribs.SrcSlice = 0;
         copy_attribs.pSrcTexture = src_resource.Cast<Diligent::ITexture>(Diligent::IID_Texture);
-        copy_attribs.SrcMipLevel = src_sub_resource;
+        copy_attribs.SrcMipLevel = level;
 
         graphics_->GetImpl()->GetDeviceContext()->CopyTexture(copy_attribs);
 
@@ -367,7 +364,7 @@ namespace Atomic
             memcpy(static_cast<unsigned char*>(dest) + row * row_size,
                    static_cast<unsigned char*>(mapped_data.pData) + row * mapped_data.Stride, row_size);
 
-        graphics_->GetImpl()->GetDeviceContext()->UnmapTextureSubresource(staging_texture, 0, 0);
+        graphics_->GetImpl()->GetDeviceContext()->UnmapTextureSubresource(staging_texture, level, 0);
         return true;
     }
 

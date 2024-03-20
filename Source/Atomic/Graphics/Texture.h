@@ -77,7 +77,7 @@ public:
     void SetMipsToSkip(int quality, int toSkip);
 
     /// Return API-specific texture format.
-    unsigned GetFormat() const { return format_; }
+    TextureFormat GetFormat() const { return format_; }
 
     /// Return whether the texture format is compressed.
     bool IsCompressed() const;
@@ -216,7 +216,6 @@ protected:
     Diligent::RefCntAutoPtr<Diligent::ITextureView> view_;
     Diligent::RefCntAutoPtr<Diligent::ITexture> texture_;
     Diligent::RefCntAutoPtr<Diligent::ITexture> resolve_texture_;
-    Diligent::TEXTURE_FORMAT format_;
 #else
     union
     {
@@ -229,9 +228,9 @@ protected:
     void* sampler_;
     /// Direct3D11 resolve texture object when multisample with autoresolve is used.
     void* resolveTexture_;
-    /// Texture format.
-    unsigned format_;
 #endif
+    /// Texture format.
+    TextureFormat format_;
 
     /// Texture usage type.
     TextureUsage usage_;

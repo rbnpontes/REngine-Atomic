@@ -564,56 +564,57 @@ namespace Atomic
 
     bool Graphics::BeginFrame()
     {
-        throw std::exception("Not implemented");
-        // if (!IsInitialized())
-        //     return false;
-        //
-        // // If using an external window, check it for size changes, and reset screen mode if necessary
-        // if (externalWindow_)
-        // {
-        //     int width, height;
-        //
-        //     SDL_GetWindowSize(window_, &width, &height);
-        //     if (width != width_ || height != height_)
-        //         SetMode(width, height);
-        // }
-        // else
-        // {
-        //     // To prevent a loop of endless device loss and flicker, do not attempt to render when in fullscreen
-        //     // and the window is minimized
-        //     if (fullscreen_ && (SDL_GetWindowFlags(window_) & SDL_WINDOW_MINIMIZED))
-        //         return false;
-        // }
-        //
-        // // Set default rendertarget and depth buffer
-        // ResetRenderTargets();
-        //
-        // // Cleanup textures from previous frame
-        // for (unsigned i = 0; i < MAX_TEXTURE_UNITS; ++i)
-        //     SetTexture(i, 0);
-        //
-        // numPrimitives_ = 0;
-        // numBatches_ = 0;
-        //
-        // SendEvent(E_BEGINRENDERING);
-        // return true;
+        if (!IsInitialized())
+            return false;
+        
+        // If using an external window, check it for size changes, and reset screen mode if necessary
+        if (externalWindow_)
+        {
+            int width, height;
+        
+            SDL_GetWindowSize(window_, &width, &height);
+            if (width != width_ || height != height_)
+                SetMode(width, height);
+        }
+        else
+        {
+            // To prevent a loop of endless device loss and flicker, do not attempt to render when in fullscreen
+            // and the window is minimized
+            if (fullscreen_ && (SDL_GetWindowFlags(window_) & SDL_WINDOW_MINIMIZED))
+                return false;
+        }
+        
+        // Set default rendertarget and depth buffer
+        ResetRenderTargets();
+        auto command = REngine::default_render_command_get();
+        REngine::render_command_reset(this, command);
+        REngine::default_render_command_set(command);
+        
+        // Cleanup textures from previous frame
+        for (unsigned i = 0; i < MAX_TEXTURE_UNITS; ++i)
+            SetTexture(i, nullptr);
+        
+        numPrimitives_ = 0;
+        numBatches_ = 0;
+        
+        SendEvent(E_BEGINRENDERING);
+        return true;
     }
 
     void Graphics::EndFrame()
     {
-        throw std::exception("Not implemented");
-        // if (!IsInitialized())
-        //     return;
-        //
-        // {
-        //     ATOMIC_PROFILE(Present);
-        //
-        //     SendEvent(E_ENDRENDERING);
-        //     impl_->swapChain_->Present(vsync_ ? 1 : 0, 0);
-        // }
-        //
-        // // Clean up too large scratch buffers
-        // CleanupScratchBuffers();
+        if (!IsInitialized())
+            return;
+        
+        {
+            ATOMIC_PROFILE(Present);
+        
+            SendEvent(E_ENDRENDERING);
+            impl_->GetSwapChain()->Present(vsync_ ? 1 : 0);
+        }
+        
+        // Clean up too large scratch buffers
+        CleanupScratchBuffers();
     }
 
     void Graphics::Clear(unsigned flags, const Color& color, float depth, unsigned stencil)

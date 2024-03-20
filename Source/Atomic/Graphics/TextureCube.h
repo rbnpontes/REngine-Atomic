@@ -57,13 +57,13 @@ public:
     virtual void Release();
 
     /// Set size, format, usage and multisampling parameter for rendertargets. Note that cube textures always use autoresolve when multisampled due to lacking support (on all APIs) to multisample them in a shader. Return true if successful.
-    bool SetSize(int size, unsigned format, TextureUsage usage = TEXTURE_STATIC, int multiSample = 1);
+    bool SetSize(int size, TextureFormat format, TextureUsage usage = TEXTURE_STATIC, int multiSample = 1);
     /// Set data either partially or fully on a face's mip level. Return true if successful.
     bool SetData(CubeMapFace face, unsigned level, int x, int y, int width, int height, const void* data);
     /// Set data of one face from a stream. Return true if successful.
     bool SetData(CubeMapFace face, Deserializer& source);
     /// Set data of one face from an image. Return true if successful. Optionally make a single channel image alpha-only.
-    bool SetData(CubeMapFace face, Image* image, bool useAlpha = false);
+    bool SetData(CubeMapFace face, const Image* image, bool useAlpha = false);
 
     /// Get data from a face's mip level. The destination buffer must be big enough. Return true if successful.
     bool GetData(CubeMapFace face, unsigned level, void* dest) const;

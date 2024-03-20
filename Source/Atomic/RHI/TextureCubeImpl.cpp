@@ -19,524 +19,518 @@
 
 namespace Atomic
 {
+    void TextureCube::OnDeviceLost()
+    {
+        // No-op on Direct3D11
+    }
 
-void TextureCube::OnDeviceLost()
-{
-    // No-op on Direct3D11
-}
+    void TextureCube::OnDeviceReset()
+    {
+        // No-op on Direct3D11
+    }
 
-void TextureCube::OnDeviceReset()
-{
-    // No-op on Direct3D11
-}
+    void TextureCube::Release()
+    {
+        if (graphics_)
+        {
+            for (unsigned i = 0; i < MAX_TEXTURE_UNITS; ++i)
+            {
+                if (graphics_->GetTexture(i) == this)
+                    graphics_->SetTexture(i, nullptr);
+            }
+        }
 
-void TextureCube::Release()
-{
-    throw std::exception("Not implemented");
-    // if (graphics_)
-    // {
-    //     for (unsigned i = 0; i < MAX_TEXTURE_UNITS; ++i)
-    //     {
-    //         if (graphics_->GetTexture(i) == this)
-    //             graphics_->SetTexture(i, 0);
-    //     }
-    // }
-    //
-    // for (unsigned i = 0; i < MAX_CUBEMAP_FACES; ++i)
-    // {
-    //     if (renderSurfaces_[i])
-    //         renderSurfaces_[i]->Release();
-    // }
-    //
-    // ATOMIC_SAFE_RELEASE(object_.ptr_);
-    // ATOMIC_SAFE_RELEASE(resolveTexture_);
-    // ATOMIC_SAFE_RELEASE(shaderResourceView_);
-    // ATOMIC_SAFE_RELEASE(sampler_);
-}
+        for (const auto& renderSurface : renderSurfaces_)
+        {
+            if (renderSurface)
+                renderSurface->Release();
+        }
 
-bool TextureCube::SetData(CubeMapFace face, unsigned level, int x, int y, int width, int height, const void* data)
-{
-    throw std::exception("Not implemented");
-    // ATOMIC_PROFILE(SetTextureData);
-    //
-    // if (!object_.ptr_)
-    // {
-    //     ATOMIC_LOGERROR("No texture created, can not set data");
-    //     return false;
-    // }
-    //
-    // if (!data)
-    // {
-    //     ATOMIC_LOGERROR("Null source for setting data");
-    //     return false;
-    // }
-    //
-    // if (level >= levels_)
-    // {
-    //     ATOMIC_LOGERROR("Illegal mip level for setting data");
-    //     return false;
-    // }
-    //
-    // int levelWidth = GetLevelWidth(level);
-    // int levelHeight = GetLevelHeight(level);
-    // if (x < 0 || x + width > levelWidth || y < 0 || y + height > levelHeight || width <= 0 || height <= 0)
-    // {
-    //     ATOMIC_LOGERROR("Illegal dimensions for setting data");
-    //     return false;
-    // }
-    //
-    // // If compressed, align the update region on a block
-    // if (IsCompressed())
-    // {
-    //     x &= ~3;
-    //     y &= ~3;
-    //     width += 3;
-    //     width &= 0xfffffffc;
-    //     height += 3;
-    //     height &= 0xfffffffc;
-    // }
-    //
-    // unsigned char* src = (unsigned char*)data;
-    // unsigned rowSize = GetRowDataSize(width);
-    // unsigned rowStart = GetRowDataSize(x);
-    // unsigned subResource = D3D11CalcSubresource(level, face, levels_);
-    //
-    // if (usage_ == TEXTURE_DYNAMIC)
-    // {
-    //     if (IsCompressed())
-    //     {
-    //         height = (height + 3) >> 2;
-    //         y >>= 2;
-    //     }
-    //
-    //     D3D11_MAPPED_SUBRESOURCE mappedData;
-    //     mappedData.pData = 0;
-    //
-    //     HRESULT hr = graphics_->GetImpl()->GetDeviceContext()->Map((ID3D11Resource*)object_.ptr_, subResource, D3D11_MAP_WRITE_DISCARD, 0,
-    //         &mappedData);
-    //     if (FAILED(hr) || !mappedData.pData)
-    //     {
-    //         ATOMIC_LOGD3DERROR("Failed to map texture for update", hr);
-    //         return false;
-    //     }
-    //     else
-    //     {
-    //         for (int row = 0; row < height; ++row)
-    //             memcpy((unsigned char*)mappedData.pData + (row + y) * mappedData.RowPitch + rowStart, src + row * rowSize, rowSize);
-    //         graphics_->GetImpl()->GetDeviceContext()->Unmap((ID3D11Resource*)object_.ptr_, subResource);
-    //     }
-    // }
-    // else
-    // {
-    //     D3D11_BOX destBox;
-    //     destBox.left = (UINT)x;
-    //     destBox.right = (UINT)(x + width);
-    //     destBox.top = (UINT)y;
-    //     destBox.bottom = (UINT)(y + height);
-    //     destBox.front = 0;
-    //     destBox.back = 1;
-    //
-    //     graphics_->GetImpl()->GetDeviceContext()->UpdateSubresource((ID3D11Resource*)object_.ptr_, subResource, &destBox, data,
-    //         rowSize, 0);
-    // }
-    //
-    // return true;
-}
+        object_ = nullptr;
+    }
 
-bool TextureCube::SetData(CubeMapFace face, Deserializer& source)
-{
-    throw std::exception("Not implemented");
-    // SharedPtr<Image> image(new Image(context_));
-    // if (!image->Load(source))
-    //     return false;
-    //
-    // return SetData(face, image);
-}
+    bool TextureCube::SetData(CubeMapFace face, unsigned level, int x, int y, int width, int height, const void* data)
+    {
+        ATOMIC_PROFILE(SetTextureData);
 
-bool TextureCube::SetData(CubeMapFace face, Image* image, bool useAlpha)
-{
-    throw std::exception("Not implemented");
-    // if (!image)
-    // {
-    //     ATOMIC_LOGERROR("Null image, can not load texture");
-    //     return false;
-    // }
-    //
-    // // Use a shared ptr for managing the temporary mip images created during this function
-    // SharedPtr<Image> mipImage;
-    // unsigned memoryUse = 0;
-    // int quality = QUALITY_HIGH;
-    // Renderer* renderer = GetSubsystem<Renderer>();
-    // if (renderer)
-    //     quality = renderer->GetTextureQuality();
-    //
-    // if (!image->IsCompressed())
-    // {
-    //     // Convert unsuitable formats to RGBA
-    //     unsigned components = image->GetComponents();
-    //     if ((components == 1 && !useAlpha) || components == 2 || components == 3)
-    //     {
-    //         mipImage = image->ConvertToRGBA(); image = mipImage;
-    //         if (!image)
-    //             return false;
-    //         components = image->GetComponents();
-    //     }
-    //
-    //     unsigned char* levelData = image->GetData();
-    //     int levelWidth = image->GetWidth();
-    //     int levelHeight = image->GetHeight();
-    //     unsigned format = 0;
-    //
-    //     if (levelWidth != levelHeight)
-    //     {
-    //         ATOMIC_LOGERROR("Cube texture width not equal to height");
-    //         return false;
-    //     }
-    //
-    //     // Discard unnecessary mip levels
-    //     for (unsigned i = 0; i < mipsToSkip_[quality]; ++i)
-    //     {
-    //         mipImage = image->GetNextLevel(); image = mipImage;
-    //         levelData = image->GetData();
-    //         levelWidth = image->GetWidth();
-    //         levelHeight = image->GetHeight();
-    //     }
-    //
-    //     switch (components)
-    //     {
-    //     case 1:
-    //         format = Graphics::GetAlphaFormat();
-    //         break;
-    //
-    //     case 4:
-    //         format = Graphics::GetRGBAFormat();
-    //         break;
-    //
-    //     default: break;
-    //     }
-    //
-    //     // Create the texture when face 0 is being loaded, check that rest of the faces are same size & format
-    //     if (!face)
-    //     {
-    //         // If image was previously compressed, reset number of requested levels to avoid error if level count is too high for new size
-    //         if (IsCompressed() && requestedLevels_ > 1)
-    //             requestedLevels_ = 0;
-    //         SetSize(levelWidth, format);
-    //     }
-    //     else
-    //     {
-    //         if (!object_.ptr_)
-    //         {
-    //             ATOMIC_LOGERROR("Cube texture face 0 must be loaded first");
-    //             return false;
-    //         }
-    //         if (levelWidth != width_ || format != format_)
-    //         {
-    //             ATOMIC_LOGERROR("Cube texture face does not match size or format of face 0");
-    //             return false;
-    //         }
-    //     }
-    //
-    //     for (unsigned i = 0; i < levels_; ++i)
-    //     {
-    //         SetData(face, i, 0, 0, levelWidth, levelHeight, levelData);
-    //         memoryUse += levelWidth * levelHeight * components;
-    //
-    //         if (i < levels_ - 1)
-    //         {
-    //             mipImage = image->GetNextLevel(); image = mipImage;
-    //             levelData = image->GetData();
-    //             levelWidth = image->GetWidth();
-    //             levelHeight = image->GetHeight();
-    //         }
-    //     }
-    // }
-    // else
-    // {
-    //     int width = image->GetWidth();
-    //     int height = image->GetHeight();
-    //     unsigned levels = image->GetNumCompressedLevels();
-    //     unsigned format = graphics_->GetFormat(image->GetCompressedFormat());
-    //     bool needDecompress = false;
-    //
-    //     if (width != height)
-    //     {
-    //         ATOMIC_LOGERROR("Cube texture width not equal to height");
-    //         return false;
-    //     }
-    //
-    //     if (!format)
-    //     {
-    //         format = Graphics::GetRGBAFormat();
-    //         needDecompress = true;
-    //     }
-    //
-    //     unsigned mipsToSkip = mipsToSkip_[quality];
-    //     if (mipsToSkip >= levels)
-    //         mipsToSkip = levels - 1;
-    //     while (mipsToSkip && (width / (1 << mipsToSkip) < 4 || height / (1 << mipsToSkip) < 4))
-    //         --mipsToSkip;
-    //     width /= (1 << mipsToSkip);
-    //     height /= (1 << mipsToSkip);
-    //
-    //     // Create the texture when face 0 is being loaded, assume rest of the faces are same size & format
-    //     if (!face)
-    //     {
-    //         SetNumLevels(Max((levels - mipsToSkip), 1U));
-    //         SetSize(width, format);
-    //     }
-    //     else
-    //     {
-    //         if (!object_.ptr_)
-    //         {
-    //             ATOMIC_LOGERROR("Cube texture face 0 must be loaded first");
-    //             return false;
-    //         }
-    //         if (width != width_ || format != format_)
-    //         {
-    //             ATOMIC_LOGERROR("Cube texture face does not match size or format of face 0");
-    //             return false;
-    //         }
-    //     }
-    //
-    //     for (unsigned i = 0; i < levels_ && i < levels - mipsToSkip; ++i)
-    //     {
-    //         CompressedLevel level = image->GetCompressedLevel(i + mipsToSkip);
-    //         if (!needDecompress)
-    //         {
-    //             SetData(face, i, 0, 0, level.width_, level.height_, level.data_);
-    //             memoryUse += level.rows_ * level.rowSize_;
-    //         }
-    //         else
-    //         {
-    //             unsigned char* rgbaData = new unsigned char[level.width_ * level.height_ * 4];
-    //             level.Decompress(rgbaData);
-    //             SetData(face, i, 0, 0, level.width_, level.height_, rgbaData);
-    //             memoryUse += level.width_ * level.height_ * 4;
-    //             delete[] rgbaData;
-    //         }
-    //     }
-    // }
-    //
-    // faceMemoryUse_[face] = memoryUse;
-    // unsigned totalMemoryUse = sizeof(TextureCube);
-    // for (unsigned i = 0; i < MAX_CUBEMAP_FACES; ++i)
-    //     totalMemoryUse += faceMemoryUse_[i];
-    // SetMemoryUse(totalMemoryUse);
-    //
-    // return true;
-}
+        if (!object_)
+        {
+            ATOMIC_LOGERROR("No texture created, can not set data");
+            return false;
+        }
 
-bool TextureCube::GetData(CubeMapFace face, unsigned level, void* dest) const
-{
-    throw std::exception("Not implemented");
-    // if (!object_.ptr_)
-    // {
-    //     ATOMIC_LOGERROR("No texture created, can not get data");
-    //     return false;
-    // }
-    //
-    // if (!dest)
-    // {
-    //     ATOMIC_LOGERROR("Null destination for getting data");
-    //     return false;
-    // }
-    //
-    // if (level >= levels_)
-    // {
-    //     ATOMIC_LOGERROR("Illegal mip level for getting data");
-    //     return false;
-    // }
-    //
-    // if (multiSample_ > 1 && !autoResolve_)
-    // {
-    //     ATOMIC_LOGERROR("Can not get data from multisampled texture without autoresolve");
-    //     return false;
-    // }
-    //
-    // if (resolveDirty_)
-    //     graphics_->ResolveToTexture(const_cast<TextureCube*>(this));
-    //
-    // int levelWidth = GetLevelWidth(level);
-    // int levelHeight = GetLevelHeight(level);
-    //
-    // D3D11_TEXTURE2D_DESC textureDesc;
-    // memset(&textureDesc, 0, sizeof textureDesc);
-    // textureDesc.Width = (UINT)levelWidth;
-    // textureDesc.Height = (UINT)levelHeight;
-    // textureDesc.MipLevels = 1;
-    // textureDesc.ArraySize = 1;
-    // textureDesc.Format = (DXGI_FORMAT)format_;
-    // textureDesc.SampleDesc.Count = 1;
-    // textureDesc.SampleDesc.Quality = 0;
-    // textureDesc.Usage = D3D11_USAGE_STAGING;
-    // textureDesc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
-    //
-    // ID3D11Texture2D* stagingTexture = 0;
-    // HRESULT hr = graphics_->GetImpl()->GetDevice()->CreateTexture2D(&textureDesc, 0, &stagingTexture);
-    // if (FAILED(hr))
-    // {
-    //     ATOMIC_LOGD3DERROR("Failed to create staging texture for GetData", hr);
-    //     ATOMIC_SAFE_RELEASE(stagingTexture);
-    //     return false;
-    // }
-    //
-    // ID3D11Resource* srcResource = (ID3D11Resource*)(resolveTexture_ ? resolveTexture_ : object_.ptr_);
-    // unsigned srcSubResource = D3D11CalcSubresource(level, face, levels_);
-    //
-    // D3D11_BOX srcBox;
-    // srcBox.left = 0;
-    // srcBox.right = (UINT)levelWidth;
-    // srcBox.top = 0;
-    // srcBox.bottom = (UINT)levelHeight;
-    // srcBox.front = 0;
-    // srcBox.back = 1;
-    // graphics_->GetImpl()->GetDeviceContext()->CopySubresourceRegion(stagingTexture, 0, 0, 0, 0, srcResource,
-    //     srcSubResource, &srcBox);
-    //
-    // D3D11_MAPPED_SUBRESOURCE mappedData;
-    // mappedData.pData = 0;
-    // unsigned rowSize = GetRowDataSize(levelWidth);
-    // unsigned numRows = (unsigned)(IsCompressed() ? (levelHeight + 3) >> 2 : levelHeight);
-    //
-    // hr = graphics_->GetImpl()->GetDeviceContext()->Map((ID3D11Resource*)stagingTexture, 0, D3D11_MAP_READ, 0, &mappedData);
-    // if (FAILED(hr) || !mappedData.pData)
-    // {
-    //     ATOMIC_LOGD3DERROR("Failed to map staging texture for GetData", hr);
-    //     ATOMIC_SAFE_RELEASE(stagingTexture);
-    //     return false;
-    // }
-    // else
-    // {
-    //     for (unsigned row = 0; row < numRows; ++row)
-    //         memcpy((unsigned char*)dest + row * rowSize, (unsigned char*)mappedData.pData + row * mappedData.RowPitch, rowSize);
-    //     graphics_->GetImpl()->GetDeviceContext()->Unmap((ID3D11Resource*)stagingTexture, 0);
-    //     ATOMIC_SAFE_RELEASE(stagingTexture);
-    //     return true;
-    // }
-}
+        if (!data)
+        {
+            ATOMIC_LOGERROR("Null source for setting data");
+            return false;
+        }
 
-bool TextureCube::Create()
-{
-    throw std::exception("Not implemented");
-    // Release();
-    //
-    // if (!graphics_ || !width_ || !height_)
-    //     return false;
-    //
-    // levels_ = CheckMaxLevels(width_, height_, requestedLevels_);
-    //
-    // D3D11_TEXTURE2D_DESC textureDesc;
-    // memset(&textureDesc, 0, sizeof textureDesc);
-    // textureDesc.Format = (DXGI_FORMAT)(sRGB_ ? GetSRGBFormat(format_) : format_);
-    //
-    // // Disable multisampling if not supported
-    // if (multiSample_ > 1 && !graphics_->GetImpl()->CheckMultiSampleSupport(textureDesc.Format, multiSample_))
-    // {
-    //     multiSample_ = 1;
-    //     autoResolve_ = false;
-    // }
-    //
-    // // Set mipmapping
-    // if (usage_ == TEXTURE_RENDERTARGET && levels_ != 1 && multiSample_ == 1)
-    //     textureDesc.MiscFlags |= D3D11_RESOURCE_MISC_GENERATE_MIPS;
-    //
-    // textureDesc.Width = (UINT)width_;
-    // textureDesc.Height = (UINT)height_;
-    // // Disable mip levels from the multisample texture. Rather create them to the resolve texture
-    // textureDesc.MipLevels = multiSample_ == 1 ? levels_ : 1;
-    // textureDesc.ArraySize = MAX_CUBEMAP_FACES;
-    // textureDesc.SampleDesc.Count = (UINT)multiSample_;
-    // textureDesc.SampleDesc.Quality = graphics_->GetImpl()->GetMultiSampleQuality(textureDesc.Format, multiSample_);
-    // textureDesc.Usage = usage_ == TEXTURE_DYNAMIC ? D3D11_USAGE_DYNAMIC : D3D11_USAGE_DEFAULT;
-    // textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-    // if (usage_ == TEXTURE_RENDERTARGET)
-    //     textureDesc.BindFlags |= D3D11_BIND_RENDER_TARGET;
-    // else if (usage_ == TEXTURE_DEPTHSTENCIL)
-    //     textureDesc.BindFlags |= D3D11_BIND_DEPTH_STENCIL;
-    // textureDesc.CPUAccessFlags = usage_ == TEXTURE_DYNAMIC ? D3D11_CPU_ACCESS_WRITE : 0;
-    // // When multisample is specified, creating an actual cube texture will fail. Rather create as a 2D texture array
-    // // whose faces will be rendered to; only the resolve texture will be an actual cube texture
-    // if (multiSample_ < 2)
-    //     textureDesc.MiscFlags |= D3D11_RESOURCE_MISC_TEXTURECUBE;
-    //
-    // HRESULT hr = graphics_->GetImpl()->GetDevice()->CreateTexture2D(&textureDesc, 0, (ID3D11Texture2D**)&object_.ptr_);
-    // if (FAILED(hr))
-    // {
-    //     ATOMIC_LOGD3DERROR("Failed to create texture", hr);
-    //     ATOMIC_SAFE_RELEASE(object_.ptr_);
-    //     return false;
-    // }
-    //
-    // // Create resolve texture for multisampling
-    // if (multiSample_ > 1)
-    // {
-    //     textureDesc.SampleDesc.Count = 1;
-    //     textureDesc.SampleDesc.Quality = 0;
-    //     textureDesc.MiscFlags |= D3D11_RESOURCE_MISC_TEXTURECUBE;
-    //     if (levels_ != 1)
-    //         textureDesc.MiscFlags |= D3D11_RESOURCE_MISC_GENERATE_MIPS;
-    //
-    //     HRESULT hr = graphics_->GetImpl()->GetDevice()->CreateTexture2D(&textureDesc, 0, (ID3D11Texture2D**)&resolveTexture_);
-    //     if (FAILED(hr))
-    //     {
-    //         ATOMIC_LOGD3DERROR("Failed to create resolve texture", hr);
-    //         ATOMIC_SAFE_RELEASE(resolveTexture_);
-    //         return false;
-    //     }
-    // }
-    //
-    // D3D11_SHADER_RESOURCE_VIEW_DESC resourceViewDesc;
-    // memset(&resourceViewDesc, 0, sizeof resourceViewDesc);
-    // resourceViewDesc.Format = (DXGI_FORMAT)GetSRVFormat(textureDesc.Format);
-    // resourceViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
-    // resourceViewDesc.Texture2D.MipLevels = (UINT)levels_;
-    //
-    // // Sample the resolve texture if created, otherwise the original
-    // ID3D11Resource* viewObject = resolveTexture_ ? (ID3D11Resource*)resolveTexture_ : (ID3D11Resource*)object_.ptr_;
-    // hr = graphics_->GetImpl()->GetDevice()->CreateShaderResourceView(viewObject, &resourceViewDesc,
-    //     (ID3D11ShaderResourceView**)&shaderResourceView_);
-    // if (FAILED(hr))
-    // {
-    //     ATOMIC_LOGD3DERROR("Failed to create shader resource view for texture", hr);
-    //     ATOMIC_SAFE_RELEASE(shaderResourceView_);
-    //     return false;
-    // }
-    //
-    // if (usage_ == TEXTURE_RENDERTARGET)
-    // {
-    //     for (unsigned i = 0; i < MAX_CUBEMAP_FACES; ++i)
-    //     {
-    //         D3D11_RENDER_TARGET_VIEW_DESC renderTargetViewDesc;
-    //         memset(&renderTargetViewDesc, 0, sizeof renderTargetViewDesc);
-    //         renderTargetViewDesc.Format = textureDesc.Format;
-    //         if (multiSample_ > 1)
-    //         {
-    //             renderTargetViewDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2DMSARRAY;
-    //             renderTargetViewDesc.Texture2DMSArray.ArraySize = 1;
-    //             renderTargetViewDesc.Texture2DMSArray.FirstArraySlice = i;
-    //         }
-    //         else
-    //         {
-    //             renderTargetViewDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2DARRAY;
-    //             renderTargetViewDesc.Texture2DArray.ArraySize = 1;
-    //             renderTargetViewDesc.Texture2DArray.FirstArraySlice = i;
-    //             renderTargetViewDesc.Texture2DArray.MipSlice = 0;
-    //         }
-    //
-    //         hr = graphics_->GetImpl()->GetDevice()->CreateRenderTargetView((ID3D11Resource*)object_.ptr_, &renderTargetViewDesc,
-    //             (ID3D11RenderTargetView**)&renderSurfaces_[i]->renderTargetView_);
-    //
-    //         if (FAILED(hr))
-    //         {
-    //             ATOMIC_LOGD3DERROR("Failed to create rendertarget view for texture", hr);
-    //             ATOMIC_SAFE_RELEASE(renderSurfaces_[i]->renderTargetView_);
-    //             return false;
-    //         }
-    //     }
-    // }
-    //
-    // return true;
-}
+        if (level >= levels_)
+        {
+            ATOMIC_LOGERROR("Illegal mip level for setting data");
+            return false;
+        }
 
+        const auto level_width = GetLevelWidth(level);
+        const auto level_height = GetLevelHeight(level);
+        if (x < 0 || x + width > level_width || y < 0 || y + height > level_height || width <= 0 || height <= 0)
+        {
+            ATOMIC_LOGERROR("Illegal dimensions for setting data");
+            return false;
+        }
+
+        // If compressed, align the update region on a block
+        if (IsCompressed())
+        {
+            x &= ~3;
+            y &= ~3;
+            width += 3;
+            width &= 0xfffffffc;
+            height += 3;
+            height &= 0xfffffffc;
+        }
+
+        const auto src = static_cast<const unsigned char*>(data);
+        const auto row_size = GetRowDataSize(width);
+        const auto row_start = GetRowDataSize(x);
+
+        const auto texture = object_.Cast<Diligent::ITexture>(Diligent::IID_Texture);
+
+        Diligent::Box dest_box;
+        dest_box.MinX = x;
+        dest_box.MaxX = x + width;
+        dest_box.MinY = y;
+        dest_box.MaxY = y + height;
+        dest_box.MinZ = 0;
+        dest_box.MaxZ = 1;
+
+        if (usage_ != TEXTURE_DYNAMIC)
+        {
+            Diligent::TextureSubResData sub_res_data = {};
+            sub_res_data.pData = src;
+            sub_res_data.Stride = row_size;
+
+            graphics_
+                ->GetImpl()
+                ->GetDeviceContext()
+                ->UpdateTexture(texture,
+                                level,
+                                face,
+                                dest_box,
+                                sub_res_data,
+                                Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION,
+                                Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
+            return true;
+        }
+
+        if (IsCompressed())
+        {
+            height = (height + 3) >> 2;
+            y >>= 2;
+        }
+
+        Diligent::MappedTextureSubresource mapped_data;
+        graphics_
+            ->GetImpl()
+            ->GetDeviceContext()
+            ->MapTextureSubresource(texture,
+                                    level, face, Diligent::MAP_WRITE,
+                                    Diligent::MAP_FLAG_DISCARD, &dest_box,
+                                    mapped_data);
+
+        if (!mapped_data.pData)
+        {
+            ATOMIC_LOGERROR("Failed to map texture for update");
+            return false;
+        }
+
+        for (int row = 0; row < height; ++row)
+            memcpy(static_cast<unsigned char*>(mapped_data.pData) + (row + y) * mapped_data.Stride + row_start,
+                   src + row * row_size, row_size);
+        graphics_
+            ->GetImpl()
+            ->GetDeviceContext()
+            ->UnmapTextureSubresource(texture, level, face);
+        return true;
+    }
+
+    bool TextureCube::SetData(const CubeMapFace face, Deserializer& source)
+    {
+        SharedPtr<Image> image(new Image(context_));
+        if (!image->Load(source))
+            return false;
+
+        return SetData(face, image);
+    }
+
+    bool TextureCube::SetData(const CubeMapFace face, const Image* image, bool useAlpha)
+    {
+        if (!image)
+        {
+            ATOMIC_LOGERROR("Null image, can not load texture");
+            return false;
+        }
+
+        // Use a shared ptr for managing the temporary mip images created during this function
+        auto memory_use = 0u;
+        auto quality = QUALITY_HIGH;
+        const auto renderer = GetSubsystem<Renderer>();
+        if (renderer)
+            quality = renderer->GetTextureQuality();
+
+        if (!image->IsCompressed())
+        {
+            SharedPtr<Image> mip_image;
+            // Convert unsuitable formats to RGBA
+            auto components = image->GetComponents();
+            if ((components == 1 && !useAlpha) || components == 2 || components == 3)
+            {
+                mip_image = image->ConvertToRGBA();
+                image = mip_image;
+                if (!image)
+                    return false;
+                components = image->GetComponents();
+            }
+
+            auto level_data = image->GetData();
+            auto level_width = image->GetWidth();
+            auto level_height = image->GetHeight();
+            auto format = TextureFormat::TEX_FORMAT_UNKNOWN;
+
+            if (level_width != level_height)
+            {
+                ATOMIC_LOGERROR("Cube texture width not equal to height");
+                return false;
+            }
+
+            // Discard unnecessary mip levels
+            for (unsigned i = 0; i < mipsToSkip_[quality]; ++i)
+            {
+                mip_image = image->GetNextLevel();
+                image = mip_image;
+                level_data = image->GetData();
+                level_width = image->GetWidth();
+                level_height = image->GetHeight();
+            }
+
+            switch (components)
+            {
+            case 1:
+                format = Graphics::GetAlphaFormat();
+                break;
+
+            case 4:
+                format = Graphics::GetRGBAFormat();
+                break;
+
+            default: break;
+            }
+
+            // Create the texture when face 0 is being loaded, check that rest of the faces are same size & format
+            if (!face)
+            {
+                // If image was previously compressed, reset number of requested levels to avoid error if level count is too high for new size
+                if (IsCompressed() && requestedLevels_ > 1)
+                    requestedLevels_ = 0;
+                SetSize(level_width, format);
+            }
+            else
+            {
+                if (!object_)
+                {
+                    ATOMIC_LOGERROR("Cube texture face 0 must be loaded first");
+                    return false;
+                }
+                if (level_width != width_ || format != format_)
+                {
+                    ATOMIC_LOGERROR("Cube texture face does not match size or format of face 0");
+                    return false;
+                }
+            }
+
+            for (unsigned i = 0; i < levels_; ++i)
+            {
+                SetData(face, i, 0, 0, level_width, level_height, level_data);
+                memory_use += level_width * level_height * components;
+
+                if (i < levels_ - 1)
+                {
+                    mip_image = image->GetNextLevel();
+                    image = mip_image;
+                    level_data = image->GetData();
+                    level_width = image->GetWidth();
+                    level_height = image->GetHeight();
+                }
+            }
+        }
+        else
+        {
+            auto width = image->GetWidth();
+            const auto height = image->GetHeight();
+            const auto levels = image->GetNumCompressedLevels();
+            auto format = graphics_->GetFormat(image->GetCompressedFormat());
+            auto need_decompress = false;
+
+            if (width != height)
+            {
+                ATOMIC_LOGERROR("Cube texture width not equal to height");
+                return false;
+            }
+
+            if (!format)
+            {
+                format = Graphics::GetRGBAFormat();
+                need_decompress = true;
+            }
+
+            auto mips_to_skip = mipsToSkip_[quality];
+            if (mips_to_skip >= levels)
+                mips_to_skip = levels - 1;
+            while (mips_to_skip && (width / (1 << mips_to_skip) < 4 || height / (1 << mips_to_skip) < 4))
+                --mips_to_skip;
+            width /= (1 << mips_to_skip);
+
+            // Create the texture when face 0 is being loaded, assume rest of the faces are same size & format
+            if (!face)
+            {
+                SetNumLevels(Max((levels - mips_to_skip), 1U));
+                SetSize(width, format);
+            }
+            else
+            {
+                if (!object_)
+                {
+                    ATOMIC_LOGERROR("Cube texture face 0 must be loaded first");
+                    return false;
+                }
+                if (width != width_ || format != format_)
+                {
+                    ATOMIC_LOGERROR("Cube texture face does not match size or format of face 0");
+                    return false;
+                }
+            }
+
+            for (unsigned i = 0; i < levels_ && i < levels - mips_to_skip; ++i)
+            {
+                CompressedLevel level = image->GetCompressedLevel(i + mips_to_skip);
+                if (!need_decompress)
+                {
+                    SetData(face, i, 0, 0, level.width_, level.height_, level.data_);
+                    memory_use += level.rows_ * level.rowSize_;
+                }
+                else
+                {
+                    const auto rgba_data = new unsigned char[static_cast<unsigned>(level.width_ * level.height_ * 4)];
+                    level.Decompress(rgba_data);
+                    SetData(face, i, 0, 0, level.width_, level.height_, rgba_data);
+                    memory_use += level.width_ * level.height_ * 4;
+                    delete[] rgba_data;
+                }
+            }
+        }
+
+        faceMemoryUse_[face] = memory_use;
+        unsigned total_memory_use = sizeof(TextureCube);
+        for (const auto i : faceMemoryUse_)
+            total_memory_use += i;
+        SetMemoryUse(total_memory_use);
+
+        return true;
+    }
+
+    bool TextureCube::GetData(const CubeMapFace face, unsigned level, void* dest) const
+    {
+        if (!object_)
+        {
+            ATOMIC_LOGERROR("No texture created, can not get data");
+            return false;
+        }
+        
+        if (!dest)
+        {
+            ATOMIC_LOGERROR("Null destination for getting data");
+            return false;
+        }
+        
+        if (level >= levels_)
+        {
+            ATOMIC_LOGERROR("Illegal mip level for getting data");
+            return false;
+        }
+        
+        if (multiSample_ > 1 && !autoResolve_)
+        {
+            ATOMIC_LOGERROR("Can not get data from multisampled texture without autoresolve");
+            return false;
+        }
+        
+        if (resolveDirty_)
+            graphics_->ResolveToTexture(const_cast<TextureCube*>(this));
+        
+        auto level_width = GetLevelWidth(level);
+        auto level_height = GetLevelHeight(level);
+
+        Diligent::TextureDesc texture_desc ={};
+        texture_desc.Type = Diligent::RESOURCE_DIM_TEX_2D;
+        texture_desc.Width = level_width;
+        texture_desc.Height = level_height;
+        texture_desc.MipLevels = 1;
+        texture_desc.ArraySize = 1;
+        texture_desc.Format = format_;
+        texture_desc.SampleCount = 1;
+        texture_desc.Usage = Diligent::USAGE_STAGING;
+        texture_desc.CPUAccessFlags = Diligent::CPU_ACCESS_READ;
+        
+        Diligent::RefCntAutoPtr<Diligent::ITexture> staging_texture;
+        graphics_->GetImpl()->GetDevice()->CreateTexture(texture_desc, nullptr, &staging_texture);
+        
+        if (!staging_texture)
+        {
+            ATOMIC_LOGERROR("Failed to create staging texture for GetData");
+            return false;
+        }
+
+        const auto src_resource = resolve_texture_ ? resolve_texture_ : object_.Cast<Diligent::ITexture>(Diligent::IID_Texture);
+
+        Diligent::Box src_box;
+        src_box.MinX = 0;
+        src_box.MaxX = level_width;
+        src_box.MinY = 0;
+        src_box.MaxY = level_height;
+        src_box.MinZ = 0;
+        src_box.MaxZ = 1;
+
+        Diligent::CopyTextureAttribs copy_attribs = {};
+        copy_attribs.pSrcTexture = src_resource;
+        copy_attribs.SrcMipLevel = level;
+        copy_attribs.SrcSlice = face;
+        copy_attribs.pSrcBox = &src_box;
+        copy_attribs.pDstTexture = staging_texture;
+        copy_attribs.SrcTextureTransitionMode = Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION;
+        copy_attribs.DstTextureTransitionMode = Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION;
+
+        graphics_->GetImpl()->GetDeviceContext()->CopyTexture(copy_attribs);
+
+        Diligent::MappedTextureSubresource mapped_data = {};
+        graphics_->GetImpl()->GetDeviceContext()->MapTextureSubresource(staging_texture,
+            0, 0, Diligent::MAP_READ, Diligent::MAP_FLAG_NONE, nullptr, mapped_data);
+
+        if(!mapped_data.pData)
+        {
+            ATOMIC_LOGERROR("Failed to map staging texture for GetData");
+            return false;
+        }
+
+        const auto row_size = GetRowDataSize(level_width);
+        const auto num_rows = static_cast<unsigned>(IsCompressed() ? (level_height + 3) >> 2 : level_height);
+        for (unsigned row = 0; row < num_rows; ++row)
+            memcpy(static_cast<unsigned char*>(dest) + row * row_size, static_cast<unsigned char*>(mapped_data.pData) + row * mapped_data.Stride, row_size);
+
+        return true;
+    }
+
+    bool TextureCube::Create()
+    {
+        Release();
+        
+        if (!graphics_ || !width_ || !height_)
+            return false;
+        
+        levels_ = CheckMaxLevels(width_, height_, requestedLevels_);
+
+        Diligent::TextureDesc texture_desc = {};
+        texture_desc.Type = Diligent::RESOURCE_DIM_TEX_CUBE;
+        texture_desc.Format = sRGB_ ? GetSRGBFormat(format_) : format_;
+        
+        // Disable multisampling if not supported
+        if (multiSample_ > 1 && !graphics_->GetImpl()->CheckMultiSampleSupport(multiSample_, texture_desc.Format, TextureFormat::TEX_FORMAT_UNKNOWN))
+        {
+            multiSample_ = 1;
+            autoResolve_ = false;
+        }
+        
+        // Set mipmapping
+        if (usage_ == TEXTURE_RENDERTARGET && levels_ != 1 && multiSample_ == 1)
+            texture_desc.MiscFlags |= Diligent::MISC_TEXTURE_FLAG_GENERATE_MIPS;
+        
+        texture_desc.Width = width_;
+        texture_desc.Height = height_;
+        // Disable mip levels from the multisample texture. Rather create them to the resolve texture
+        texture_desc.MipLevels = multiSample_ == 1 ? levels_ : 1;
+        texture_desc.ArraySize = MAX_CUBEMAP_FACES;
+        texture_desc.SampleCount = multiSample_;
+        texture_desc.Usage = usage_ == TEXTURE_DYNAMIC ? Diligent::USAGE_DYNAMIC : Diligent::USAGE_DEFAULT;
+        texture_desc.BindFlags = Diligent::BIND_SHADER_RESOURCE;
+        if (usage_ == TEXTURE_RENDERTARGET)
+            texture_desc.BindFlags |= Diligent::BIND_RENDER_TARGET;
+        else if (usage_ == TEXTURE_DEPTHSTENCIL)
+            texture_desc.BindFlags |= Diligent::BIND_DEPTH_STENCIL;
+        texture_desc.CPUAccessFlags = usage_ == TEXTURE_DYNAMIC ? Diligent::CPU_ACCESS_WRITE : Diligent::CPU_ACCESS_NONE;
+        // When multisample is specified, creating an actual cube texture will fail. Rather create as a 2D texture array
+        // whose faces will be rendered to; only the resolve texture will be an actual cube texture
+        if (multiSample_ < 2)
+            texture_desc.MiscFlags |= Diligent::MISC_TEXTURE_FLAG_GENERATE_MIPS;
+
+        Diligent::RefCntAutoPtr<Diligent::ITexture> texture;
+        graphics_->GetImpl()->GetDevice()->CreateTexture(texture_desc, nullptr, &texture);
+        if (!texture)
+        {
+            ATOMIC_LOGERROR("Failed to create texture");
+            return false;
+        }
+
+        object_ = texture;
+        
+        // Create resolve texture for multisampling
+        if (multiSample_ > 1)
+        {
+            texture_desc.SampleCount = 1;
+            if (levels_ != 1)
+                texture_desc.MiscFlags |= Diligent::MISC_TEXTURE_FLAG_GENERATE_MIPS;
+
+            graphics_->GetImpl()->GetDevice()->CreateTexture(texture_desc,
+                    nullptr,
+                    &resolve_texture_);
+            
+            if(!resolve_texture_)
+            {
+                ATOMIC_LOGERROR("Failed to create resolve texture");
+                return false;
+            }
+        }
+
+        texture = resolve_texture_ ? resolve_texture_ : texture;
+        view_ = texture->GetDefaultView(Diligent::TEXTURE_VIEW_SHADER_RESOURCE);
+
+        if(view_)
+        {
+            ATOMIC_LOGERROR("Failed to create shader resource view for texture");
+            return false;
+        }
+
+
+        if(usage_ != TEXTURE_RENDERTARGET)
+            return true;
+
+        texture = object_.Cast<Diligent::ITexture>(Diligent::IID_Texture);
+        for (unsigned i =0; i < MAX_CUBEMAP_FACES; ++i)
+        {
+            Diligent::TextureViewDesc render_target_view_desc = {};
+            render_target_view_desc.ViewType = Diligent::TEXTURE_VIEW_RENDER_TARGET;
+            render_target_view_desc.Format = texture_desc.Format;
+            render_target_view_desc.TextureDim = Diligent::RESOURCE_DIM_TEX_2D_ARRAY;
+            render_target_view_desc.NumArraySlices = 1;
+            render_target_view_desc.FirstArraySlice = i;
+
+            texture->CreateView(render_target_view_desc, &renderSurfaces_[i]->view_);
+
+            if(renderSurfaces_[i]->view_)
+            {
+                ATOMIC_LOGERROR("Failed to create render target view for texture");
+                return false;
+            }
+        }
+        
+        return true;
+    }
 }
