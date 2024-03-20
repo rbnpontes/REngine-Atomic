@@ -1772,7 +1772,7 @@ namespace Atomic
             impl_->GetSwapChain()->GetDesc().DepthBufferFormat);
     }
 
-    unsigned Graphics::GetFormat(CompressedFormat format) const
+    TextureFormat Graphics::GetFormat(CompressedFormat format) const
     {
         using namespace Diligent;
         switch (format)
@@ -1790,7 +1790,7 @@ namespace Atomic
             return TEX_FORMAT_BC3_UNORM;
         
         default:
-            return 0;
+            return TEX_FORMAT_UNKNOWN;
         }
     }
 
@@ -1963,89 +1963,89 @@ namespace Atomic
         return constant_buffer;
     }
 
-    unsigned Graphics::GetAlphaFormat()
+    TextureFormat Graphics::GetAlphaFormat()
     {
         return Diligent::TEX_FORMAT_A8_UNORM;
     }
 
-    unsigned Graphics::GetLuminanceFormat()
+    TextureFormat Graphics::GetLuminanceFormat()
     {
         // Note: not same sampling behavior as on D3D9; need to sample the R channel only
         return Diligent::TEX_FORMAT_R8_UNORM;
     }
 
-    unsigned Graphics::GetLuminanceAlphaFormat()
+    TextureFormat Graphics::GetLuminanceAlphaFormat()
     {
         // Note: not same sampling behavior as on D3D9; need to sample the RG channels
         return Diligent::TEX_FORMAT_RG8_UNORM;
     }
 
-    unsigned Graphics::GetRGBFormat()
+    TextureFormat Graphics::GetRGBFormat()
     {
         return Diligent::TEX_FORMAT_RGBA8_UNORM;
     }
 
-    unsigned Graphics::GetRGBAFormat()
+    TextureFormat Graphics::GetRGBAFormat()
     {
         return Diligent::TEX_FORMAT_RGBA8_UNORM;
     }
 
-    unsigned Graphics::GetRGBA16Format()
+    TextureFormat Graphics::GetRGBA16Format()
     {
         return Diligent::TEX_FORMAT_RGBA16_UNORM;
     }
 
-    unsigned Graphics::GetRGBAFloat16Format()
+    TextureFormat Graphics::GetRGBAFloat16Format()
     {
         return Diligent::TEX_FORMAT_RGBA16_FLOAT;
     }
 
-    unsigned Graphics::GetRGBAFloat32Format()
+    TextureFormat Graphics::GetRGBAFloat32Format()
     {
         return Diligent::TEX_FORMAT_RGBA32_FLOAT;
     }
 
-    unsigned Graphics::GetRG16Format()
+    TextureFormat Graphics::GetRG16Format()
     {
         return Diligent::TEX_FORMAT_RG16_UNORM;
     }
 
-    unsigned Graphics::GetRGFloat16Format()
+    TextureFormat Graphics::GetRGFloat16Format()
     {
         return Diligent::TEX_FORMAT_RG16_FLOAT;
     }
 
-    unsigned Graphics::GetRGFloat32Format()
+    TextureFormat Graphics::GetRGFloat32Format()
     {
         return Diligent::TEX_FORMAT_RG32_FLOAT;
     }
 
-    unsigned Graphics::GetFloat16Format()
+    TextureFormat Graphics::GetFloat16Format()
     {
         return Diligent::TEX_FORMAT_R16_FLOAT;
     }
 
-    unsigned Graphics::GetFloat32Format()
+    TextureFormat Graphics::GetFloat32Format()
     {
         return Diligent::TEX_FORMAT_R32_FLOAT;
     }
 
-    unsigned Graphics::GetLinearDepthFormat()
+    TextureFormat Graphics::GetLinearDepthFormat()
     {
         return Diligent::TEX_FORMAT_R32_FLOAT;
     }
 
-    unsigned Graphics::GetDepthStencilFormat()
+    TextureFormat Graphics::GetDepthStencilFormat()
     {
         return Diligent::TEX_FORMAT_R24G8_TYPELESS;
     }
 
-    unsigned Graphics::GetReadableDepthFormat()
+    TextureFormat Graphics::GetReadableDepthFormat()
     {
         return Diligent::TEX_FORMAT_R24G8_TYPELESS;
     }
 
-    unsigned Graphics::GetFormat(const String& formatName)
+    TextureFormat Graphics::GetFormat(const String& formatName)
     {
         auto nameLower = formatName.ToLower().Trimmed();
 

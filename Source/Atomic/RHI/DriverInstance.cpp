@@ -222,7 +222,13 @@ namespace REngine
         return levels;
     }
 
-    
+    bool DriverInstance::CheckMultiSampleSupport(unsigned multisample, Diligent::TEXTURE_FORMAT color_fmt, Diligent::TEXTURE_FORMAT depth_fmt) const
+    {
+        const auto& values = GetMultiSampleLevels(color_fmt, depth_fmt);
+        return values.Contains(multisample);
+    }
+
+
     void DriverInstance::OnDebugMessage(Diligent::DEBUG_MESSAGE_SEVERITY severity, const char* message, const char* function, const char* file, int line)
     {
         String log = "[Diligent]: ";

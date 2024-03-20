@@ -36,8 +36,12 @@ namespace Atomic
 RenderSurface::RenderSurface(Texture* parentTexture) :
     parentTexture_(parentTexture),
     view_(nullptr),
+#if RENGINE_DILIGENT
+    read_only_view_(nullptr),
+#endif
     updateMode_(SURFACE_UPDATEVISIBLE),
-    updateQueued_(false)
+    updateQueued_(false),
+    resolveDirty_(false)
 {
 }
 

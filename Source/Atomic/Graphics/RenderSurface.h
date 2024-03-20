@@ -144,6 +144,7 @@ private:
 
 #if RENGINE_DILIGENT
     Diligent::RefCntAutoPtr<Diligent::ITextureView> view_;
+    Diligent::RefCntAutoPtr<Diligent::ITextureView> read_only_view_;
 #else
     union
     {

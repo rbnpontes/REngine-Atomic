@@ -49,7 +49,7 @@ Texture2D::Texture2D(Context* context) :
 
 Texture2D::~Texture2D()
 {
-    Release();
+    Texture2D::Release();
 }
 
 void Texture2D::RegisterObject(Context* context)
@@ -85,8 +85,8 @@ bool Texture2D::BeginLoad(Deserializer& source)
 
     // Load the optional parameters file
     ResourceCache* cache = GetSubsystem<ResourceCache>();
-    String xmlName = ReplaceExtension(GetName(), ".xml");
-    loadParameters_ = cache->GetTempResource<XMLFile>(xmlName, false);
+    const auto xml_name = ReplaceExtension(GetName(), ".xml");
+    loadParameters_ = cache->GetTempResource<XMLFile>(xml_name, false);
 
     return true;
 }
@@ -101,7 +101,7 @@ bool Texture2D::EndLoad()
     CheckTextureBudget(GetTypeStatic());
 
     SetParameters(loadParameters_);
-    bool success = SetData(loadImage_);
+    const auto success = SetData(loadImage_);
 
     loadImage_.Reset();
     loadParameters_.Reset();
@@ -109,7 +109,7 @@ bool Texture2D::EndLoad()
     return success;
 }
 
-bool Texture2D::SetSize(int width, int height, unsigned format, TextureUsage usage, int multiSample, bool autoResolve)
+bool Texture2D::SetSize(int width, int height, TextureFormat format, TextureUsage usage, int multiSample, bool autoResolve)
 {
     if (width <= 0 || height <= 0)
     {
@@ -130,7 +130,7 @@ bool Texture2D::SetSize(int width, int height, unsigned format, TextureUsage usa
     if (multiSample > 1 && autoResolve == false)
         requestedLevels_ = 1;
 
-    // Delete the old rendersurface if any
+    // Delete the old render surface if any
     renderSurface_.Reset();
 
     usage_ = usage;
@@ -168,16 +168,16 @@ SharedPtr<Image> Texture2D::GetImage() const
         return SharedPtr<Image>();
     }
 
-    Image* rawImage = new Image(context_);
+    const auto raw_img = new Image(context_);
     if (format_ == Graphics::GetRGBAFormat())
-        rawImage->SetSize(width_, height_, 4);
+        raw_img->SetSize(width_, height_, 4);
     else if (format_ == Graphics::GetRGBFormat())
-        rawImage->SetSize(width_, height_, 3);
+        raw_img->SetSize(width_, height_, 3);
     else
         assert(0);
 
-    GetData(0, rawImage->GetData());
-    return SharedPtr<Image>(rawImage);
+    GetData(0, raw_img->GetData());
+    return SharedPtr<Image>(raw_img);
 }
 
 void Texture2D::HandleRenderSurfaceUpdate(StringHash eventType, VariantMap& eventData)

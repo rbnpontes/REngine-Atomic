@@ -37,7 +37,7 @@ namespace REngine
         Diligent::ISwapChain* GetSwapChain() const { return swap_chain_; }
 
         Atomic::PODVector<int> GetMultiSampleLevels(Diligent::TEXTURE_FORMAT color_fmt, Diligent::TEXTURE_FORMAT depth_fmt) const;
-
+        bool CheckMultiSampleSupport(unsigned multisample, Diligent::TEXTURE_FORMAT color_fmt, Diligent::TEXTURE_FORMAT depth_fmt) const;
         uint8_t GetMultiSample() const { return multisample_; }
     private:
         static void OnDebugMessage(Diligent::DEBUG_MESSAGE_SEVERITY severity,

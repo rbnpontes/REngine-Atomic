@@ -2,7 +2,7 @@
 
 namespace REngine
 {
-    void get_primitive_type(unsigned element_count, PrimitiveType type, unsigned& primitive_count, PRIMITIVE_TOPOLOGY primitive_topology)
+    void utils_get_primitive_type(unsigned element_count, PrimitiveType type, unsigned& primitive_count, PRIMITIVE_TOPOLOGY primitive_topology)
     {
         switch (type)
         {
@@ -32,4 +32,10 @@ namespace REngine
             break;
         }
     }
+
+    unsigned utils_calc_sub_resource(unsigned mip_slice, unsigned array_slice, unsigned mip_levels)
+    {
+        return mip_slice + (array_slice * mip_levels);
+    }
+
 }

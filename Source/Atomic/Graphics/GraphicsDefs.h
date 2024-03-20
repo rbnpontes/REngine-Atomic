@@ -25,6 +25,10 @@
 #include "../Container/HashBase.h"
 #include "../Math/StringHash.h"
 
+#if RENGINE_DILIGENT
+#include <DiligentCore/Graphics/GraphicsEngine/interface/GraphicsTypes.h>
+#endif
+
 namespace Atomic
 {
 
@@ -37,6 +41,12 @@ class Vector3;
 #define DESKTOP_GRAPHICS
 #endif
 
+#if RENGINE_DILIGENT
+    typedef Diligent::TEXTURE_FORMAT TextureFormat;
+#else
+    typedef unsigned TextureFormat;
+#endif
+    
 enum class GraphicsBackend : uint8_t
 {
     D3D11,

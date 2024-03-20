@@ -43,12 +43,30 @@ namespace REngine
         Atomic::TextureAddressMode address_u{Atomic::ADDRESS_WRAP};
         Atomic::TextureAddressMode address_v{Atomic::ADDRESS_WRAP};
         Atomic::TextureAddressMode address_w{Atomic::ADDRESS_WRAP};
+
+        unsigned ToHash() const
+        {
+            unsigned hash = Atomic::MakeHash(filter_mode);
+            Atomic::CombineHash(hash, anisotropy);
+            Atomic::CombineHash(hash, shadow_compare);
+            Atomic::CombineHash(hash, address_u);
+            Atomic::CombineHash(hash, address_v);
+            Atomic::CombineHash(hash, address_w);
+            return hash;
+        }
     };
     
     struct ImmutableSamplersDesc
     {
         Atomic::String name{};
         SamplerDesc sampler;
+
+        unsigned ToHash() const
+        {
+            unsigned hash = Atomic::StringHash::Calculate(name.CString());
+            Atomic::CombineHash(hash, sampler.ToHash());
+            return hash;
+        }
     };
     
     struct PipelineStateInfo

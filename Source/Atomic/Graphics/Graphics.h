@@ -387,7 +387,7 @@ public:
     /// Return the number of currently connected monitors.
     int GetMonitorCount() const;
     /// Return hardware format for a compressed image format, or 0 if unsupported.
-    unsigned GetFormat(CompressedFormat format) const;
+    TextureFormat GetFormat(CompressedFormat format) const;
     /// Return a shader variation by name and defines.
     ShaderVariation* GetShader(ShaderType type, const String& name, const String& defines = String::EMPTY) const;
     /// Return a shader variation by name and defines.
@@ -533,39 +533,39 @@ public:
     void SetUBO(unsigned object);
 
     /// Return the API-specific alpha texture format.
-    static unsigned GetAlphaFormat();
+    static TextureFormat GetAlphaFormat();
     /// Return the API-specific luminance texture format.
-    static unsigned GetLuminanceFormat();
+    static TextureFormat GetLuminanceFormat();
     /// Return the API-specific luminance alpha texture format.
-    static unsigned GetLuminanceAlphaFormat();
+    static TextureFormat GetLuminanceAlphaFormat();
     /// Return the API-specific RGB texture format.
-    static unsigned GetRGBFormat();
+    static TextureFormat GetRGBFormat();
     /// Return the API-specific RGBA texture format.
-    static unsigned GetRGBAFormat();
+    static TextureFormat GetRGBAFormat();
     /// Return the API-specific RGBA 16-bit texture format.
-    static unsigned GetRGBA16Format();
+    static TextureFormat GetRGBA16Format();
     /// Return the API-specific RGBA 16-bit float texture format.
-    static unsigned GetRGBAFloat16Format();
+    static TextureFormat GetRGBAFloat16Format();
     /// Return the API-specific RGBA 32-bit float texture format.
-    static unsigned GetRGBAFloat32Format();
+    static TextureFormat GetRGBAFloat32Format();
     /// Return the API-specific RG 16-bit texture format.
-    static unsigned GetRG16Format();
+    static TextureFormat GetRG16Format();
     /// Return the API-specific RG 16-bit float texture format.
-    static unsigned GetRGFloat16Format();
+    static TextureFormat GetRGFloat16Format();
     /// Return the API-specific RG 32-bit float texture format.
-    static unsigned GetRGFloat32Format();
+    static TextureFormat GetRGFloat32Format();
     /// Return the API-specific single channel 16-bit float texture format.
-    static unsigned GetFloat16Format();
+    static TextureFormat GetFloat16Format();
     /// Return the API-specific single channel 32-bit float texture format.
-    static unsigned GetFloat32Format();
+    static TextureFormat GetFloat32Format();
     /// Return the API-specific linear depth texture format.
-    static unsigned GetLinearDepthFormat();
+    static TextureFormat GetLinearDepthFormat();
     /// Return the API-specific hardware depth-stencil texture format.
-    static unsigned GetDepthStencilFormat();
+    static TextureFormat GetDepthStencilFormat();
     /// Return the API-specific readable hardware depth format, or 0 if not supported.
-    static unsigned GetReadableDepthFormat();
+    static TextureFormat GetReadableDepthFormat();
     /// Return the API-specific texture format from a textual description, for example "rgb".
-    static unsigned GetFormat(const String& formatName);
+    static TextureFormat GetFormat(const String& formatName);
 
     /// Return UV offset required for pixel perfect rendering.
     static const Vector2& GetPixelUVOffset() { return pixelUVOffset; }
