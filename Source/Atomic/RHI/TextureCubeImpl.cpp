@@ -502,7 +502,7 @@ namespace Atomic
         texture = resolve_texture_ ? resolve_texture_ : texture;
         view_ = texture->GetDefaultView(Diligent::TEXTURE_VIEW_SHADER_RESOURCE);
 
-        if(view_)
+        if(!view_)
         {
             ATOMIC_LOGERROR("Failed to create shader resource view for texture");
             return false;

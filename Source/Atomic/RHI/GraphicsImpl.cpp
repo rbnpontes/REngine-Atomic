@@ -630,9 +630,14 @@ namespace Atomic
         {
             // Make sure we use the read-write version of the depth stencil
             SetDepthWrite(true);
+            // Skip pipeline build and silence pipeline creation warning
+            auto command = REngine::default_render_command_get();
+            command.skip_flags |= static_cast<unsigned>(REngine::RenderCommandSkipFlags::pipeline_build);
+            REngine::default_render_command_set(command);
+            
             PrepareDraw();
+            command = REngine::default_render_command_get();
 
-            const auto& command = REngine::default_render_command_get();
             REngine::RenderCommandClearDesc clear_desc;
             clear_desc.flags = flags;
             clear_desc.clear_color = color;
@@ -2248,19 +2253,20 @@ namespace Atomic
             for(unsigned i = 0; i < MAX_RENDERTARGETS; ++i)
             {
                 if(!renderTargets_[i])
-                {
-                    num_rts = i + 1;
-                    break;
-                }
+                    continue;
 
-                command.render_targets[i] = (renderTargets_[i] && renderTargets_[i]->GetUsage() == TEXTURE_RENDERTARGET)
+                command.render_targets[num_rts] = (renderTargets_[i] && renderTargets_[i]->GetUsage() == TEXTURE_RENDERTARGET)
                     ? renderTargets_[i]->GetRenderTargetView() : Diligent::RefCntAutoPtr<Diligent::ITextureView>();
+                num_rts = i + 1;
             }
             command.num_rts = static_cast<uint8_t>(num_rts);
 
             if (!renderTargets_[0] &&
                 (!depthStencil_ || (depthStencil_ && depthStencil_->GetWidth() == width_ && depthStencil_->GetHeight() == height_)))
+            {
+                command.num_rts = 1;
                 command.render_targets[0] = impl_->GetSwapChain()->GetCurrentBackBufferRTV();
+            }
         }
 
         // setup textures

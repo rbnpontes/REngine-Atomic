@@ -25,6 +25,13 @@ namespace REngine
         scissor = 1 << 6,
         all = render_targets | depth_stencil | pipeline | textures | viewport | scissor
     };
+
+    enum class RenderCommandSkipFlags : unsigned
+    {
+        none = 0x0,
+        pipeline_build = 1 << 0,
+        srb_build = 1 << 1
+    };
     
     struct RenderCommandState
     {
@@ -52,6 +59,7 @@ namespace REngine
         Atomic::HashMap<Atomic::String, Diligent::RefCntAutoPtr<Diligent::IBuffer>> ps_constant_buffers{};
 
         unsigned dirty_state{static_cast<unsigned>(RenderCommandDirtyState::all)};
+        unsigned skip_flags{static_cast<unsigned>(RenderCommandSkipFlags::none)};
     };
 
     struct RenderCommandProcessDesc

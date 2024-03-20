@@ -32,8 +32,10 @@ namespace REngine
             state.dirty_state |= static_cast<unsigned>(RenderCommandDirtyState::pipeline);
         state.pipeline_state_info.output.depth_stencil_format = depth_fmt;
 
+        if(state.skip_flags & static_cast<unsigned>(RenderCommandSkipFlags::pipeline_build))
+            state.skip_flags ^= static_cast<unsigned>(RenderCommandSkipFlags::pipeline_build);
         // build pipeline if is necessary
-        if ((state.dirty_state & static_cast<unsigned>(RenderCommandDirtyState::pipeline)) != 0)
+        else if ((state.dirty_state & static_cast<unsigned>(RenderCommandDirtyState::pipeline)) != 0)
         {
             auto pipeline_hash = pipeline_state_builder_build_hash(state.pipeline_state_info);
             if (pipeline_hash != state.pipeline_hash || state.pipeline_state == nullptr)
@@ -79,8 +81,10 @@ namespace REngine
             state.dirty_state ^= static_cast<unsigned>(RenderCommandDirtyState::constant_buffers);
         }
 
+        if(state.skip_flags & static_cast<unsigned>(RenderCommandSkipFlags::srb_build))
+            state.skip_flags ^= static_cast<unsigned>(RenderCommandSkipFlags::srb_build);
         // build shader resource binding if is necessary
-        if(resources.Size() > 0 && state.pipeline_state)
+        else if(resources.Size() > 0 && state.pipeline_state)
             state.shader_resource_binding = pipeline_state_builder_get_or_create_srb(state.pipeline_hash, resources);
 
         // bind render targets if is necessary
@@ -118,6 +122,8 @@ namespace REngine
 
         if(state.pipeline_state)
             context->SetPipelineState(state.pipeline_state);
+        if(state.shader_resource_binding)
+            context->CommitShaderResources(state.shader_resource_binding, Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
     }
 
     void render_command_reset(const Atomic::Graphics* graphics, RenderCommandState& state)
