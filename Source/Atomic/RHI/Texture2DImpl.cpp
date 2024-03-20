@@ -93,15 +93,15 @@ namespace Atomic
 
         if (usage_ == TEXTURE_STATIC)
         {
-            Diligent::Box box;
+            Diligent::Box box = {};
             box.MinX = x;
             box.MaxX = x + width;
             box.MinY = y;
             box.MaxY = y + height;
-            box.MinZ = 1;
-            box.MaxZ = 0;
+            box.MinZ = 0;
+            box.MaxZ = 1;
 
-            Diligent::TextureSubResData sub_res_data;
+            Diligent::TextureSubResData sub_res_data = {};
             sub_res_data.pData = data;
             sub_res_data.Stride = row_size;
 
@@ -122,7 +122,7 @@ namespace Atomic
             y >>= 2;
         }
 
-        Diligent::MappedTextureSubresource mapped_data;
+        Diligent::MappedTextureSubresource mapped_data = {};
         graphics_->GetImpl()->GetDeviceContext()->MapTextureSubresource(
             texture,
             sub_resource,
@@ -303,7 +303,7 @@ namespace Atomic
         const auto level_width = GetLevelWidth(level);
         const auto level_height = GetLevelHeight(level);
 
-        Diligent::TextureDesc texture_desc;
+        Diligent::TextureDesc texture_desc = {};
         texture_desc.Name = GetName().CString();
         texture_desc.Width = level_width;
         texture_desc.Height = level_height;
@@ -326,15 +326,15 @@ namespace Atomic
         const auto src_resource = resolve_texture_ ? resolve_texture_ : object_;
         const auto src_sub_resource = REngine::utils_calc_sub_resource(level, 0, levels_);
 
-        Diligent::Box src_box;
+        Diligent::Box src_box = {};
         src_box.MinX = 0;
         src_box.MaxX = level_width;
         src_box.MinY = 0;
         src_box.MaxY = level_height;
-        src_box.MaxZ = 0;
-        src_box.MinZ = 1;
+        src_box.MinZ = 0;
+        src_box.MaxZ = 1;
 
-        Diligent::CopyTextureAttribs copy_attribs;
+        Diligent::CopyTextureAttribs copy_attribs = {};
         copy_attribs.pDstTexture = staging_texture;
         copy_attribs.DstMipLevel = 0;
         copy_attribs.pSrcBox = &src_box;
@@ -380,9 +380,10 @@ namespace Atomic
         
         levels_ = CheckMaxLevels(width_, height_, requestedLevels_);
 
-        Diligent::TextureDesc texture_desc;
+        Diligent::TextureDesc texture_desc = {};
         texture_desc.Name = GetName().CString();
         texture_desc.Format = sRGB_ ? GetSRGBFormat(format_) : format_;
+        texture_desc.Type = Diligent::RESOURCE_DIM_TEX_2D;
         
         // Disable multisampling if not supported
         if (multiSample_ > 1 && !graphics_->GetImpl()->CheckMultiSampleSupport(multiSample_, texture_desc.Format, TextureFormat::TEX_FORMAT_UNKNOWN))
@@ -396,7 +397,7 @@ namespace Atomic
             levels_ = 1;
         else if (usage_ == TEXTURE_RENDERTARGET && levels_ != 1 && multiSample_ == 1)
             texture_desc.MiscFlags |= Diligent::MISC_TEXTURE_FLAG_GENERATE_MIPS;
-        
+
         texture_desc.Width = width_;
         texture_desc.Height = height_;
         // Disable mip levels from the multisample texture. Rather create them to the resolve texture
@@ -462,7 +463,7 @@ namespace Atomic
         }
         else if (usage_ == TEXTURE_DEPTHSTENCIL)
         {
-            Diligent::TextureViewDesc view_desc;
+            Diligent::TextureViewDesc view_desc = {};
             view_desc.ViewType = Diligent::TEXTURE_VIEW_READ_ONLY_DEPTH_STENCIL;
             view_desc.Format = GetDSVFormat(texture_desc.Format);
             view_desc.TextureDim = Diligent::RESOURCE_DIM_TEX_2D;

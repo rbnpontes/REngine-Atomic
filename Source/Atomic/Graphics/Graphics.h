@@ -346,13 +346,13 @@ public:
     unsigned GetNumBatches() const { return numBatches_; }
 
     /// Return dummy color texture format for shadow maps. Is "NULL" (consume no video memory) if supported.
-    unsigned GetDummyColorFormat() const { return dummyColorFormat_; }
+    TextureFormat GetDummyColorFormat() const { return dummyColorFormat_; }
 
     /// Return shadow map depth texture format, or 0 if not supported.
-    unsigned GetShadowMapFormat() const { return shadowMapFormat_; }
+    TextureFormat GetShadowMapFormat() const { return shadowMapFormat_; }
 
     /// Return 24-bit shadow map depth texture format, or 0 if not supported.
-    unsigned GetHiresShadowMapFormat() const { return hiresShadowMapFormat_; }
+    TextureFormat GetHiresShadowMapFormat() const { return hiresShadowMapFormat_; }
 
     /// Return whether hardware instancing is supported.
     bool GetInstancingSupport() const { return instancingSupport_; }
@@ -731,11 +731,11 @@ private:
     /// Scratch buffers.
     Vector<ScratchBuffer> scratchBuffers_;
     /// Shadow map dummy color texture format.
-    unsigned dummyColorFormat_;
+    TextureFormat dummyColorFormat_;
     /// Shadow map depth texture format.
-    unsigned shadowMapFormat_;
+    TextureFormat shadowMapFormat_;
     /// Shadow map 24-bit depth texture format.
-    unsigned hiresShadowMapFormat_;
+    TextureFormat hiresShadowMapFormat_;
     /// Vertex buffers in use.
     VertexBuffer* vertexBuffers_[MAX_VERTEX_STREAMS];
     /// Index buffer in use.

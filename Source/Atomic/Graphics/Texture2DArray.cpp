@@ -186,7 +186,8 @@ bool Texture2DArray::SetSize(unsigned layers, int width, int height, unsigned fo
 
     width_ = width;
     height_ = height;
-    format_ = format;
+    // TODO: remove this cast
+    format_ = static_cast<TextureFormat>(format);
     depth_ = 1;
     if (layers)
         layers_ = layers;

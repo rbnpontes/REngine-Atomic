@@ -102,7 +102,8 @@ void UISceneView::OnResize(const IntVector2 &newSize)
     if (width > 0 && height > 0)
     {
         viewport_->SetRect(IntRect(0, 0, width, height));
-        renderTexture_->SetSize(width, height, rttFormat_, TEXTURE_RENDERTARGET);
+        // TODO: remove this cast
+        renderTexture_->SetSize(width, height, static_cast<TextureFormat>(rttFormat_), TEXTURE_RENDERTARGET);
         depthTexture_->SetSize(width, height, Graphics::GetDepthStencilFormat(), TEXTURE_DEPTHSTENCIL);
 
         RenderSurface* surface = renderTexture_->GetRenderSurface();

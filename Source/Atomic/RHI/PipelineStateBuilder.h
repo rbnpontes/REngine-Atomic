@@ -46,7 +46,7 @@ namespace REngine
 
         unsigned ToHash() const
         {
-            unsigned hash = Atomic::MakeHash(filter_mode);
+            unsigned hash = filter_mode;
             Atomic::CombineHash(hash, anisotropy);
             Atomic::CombineHash(hash, shadow_compare);
             Atomic::CombineHash(hash, address_u);

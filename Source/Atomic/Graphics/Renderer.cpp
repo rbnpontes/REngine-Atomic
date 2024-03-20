@@ -928,7 +928,13 @@ Texture2D* Renderer::GetShadowMap(Light* light, Camera* camera, unsigned viewWid
     }
 
     // Find format and usage of the shadow map
-    unsigned shadowMapFormat = 0;
+    TextureFormat shadowMapFormat;
+#if RENGINE_DILIGENT
+    shadowMapFormat = TextureFormat::TEX_FORMAT_UNKNOWN;
+#else
+    shadowMapFormat = 0;
+#endif
+    
     TextureUsage shadowMapUsage = TEXTURE_DEPTHSTENCIL;
     int multiSample = 1;
 
@@ -957,7 +963,7 @@ Texture2D* Renderer::GetShadowMap(Light* light, Camera* camera, unsigned viewWid
 
     SharedPtr<Texture2D> newShadowMap(new Texture2D(context_));
     int retries = 3;
-    unsigned dummyColorFormat = graphics_->GetDummyColorFormat();
+    const auto dummyColorFormat = graphics_->GetDummyColorFormat();
 
     // Disable mipmaps from the shadow map
     newShadowMap->SetNumLevels(1);
@@ -1061,7 +1067,8 @@ Texture* Renderer::GetScreenBuffer(int width, int height, unsigned format, int m
             SharedPtr<Texture2D> newTex2D(new Texture2D(context_));
             /// \todo Mipmaps disabled for now. Allow to request mipmapped buffer?
             newTex2D->SetNumLevels(1);
-            newTex2D->SetSize(width, height, format, depthStencil ? TEXTURE_DEPTHSTENCIL : TEXTURE_RENDERTARGET, multiSample, autoResolve);
+            // TODO: remove this cast
+            newTex2D->SetSize(width, height, static_cast<TextureFormat>(format), depthStencil ? TEXTURE_DEPTHSTENCIL : TEXTURE_RENDERTARGET, multiSample, autoResolve);
 
 #ifdef ATOMIC_OPENGL
             // OpenGL hack: clear persistent floating point screen buffers to ensure the initial contents aren't illegal (NaN)?
