@@ -382,6 +382,7 @@ void WebTexture2D::SetSize(int width, int height)
     TextureUsage textureUsage = TEXTURE_DYNAMIC;
     unsigned format = Graphics::GetRGBAFormat();
 
+    // TODO: fix this
 #ifdef ATOMIC_D3D11
 
     // D3D11 uses a static texture (in BGRA format), required for subresource update with rectangle

@@ -1773,14 +1773,6 @@ void View::SetRenderTargets(RenderPathCommand& command)
             {
                 useColorWrite = false;
                 useCustomDepth = true;
-#if !defined(ATOMIC_OPENGL) && !defined(ATOMIC_D3D11)
-                // On D3D9 actual depth-only rendering is illegal, we need a color rendertarget
-                if (!depthOnlyDummyTexture_)
-                {
-                    depthOnlyDummyTexture_ = renderer_->GetScreenBuffer(texture->GetWidth(), texture->GetHeight(),
-                        graphics_->GetDummyColorFormat(), texture->GetMultiSample(), texture->GetAutoResolve(), false, false, false);
-                }
-#endif
                 graphics_->SetRenderTarget(0, GetRenderSurfaceFromTexture(depthOnlyDummyTexture_));
                 graphics_->SetDepthStencil(GetRenderSurfaceFromTexture(texture));
             }

@@ -231,15 +231,6 @@ void SystemUI::OnRenderDrawLists(ImDrawData* data)
         if (cmd_list->IdxBuffer.Size > indexBuffer_.GetIndexCount())
             indexBuffer_.SetSize((unsigned int)(cmd_list->IdxBuffer.Size * 2), false, true);
 
-#if (defined(_WIN32) && !defined(ATOMIC_D3D11) && !defined(ATOMIC_OPENGL)) || defined(ATOMIC_D3D9)
-        for (int i = 0; i < cmd_list->VtxBuffer.Size; i++)
-        {
-            ImDrawVert& v = cmd_list->VtxBuffer.Data[i];
-            v.pos.x += 0.5f;
-            v.pos.y += 0.5f;
-        }
-#endif
-
         vertexBuffer_.SetDataRange(cmd_list->VtxBuffer.Data, 0, (unsigned int)cmd_list->VtxBuffer.Size, true);
         indexBuffer_.SetDataRange(cmd_list->IdxBuffer.Data, 0, (unsigned int)cmd_list->IdxBuffer.Size, true);
 

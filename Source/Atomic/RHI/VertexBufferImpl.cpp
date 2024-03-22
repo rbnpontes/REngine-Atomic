@@ -208,7 +208,7 @@ bool VertexBuffer::Create()
     if (!vertexCount_ || !elementMask_)
         return true;
     
-    if (graphics_)
+    if (!graphics_)
         return true;
 
     using namespace Diligent;

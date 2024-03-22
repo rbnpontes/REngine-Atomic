@@ -1,8 +1,11 @@
 #include "./RenderCommand.h"
 
+#include "./DiligentUtils.h"
+
 namespace REngine
 {
     static Diligent::ITextureView* s_tmp_render_targets[Atomic::MAX_RENDERTARGETS];
+    static Diligent::IBuffer* s_tmp_vertex_buffers[Atomic::MAX_VERTEX_STREAMS];
 
     void render_command_process(const RenderCommandProcessDesc& desc, RenderCommandState& state)
     {
@@ -62,23 +65,25 @@ namespace REngine
         }
 
         // bind constant buffers
-        if ((state.dirty_state & static_cast<unsigned>(RenderCommandDirtyState::constant_buffers)) != 0 && state.pipeline_state)
+        if ((state.dirty_state & static_cast<unsigned>(RenderCommandDirtyState::shader_program)) != 0
+            && state.pipeline_state && state.shader_program)
         {
-            Atomic::HashMap<Atomic::String, Diligent::RefCntAutoPtr<Diligent::IBuffer>> buffers[] = {
-                state.vs_constant_buffers,
-                state.ps_constant_buffers,
-            };
-
-            for (const auto& buffer : buffers)
+            for(unsigned i = 0; i < Atomic::MAX_SHADER_TYPES; ++i)
             {
-                for(const auto& it : buffer)
+                for(unsigned j = 0; j < Atomic::MAX_SHADER_PARAMETER_GROUPS; ++j)
                 {
-                    if(it.second_)
-                        resources[it.first_] = it.second_;
+                    const auto type = static_cast<ShaderType>(i);
+                    const auto grp = static_cast<ShaderParameterGroup>(j);
+                    const ConstantBuffer* constant_buffer = state.shader_program->GetConstantBuffer(type, grp);
+
+                    if(!constant_buffer)
+                        continue;
+                    Atomic::String key = utils_get_shader_parameter_group_name(type, grp);
+                    resources[key] = constant_buffer->GetGPUObject();
                 }
             }
 
-            state.dirty_state ^= static_cast<unsigned>(RenderCommandDirtyState::constant_buffers);
+            state.dirty_state ^= static_cast<unsigned>(RenderCommandDirtyState::shader_program);
         }
 
         if(state.skip_flags & static_cast<unsigned>(RenderCommandSkipFlags::srb_build))
@@ -119,6 +124,26 @@ namespace REngine
 
             state.dirty_state ^= static_cast<unsigned>(RenderCommandDirtyState::scissor);
         }
+        if(state.dirty_state & static_cast<unsigned>(RenderCommandDirtyState::vertex_buffer))
+        {
+            unsigned next_idx =0;
+            for(const auto& buffer : state.vertex_buffers)
+            {
+                if(!buffer)
+                    continue;
+                s_tmp_vertex_buffers[next_idx] = buffer;
+                ++next_idx;
+            }
+
+            if(next_idx > 0)
+                context->SetVertexBuffers(
+                    0,
+                    next_idx,
+                    s_tmp_vertex_buffers,
+                    state.vertex_offsets,
+                    Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
+            state.dirty_state ^= static_cast<unsigned>(RenderCommandDirtyState::vertex_buffer);
+        }
 
         if(state.pipeline_state)
             context->SetPipelineState(state.pipeline_state);
@@ -131,7 +156,7 @@ namespace REngine
         for (unsigned i = 0; i < Atomic::MAX_VERTEX_STREAMS; ++i)
         {
             state.vertex_buffers[i] = nullptr;
-            state.vertex_offsets[i] = state.vertex_sizes[i] = 0;
+            state.vertex_offsets[i] = 0;
         }
         state.index_buffer = nullptr;
 
@@ -153,10 +178,8 @@ namespace REngine
 
         for (auto it : state.textures)
             it.second_ = nullptr;
-        for (auto it : state.vs_constant_buffers)
-            it.second_ = nullptr;
-        for (auto it : state.ps_constant_buffers)
-            it.second_ = nullptr;
+
+        state.shader_program = {};
 
         state.dirty_state = static_cast<unsigned>(RenderCommandDirtyState::all);
     }

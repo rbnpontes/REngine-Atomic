@@ -63,8 +63,8 @@ typedef const void* ClassID;
     public: \
         virtual Atomic::ClassID GetClassID() const { return GetClassIDStatic(); } \
         static Atomic::ClassID GetClassIDStatic() { static const int typeID = 0; return (Atomic::ClassID) &typeID; } \
-        virtual const String& GetTypeName() const { return GetTypeNameStatic(); } \
-        static const String& GetTypeNameStatic() { static const String _typeName(#typeName); return _typeName; }
+        virtual const Atomic::String& GetTypeName() const { return GetTypeNameStatic(); } \
+        static const Atomic::String& GetTypeNameStatic() { static const Atomic::String _typeName(#typeName); return _typeName; }
 
 // ATOMIC END
 

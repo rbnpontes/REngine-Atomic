@@ -39,6 +39,7 @@ struct SDL_Window;
 namespace REngine
 {
     class DriverInstance;
+    class ShaderProgram;
 }
 #endif
 
@@ -52,11 +53,11 @@ class IndexBuffer;
 class GPUObject;
 #ifndef RENGINE_DILIGENT
 class GraphicsImpl;
+class ShaderProgram;
 #endif
 class RenderSurface;
 class Shader;
 class ShaderPrecache;
-class ShaderProgram;
 class ShaderVariation;
 class Texture;
 class Texture2D;
@@ -68,7 +69,7 @@ class VertexBuffer;
 class VertexDeclaration;
 
 struct ShaderParameter;
-
+    
 /// CPU-side scratch buffer for vertex data updates.
 struct ScratchBuffer
 {
@@ -404,8 +405,10 @@ public:
     /// Return current pixel shader.
     ShaderVariation* GetPixelShader() const { return pixelShader_; }
 
-#ifndef RENGINE_DILIGENT
     /// Return shader program. This is an API-specific class and should not be used by applications.
+#if RENGINE_DILIGENT
+    REngine::ShaderProgram* GetShaderProgram() const;
+#else
     ShaderProgram* GetShaderProgram() const;
 #endif
     /// Return texture unit index by name.

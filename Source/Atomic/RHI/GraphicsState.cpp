@@ -27,6 +27,22 @@ namespace REngine
     {
         s_state.all_constant_buffers[index] = buffer;
     }
+
+    Atomic::SharedPtr<ShaderProgram> graphics_state_get_shader_program(const ShaderProgramQuery& query)
+    {
+        auto hash = Atomic::MakeHash(query.vertex_shader);
+        Atomic::CombineHash(hash, Atomic::MakeHash(query.pixel_shader));
+
+        const auto& it = s_state.shader_programs.Find(hash);
+        if(it == s_state.shader_programs.End())
+            return {};
+        return it->second_;
+    }
+    void graphics_state_set_shader_program(const Atomic::SharedPtr<ShaderProgram> program)
+    {
+        s_state.shader_programs[program.ToHash()] = program;
+    }
+
     
     const RenderCommandState& default_render_command_get()
     {

@@ -28,6 +28,8 @@
 #include <DiligentCore/Graphics/GraphicsEngine/interface/GraphicsTypes.h>
 #include <DiligentCore/Graphics/GraphicsEngine/interface/TextureView.h>
 #include <DiligentCore/Graphics/GraphicsEngine/interface/DeviceContext.h>
+#include <DiligentCore/Graphics/GraphicsEngine/interface/Shader.h>
+#include <DiligentCore/Common/interface/RefCntAutoPtr.hpp>
 
 // ATOMIC BEGIN
 #include <SDL/include/SDL.h>
@@ -49,129 +51,6 @@ __declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
 
 namespace Atomic
 {
-    // static const D3D11_COMPARISON_FUNC d3dCmpFunc[] =
-    // {
-    //     D3D11_COMPARISON_ALWAYS,
-    //     D3D11_COMPARISON_EQUAL,
-    //     D3D11_COMPARISON_NOT_EQUAL,
-    //     D3D11_COMPARISON_LESS,
-    //     D3D11_COMPARISON_LESS_EQUAL,
-    //     D3D11_COMPARISON_GREATER,
-    //     D3D11_COMPARISON_GREATER_EQUAL
-    // };
-    //
-    // static const DWORD d3dBlendEnable[] =
-    // {
-    //     FALSE,
-    //     TRUE,
-    //     TRUE,
-    //     TRUE,
-    //     TRUE,
-    //     TRUE,
-    //     TRUE,
-    //     TRUE
-    // };
-    //
-    // static const D3D11_BLEND d3dSrcBlend[] =
-    // {
-    //     D3D11_BLEND_ONE,
-    //     D3D11_BLEND_ONE,
-    //     D3D11_BLEND_DEST_COLOR,
-    //     D3D11_BLEND_SRC_ALPHA,
-    //     D3D11_BLEND_SRC_ALPHA,
-    //     D3D11_BLEND_ONE,
-    //     D3D11_BLEND_INV_DEST_ALPHA,
-    //     D3D11_BLEND_ONE,
-    //     D3D11_BLEND_SRC_ALPHA,
-    // };
-    //
-    // static const D3D11_BLEND d3dDestBlend[] =
-    // {
-    //     D3D11_BLEND_ZERO,
-    //     D3D11_BLEND_ONE,
-    //     D3D11_BLEND_ZERO,
-    //     D3D11_BLEND_INV_SRC_ALPHA,
-    //     D3D11_BLEND_ONE,
-    //     D3D11_BLEND_INV_SRC_ALPHA,
-    //     D3D11_BLEND_DEST_ALPHA,
-    //     D3D11_BLEND_ONE,
-    //     D3D11_BLEND_ONE
-    // };
-    //
-    // static const D3D11_BLEND_OP d3dBlendOp[] =
-    // {
-    //     D3D11_BLEND_OP_ADD,
-    //     D3D11_BLEND_OP_ADD,
-    //     D3D11_BLEND_OP_ADD,
-    //     D3D11_BLEND_OP_ADD,
-    //     D3D11_BLEND_OP_ADD,
-    //     D3D11_BLEND_OP_ADD,
-    //     D3D11_BLEND_OP_ADD,
-    //     D3D11_BLEND_OP_REV_SUBTRACT,
-    //     D3D11_BLEND_OP_REV_SUBTRACT
-    // };
-    //
-    // static const D3D11_STENCIL_OP d3dStencilOp[] =
-    // {
-    //     D3D11_STENCIL_OP_KEEP,
-    //     D3D11_STENCIL_OP_ZERO,
-    //     D3D11_STENCIL_OP_REPLACE,
-    //     D3D11_STENCIL_OP_INCR,
-    //     D3D11_STENCIL_OP_DECR
-    // };
-    //
-    // static const D3D11_CULL_MODE d3dCullMode[] =
-    // {
-    //     D3D11_CULL_NONE,
-    //     D3D11_CULL_BACK,
-    //     D3D11_CULL_FRONT
-    // };
-    //
-    // static const D3D11_FILL_MODE d3dFillMode[] =
-    // {
-    //     D3D11_FILL_SOLID,
-    //     D3D11_FILL_WIREFRAME,
-    //     D3D11_FILL_WIREFRAME // Point fill mode not supported
-    // };
-    //
-    // static void GetD3DPrimitiveType(unsigned elementCount, PrimitiveType type, unsigned& primitiveCount,
-    //     D3D_PRIMITIVE_TOPOLOGY& d3dPrimitiveType)
-    // {
-    //     switch (type)
-    //     {
-    //     case TRIANGLE_LIST:
-    //         primitiveCount = elementCount / 3;
-    //         d3dPrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
-    //         break;
-    //
-    //     case LINE_LIST:
-    //         primitiveCount = elementCount / 2;
-    //         d3dPrimitiveType = D3D_PRIMITIVE_TOPOLOGY_LINELIST;
-    //         break;
-    //
-    //     case POINT_LIST:
-    //         primitiveCount = elementCount;
-    //         d3dPrimitiveType = D3D_PRIMITIVE_TOPOLOGY_POINTLIST;
-    //         break;
-    //
-    //     case TRIANGLE_STRIP:
-    //         primitiveCount = elementCount - 2;
-    //         d3dPrimitiveType = D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP;
-    //         break;
-    //
-    //     case LINE_STRIP:
-    //         primitiveCount = elementCount - 1;
-    //         d3dPrimitiveType = D3D_PRIMITIVE_TOPOLOGY_LINESTRIP;
-    //         break;
-    //
-    //     case TRIANGLE_FAN:
-    //         // Triangle fan is not supported on D3D11
-    //         primitiveCount = 0;
-    //         d3dPrimitiveType = D3D_PRIMITIVE_TOPOLOGY_UNDEFINED;
-    //         break;
-    //     }
-    // }
-
     static HWND GetWindowHandle(SDL_Window* window)
     {
         SDL_SysWMinfo sysInfo;
@@ -234,59 +113,27 @@ namespace Atomic
 
     Graphics::~Graphics()
     {
+        {
+            MutexLock lock(gpuObjectMutex_);
+            // Release all GPU objects that still exist
+            for (PODVector<GPUObject*>::Iterator i = gpuObjects_.Begin(); i != gpuObjects_.End(); ++i)
+                (*i)->Release();
+            gpuObjects_.Clear();
+        }
+        
+        ResetCachedState();
         impl_->Release();
         delete impl_;
-        throw std::exception("Not implemented");
-        // {
-        //     MutexLock lock(gpuObjectMutex_);
-        //
-        //     // Release all GPU objects that still exist
-        //     for (PODVector<GPUObject*>::Iterator i = gpuObjects_.Begin(); i != gpuObjects_.End(); ++i)
-        //         (*i)->Release();
-        //     gpuObjects_.Clear();
-        // }
-        //
-        // impl_->vertexDeclarations_.Clear();
-        // impl_->allConstantBuffers_.Clear();
-        //
-        // for (HashMap<unsigned, ID3D11BlendState*>::Iterator i = impl_->blendStates_.Begin(); i != impl_->blendStates_.End(); ++i)
-        // {
-        //     ATOMIC_SAFE_RELEASE(i->second_);
-        // }
-        // impl_->blendStates_.Clear();
-        //
-        // for (HashMap<unsigned, ID3D11DepthStencilState*>::Iterator i = impl_->depthStates_.Begin(); i != impl_->depthStates_.End(); ++i)
-        // {
-        //     ATOMIC_SAFE_RELEASE(i->second_);
-        // }
-        // impl_->depthStates_.Clear();
-        //
-        // for (HashMap<unsigned, ID3D11RasterizerState*>::Iterator i = impl_->rasterizerStates_.Begin();
-        //      i != impl_->rasterizerStates_.End(); ++i)
-        // {
-        //     ATOMIC_SAFE_RELEASE(i->second_);
-        // }
-        // impl_->rasterizerStates_.Clear();
-        //
-        // ATOMIC_SAFE_RELEASE(impl_->defaultRenderTargetView_);
-        // ATOMIC_SAFE_RELEASE(impl_->defaultDepthStencilView_);
-        // ATOMIC_SAFE_RELEASE(impl_->defaultDepthTexture_);
-        // ATOMIC_SAFE_RELEASE(impl_->resolveTexture_);
-        // ATOMIC_SAFE_RELEASE(impl_->swapChain_);
-        // ATOMIC_SAFE_RELEASE(impl_->deviceContext_);
-        // ATOMIC_SAFE_RELEASE(impl_->device_);
-        //
-        // if (window_)
-        // {
-        //     SDL_ShowCursor(SDL_TRUE);
-        //     SDL_DestroyWindow(window_);
-        //     window_ = 0;
-        // }
-        //
-        // delete impl_;
-        // impl_ = 0;
-        //
-        // context_->ReleaseSDL();
+        impl_ = nullptr;
+    
+        if (window_)
+        {
+            SDL_ShowCursor(SDL_TRUE);
+            SDL_DestroyWindow(window_);
+            window_ = nullptr;
+        }
+
+        context_->ReleaseSDL();
     }
 
     bool Graphics::SetMode(int width, int height, bool fullscreen, bool borderless, bool resizable, bool highDPI,
@@ -466,13 +313,11 @@ namespace Atomic
 
     void Graphics::Close()
     {
-        throw std::exception("Not implemented");
-        // if (window_)
-        // {
-        //     SDL_ShowCursor(SDL_TRUE);
-        //     SDL_DestroyWindow(window_);
-        //     window_ = 0;
-        // }
+        if (!window_)
+            return;
+        SDL_ShowCursor(SDL_TRUE);
+        SDL_DestroyWindow(window_);
+        window_ = nullptr;
     }
 
     bool Graphics::TakeScreenShot(Image* destImage_)
@@ -937,70 +782,58 @@ namespace Atomic
 
     void Graphics::SetVertexBuffer(VertexBuffer* buffer)
     {
-        throw std::exception("Not implemented");
         // Note: this is not multi-instance safe
-        // static PODVector<VertexBuffer*> vertexBuffers(1);
-        // vertexBuffers[0] = buffer;
-        // SetVertexBuffers(vertexBuffers);
+        static PODVector<VertexBuffer*> vertex_buffers(1);
+        vertex_buffers[0] = buffer;
+        SetVertexBuffers(vertex_buffers);
     }
 
     bool Graphics::SetVertexBuffers(const PODVector<VertexBuffer*>& buffers, unsigned instanceOffset)
     {
-        throw std::exception("Not implemented");
-        // if (buffers.Size() > MAX_VERTEX_STREAMS)
-        // {
-        //     ATOMIC_LOGERROR("Too many vertex buffers");
-        //     return false;
-        // }
-        //
-        // for (unsigned i = 0; i < MAX_VERTEX_STREAMS; ++i)
-        // {
-        //     VertexBuffer* buffer = 0;
-        //     bool changed = false;
-        //
-        //     buffer = i < buffers.Size() ? buffers[i] : 0;
-        //     if (buffer)
-        //     {
-        //         const PODVector<VertexElement>& elements = buffer->GetElements();
-        //         // Check if buffer has per-instance data
-        //         bool hasInstanceData = elements.Size() && elements[0].perInstance_;
-        //         unsigned offset = hasInstanceData ? instanceOffset * buffer->GetVertexSize() : 0;
-        //
-        //         if (buffer != vertexBuffers_[i] || offset != impl_->vertexOffsets_[i])
-        //         {
-        //             vertexBuffers_[i] = buffer;
-        //             impl_->vertexBuffers_[i] = (ID3D11Buffer*)buffer->GetGPUObject();
-        //             impl_->vertexSizes_[i] = buffer->GetVertexSize();
-        //             impl_->vertexOffsets_[i] = offset;
-        //             changed = true;
-        //         }
-        //     }
-        //     else if (vertexBuffers_[i])
-        //     {
-        //         vertexBuffers_[i] = 0;
-        //         impl_->vertexBuffers_[i] = 0;
-        //         impl_->vertexSizes_[i] = 0;
-        //         impl_->vertexOffsets_[i] = 0;
-        //         changed = true;
-        //     }
-        //
-        //     if (changed)
-        //     {
-        //         impl_->vertexDeclarationDirty_ = true;
-        //
-        //         if (impl_->firstDirtyVB_ == M_MAX_UNSIGNED)
-        //             impl_->firstDirtyVB_ = impl_->lastDirtyVB_ = i;
-        //         else
-        //         {
-        //             if (i < impl_->firstDirtyVB_)
-        //                 impl_->firstDirtyVB_ = i;
-        //             if (i > impl_->lastDirtyVB_)
-        //                 impl_->lastDirtyVB_ = i;
-        //         }
-        //     }
-        // }
-        //
-        // return true;
+        if (buffers.Size() > MAX_VERTEX_STREAMS)
+        {
+            ATOMIC_LOGERROR("Too many vertex buffers");
+            return false;
+        }
+
+        auto command = REngine::default_render_command_get();
+        for (unsigned i = 0; i < MAX_VERTEX_STREAMS; ++i)
+        {
+            VertexBuffer* buffer = nullptr;
+            bool changed = false;
+        
+            buffer = i < buffers.Size() ? buffers[i] : 0;
+            if (buffer)
+            {
+                const PODVector<VertexElement>& elements = buffer->GetElements();
+                // Check if buffer has per-instance data
+                const auto has_instance_data = elements.Size() && elements[0].perInstance_;
+                const auto offset = has_instance_data ? instanceOffset * buffer->GetVertexSize() : 0;
+        
+                if (buffer != vertexBuffers_[i] || offset != command.vertex_offsets[i])
+                {
+                    vertexBuffers_[i] = buffer;
+                    command.vertex_buffers[i] = buffer->GetGPUObject().Cast<Diligent::IBuffer>(Diligent::IID_Buffer);
+                    command.vertex_offsets[i] = offset;
+                    changed = true;
+                }
+            }
+            else if (vertexBuffers_[i])
+            {
+                vertexBuffers_[i] = nullptr;
+                command.vertex_buffers[i] = nullptr;
+                command.vertex_offsets[i] = 0;
+                changed = true;
+            }
+        
+            if (changed)
+            {
+                command.dirty_state |= static_cast<unsigned>(REngine::RenderCommandDirtyState::vertex_buffer);
+                REngine::default_render_command_set(command);
+            }
+        }
+        
+        return true;
     }
 
     bool Graphics::SetVertexBuffers(const Vector<SharedPtr<VertexBuffer>>& buffers, unsigned instanceOffset)
@@ -1025,119 +858,103 @@ namespace Atomic
 
     void Graphics::SetShaders(ShaderVariation* vs, ShaderVariation* ps)
     {
-        throw std::exception("Not implemented");
         // Switch to the clip plane variations if necessary
-        // if (useClipPlane_)
-        // {
-        //     if (vs)
-        //         vs = vs->GetOwner()->GetVariation(VS, vs->GetDefinesClipPlane());
-        //     if (ps)
-        //         ps = ps->GetOwner()->GetVariation(PS, ps->GetDefinesClipPlane());
-        // }
-        //
-        // if (vs == vertexShader_ && ps == pixelShader_)
-        //     return;
-        //
-        // if (vs != vertexShader_)
-        // {
-        //     // Create the shader now if not yet created. If already attempted, do not retry
-        //     if (vs && !vs->GetGPUObject())
-        //     {
-        //         if (vs->GetCompilerOutput().Empty())
-        //         {
-        //             ATOMIC_PROFILE(CompileVertexShader);
-        //
-        //             bool success = vs->Create();
-        //             if (!success)
-        //             {
-        //                 ATOMIC_LOGERROR("Failed to compile vertex shader " + vs->GetFullName() + ":\n" + vs->GetCompilerOutput());
-        //                 vs = 0;
-        //             }
-        //         }
-        //         else
-        //             vs = 0;
-        //     }
-        //
-        //     impl_->deviceContext_->VSSetShader((ID3D11VertexShader*)(vs ? vs->GetGPUObject() : 0), 0, 0);
-        //     vertexShader_ = vs;
-        //     impl_->vertexDeclarationDirty_ = true;
-        // }
-        //
-        // if (ps != pixelShader_)
-        // {
-        //     if (ps && !ps->GetGPUObject())
-        //     {
-        //         if (ps->GetCompilerOutput().Empty())
-        //         {
-        //             ATOMIC_PROFILE(CompilePixelShader);
-        //
-        //             bool success = ps->Create();
-        //             if (!success)
-        //             {
-        //                 ATOMIC_LOGERROR("Failed to compile pixel shader " + ps->GetFullName() + ":\n" + ps->GetCompilerOutput());
-        //                 ps = 0;
-        //             }
-        //         }
-        //         else
-        //             ps = 0;
-        //     }
-        //
-        //     impl_->deviceContext_->PSSetShader((ID3D11PixelShader*)(ps ? ps->GetGPUObject() : 0), 0, 0);
-        //     pixelShader_ = ps;
-        // }
-        //
-        // // Update current shader parameters & constant buffers
-        // if (vertexShader_ && pixelShader_)
-        // {
-        //     Pair<ShaderVariation*, ShaderVariation*> key = MakePair(vertexShader_, pixelShader_);
-        //     ShaderProgramMap::Iterator i = impl_->shaderPrograms_.Find(key);
-        //     if (i != impl_->shaderPrograms_.End())
-        //         impl_->shaderProgram_ = i->second_.Get();
-        //     else
-        //     {
-        //         ShaderProgram* newProgram = impl_->shaderPrograms_[key] = new ShaderProgram(this, vertexShader_, pixelShader_);
-        //         impl_->shaderProgram_ = newProgram;
-        //     }
-        //
-        //     bool vsBuffersChanged = false;
-        //     bool psBuffersChanged = false;
-        //
-        //     for (unsigned i = 0; i < MAX_SHADER_PARAMETER_GROUPS; ++i)
-        //     {
-        //         ID3D11Buffer* vsBuffer = impl_->shaderProgram_->vsConstantBuffers_[i] ? (ID3D11Buffer*)impl_->shaderProgram_->vsConstantBuffers_[i]->
-        //             GetGPUObject() : 0;
-        //         if (vsBuffer != impl_->constantBuffers_[VS][i])
-        //         {
-        //             impl_->constantBuffers_[VS][i] = vsBuffer;
-        //             shaderParameterSources_[i] = (const void*)M_MAX_UNSIGNED;
-        //             vsBuffersChanged = true;
-        //         }
-        //
-        //         ID3D11Buffer* psBuffer = impl_->shaderProgram_->psConstantBuffers_[i] ? (ID3D11Buffer*)impl_->shaderProgram_->psConstantBuffers_[i]->
-        //             GetGPUObject() : 0;
-        //         if (psBuffer != impl_->constantBuffers_[PS][i])
-        //         {
-        //             impl_->constantBuffers_[PS][i] = psBuffer;
-        //             shaderParameterSources_[i] = (const void*)M_MAX_UNSIGNED;
-        //             psBuffersChanged = true;
-        //         }
-        //     }
-        //
-        //     if (vsBuffersChanged)
-        //         impl_->deviceContext_->VSSetConstantBuffers(0, MAX_SHADER_PARAMETER_GROUPS, &impl_->constantBuffers_[VS][0]);
-        //     if (psBuffersChanged)
-        //         impl_->deviceContext_->PSSetConstantBuffers(0, MAX_SHADER_PARAMETER_GROUPS, &impl_->constantBuffers_[PS][0]);
-        // }
-        // else
-        //     impl_->shaderProgram_ = 0;
-        //
-        // // Store shader combination if shader dumping in progress
-        // if (shaderPrecache_)
-        //     shaderPrecache_->StoreShaders(vertexShader_, pixelShader_);
-        //
-        // // Update clip plane parameter if necessary
-        // if (useClipPlane_)
-        //     SetShaderParameter(VSP_CLIPPLANE, clipPlane_);
+        if (useClipPlane_)
+        {
+            if (vs)
+                vs = vs->GetOwner()->GetVariation(VS, vs->GetDefinesClipPlane());
+            if (ps)
+                ps = ps->GetOwner()->GetVariation(PS, ps->GetDefinesClipPlane());
+        }
+        
+        if (vs == vertexShader_ && ps == pixelShader_)
+            return;
+
+        auto command = REngine::default_render_command_get();
+        if (vs != vertexShader_)
+        {
+            // Create the shader now if not yet created. If already attempted, do not retry
+            if (vs && !vs->GetGPUObject())
+            {
+                if (vs->GetCompilerOutput().Empty())
+                {
+                    ATOMIC_PROFILE(CompileVertexShader);
+        
+                    bool success = vs->Create();
+                    if (!success)
+                    {
+                        ATOMIC_LOGERROR("Failed to compile vertex shader " + vs->GetFullName() + ":\n" + vs->GetCompilerOutput());
+                        vs = nullptr;
+                    }
+                }
+                else
+                    vs = nullptr;
+            }
+
+            Diligent::RefCntAutoPtr<Diligent::IShader> vs_shader = vs ? vs->GetGPUObject().Cast<Diligent::IShader>(Diligent::IID_Shader) : Diligent::RefCntAutoPtr<Diligent::IShader>();
+            command.pipeline_state_info.vs_shader = vs_shader;
+            command.dirty_state |= static_cast<unsigned>(REngine::RenderCommandDirtyState::pipeline);
+            vertexShader_ = vs;
+        }
+        
+        if (ps != pixelShader_)
+        {
+            if (ps && !ps->GetGPUObject())
+            {
+                if (ps->GetCompilerOutput().Empty())
+                {
+                    ATOMIC_PROFILE(CompilePixelShader);
+        
+                    bool success = ps->Create();
+                    if (!success)
+                    {
+                        ATOMIC_LOGERROR("Failed to compile pixel shader " + ps->GetFullName() + ":\n" + ps->GetCompilerOutput());
+                        ps = nullptr;
+                    }
+                }
+                else
+                    ps = nullptr;
+            }
+
+            Diligent::RefCntAutoPtr<Diligent::IShader> ps_shader = ps ? ps->GetGPUObject().Cast<Diligent::IShader>(Diligent::IID_Shader) : Diligent::RefCntAutoPtr<Diligent::IShader>();
+            command.pipeline_state_info.ps_shader = ps_shader;
+            command.dirty_state |= static_cast<unsigned>(REngine::RenderCommandDirtyState::pipeline);
+            pixelShader_ = ps;
+        }
+        
+        // Update current shader parameters & constant buffers
+        if (vertexShader_ && pixelShader_)
+        {
+            REngine::ShaderProgramQuery query { vertexShader_, pixelShader_ };
+            SharedPtr<REngine::ShaderProgram> shader_program = REngine::graphics_state_get_shader_program(query);
+
+            if(!shader_program)
+            {
+                REngine::ShaderProgramCreationDesc creation_desc = {};
+                creation_desc.graphics = this;
+                creation_desc.vertex_shader = vertexShader_;
+                creation_desc.pixel_shader = pixelShader_;
+                shader_program = new REngine::ShaderProgram(creation_desc);
+            }
+            
+            command.shader_program = shader_program;
+            command.dirty_state |= static_cast<unsigned>(REngine::RenderCommandDirtyState::shader_program);
+        }
+        else
+        {
+            command.shader_program = nullptr;
+            command.dirty_state ^= static_cast<unsigned>(REngine::RenderCommandDirtyState::shader_program);
+        }
+        
+        // Store shader combination if shader dumping in progress
+        if (shaderPrecache_)
+            shaderPrecache_->StoreShaders(vertexShader_, pixelShader_);
+        
+        // Update clip plane parameter if necessary
+        if (useClipPlane_)
+            SetShaderParameter(VSP_CLIPPLANE, clipPlane_);
+
+        REngine::default_render_command_set(command);
     }
 
     void Graphics::SetShaderParameter(StringHash param, const float* data, unsigned count)
@@ -2200,6 +2017,9 @@ namespace Atomic
             return CreateDevice(width, height, multiSample_);
 
         impl_->GetSwapChain()->Resize(width, height);
+        
+        width_ = width;
+        height_ = height;
         ResetRenderTargets();
         return true;
     }

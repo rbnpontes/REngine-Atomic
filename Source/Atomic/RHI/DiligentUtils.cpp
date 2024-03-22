@@ -2,6 +2,21 @@
 
 namespace REngine
 {
+    static const char* s_shader_param_grp_names[MAX_SHADER_TYPES * MAX_SHADER_PARAMETER_GROUPS] = {
+        "FrameVS",
+        "CameraVS",
+        "ZoneVS",
+        "LightVS",
+        "MaterialVS",
+        "CustomVS",
+        "FramePS",
+        "CameraPS",
+        "ZonePS",
+        "LightPS",
+        "MaterialPS",
+        "CustomPS",
+    };
+    
     void utils_get_primitive_type(unsigned element_count, PrimitiveType type, unsigned& primitive_count, PRIMITIVE_TOPOLOGY primitive_topology)
     {
         switch (type)
@@ -38,4 +53,10 @@ namespace REngine
         return mip_slice + (array_slice * mip_levels);
     }
 
+    const char* utils_get_shader_parameter_group_name(Atomic::ShaderType type, Atomic::ShaderParameterGroup grp)
+    {
+        unsigned idx = type * grp;
+        assert(idx < _countof(s_shader_param_grp_names), "Invalid Shader Type or Shader Parameter Group");
+        return s_shader_param_grp_names[idx];    
+    }
 }

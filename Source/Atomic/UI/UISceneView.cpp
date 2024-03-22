@@ -230,16 +230,6 @@ void SceneViewWidget::OnPaint(const PaintProps &paint_props)
     float w = (float) rect.w;
     float h = (float) rect.h;
 
-#ifdef ATOMIC_PLATFORM_WINDOWS
-
-#ifndef ATOMIC_D3D11
-    //Direct3D9 Adjustment
-    x += 0.5f;
-    y += 0.5f;
-#endif
-
-#endif
-
     data[3] = color;
     data[9] = color;
     data[15] = color;

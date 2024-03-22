@@ -236,17 +236,7 @@ void TBRendererBatcher::AddQuadInternal(const TBRect &dst_rect, const TBRect &sr
         m_vv = (float)(src_rect.y + src_rect.h) / bitmap_h;
     }
 
-#ifdef _MSC_VER
-    //Direct3D9 Adjustment
-#if defined(ATOMIC_D3D11) || defined(ATOMIC_OPENGL)
     float posAdjust = 0.0f;
-#else
-    float posAdjust = 0.5f;
-#endif
-
-#else
-    float posAdjust = 0.0f;
-#endif
 
     Vertex *ver = batch.Reserve(this, 6);
     ver[0].x = (float) dst_rect.x + posAdjust;
