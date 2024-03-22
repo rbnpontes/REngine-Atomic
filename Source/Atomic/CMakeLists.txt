@@ -114,48 +114,54 @@ endif ()
 
 include_directories (${CMAKE_CURRENT_SOURCE_DIR})
 target_include_directories(Atomic PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../)
-target_link_libraries (Atomic Box2D Duktape TurboBadger FreeType JO LZ4 PugiXml STB SDL ASIO rapidjson WebSocketPP imgui)
+
+set (PUBLIC_THIRD_PARTY_DEPS 
+    Box2D 
+    Duktape 
+    TurboBadger 
+    FreeType 
+    JO 
+    LZ4 
+    PugiXml 
+    STB 
+    SDL 
+    ASIO 
+    rapidjson 
+    WebSocketPP 
+    imgui)
+set (PRIVATE_THIRD_PARTY_DEPS)
+
 target_compile_definitions (Atomic PUBLIC -DATOMIC_CXX11=1)
 if (ATOMIC_64BIT)
     target_compile_definitions (Atomic PUBLIC -DATOMIC_64BIT=1)
 endif ()
 
 if (ANDROID)
-    target_link_libraries (Atomic dl log android GLESv1_CM GLESv2)
+    list(APPEND PRIVATE_THIRD_PARTY_DEPS dl log android GLESv1_CM GLESv2)
     target_compile_definitions(Atomic PUBLIC -DATOMIC_PLATFORM_ANDROID=1 -DGLEW_NO_GLU=1)
 elseif (APPLE)
     if (IOS)
         target_compile_definitions(Atomic PUBLIC -DATOMIC_PLATFORM_IOS=1 -DIOS=1)
     else () # MacOS
-        target_link_libraries (Atomic GLEW)
+        list(APPEND PRIVATE_THIRD_PARTY_DEPS GLEW)
         target_compile_definitions(Atomic PUBLIC -DATOMIC_PLATFORM_OSX=1)
     endif ()
 elseif (LINUX)
-    target_link_libraries (Atomic pthread GLEW GL dl)
+    list(APPEND PUBLIC_THIRD_PARTY_DEPS pthread GLEW GL dl)
     target_compile_definitions(Atomic PUBLIC -DATOMIC_PLATFORM_LINUX=1)
 elseif (WIN32)
     target_compile_definitions (Atomic PUBLIC -DATOMIC_PLATFORM_WINDOWS=1)
-    target_link_libraries (Atomic user32 gdi32 winmm imm32 ole32 oleaut32 version uuid Ws2_32)
-    if (ATOMIC_D3D9) # DirectX 9
-        target_link_libraries (Atomic d3d9 d3dcompiler)
-        target_compile_definitions (Atomic PUBLIC -DATOMIC_D3D9=1)
-    elseif(ATOMIC_OPENGL) # OpenGL
+    list(APPEND PUBLIC_THIRD_PARTY_DEPS user32 gdi32 winmm imm32 ole32 oleaut32 version uuid Ws2_32 MojoShader)
+    
+    if(ATOMIC_OPENGL) # OpenGL
         find_package(OpenGL REQUIRED)
         include_directories (${OpenGL_INCLUDE_DIRS})
         link_directories (${OpenGL_LIBRARY_DIRS})
         target_compile_definitions (Atomic PRIVATE ${OpenGL_DEFINITIONS})
-        target_link_libraries (Atomic GLEW opengl32 glu32)
+        list(APPEND PUBLIC_THIRD_PARTY_DEPS GLEW opengl32 glu32)
     elseif(ATOMIC_D3D11) # DirectX 11
         target_compile_definitions (Atomic PUBLIC -DATOMIC_D3D11=1)
-        target_link_libraries (Atomic d3d11 d3dcompiler dxguid)
-    endif()
-    target_link_libraries(Atomic MojoShader user32 gdi32 winmm imm32 ole32 oleaut32 version uuid Ws2_32)
-
-    # removes dependency on D3DCompiler dll for Atomic Direct3D9 builds which don't require it
-    # (binaries that never initialize the Direct3D9 graphics subsystem)
-    option (ATOMIC_D3D9SHADERCOMPILER_DISABLE "Remove D3DCompiler.dll dependency. Use for binaries that never initialize the Direct3D9 graphics subsystem." OFF)
-    if (ATOMIC_D3D9SHADERCOMPILER_DISABLE)
-        target_compile_definitions (Atomic PUBLIC -DATOMIC_D3D9SHADERCOMPILER_DISABLE=1)
+        list(APPEND PUBLIC_THIRD_PARTY_DEPS d3d11 d3dcompiler dxguid)
     endif()
 elseif (WEB)
     target_compile_definitions(Atomic PUBLIC -DATOMIC_PLATFORM_WEB=1 -DNO_POPEN=1)
@@ -167,17 +173,27 @@ endif ()
 
 if(RENGINE_DILIGENT)
     target_compile_definitions(Atomic PUBLIC -DRENGINE_DILIGENT=1)
-    target_link_libraries(Atomic Diligent-GraphicsEngineOpenGL-static Diligent-GraphicsEngineVk-static)
+    list(APPEND PUBLIC_THIRD_PARTY_DEPS Diligent-GraphicsEngineOpenGL-static Diligent-GraphicsEngineVk-static)
+    list(APPEND PRIVATE_THIRD_PARTY_DEPS glslang
+        glslang-default-resource-limits
+        SPIRV
+        spirv-cross-core
+        spirv-cross-glsl
+        spirv-cross-hlsl
+        spirv-cross-reflect
+        SPIRV-Tools
+        SPIRV-Tools-opt
+    )
     if (WIN32)
-        target_link_libraries(Atomic Diligent-GraphicsEngineD3D11-static Diligent-GraphicsEngineD3D12-static)
+        list(APPEND PUBLIC_THIRD_PARTY_DEPS Diligent-GraphicsEngineD3D11-static Diligent-GraphicsEngineD3D12-static)
     endif ()
 endif ()
 
 if (ATOMIC_DESKTOP)
     target_compile_definitions (Atomic PUBLIC -DATOMIC_PLATFORM_DESKTOP=1)
-    target_link_libraries (Atomic libsquish)
+    list(APPEND PRIVATE_THIRD_PARTY_DEPS libsquish)
     if (NOT LINUX)
-        target_link_libraries (Atomic LibCpuId)
+        list(APPEND PRIVATE_THIRD_PARTY_DEPS LibCpuId)
     endif()
     option (ATOMIC_FILEWATCHER "Enable file watcher" ON)
     if (ATOMIC_FILEWATCHER)
@@ -187,12 +203,12 @@ endif ()
 
 if (NOT WEB)
     target_compile_definitions (Atomic PUBLIC -DATOMIC_THREADING=1 -DATOMIC_NETWORK=1 -DATOMIC_WEB=1)
-    target_link_libraries (Atomic libcurl Civetweb kNet)
+    list(APPEND PUBLIC_THIRD_PARTY_DEPS libcurl Civetweb kNet)
 endif()
 
 if (ATOMIC_PROFILING)
     target_compile_definitions (Atomic PUBLIC -DATOMIC_PROFILING=1)
-    target_link_libraries (Atomic easy_profiler)
+    list(APPEND PUBLIC_THIRD_PARTY_DEPS easy_profiler)
 endif ()
 
 option (ATOMIC_LOGGING "Enable logging" ON)
@@ -214,13 +230,13 @@ else ()
     option (ATOMIC_PHYSICS "Enable physics subsystem" ON)
     if (ATOMIC_PHYSICS)
         target_compile_definitions (Atomic PUBLIC -DATOMIC_PHYSICS=1)
-        target_link_libraries (Atomic Bullet StanHull)
+        list(APPEND PUBLIC_THIRD_PARTY_DEPS Bullet StanHull)
     endif ()
 
     option (ATOMIC_NAVIGATION "Enable navigation subsystem" ON)
     if (ATOMIC_NAVIGATION)
         target_compile_definitions (Atomic PUBLIC -DATOMIC_NAVIGATION=1)
-        target_link_libraries (Atomic Recast Detour DetourCrowd DetourTileCache)
+        list(APPEND PUBLIC_THIRD_PARTY_DEPS Recast Detour DetourCrowd DetourTileCache)
     endif ()
 endif ()
 
@@ -230,15 +246,15 @@ if (NOT APPLE OR IOS OR WEB)
 endif ()
 
 if (ATOMIC_DATABASE_SQLITE)
-    target_link_libraries(Atomic sqlite)
+    list(APPEND PUBLIC_THIRD_PARTY_DEPS sqlite)
     target_compile_definitions(Atomic PUBLIC -DATOMIC_DATABASE=1 -DATOMIC_DATABASE_SQLITE=1)
 elseif (ATOMIC_DATABASE_ODBC)
-    target_link_libraries(Atomic nanodbc)
+    list(APPEND PUBLIC_THIRD_PARTY_DEPS nanodbc)
     target_compile_definitions(Atomic PUBLIC -DATOMIC_DATABASE=1 -DATOMIC_DATABASE_ODBC=1)
 endif ()
 
 if (ATOMIC_IK)
-    target_link_libraries(Atomic ik)
+    list(APPEND PUBLIC_THIRD_PARTY_DEPS ik)
     target_compile_definitions(Atomic PUBLIC -DATOMIC_IK=1)
 endif ()
 
@@ -260,3 +276,6 @@ endif ()
 if (UNIX OR MINGW)
     target_compile_options(Atomic PUBLIC $<$<COMPILE_LANGUAGE:CXX>:-std=gnu++11>)
 endif ()
+
+target_link_libraries(Atomic ${PUBLIC_THIRD_PARTY_DEPS})
+target_link_libraries(Atomic ${PRIVATE_THIRD_PARTY_DEPS})

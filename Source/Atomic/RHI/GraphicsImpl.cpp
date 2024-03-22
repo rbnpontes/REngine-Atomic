@@ -98,8 +98,9 @@ namespace Atomic
         maxScratchBufferRequest_(0),
         defaultTextureFilterMode_(FILTER_TRILINEAR),
         defaultTextureAnisotropy_(4),
-        shaderPath_("Shaders/HLSL/"),
-        shaderExtension_(".hlsl"),
+        // TODO: use Shaders instead of Shaders/SpirV
+        shaderPath_("Shaders/SpirV/"),
+        shaderExtension_(".glsl"),
         orientations_("LandscapeLeft LandscapeRight"),
         apiName_("DiligentCore")
     {
