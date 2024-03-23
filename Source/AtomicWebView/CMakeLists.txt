@@ -11,4 +11,7 @@ set (SOURCE_FILES ${SOURCE_FILES} ${JAVASCRIPT_BINDINGS_SOURCE} ${PLATFORM_SOURC
 
 add_library(AtomicWebView ${SOURCE_FILES})
 target_link_libraries(AtomicWebView Atomic)
-add_dependencies(AtomicWebView AtomicToolCheckScripts)
+
+if (ATOMIC_JAVASCRIPT OR ATOMICA_DOTNET)
+    add_dependencies(AtomicWebView AtomicToolCheckScripts)
+endif()

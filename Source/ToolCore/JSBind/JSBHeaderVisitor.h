@@ -91,7 +91,10 @@ public:
 
             if (classname.StartsWith("Atomic::"))
                 classname.Replace("Atomic::", "");
-
+            bool founded = false;
+            if(classname.StartsWith("REngine::"))
+                founded = true;
+            
             if (classname == "VariantVector")
             {
                 JSBClass* jclass = JSBPackage::GetClassAllPackages("ScriptVariant");
