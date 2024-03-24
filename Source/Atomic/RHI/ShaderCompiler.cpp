@@ -403,10 +403,13 @@ namespace REngine
             element.name = name;
 
             output.input_elements[idx] = element;
+            ++idx;
         }
 
         idx = 0;
+
         memset(&output.used_texture_units, 0x0, sizeof(bool) * MAX_TEXTURE_UNITS);
+        output.samplers.Resize(resources.sampled_images.size());
         for(const auto& image : resources.sampled_images)
         {
             const auto name = Atomic::String(compiler.get_name(image.id).c_str());
@@ -414,7 +417,9 @@ namespace REngine
 
             if (texture_unit != MAX_TEXTURE_UNITS)
                 output.used_texture_units[texture_unit] = true;
-            output.samplers.Push(name);
+            output[idx] = name;
+            ++idx;
+
         }
     }
 }
