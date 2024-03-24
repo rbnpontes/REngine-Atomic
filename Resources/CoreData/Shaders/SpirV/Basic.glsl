@@ -1,5 +1,3 @@
-#version 450
-
 #include "Uniforms.glsl"
 #include "Samplers.glsl"
 #include "Transform.glsl"
@@ -45,11 +43,7 @@ void PS()
         gl_FragColor = diffColor * diffInput;
     #endif
     #ifdef ALPHAMAP
-        #ifdef GL3
-            float alphaInput = texture2D(sDiffMap, vTexCoord).r;
-        #else
-            float alphaInput = texture2D(sDiffMap, vTexCoord).a;
-        #endif
+        float alphaInput = texture2D(sDiffMap, vTexCoord).r;
         gl_FragColor = vec4(diffColor.rgb, diffColor.a * alphaInput);
     #endif
 }

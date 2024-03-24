@@ -339,7 +339,6 @@ void JSBClass::Process()
 
     for (unsigned j = 0; j < functions_.Size(); j++)
     {
-
         for (unsigned k = 0; k < excludes_.Size(); k++)
         {
             JSBFunctionSignature* sig = excludes_[k];

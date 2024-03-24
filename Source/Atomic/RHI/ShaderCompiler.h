@@ -9,7 +9,6 @@ namespace REngine
     {
         Atomic::String source_code{};
         Atomic::ShaderType type{};
-        Atomic::StringVector defines{};
     };
     struct ShaderCompilerPreProcessResult
     {

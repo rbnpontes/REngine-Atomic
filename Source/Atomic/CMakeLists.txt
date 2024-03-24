@@ -175,7 +175,6 @@ if(RENGINE_DILIGENT)
     target_compile_definitions(Atomic PUBLIC -DRENGINE_DILIGENT=1)
     list(APPEND PUBLIC_THIRD_PARTY_DEPS Diligent-GraphicsEngineOpenGL-static Diligent-GraphicsEngineVk-static)
     list(APPEND PRIVATE_THIRD_PARTY_DEPS glslang
-        glslang-default-resource-limits
         SPIRV
         spirv-cross-core
         spirv-cross-glsl

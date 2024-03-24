@@ -64,9 +64,10 @@ public:
         if (classes_.Size())
             return true;
 
+        String enum_name = getNameString(penum->name());
         JSBModule* module = header_->GetModule();
 
-        JSBEnum* jenum = new JSBEnum(header_->GetContext(), module_, getNameString(penum->name()));
+        JSBEnum* jenum = new JSBEnum(header_->GetContext(), module_, enum_name);
         jenum->SetHeader(header_);
 
         for (unsigned i = 0; i < penum->memberCount(); i++)
@@ -90,6 +91,13 @@ public:
             jenum->AddValue(name, value);
 
         }
+
+        // WORKAROUND: test if this enum is a class enum
+        const auto end_offset = penum->startOffset();
+        const auto begin_offset = penum->startOffset() - (enum_name.Length() + String("enum").Length() + 1);
+        const auto enum_source = String(header_->GetSource() + begin_offset, end_offset - begin_offset);
+        if (enum_source.StartsWith("lass"))
+            jenum->AsClass();
 
         jenum->Preprocess();
 

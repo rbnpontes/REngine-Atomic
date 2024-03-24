@@ -50,30 +50,20 @@
     
     vec3 EncodeDepth(float depth)
     {
-        #ifndef GL3
-            vec3 ret;
-            depth *= 255.0;
-            ret.x = floor(depth);
-            depth = (depth - ret.x) * 255.0;
-            ret.y = floor(depth);
-            ret.z = (depth - ret.y);
-            ret.xy *= 1.0 / 255.0;
-            return ret;
-        #else
-            // OpenGL 3 can use different MRT formats, so no need for encoding
-            return vec3(depth, 0.0, 0.0);
-        #endif
+        vec3 ret;
+        depth *= 255.0;
+        ret.x = floor(depth);
+        depth = (depth - ret.x) * 255.0;
+        ret.y = floor(depth);
+        ret.z = (depth - ret.y);
+        ret.xy *= 1.0 / 255.0;
+        return ret;
     }
     
     float DecodeDepth(vec3 depth)
     {
-        #ifndef GL3
-            const vec3 dotValues = vec3(1.0, 1.0 / 255.0, 1.0 / (255.0 * 255.0));
-            return dot(depth, dotValues);
-        #else
-            // OpenGL 3 can use different MRT formats, so no need for encoding
-            return depth.r;
-        #endif
+        const vec3 dotValues = vec3(1.0, 1.0 / 255.0, 1.0 / (255.0 * 255.0));
+        return dot(depth, dotValues);
     }
     
     float ReconstructDepth(float hwDepth)

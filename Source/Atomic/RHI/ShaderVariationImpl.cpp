@@ -233,6 +233,7 @@ namespace Atomic
         Diligent::ShaderCreateInfo shader_ci = {};
 
         String source_code = owner_->GetSourceCode(type_);
+        String entrypoint;
         Vector<String> defines = defines_.Split(' ');
         const auto backend = graphics_->GetImpl()->GetBackend();
 
@@ -256,14 +257,14 @@ namespace Atomic
         {
         case VS:
             {
-                shader_ci.EntryPoint = "VS";
+                entrypoint = "VS();";
                 shader_ci.Desc.ShaderType = Diligent::SHADER_TYPE_VERTEX;
                 defines.Push("COMPILEVS");
             }
             break;
         case PS:
             {
-                shader_ci.EntryPoint = "PS";
+                entrypoint = "PS();";
                 shader_ci.Desc.ShaderType = Diligent::SHADER_TYPE_PIXEL;
                 defines.Push("COMPILEPS");
             }
@@ -311,7 +312,10 @@ namespace Atomic
 #endif
         }
 
-        source_code = macros_header + source_code;
+        source_code = String("#version 450\n") + macros_header + source_code;
+        source_code.Append("void main()\n{");
+        source_code.AppendWithFormat("\t%s\n", entrypoint.CString());
+        source_code.Append("}");
 
         {
             REngine::ShaderCompilerPreProcessDesc pre_process_desc = {};

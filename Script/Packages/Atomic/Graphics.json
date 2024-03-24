@@ -42,7 +42,7 @@
 		"Texture" : {
 			"GetTarget" : [],
 			"GetRenderBuffer" : [],
-			"GetExternalFormat" : [],
+			"GetExternalFormat" : ["unsigned"],
 			"GetDataType" : []
 		}
 	},

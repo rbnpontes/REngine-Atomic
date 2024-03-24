@@ -418,7 +418,6 @@ void JSBModule::ScanHeaders()
             String filepath = dir + fileNames[k];
 
             SharedPtr<JSBHeader> header(new JSBHeader(context_, this, filepath));
-
             // Parse the C++ header
             header->Parse();
 
