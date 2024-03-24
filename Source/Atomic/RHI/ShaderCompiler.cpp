@@ -11,11 +11,13 @@
 
 #include "spirv_parser.hpp"
 #include "spirv_cross.hpp"
+#include "spirv_hlsl.hpp"
 
 #include <glslang/Public/ShaderLang.h>
 
 #include <SPIRV/GlslangToSpv.h>
 #include <DiligentCore/Graphics/ShaderTools/include/SPIRVTools.hpp>
+
 
 namespace REngine
 {
@@ -347,6 +349,7 @@ namespace REngine
         spirv_cross::Compiler compiler{ std::move(parser.get_parsed_ir()) };
         auto resources = compiler.get_shader_resources();
 
+        memset(&output.constant_buffer_sizes, 0x0, sizeof(ShaderParameterGroup) * MAX_SHADER_PARAMETER_GROUPS);
     	for(const auto& uniform_buffer : resources.uniform_buffers)
         {
             const auto& type = compiler.get_type(uniform_buffer.base_type_id);
@@ -417,9 +420,22 @@ namespace REngine
 
             if (texture_unit != MAX_TEXTURE_UNITS)
                 output.used_texture_units[texture_unit] = true;
-            output[idx] = name;
+            output.samplers[idx] = name;
             ++idx;
-
         }
     }
+
+    void shader_compiler_to_hlsl(const ShaderCompilerHlslDesc& desc, Atomic::String& source_code)
+    {
+#if WIN32
+        spirv_cross::CompilerHLSL::Options options = {};
+        spirv_cross::CompilerHLSL compiler(static_cast<uint32_t*>(desc.spirv_code), desc.length / sizeof(uint32_t));
+        compiler.set_hlsl_options(options);
+
+        source_code = Atomic::String(compiler.compile().c_str());
+#else
+        ATOMIC_LOGERROR("HLSL from SpirV is not supported on non windows platform.");
+#endif
+    }
+
 }

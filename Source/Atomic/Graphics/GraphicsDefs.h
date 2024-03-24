@@ -24,6 +24,7 @@
 
 #include "../Container/HashBase.h"
 #include "../Math/StringHash.h"
+#include "../Math/MathDefs.h"
 
 #if RENGINE_DILIGENT
 #include <DiligentCore/Graphics/GraphicsEngine/interface/GraphicsTypes.h>
@@ -46,7 +47,7 @@ class Vector3;
 #else
     typedef unsigned TextureFormat;
 #endif
-    
+
 enum class GraphicsBackend : uint8_t
 {
     D3D11,
@@ -385,6 +386,40 @@ enum ShadowQuality
     SHADOWQUALITY_PCF_24BIT,
     SHADOWQUALITY_VSM,
     SHADOWQUALITY_BLUR_VSM
+};
+
+    /// %Shader parameter definition.
+struct ATOMIC_API ShaderParameter
+{
+    /// %Shader type.
+    ShaderType type_{MAX_SHADER_TYPES};
+    /// Name of the parameter.
+    String name_{};
+
+    union
+    {
+        /// Offset in constant buffer.
+        unsigned offset_;
+        /// OpenGL uniform location.
+        int location_;
+        /// Direct3D9 register index.
+        unsigned register_;
+    };
+
+    union
+    {
+        /// Parameter size. Used only on Direct3D11 to calculate constant buffer size.
+        unsigned size_;
+        /// Parameter OpenGL type.
+        unsigned glType_;
+        /// Number of registers on Direct3D9.
+        unsigned regCount_;
+    };
+
+    /// Constant buffer index. Only used on Direct3D11.
+    unsigned buffer_{M_MAX_UNSIGNED};
+    /// Constant buffer pointer. Defined only in shader programs.
+    void* bufferPtr_{nullptr};
 };
 
 // Inbuilt shader parameters.

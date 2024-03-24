@@ -24,55 +24,18 @@
 
 #include "../Container/HashMap.h"
 #include "../Container/RefCounted.h"
-#include "../Container/ArrayPtr.h"
 #include "../Graphics/GPUObject.h"
 #include "../Graphics/GraphicsDefs.h"
 
+#if RENGINE_DILIGENT
+#include "../RHI/ShaderCompiler.h"
+#endif
 namespace Atomic
 {
 
 class ConstantBuffer;
 class Shader;
 
-/// %Shader parameter definition.
-struct ShaderParameter
-{
-    /// Construct with defaults.
-    ShaderParameter() :
-        bufferPtr_(0)
-    {
-    }
-
-    /// %Shader type.
-    ShaderType type_;
-    /// Name of the parameter.
-    String name_;
-
-    union
-    {
-        /// Offset in constant buffer.
-        unsigned offset_;
-        /// OpenGL uniform location.
-        int location_;
-        /// Direct3D9 register index.
-        unsigned register_;
-    };
-
-    union
-    {
-        /// Parameter size. Used only on Direct3D11 to calculate constant buffer size.
-        unsigned size_;
-        /// Parameter OpenGL type.
-        unsigned glType_;
-        /// Number of registers on Direct3D9.
-        unsigned regCount_;
-    };
-
-    /// Constant buffer index. Only used on Direct3D11.
-    unsigned buffer_;
-    /// Constant buffer pointer. Defined only in shader programs.
-    ConstantBuffer* bufferPtr_;
-};
 
 /// Vertex or pixel shader on the GPU.
 class ATOMIC_API ShaderVariation : public RefCounted, public GPUObject
@@ -173,6 +136,9 @@ private:
     String definesClipPlane_;
     /// Shader compile error string.
     String compilerOutput_;
+#if RENGINE_DILIGENT
+    Vector<REngine::ShaderCompilerReflectInputElement> input_elements_{};
+#endif
 };
 
 }

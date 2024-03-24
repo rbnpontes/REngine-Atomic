@@ -4,7 +4,7 @@
 #include "../Container/Vector.h"
 #include "../Graphics/GraphicsDefs.h"
 #include "../Core/Variant.h"
-#include "../Graphics/ShaderVariation.h"
+
 namespace REngine
 {
     struct ShaderCompilerDesc
@@ -62,8 +62,14 @@ namespace REngine
         uint64_t element_hash{};
         Atomic::Vector<ShaderCompilerReflectInputElement> input_elements{};
     };
+    struct ShaderCompilerHlslDesc
+    {
+        void* spirv_code{ nullptr };
+        uint32_t length{ 0 };
+    };
 
     void shader_compiler_preprocess(const ShaderCompilerDesc& desc, ShaderCompilerPreProcessResult& output);
     void shader_compiler_compile(const ShaderCompilerDesc& desc, const bool optimize, ShaderCompilerResult& output);
     void shader_compiler_reflect(const ShaderCompilerReflectDesc& desc, ShaderCompilerReflectInfo& output);
+	void shader_compiler_to_hlsl(const ShaderCompilerHlslDesc& desc, Atomic::String& source_code);
 }

@@ -3,6 +3,7 @@
 #include "../Graphics/Graphics.h"
 #include "../Graphics/Shader.h"
 #include "../Graphics/VertexBuffer.h"
+#include "../Graphics/ShaderVariation.h"
 #include "../IO/File.h"
 #include "../IO/FileSystem.h"
 #include "../IO/Log.h"
@@ -231,6 +232,7 @@ namespace Atomic
     bool ShaderVariation::Compile()
     {
         Diligent::ShaderCreateInfo shader_ci = {};
+        shader_ci.SourceLanguage = Diligent::SHADER_SOURCE_LANGUAGE_GLSL;
 
         String source_code = owner_->GetSourceCode(type_);
         String entrypoint;
@@ -318,15 +320,16 @@ namespace Atomic
         source_code.Append("}");
 
         {
-            REngine::ShaderCompilerDesc pre_process_desc = {};
-            pre_process_desc.type = type_;
-            pre_process_desc.source_code = source_code;
+            REngine::ShaderCompilerDesc compiler_desc = {};
+            compiler_desc.type = type_;
+            compiler_desc.source_code = source_code;
             REngine::ShaderCompilerResult result = {};
 
-            REngine::shader_compiler_compile(pre_process_desc, true, result);
+            REngine::shader_compiler_compile(compiler_desc, true, result);
             if(result.has_error)
             {
                 ATOMIC_LOGERROR(result.error);
+                compilerOutput_ = result.error;
                 return false;
             }
 
@@ -338,13 +341,43 @@ namespace Atomic
             REngine::ShaderCompilerReflectInfo reflect_info = {};
             REngine::shader_compiler_reflect(reflect_desc, reflect_info);
 
+            for (uint8_t i = 0; i < MAX_TEXTURE_UNITS; ++i)
+                useTextureUnit_[i] = reflect_info.used_texture_units[i];
+            for (uint8_t i = 0; i < MAX_SHADER_PARAMETER_GROUPS; ++i)
+                constantBufferSizes_[i] = reflect_info.constant_buffer_sizes[i];
+
+            elementHash_ = reflect_info.element_hash;
+            parameters_ = reflect_info.parameters;
+            input_elements_ = reflect_info.input_elements;
+
+#if WIN32
+            // On D3D, spirv code needs to be converted to HLSL
+            if(backend == GraphicsBackend::D3D11 || backend == GraphicsBackend::D3D12)
+            {
+                source_code.Clear();
+                REngine::shader_compiler_to_hlsl({ result.spirv_code.Buffer(), result.spirv_code.Size() }, source_code);
+
+                shader_ci.SourceLanguage = Diligent::SHADER_SOURCE_LANGUAGE_HLSL;
+                shader_ci.Source = source_code.CString();
+                shader_ci.SourceLength = source_code.Length();
+            }
+#endif
             if(backend == GraphicsBackend::Vulkan)
+            {
                 byteCode_ = result.spirv_code;
+                shader_ci.ByteCode = byteCode_.Buffer();
+                shader_ci.ByteCodeSize = byteCode_.Size();
+            }
+            else if(backend == GraphicsBackend::OpenGL)
+            {
+                REngine::ShaderCompilerPreProcessResult pre_process_result = {};
+                REngine::shader_compiler_preprocess(compiler_desc, pre_process_result);
+                const auto byte_code = reinterpret_cast<const unsigned char*>(pre_process_result.source_code.CString());
+                byteCode_ = PODVector<unsigned char>(
+                    byte_code, 
+                    pre_process_result.source_code.Length());
+            }
         }
-        
-        shader_ci.SourceLanguage = Diligent::SHADER_SOURCE_LANGUAGE_HLSL;
-        shader_ci.SourceLength = source_code.Length();
-        shader_ci.Source = source_code.CString();
 
         Diligent::RefCntAutoPtr<Diligent::IShader> shader;
         Diligent::RefCntAutoPtr<Diligent::IDataBlob> shader_output;
@@ -368,53 +401,19 @@ namespace Atomic
             ATOMIC_LOGDEBUG("Compiled pixel shader " + GetFullName());
             break;
         }
+        
+        if(backend == GraphicsBackend::D3D11 || backend == GraphicsBackend::D3D12)
+        {
+            const void* byte_code = nullptr;
+            uint64_t byte_code_len = 0;
 
-        const void* byte_code = nullptr;
-        uint64_t byte_code_len = 0;
+            shader->GetBytecode(&byte_code, byte_code_len);
 
-        shader->GetBytecode(&byte_code, byte_code_len);
-
-        byteCode_.Resize(byte_code_len);
-        memcpy(byteCode_.Buffer(), byte_code, sizeof(char) * byte_code_len);
+            byteCode_.Resize(byte_code_len);
+            memcpy(byteCode_.Buffer(), byte_code, sizeof(char) * byte_code_len);
+        }
         
         return true;
-        // Compile using D3DCompile
-        // ID3DBlob* shaderCode = 0;
-        // ID3DBlob* errorMsgs = 0;
-        //
-        // HRESULT hr = D3DCompile(source_code.CString(), source_code.Length(), owner_->GetName().CString(), &macros.Front(), 0,
-        //     entry_point, profile, flags, 0, &shaderCode, &errorMsgs);
-        // if (FAILED(hr))
-        // {
-        //     // Do not include end zero unnecessarily
-        //     compilerOutput_ = String((const char*)errorMsgs->GetBufferPointer(), (unsigned)errorMsgs->GetBufferSize() - 1);
-        // }
-        // else
-        // {
-        //     if (type_ == VS)
-        //         ATOMIC_LOGDEBUG("Compiled vertex shader " + GetFullName());
-        //     else
-        //         ATOMIC_LOGDEBUG("Compiled pixel shader " + GetFullName());
-        //
-        //     unsigned char* bufData = (unsigned char*)shaderCode->GetBufferPointer();
-        //     unsigned bufSize = (unsigned)shaderCode->GetBufferSize();
-        //     // Use the original bytecode to reflect the parameters
-        //     ParseParameters(bufData, bufSize);
-        //     CalculateConstantBufferSizes();
-        //
-        //     // Then strip everything not necessary to use the shader
-        //     ID3DBlob* strippedCode = 0;
-        //     D3DStripShader(bufData, bufSize,
-        //         D3DCOMPILER_STRIP_REFLECTION_DATA | D3DCOMPILER_STRIP_DEBUG_INFO | D3DCOMPILER_STRIP_TEST_BLOBS, &strippedCode);
-        //     byteCode_.Resize((unsigned)strippedCode->GetBufferSize());
-        //     memcpy(&byteCode_[0], strippedCode->GetBufferPointer(), byteCode_.Size());
-        //     strippedCode->Release();
-        // }
-        //
-        // ATOMIC_SAFE_RELEASE(shaderCode);
-        // ATOMIC_SAFE_RELEASE(errorMsgs);
-        //
-        // return !byteCode_.Empty();
     }
 
     void ShaderVariation::ParseParameters(unsigned char* bufData, unsigned bufSize)
