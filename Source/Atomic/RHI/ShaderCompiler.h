@@ -1,10 +1,10 @@
 #pragma once
+#include "./PipelineStateBuilder.h"
 #include "../Container/Str.h"
 #include "../Container/Vector.h"
 #include "../Graphics/GraphicsDefs.h"
 #include "../Core/Variant.h"
 #include "../Graphics/ShaderVariation.h"
-
 namespace REngine
 {
     struct ShaderCompilerDesc
@@ -42,14 +42,25 @@ namespace REngine
         Atomic::ShaderType type{};
     };
 
+    struct ShaderCompilerReflectInputElement
+    {
+        Atomic::String name{};
+        uint8_t index{};
+        Atomic::VertexElementType element_type{};
+        Atomic::VertexElementSemantic semantic{};
+        uint8_t semantic_index{};
+    };
+
     struct ShaderCompilerReflectInfo
     {
-        uint64_t element_hash{};
         Atomic::StringVector samplers{};
         bool used_texture_units[Atomic::MAX_TEXTURE_UNITS]{};
         Atomic::HashMap<Atomic::StringHash, ShaderCompilerConstantBufferDesc> constant_buffers{};
         uint32_t constant_buffer_sizes[Atomic::MAX_SHADER_PARAMETER_GROUPS];
         Atomic::HashMap<Atomic::StringHash, Atomic::ShaderParameter> parameters{};
+
+        uint64_t element_hash{};
+        Atomic::PODVector<ShaderCompilerReflectInputElement> input_elements{};
     };
 
     void shader_compiler_preprocess(const ShaderCompilerDesc& desc, ShaderCompilerPreProcessResult& output);

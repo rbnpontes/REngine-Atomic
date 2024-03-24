@@ -172,6 +172,38 @@ namespace REngine
         ::glslang::FinalizeProcess();
     }
 
+    static Atomic::VertexElementType get_element_type(const spirv_cross::SPIRType& type)
+    {
+        Atomic::VertexElementType result = Atomic::MAX_VERTEX_ELEMENT_TYPES;
+	    switch (type.basetype)
+    	{
+        case spirv_cross::SPIRType::Int:
+            result = TYPE_INT;
+            break;
+        case spirv_cross::SPIRType::Float:
+            result = TYPE_FLOAT;
+            break;
+        default:
+            if (type.columns > 1) {
+                switch (type.vecsize) {
+                    case 2:
+                        result = TYPE_VECTOR2;
+                        break;
+                    case 3:
+                        result = TYPE_VECTOR3;
+                        break;
+                    case 4:
+                        result = TYPE_VECTOR4;
+                        break;
+                }
+            } else if(type.basetype == spirv_cross::SPIRType::UInt && type.width == 8 && type.columns == 1) {
+                result = type.array.empty() ? TYPE_UBYTE4 : TYPE_UBYTE4_NORM;
+            }
+        }
+
+        return result;
+    }
+
     void shader_compiler_preprocess(const ShaderCompilerDesc& desc, ShaderCompilerPreProcessResult& output)
     {
         ::glslang::InitializeProcess();
@@ -318,7 +350,7 @@ namespace REngine
     	for(const auto& uniform_buffer : resources.uniform_buffers)
         {
             const auto& type = compiler.get_type(uniform_buffer.base_type_id);
-            const auto& name = Atomic::String(uniform_buffer.name);
+            const auto& name = Atomic::String(uniform_buffer.name.c_str());
             const auto& grp_type = utils_get_shader_parameter_group_type(name);
             const auto& buffer_size = compiler.get_declared_struct_size(type);
 
@@ -333,7 +365,7 @@ namespace REngine
             for(uint32_t i = 0; i < type.member_types.size(); ++i)
             {
                 const auto& member_type_id = type.member_types[i];
-            	auto member_name = Atomic::String(compiler.get_member_name(uniform_buffer.base_type_id, member_type_id));
+            	auto member_name = Atomic::String(compiler.get_member_name(uniform_buffer.base_type_id, member_type_id).c_str());
                 const auto& member_offset = compiler.get_member_decoration(uniform_buffer.base_type_id, i, spv::DecorationOffset);
                 const auto& member_size = compiler.get_declared_struct_member_size(type, i);
 
@@ -350,8 +382,36 @@ namespace REngine
 
                 output.parameters[member_name] = shader_param;
             }
+        }
 
+        for(const auto& input : resources.stage_inputs)
+        {
+            const auto type = compiler.get_type(input.type_id);
+            const auto name = Atomic::String(compiler.get_name(input.id).c_str());
+            const auto& location = compiler.get_decoration(input.id, spv::DecorationLocation);
+            uint8_t semantic_index = 0;
+            const auto semantic = utils_get_element_semantic(name, &semantic_index);
+            const auto vertex_type = get_element_type(type);
 
+            ShaderCompilerReflectInputElement element = {};
+            element.index = static_cast<uint8_t>(location);
+            element.semantic_index = semantic_index;
+            element.semantic = semantic;
+            element.element_type = vertex_type;
+            element.name = name;
+
+            output.input_elements.Push(element);
+        }
+
+        memset(&output.used_texture_units, 0x0, sizeof(bool) * MAX_TEXTURE_UNITS);
+        for(const auto& image : resources.sampled_images)
+        {
+            const auto name = Atomic::String(compiler.get_name(image.id).c_str());
+            const auto texture_unit = utils_get_texture_unit(name);
+
+            if (texture_unit != MAX_TEXTURE_UNITS)
+                output.used_texture_units[texture_unit] = true;
+            output.samplers.Push(name);
         }
     }
 }

@@ -16,4 +16,6 @@ namespace REngine
 
     const char* utils_get_shader_parameter_group_name(Atomic::ShaderType type, Atomic::ShaderParameterGroup grp);
     Atomic::ShaderParameterGroup utils_get_shader_parameter_group_type(const Atomic::String& name);
+    Atomic::VertexElementSemantic utils_get_element_semantic(const Atomic::String& name, uint8_t* index);
+    Atomic::TextureUnit utils_get_texture_unit(const Atomic::String& name);
 }
