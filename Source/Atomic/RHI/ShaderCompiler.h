@@ -60,7 +60,7 @@ namespace REngine
         Atomic::HashMap<Atomic::StringHash, Atomic::ShaderParameter> parameters{};
 
         uint64_t element_hash{};
-        Atomic::PODVector<ShaderCompilerReflectInputElement> input_elements{};
+        Atomic::Vector<ShaderCompilerReflectInputElement> input_elements{};
     };
 
     void shader_compiler_preprocess(const ShaderCompilerDesc& desc, ShaderCompilerPreProcessResult& output);

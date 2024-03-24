@@ -384,6 +384,8 @@ namespace REngine
             }
         }
 
+        output.input_elements.Resize(resources.stage_inputs.size());
+        unsigned idx = 0;
         for(const auto& input : resources.stage_inputs)
         {
             const auto type = compiler.get_type(input.type_id);
@@ -400,9 +402,10 @@ namespace REngine
             element.element_type = vertex_type;
             element.name = name;
 
-            output.input_elements.Push(element);
+            output.input_elements[idx] = element;
         }
 
+        idx = 0;
         memset(&output.used_texture_units, 0x0, sizeof(bool) * MAX_TEXTURE_UNITS);
         for(const auto& image : resources.sampled_images)
         {
