@@ -59,4 +59,16 @@ namespace REngine
         assert(idx < _countof(s_shader_param_grp_names), "Invalid Shader Type or Shader Parameter Group");
         return s_shader_param_grp_names[idx];    
     }
+
+    Atomic::ShaderParameterGroup utils_get_shader_parameter_group_type(const Atomic::String& name)
+    {
+        for(uint8_t i =0; i < Atomic::MAX_SHADER_PARAMETER_GROUPS; ++i)
+        {
+            Atomic::String target = s_shader_param_grp_names[i];
+            if (target.StartsWith(name))
+                return static_cast<Atomic::ShaderParameterGroup>(i);
+        }
+        return Atomic::MAX_SHADER_PARAMETER_GROUPS;
+    }
+
 }

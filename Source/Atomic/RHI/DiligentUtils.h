@@ -15,4 +15,5 @@ namespace REngine
     unsigned utils_calc_sub_resource(unsigned mip_slice, unsigned array_slice, unsigned mip_levels);
 
     const char* utils_get_shader_parameter_group_name(Atomic::ShaderType type, Atomic::ShaderParameterGroup grp);
+    Atomic::ShaderParameterGroup utils_get_shader_parameter_group_type(const Atomic::String& name);
 }

@@ -318,19 +318,28 @@ namespace Atomic
         source_code.Append("}");
 
         {
-            REngine::ShaderCompilerPreProcessDesc pre_process_desc = {};
+            REngine::ShaderCompilerDesc pre_process_desc = {};
             pre_process_desc.type = type_;
             pre_process_desc.source_code = source_code;
-            REngine::ShaderCompilerPreProcessResult result;
-            REngine::shader_compiler_preprocess(pre_process_desc, result);
+            REngine::ShaderCompilerResult result = {};
 
+            REngine::shader_compiler_compile(pre_process_desc, true, result);
             if(result.has_error)
             {
                 ATOMIC_LOGERROR(result.error);
                 return false;
             }
 
-            source_code = result.source_code;
+            REngine::ShaderCompilerReflectDesc reflect_desc = {
+                result.spirv_code.Buffer(),
+                result.spirv_code.Size(),
+                type_
+            };
+            REngine::ShaderCompilerReflectInfo reflect_info = {};
+            REngine::shader_compiler_reflect(reflect_desc, reflect_info);
+
+            if(backend == GraphicsBackend::Vulkan)
+                byteCode_ = result.spirv_code;
         }
         
         shader_ci.SourceLanguage = Diligent::SHADER_SOURCE_LANGUAGE_HLSL;

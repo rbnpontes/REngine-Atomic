@@ -1,13 +1,24 @@
+// require this define:
+// https://github.com/microsoft/cppwinrt/issues/479
+// otherwise spirv_cross will crash
+#define NOMINMAX
+
 #include "./ShaderCompiler.h"
-#include  <glslang/Public/ShaderLang.h>
+#include "./DiligentUtils.h"
 
-#include "Engine/Application.h"
-#include "IO/Log.h"
+#include "../Engine/Application.h"
+#include "../IO/Log.h"
 
+#include "spirv_parser.hpp"
+#include "spirv_cross.hpp"
+
+#include <glslang/Public/ShaderLang.h>
+
+#include <SPIRV/GlslangToSpv.h>
+#include <DiligentCore/Graphics/ShaderTools/include/SPIRVTools.hpp>
 
 namespace REngine
 {
-    static bool s_is_initialized_glslang = false;
     static EShLanguage get_stage_type(Atomic::ShaderType type)
     {
         switch (type) {
@@ -140,19 +151,28 @@ namespace REngine
         return resources;
     }
 
-    static void fill_preprocess_error(const char* error_message, const Atomic::String& source_code, glslang::TShader* shader, ShaderCompilerPreProcessResult& output)
+    static void fill_error(const char* error_message, const Atomic::String& source_code, glslang::TShader* shader, Atomic::String& output)
     {
         Atomic::String output_error(error_message);
         output_error.AppendWithFormat(": %s\n", shader->getInfoLog());
         output_error.AppendWithFormat("Debug Log: %s\n", shader->getInfoDebugLog());
         output_error.AppendWithFormat("Source: \n%s", source_code.CString());
 
-        output.error = output_error;
-        output.has_error = true;
+        output = output_error;
+        ::glslang::FinalizeProcess();
+    }
+    static void fill_error(const char* error_message, const Atomic::String& source_code, glslang::TProgram* program, Atomic::String& output)
+    {
+        Atomic::String output_error(error_message);
+        output_error.AppendWithFormat(": %s\n", program->getInfoLog());
+        output_error.AppendWithFormat("Debug Log: %s\n", program->getInfoDebugLog());
+        output_error.AppendWithFormat("Source: \n%s", source_code.CString());
+
+        output = output_error;
         ::glslang::FinalizeProcess();
     }
 
-    void shader_compiler_preprocess(const ShaderCompilerPreProcessDesc& desc, ShaderCompilerPreProcessResult& output)
+    void shader_compiler_preprocess(const ShaderCompilerDesc& desc, ShaderCompilerPreProcessResult& output)
     {
         ::glslang::InitializeProcess();
         const auto resources = init_resources();
@@ -182,10 +202,10 @@ namespace REngine
             false,
             EShMsgDefault);
 
-        Atomic::String error_output;
         if(!result)
         {
-            fill_preprocess_error("Failed to parse shader source", desc.source_code, &shader, output);
+            fill_error("Failed to parse shader source", desc.source_code, &shader, output.error);
+            output.has_error = true;
             return;
         }
 
@@ -199,14 +219,15 @@ namespace REngine
 
         if(!result)
         {
-            fill_preprocess_error("Failed to parse preprocess shader source", desc.source_code, &shader, output);
+            fill_error("Failed to parse preprocess shader source", desc.source_code, &shader, output.error);
+            output.has_error = true;
             return;
         }
 
         ::glslang::FinalizeProcess();
 
         Atomic::String final_result;
-        const auto code_parts = Atomic::String(output_shader.c_str(), output_shader.length()).Split('\n');
+        const Atomic::StringVector code_parts = Atomic::String(output_shader.c_str(), output_shader.length()).Split('\n');
     	for(auto& line : code_parts)
         {
             if (line.Trimmed().Length() == 0)
@@ -219,4 +240,118 @@ namespace REngine
         output.source_code = final_result;
     }
 
+    void shader_compiler_compile(const ShaderCompilerDesc& desc, const bool optimize, ShaderCompilerResult& output)
+    {
+        ::glslang::InitializeProcess();
+        const auto resources = init_resources();
+        const char* shader_strings[] = { desc.source_code.CString() };
+        const int shader_strings_len[] = {static_cast<int>(desc.source_code.Length())};
+
+        constexpr auto messages = EShMsgSpvRules;
+
+        const auto stage_type = get_stage_type(desc.type);
+        ::glslang::TShader shader(stage_type);
+        shader.setEnvInput(glslang::EShSourceGlsl, stage_type, glslang::EShClientVulkan, 100);
+        shader.setEnvClient(glslang::EShClientVulkan, glslang::EShTargetVulkan_1_0);
+        shader.setEnvTarget(glslang::EshTargetSpv, glslang::EShTargetSpv_1_0);
+        shader.setEntryPoint("main");
+        shader.setStringsWithLengths(shader_strings, shader_strings_len, 1);
+
+        shader.setAutoMapBindings(true);
+        shader.setAutoMapLocations(true);
+
+        auto result = shader.parse(&resources,
+            100,
+            ENoProfile,
+            false,
+            false,
+            EShMsgDefault);
+
+        if(!result)
+        {
+            fill_error("Failed to parse shader source", desc.source_code, &shader, output.error);
+            output.has_error = true;
+            return;     
+        }
+
+        ::glslang::TProgram program;
+        program.addShader(&shader);
+        if(!program.link(messages))
+        {
+            fill_error("Failed to link program", desc.source_code, &program, output.error);
+            output.has_error = true;
+            return;
+        }
+
+        program.mapIO();
+
+        std::vector<unsigned int> spirv_code;
+        ::glslang::GlslangToSpv(*program.getIntermediate(stage_type), spirv_code);
+        ::glslang::FinalizeProcess();
+
+        if (spirv_code.empty())
+        {
+            output.has_error = false;
+            return;
+        }
+
+        if (optimize)
+            spirv_code = Diligent::OptimizeSPIRV(spirv_code, SPV_ENV_VULKAN_1_0, Diligent::SPIRV_OPTIMIZATION_FLAG_PERFORMANCE);
+
+        output.spirv_code = Atomic::PODVector<uint8_t>(
+            static_cast<uint8_t*>(static_cast<void*>(spirv_code.data())),
+            spirv_code.size() * sizeof(unsigned int)
+        );
+        output.has_error = false;
+    }
+
+    void shader_compiler_reflect(const ShaderCompilerReflectDesc& desc, ShaderCompilerReflectInfo& output)
+    {
+        if (desc.length == 0 || desc.spirv_code == nullptr)
+            return;
+
+        spirv_cross::Parser parser{ static_cast<uint32_t*>(desc.spirv_code), desc.length / sizeof(uint32_t) };
+        parser.parse();
+        spirv_cross::Compiler compiler{ std::move(parser.get_parsed_ir()) };
+        auto resources = compiler.get_shader_resources();
+
+    	for(const auto& uniform_buffer : resources.uniform_buffers)
+        {
+            const auto& type = compiler.get_type(uniform_buffer.base_type_id);
+            const auto& name = Atomic::String(uniform_buffer.name);
+            const auto& grp_type = utils_get_shader_parameter_group_type(name);
+            const auto& buffer_size = compiler.get_declared_struct_size(type);
+
+            ShaderCompilerConstantBufferDesc buffer_desc = {};
+            buffer_desc.name = name;
+            buffer_desc.size = static_cast<uint32_t>(buffer_size);
+            output.constant_buffers[name] = buffer_desc;
+
+            if (grp_type != Atomic::MAX_SHADER_PARAMETER_GROUPS)
+                output.constant_buffer_sizes[grp_type] = buffer_desc.size;
+
+            for(uint32_t i = 0; i < type.member_types.size(); ++i)
+            {
+                const auto& member_type_id = type.member_types[i];
+            	auto member_name = Atomic::String(compiler.get_member_name(uniform_buffer.base_type_id, member_type_id));
+                const auto& member_offset = compiler.get_member_decoration(uniform_buffer.base_type_id, i, spv::DecorationOffset);
+                const auto& member_size = compiler.get_declared_struct_member_size(type, i);
+
+                // 'c' is a member naming convention on Urho3D/Atomic, we need to get rid this.
+                if (member_name.Length() > 0 && member_name[0] == 'c')
+                    member_name = member_name.Substring(1);
+
+                Atomic::ShaderParameter shader_param = {};
+                shader_param.buffer_ = buffer_desc.parameter_group;
+                shader_param.name_ = member_name;
+                shader_param.type_ = desc.type;
+                shader_param.offset_ = member_offset;
+                shader_param.size_ = static_cast<uint32_t>(member_size);
+
+                output.parameters[member_name] = shader_param;
+            }
+
+
+        }
+    }
 }

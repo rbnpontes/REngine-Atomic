@@ -32,7 +32,7 @@
 #include "spirv_cross_containers.hpp"
 #include "spirv_cross_error_handling.hpp"
 #include <functional>
-
+#include <limits>
 // A bit crude, but allows projects which embed SPIRV-Cross statically to
 // effectively hide all the symbols from other projects.
 // There is a case where we have:
@@ -220,7 +220,7 @@ static inline std::string convert_to_string(int32_t value)
 	// INT_MIN is ... special on some backends. If we use a decimal literal, and negate it, we
 	// could accidentally promote the literal to long first, then negate.
 	// To workaround it, emit int(0x80000000) instead.
-	if (value == std::numeric_limits<int32_t>::min())
+	if (value == ::std::numeric_limits<int32_t>::min())
 		return "int(0x80000000)";
 	else
 		return std::to_string(value);
