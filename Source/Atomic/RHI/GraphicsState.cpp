@@ -43,7 +43,12 @@ namespace REngine
         s_state.shader_programs[program.ToHash()] = program;
     }
 
-    
+    void graphics_state_release_shader_programs()
+    {
+    	s_state.shader_programs.Clear();
+    }
+
+
     const RenderCommandState& default_render_command_get()
     {
         return s_default_command;

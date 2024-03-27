@@ -124,6 +124,7 @@ namespace Atomic
         }
         
         ResetCachedState();
+        Cleanup(GRAPHICS_CLEAR_ALL);
         impl_->Release();
         delete impl_;
         impl_ = nullptr;
@@ -461,7 +462,7 @@ namespace Atomic
         }
         
         // Clean up too large scratch buffers
-        CleanupScratchBuffers();
+        Cleanup(GRAPHICS_CLEAR_SCRATCH_BUFFERS);
     }
 
     void Graphics::Clear(unsigned flags, const Color& color, float depth, unsigned stencil)
@@ -932,6 +933,7 @@ namespace Atomic
                 creation_desc.vertex_shader = vertexShader_;
                 creation_desc.pixel_shader = pixelShader_;
                 shader_program = new REngine::ShaderProgram(creation_desc);
+                REngine::graphics_state_set_shader_program(shader_program);
             }
             
             command.shader_program = shader_program;
@@ -1808,12 +1810,25 @@ namespace Atomic
 
     void Graphics::CleanupShaderPrograms(ShaderVariation* variation)
     {
-        throw std::exception("Not implemented");
+        // No-op on Diligent
+        ATOMIC_LOGWARNING("CleanupShaderPrograms is not support. Please use Cleanup instead.");
     }
 
     void Graphics::CleanupRenderSurface(RenderSurface* surface)
     {
-        // No-op on Direct3D11
+        // No-op on Diligent
+    }
+
+    void Graphics::Cleanup(GraphicsClearFlags flags)
+    {
+        if(flags & GRAPHICS_CLEAR_SRB)
+            REngine::srb_cache_release();
+        if (flags & GRAPHICS_CLEAR_PIPELINES)
+            REngine::pipeline_state_builder_release();
+        if (flags & GRAPHICS_CLEAR_SHADER_PROGRAMS)
+            REngine::graphics_state_release_shader_programs();
+        if (flags & GRAPHICS_CLEAR_SCRATCH_BUFFERS)
+            CleanupScratchBuffers();
     }
 
     ConstantBuffer* Graphics::GetOrCreateConstantBuffer(ShaderType type, unsigned index, unsigned size)

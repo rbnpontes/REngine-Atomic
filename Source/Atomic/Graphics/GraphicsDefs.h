@@ -55,6 +55,18 @@ enum class GraphicsBackend : uint8_t
     Vulkan,
     OpenGL
 };
+
+enum GraphicsClearFlags
+{
+	GRAPHICS_CLEAR_SHADER_PROGRAMS = 1 << 0,
+    GRAPHICS_CLEAR_PIPELINES = 1 << 2,
+    GRAPHICS_CLEAR_SRB = 1 << 3,
+    GRAPHICS_CLEAR_SCRATCH_BUFFERS = 1 << 4,
+    GRAPHICS_CLEAR_ALL = GRAPHICS_CLEAR_SHADER_PROGRAMS
+	| GRAPHICS_CLEAR_PIPELINES
+	| GRAPHICS_CLEAR_SRB
+	| GRAPHICS_CLEAR_SCRATCH_BUFFERS
+};
     
 /// Primitive type.
 enum PrimitiveType

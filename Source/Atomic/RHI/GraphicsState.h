@@ -30,6 +30,8 @@ namespace REngine
     
     Atomic::SharedPtr<ShaderProgram> graphics_state_get_shader_program(const ShaderProgramQuery& query);
     RENGINE_API void graphics_state_set_shader_program(const Atomic::SharedPtr<ShaderProgram> program);
+
+    void graphics_state_release_shader_programs();
     
     const RenderCommandState& default_render_command_get();
     void default_render_command_set(const RenderCommandState state);

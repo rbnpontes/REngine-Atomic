@@ -297,7 +297,7 @@ namespace REngine
 		desc.BindFlags = BIND_UNIFORM_BUFFER;
         desc.Size = size;
 
-		IBuffer* buffer;
+		IBuffer* buffer = nullptr;
 		render_device_->CreateBuffer(desc, nullptr, &buffer);
 		return buffer;
     }
