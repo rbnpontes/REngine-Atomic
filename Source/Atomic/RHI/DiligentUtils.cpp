@@ -9,12 +9,14 @@ namespace REngine
         "ZoneVS",
         "LightVS",
         "MaterialVS",
+        "ObjectVS",
         "CustomVS",
         "FramePS",
         "CameraPS",
         "ZonePS",
         "LightPS",
         "MaterialPS",
+        "ObjectPS",
         "CustomPS",
     };
     static const char* s_semantic_names[] = {
@@ -101,7 +103,7 @@ namespace REngine
 
     const char* utils_get_shader_parameter_group_name(Atomic::ShaderType type, Atomic::ShaderParameterGroup grp)
     {
-        unsigned idx = type * grp;
+        const auto idx = type * static_cast<uint32_t>(MAX_SHADER_PARAMETER_GROUPS) + grp;
         assert(idx < _countof(s_shader_param_grp_names), "Invalid Shader Type or Shader Parameter Group");
         return s_shader_param_grp_names[idx];    
     }

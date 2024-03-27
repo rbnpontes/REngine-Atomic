@@ -1,7 +1,7 @@
 #include "./DriverInstance.h"
-#include "../IO/Log.h"
 #include "./DiligentUtils.h"
 #include "./PipelineStateBuilder.h"
+#include "../IO/Log.h"
 
 #if WIN32
 #include <DiligentCore/Graphics/GraphicsEngineD3D11/interface/EngineFactoryD3D11.h>
@@ -184,7 +184,7 @@ namespace REngine
         return true;
     }
 
-    unsigned DriverInstance::FindBestAdapter(unsigned adapter_id, Atomic::GraphicsBackend backend) const
+    unsigned DriverInstance::FindBestAdapter(unsigned adapter_id, GraphicsBackend backend) const
     {
         Diligent::Version graphics_version = {};
 #if WIN32
@@ -220,7 +220,7 @@ namespace REngine
         return adapter_id;
     }
 
-    Atomic::PODVector<int> DriverInstance::GetMultiSampleLevels(Diligent::TEXTURE_FORMAT color_fmt, Diligent::TEXTURE_FORMAT depth_fmt) const
+    PODVector<int> DriverInstance::GetMultiSampleLevels(Diligent::TEXTURE_FORMAT color_fmt, Diligent::TEXTURE_FORMAT depth_fmt) const
     {
         PODVector<int> levels;
         const auto& color_fmt_info = render_device_->GetTextureFormatInfoExt(color_fmt);
@@ -250,10 +250,9 @@ namespace REngine
         return values.Contains(multisample);
     }
 
-    Diligent::RefCntAutoPtr<Diligent::IBuffer> DriverInstance::GetConstantBuffer(Atomic::ShaderType type,
-	    Atomic::ShaderParameterGroup group)
+    Diligent::RefCntAutoPtr<Diligent::IBuffer> DriverInstance::GetConstantBuffer(const ShaderType type, const ShaderParameterGroup group)
     {
-        const uint8_t index = static_cast<uint8_t>(group) * static_cast<uint8_t>(type);
+        const uint8_t index = GetConstantBufferIndex(type, group);
 		if(index >= static_cast<uint8_t>(_countof(constant_buffers_)))
             return {};
 

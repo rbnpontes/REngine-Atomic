@@ -42,14 +42,14 @@ namespace REngine
 
         uint32_t GetConstantBufferSize(Atomic::ShaderType type, Atomic::ShaderParameterGroup group) const
         {
-            const uint8_t index = static_cast<uint8_t>(group) * static_cast<uint8_t>(type);
+            const uint8_t index = GetConstantBufferIndex(type, group);
             if(index >= static_cast<uint8_t>(_countof(constant_buffer_sizes_)))
 				return 0;
 	        return constant_buffer_sizes_[index];
         }
         void SetConstantBufferSize(Atomic::ShaderType type, Atomic::ShaderParameterGroup group, uint32_t size)
         {
-	        const uint8_t index = static_cast<uint8_t>(group) * static_cast<uint8_t>(type);
+	        const uint8_t index = GetConstantBufferIndex(type, group);
             if(index >= static_cast<uint8_t>(_countof(constant_buffer_sizes_)))
 				return;
 	        constant_buffer_sizes_[index] = size;
@@ -66,7 +66,11 @@ namespace REngine
             const char* file,
             int line);
         unsigned FindBestAdapter(unsigned adapter_id, Atomic::GraphicsBackend backend) const;
-        
+        static uint8_t GetConstantBufferIndex(Atomic::ShaderType type, Atomic::ShaderParameterGroup group)
+        {
+	        return static_cast<uint8_t>(type) * static_cast<uint8_t>(Atomic::MAX_SHADER_PARAMETER_GROUPS) + static_cast<uint8_t>(group);
+		}
+
         Atomic::GraphicsBackend backend_;
         
         Diligent::RefCntAutoPtr<Diligent::IEngineFactory> engine_factory_;
