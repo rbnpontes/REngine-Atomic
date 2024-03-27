@@ -2,9 +2,9 @@
 #include "./PipelineStateBuilder.h"
 #include "../Container/Str.h"
 #include "../Container/Vector.h"
-#include "../Graphics/GraphicsDefs.h"
+#include "../Container/ArrayPtr.h"
 #include "../Core/Variant.h"
-#include "Container/ArrayPtr.h"
+#include "../Graphics/GraphicsDefs.h"
 
 namespace REngine
 {

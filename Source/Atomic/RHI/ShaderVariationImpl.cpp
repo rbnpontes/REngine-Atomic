@@ -16,8 +16,6 @@
 #include <DiligentCore/Graphics/GraphicsEngine/interface/Shader.h>
 #include <DiligentCore/Graphics/GraphicsTools/interface/ShaderMacroHelper.hpp>
 
-#include "glslang/MachineIndependent/glslang_tab.cpp.h"
-
 namespace Atomic
 {
     static const char* s_shader_file_id = "RSHD";

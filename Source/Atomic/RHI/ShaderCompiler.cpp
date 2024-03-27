@@ -515,7 +515,7 @@ namespace REngine
         for (const auto& it : desc.reflect_info->parameters)
         {
             str_pos_map[it.first_] = file_header.strings_size;
-            file_header.strings_size += it.second_.name_.CString() + 1;
+            file_header.strings_size += it.second_.name_.Length() + 1;
         }
         for (const auto& it : desc.reflect_info->samplers)
         {
@@ -532,6 +532,7 @@ namespace REngine
             str_pos_map[it.name] = file_header.strings_size;
             file_header.strings_size += it.name.Length() + 1;
         }
+        file_header.strings_size += 1;
 
         size_t memory_size = header_size + file_header.strings_size;
         memory_size += file_header.parameters_count * sizeof(ShaderFileParameter);
@@ -540,18 +541,27 @@ namespace REngine
         memory_size += file_header.input_elements_count * sizeof(ShaderFileInputElement);
         memory_size += file_header.byte_code_size;
 
-        void* buffer = malloc(memory_size);
+        const auto buffer = static_cast<uint8_t*>(malloc(memory_size));
+        auto buffer_ptr = buffer;
         size_t str_seek = 0;
-        const auto str_buffer = static_cast<char*>(buffer + header_size);
-        const auto file_parameters = static_cast<ShaderFileParameter*>(buffer + file_header.strings_size);
-        const auto textures = static_cast<uint32_t*>(static_cast<void*>(file_parameters) + file_header.parameters_count
-            * sizeof(ShaderFileParameter));
-        const auto constant_buffers = static_cast<ShaderFileConstantBuffer*>(static_cast<void*>(textures) + file_header.
-            textures_count * sizeof(uint32_t));
-        const auto input_elements = static_cast<ShaderFileInputElement*>(static_cast<void*>(constant_buffers) +
-            file_header.constant_buffers_count * sizeof(ShaderFileConstantBuffer));
-        const auto byte_code = static_cast<void*>(input_elements) + file_header.input_elements_count * sizeof(
-            ShaderFileInputElement);
+
+        buffer_ptr += header_size;
+        const auto str_buffer = static_cast<char*>(static_cast<void*>(buffer_ptr));
+
+        buffer_ptr += file_header.strings_size;
+    	const auto file_parameters = static_cast<ShaderFileParameter*>(static_cast<void*>(buffer_ptr));
+
+        buffer_ptr += file_header.parameters_count * sizeof(ShaderFileParameter);
+        const auto textures = static_cast<uint32_t*>(static_cast<void*>(buffer_ptr));
+
+        buffer_ptr += file_header.textures_count * sizeof(uint32_t);
+        const auto constant_buffers = static_cast<ShaderFileConstantBuffer*>(static_cast<void*>(buffer_ptr));
+
+        buffer_ptr += file_header.constant_buffers_count * sizeof(ShaderFileConstantBuffer);
+        const auto input_elements = static_cast<ShaderFileInputElement*>(static_cast<void*>(buffer_ptr));
+
+        buffer_ptr += file_header.input_elements_count * sizeof(ShaderFileInputElement);
+        const auto byte_code = static_cast<void*>(buffer_ptr);
 
         // Copy header into memory buffer
         memcpy(buffer, &file_header, header_size);
@@ -633,8 +643,10 @@ namespace REngine
             return;
         }
 
+        auto data_ptr = static_cast<uint8_t*>(data);
+
         const auto file_header = static_cast<ShaderFileHeader*>(data);
-        data += header_size;
+        data_ptr += header_size;
 
         if(file_header->byte_code_size)
         {
@@ -658,17 +670,27 @@ namespace REngine
             return;
         }
         
-        const auto str_buffer = static_cast<uint8_t*>(data);
-        const auto parameters = static_cast<ShaderFileParameter*>(static_cast<void*>(str_buffer) + file_header->strings_size);
-        const auto textures = static_cast<uint32_t*>(static_cast<void*>(parameters) + file_header->parameters_count * sizeof(ShaderFileParameter));
-        const auto constant_buffers = static_cast<ShaderFileConstantBuffer*>(static_cast<void*>(textures) + file_header->textures_count * sizeof(uint32_t));
-        const auto input_elements = static_cast<ShaderFileInputElement*>(static_cast<void*>(constant_buffers) + file_header->constant_buffers_count * sizeof(ShaderFileConstantBuffer));
-        const auto byte_code = static_cast<void*>(input_elements) + file_header->input_elements_count * sizeof(ShaderFileInputElement);
+        const auto str_buffer = data_ptr;
+        data_ptr += file_header->strings_size;
+
+        const auto parameters = static_cast<ShaderFileParameter*>(static_cast<void*>(data_ptr));
+        data_ptr += file_header->parameters_count * sizeof(ShaderFileParameter);
+
+        const auto textures = static_cast<uint32_t*>(static_cast<void*>(data_ptr));
+        data_ptr += file_header->textures_count * sizeof(uint32_t);
+
+        const auto constant_buffers = static_cast<ShaderFileConstantBuffer*>(static_cast<void*>(data_ptr));
+        data_ptr += file_header->constant_buffers_count * sizeof(ShaderFileConstantBuffer);
+
+        const auto input_elements = static_cast<ShaderFileInputElement*>(static_cast<void*>(data_ptr));
+        data_ptr += file_header->input_elements_count * sizeof(ShaderFileInputElement);
+
+        const auto byte_code = static_cast<void*>(data_ptr);
 
         for(uint32_t i =0; i < file_header->parameters_count; ++i)
         {
             const auto& param = parameters[i];
-            const auto name = Atomic::String(str_buffer + param.name_idx);
+            const auto name = Atomic::String(static_cast<char*>(static_cast<void*>(str_buffer + param.name_idx)));
             ShaderParameter parameter = {};
             parameter.name_ = name;
             parameter.type_ = file_header->type;
@@ -681,7 +703,7 @@ namespace REngine
         memset(&result.reflect_info.used_texture_units, 0x0, sizeof(bool) * MAX_TEXTURE_UNITS);
         for(uint32_t i =0; i < file_header->textures_count; ++i)
         {
-            const auto name = Atomic::String(str_buffer + textures[i]);
+            const auto name = Atomic::String(static_cast<char*>(static_cast<void*>(str_buffer + textures[i])));
             result.reflect_info.samplers.Push(name);
             const auto texture_unit = utils_get_texture_unit(name);
             if (texture_unit != MAX_TEXTURE_UNITS)
@@ -692,7 +714,7 @@ namespace REngine
         for(uint32_t i =0; i < file_header->constant_buffers_count; ++i)
         {
             const auto& buffer = constant_buffers[i];
-            const auto name = Atomic::String(str_buffer + buffer.name_idx);
+            const auto name = Atomic::String(static_cast<char*>(static_cast<void*>(str_buffer + buffer.name_idx)));
             ShaderCompilerConstantBufferDesc buffer_desc = {};
             buffer_desc.name = name;
             buffer_desc.size = buffer.size;
@@ -707,7 +729,7 @@ namespace REngine
         for(uint32_t i =0; i < file_header->input_elements_count; ++i)
         {
             const auto& input_element = input_elements[i];
-            const auto name = Atomic::String(str_buffer + input_element.name_idx);
+            const auto name = Atomic::String(static_cast<char*>(static_cast<void*>(str_buffer + input_element.name_idx)));
 
             auto& element = result.reflect_info.input_elements[i];
             element.name = name;
