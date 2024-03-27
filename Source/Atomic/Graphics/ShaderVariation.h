@@ -98,21 +98,36 @@ public:
 
     /// Return defines with the CLIPPLANE define appended. Used internally on Direct3D11 only, will be empty on other APIs.
     const String& GetDefinesClipPlane() { return definesClipPlane_; }
-
+#ifndef RENGINE_DILIGENT
     /// D3D11 vertex semantic names. Used internally.
     static const char* elementSemanticNames[];
+#endif
 
 private:
     /// Load bytecode from a file. Return true if successful.
     bool LoadByteCode(const String& binaryShaderName);
+#if RENGINE_DILIGENT
+    bool Compile(SharedArrayPtr<uint8_t>& shader_file_data, uint32_t* shader_file_size);
+#else
     /// Compile from source. Return true if successful.
     bool Compile();
+#endif
+    
+#ifndef RENGINE_DILIGENT
     /// Inspect the constant parameters and input layout (if applicable) from the shader bytecode.
     void ParseParameters(unsigned char* bufData, unsigned bufSize);
+#endif
+
+
+#if RENGINE_DILIGENT
+    /// Save bytecode to a file.
+    void SaveByteCode(const String& binaryShaderName, const SharedArrayPtr<uint8_t>& byte_code, const uint32_t byte_code_len) const;
+#else
     /// Save bytecode to a file.
     void SaveByteCode(const String& binaryShaderName);
     /// Calculate constant buffer sizes from parameters.
     void CalculateConstantBufferSizes();
+#endif
 
     /// Shader this variation belongs to.
     WeakPtr<Shader> owner_;

@@ -388,7 +388,7 @@ enum ShadowQuality
     SHADOWQUALITY_BLUR_VSM
 };
 
-    /// %Shader parameter definition.
+/// %Shader parameter definition.
 struct ATOMIC_API ShaderParameter
 {
     /// %Shader type.
@@ -420,6 +420,14 @@ struct ATOMIC_API ShaderParameter
     unsigned buffer_{M_MAX_UNSIGNED};
     /// Constant buffer pointer. Defined only in shader programs.
     void* bufferPtr_{nullptr};
+};
+
+enum class ShaderByteCodeType : uint8_t
+{
+    Raw,
+	SpirV,
+    Dxd,
+    Max
 };
 
 // Inbuilt shader parameters.

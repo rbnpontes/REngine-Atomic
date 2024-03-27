@@ -16,21 +16,11 @@
 #include <DiligentCore/Graphics/GraphicsEngine/interface/Shader.h>
 #include <DiligentCore/Graphics/GraphicsTools/interface/ShaderMacroHelper.hpp>
 
+#include "glslang/MachineIndependent/glslang_tab.cpp.h"
+
 namespace Atomic
 {
-    const char* ShaderVariation::elementSemanticNames[] =
-    {
-        "POSITION",
-        "NORMAL",
-        "BINORMAL",
-        "TANGENT",
-        "TEXCOORD",
-        "COLOR",
-        "BLENDWEIGHT",
-        "BLENDINDICES",
-        "OBJECTINDEX"
-    };
-
+    static const char* s_shader_file_id = "RSHD";
     void ShaderVariation::OnDeviceLost()
     {
         // No-op on Direct3D11
@@ -52,60 +42,23 @@ namespace Atomic
         // Check for up-to-date bytecode on disk
         String path, name, extension;
         SplitPath(owner_->GetName(), path, name, extension);
-        extension = type_ == VS ? ".vs4" : ".ps4";
+        REngine::shader_compiler_get_file_ext(type_, extension);
 
         const String binary_shader_name = graphics_->GetShaderCacheDir() + name + "_" + StringHash(defines_).ToString()
             + extension;
 
         if (!LoadByteCode(binary_shader_name))
         {
+            SharedArrayPtr<uint8_t> shader_file_data;
+            uint32_t shader_file_size = 0;
             // Compile shader if don't have valid bytecode
-            if (!Compile())
+            if (!Compile(shader_file_data, &shader_file_size))
                 return false;
-            // Save the bytecode after successful compile, but not if the source is from a package
-            if (owner_->GetTimeStamp())
-                SaveByteCode(binary_shader_name);
+            // Save Shader File
+            SaveByteCode(binary_shader_name, shader_file_data, shader_file_size);
         }
 
-        Diligent::ShaderCreateInfo ci = {};
-        ci.SourceLanguage = Diligent::SHADER_SOURCE_LANGUAGE_HLSL;
-        ci.ByteCode = byteCode_.Buffer();
-        ci.ByteCodeSize = byteCode_.Size();
-
-        switch (type_)
-        {
-        case VS:
-            ci.Desc.ShaderType = Diligent::SHADER_TYPE_VERTEX;
-            break;
-        case PS:
-            ci.Desc.ShaderType = Diligent::SHADER_TYPE_PIXEL;
-            break;
-        default:
-            compilerOutput_ = "Could not create shader. Invalid shader type!";
-            return nullptr;
-        }
-
-        Diligent::RefCntAutoPtr<Diligent::IShader> shader;
-        Diligent::RefCntAutoPtr<Diligent::IDataBlob> shader_output;
-
-        graphics_->GetImpl()->GetDevice()->CreateShader(ci, &shader, &shader_output);
-
-        if (!shader)
-        {
-            compilerOutput_ = "Could not create shader.";
-            const String compiler_message(static_cast<const char*>(shader_output->GetDataPtr()),
-                                          shader_output->GetSize());
-            if (compiler_message.Length())
-            {
-                compilerOutput_.Append("\nOutput: ");
-                compilerOutput_.Append(compiler_message);
-            }
-
-            return nullptr;
-        }
-
-        object_ = shader;
-        return true;
+        return object_ != nullptr;
     }
 
     void ShaderVariation::Release()
@@ -157,79 +110,104 @@ namespace Atomic
         if (!cache->Exists(binaryShaderName))
             return false;
 
-        FileSystem* fileSystem = owner_->GetSubsystem<FileSystem>();
-        unsigned sourceTimeStamp = owner_->GetTimeStamp();
+        const auto file_system = owner_->GetSubsystem<FileSystem>();
+        const auto source_time_stamp = owner_->GetTimeStamp();
         // If source code is loaded from a package, its timestamp will be zero. Else check that binary is not older
         // than source
-        if (sourceTimeStamp && fileSystem->GetLastModifiedTime(cache->GetResourceFileName(binaryShaderName)) <
-            sourceTimeStamp)
+        if (source_time_stamp && file_system->GetLastModifiedTime(cache->GetResourceFileName(binaryShaderName)) <
+            source_time_stamp)
             return false;
 
-        SharedPtr<File> file = cache->GetFile(binaryShaderName);
-        if (!file || file->ReadFileID() != "USHD")
+        const SharedPtr<File> file = cache->GetFile(binaryShaderName);
+        if (!file || file->ReadFileID() != s_shader_file_id)
         {
             ATOMIC_LOGERROR(binaryShaderName + " is not a valid shader bytecode file");
             return false;
         }
 
-        /// \todo Check that shader type and model match
-        /*unsigned short shaderType = */
-        file->ReadUShort();
-        /*unsigned short shaderModel = */
-        file->ReadUShort();
-        elementHash_ = file->ReadUInt();
-        elementHash_ <<= 32;
-
-        unsigned numParameters = file->ReadUInt();
-        for (unsigned i = 0; i < numParameters; ++i)
+        const auto file_size = file->GetSize() - 4;
+        if(file_size == 0)
         {
-            String name = file->ReadString();
-            unsigned buffer = file->ReadUByte();
-            unsigned offset = file->ReadUInt();
-            unsigned size = file->ReadUInt();
-
-            ShaderParameter parameter;
-            parameter.type_ = type_;
-            parameter.name_ = name;
-            parameter.buffer_ = buffer;
-            parameter.offset_ = offset;
-            parameter.size_ = size;
-            parameters_[StringHash(name)] = parameter;
-        }
-
-        unsigned numTextureUnits = file->ReadUInt();
-        for (unsigned i = 0; i < numTextureUnits; ++i)
-        {
-            /*String unitName = */
-            file->ReadString();
-            unsigned reg = file->ReadUByte();
-
-            if (reg < MAX_TEXTURE_UNITS)
-                useTextureUnit_[reg] = true;
-        }
-
-        unsigned byteCodeSize = file->ReadUInt();
-        if (byteCodeSize)
-        {
-            byteCode_.Resize(byteCodeSize);
-            file->Read(&byteCode_[0], byteCodeSize);
-
-            if (type_ == VS)
-                ATOMIC_LOGDEBUG("Loaded cached vertex shader " + GetFullName());
-            else
-                ATOMIC_LOGDEBUG("Loaded cached pixel shader " + GetFullName());
-
-            CalculateConstantBufferSizes();
-            return true;
-        }
-        else
-        {
-            ATOMIC_LOGERROR(binaryShaderName + " has zero length bytecode");
+            ATOMIC_LOGERROR(binaryShaderName + " has zero bytes");
             return false;
         }
+
+        const SharedArrayPtr<uint8_t> byte_code(static_cast<uint8_t*>(malloc(file_size)));
+        file->Read(byte_code.Get(), file_size);
+
+        REngine::ShaderCompilerImportBinResult bin_result = {};
+        REngine::shader_compiler_import_bin(byte_code, file_size, bin_result);
+
+        const auto backend = graphics_->GetImpl()->GetBackend();
+        if(backend == GraphicsBackend::D3D11 || backend == GraphicsBackend::D3D12)
+        {
+            if(bin_result.byte_code_type != ShaderByteCodeType::Dxd)
+            {
+                ATOMIC_LOGERROR("Invalid shader bytecode type. Compiled shader file is not compatible with DirectX bytecode.");
+                return false;
+            }
+        }
+        else if(backend == GraphicsBackend::Vulkan && bin_result.byte_code_type != ShaderByteCodeType::SpirV)
+        {
+            ATOMIC_LOGERROR("Invalid shader bytecode type. Compiled shader file is not compatible with Vulkan bytecode.");
+            return false;  
+        }
+        else if(backend == GraphicsBackend::OpenGL && bin_result.byte_code_type != ShaderByteCodeType::Raw)
+        {
+            ATOMIC_LOGERROR("Invalid shader bytecode type. Shader file must contains a valid GLSL shader.");
+            return false;
+        }
+        
+        byteCode_ = PODVector<uint8_t>(bin_result.byte_code, bin_result.byte_code_size);
+        elementHash_ = bin_result.reflect_info.element_hash;
+        input_elements_ = bin_result.reflect_info.input_elements;
+        parameters_ = bin_result.reflect_info.parameters;
+        memcpy(constantBufferSizes_, bin_result.reflect_info.constant_buffer_sizes, sizeof(bool) * MAX_SHADER_PARAMETER_GROUPS);
+        memcpy(useTextureUnit_, bin_result.reflect_info.used_texture_units, sizeof(bool) * MAX_TEXTURE_UNITS);
+
+        Diligent::ShaderCreateInfo ci;
+        ci.Desc.Name = GetFullName().CString();
+        ci.EntryPoint = "main";
+        ci.SourceLanguage = Diligent::SHADER_SOURCE_LANGUAGE_GLSL;
+        
+        switch (type_)
+        {
+        case VS:
+            ci.Desc.ShaderType = Diligent::SHADER_TYPE_VERTEX;
+            break;
+        case PS:
+            ci.Desc.ShaderType = Diligent::SHADER_TYPE_PIXEL;
+            break;
+        }
+
+        switch (backend)
+        {
+        case GraphicsBackend::D3D11:
+        case GraphicsBackend::D3D12:
+        case GraphicsBackend::Vulkan:
+            ci.ByteCode = bin_result.byte_code;
+            ci.ByteCodeSize = bin_result.byte_code_size;
+            break;
+        case GraphicsBackend::OpenGL:
+            ci.Source = static_cast<char*>(static_cast<void*>(bin_result.byte_code));
+            ci.SourceLength = bin_result.byte_code_size;
+            break;
+        }
+
+        Diligent::IShader* shader = nullptr;
+        graphics_->GetImpl()->GetDevice()->CreateShader(ci, &shader, nullptr);
+
+        if(!shader)
+        {
+            ATOMIC_LOGERROR("Failed to create shader from Shader File");
+            return false;
+        }
+
+        object_ = shader;
+        return true;
     }
 
-    bool ShaderVariation::Compile()
+    bool ShaderVariation::Compile(SharedArrayPtr<uint8_t>& shader_file_data, uint32_t* shader_file_size)
     {
         Diligent::ShaderCreateInfo shader_ci = {};
         shader_ci.SourceLanguage = Diligent::SHADER_SOURCE_LANGUAGE_GLSL;
@@ -255,6 +233,7 @@ namespace Atomic
             break;
         }
 
+
         switch (type_)
         {
         case VS:
@@ -271,9 +250,13 @@ namespace Atomic
                 defines.Push("COMPILEPS");
             }
             break;
+        case MAX_SHADER_TYPES:
+        default:
+            ATOMIC_LOGERROR("Invalid Shader type");
+            return false;
         }
 
-        defines.Push(String("MAXBONES=")+String(Graphics::GetMaxBones()).CString());
+        defines.Push(String("MAXBONES=") + String(Graphics::GetMaxBones()).CString());
 
         // Collect defines into macros
         Vector<String> define_values;
@@ -294,7 +277,7 @@ namespace Atomic
         {
             macros_header.Append("#define ");
             const auto equal_pos = defines[i].Find('=');
-            if(equal_pos != String::NPOS)
+            if (equal_pos != String::NPOS)
             {
                 macros_header.Append(defines[i].Substring(equal_pos + 1));
                 macros_header.Append(' ');
@@ -306,7 +289,7 @@ namespace Atomic
                 macros_header.Append(" 1");
             }
             macros_header.Append('\n');
-            
+
             // In debug mode, check that all defines are referenced by the shader code
 #ifdef _DEBUG
             if (source_code.Find(defines[i]) == String::NPOS)
@@ -319,6 +302,7 @@ namespace Atomic
         source_code.AppendWithFormat("\t%s\n", entrypoint.CString());
         source_code.Append("}");
 
+        REngine::ShaderCompilerReflectInfo reflect_info = {};
         {
             REngine::ShaderCompilerDesc compiler_desc = {};
             compiler_desc.type = type_;
@@ -326,7 +310,7 @@ namespace Atomic
             REngine::ShaderCompilerResult result = {};
 
             REngine::shader_compiler_compile(compiler_desc, true, result);
-            if(result.has_error)
+            if (result.has_error)
             {
                 ATOMIC_LOGERROR(result.error);
                 compilerOutput_ = result.error;
@@ -338,7 +322,6 @@ namespace Atomic
                 result.spirv_code.Size(),
                 type_
             };
-            REngine::ShaderCompilerReflectInfo reflect_info = {};
             REngine::shader_compiler_reflect(reflect_desc, reflect_info);
 
             for (uint8_t i = 0; i < MAX_TEXTURE_UNITS; ++i)
@@ -352,30 +335,31 @@ namespace Atomic
 
 #if WIN32
             // On D3D, spirv code needs to be converted to HLSL
-            if(backend == GraphicsBackend::D3D11 || backend == GraphicsBackend::D3D12)
+            if (backend == GraphicsBackend::D3D11 || backend == GraphicsBackend::D3D12)
             {
                 source_code.Clear();
-                REngine::shader_compiler_to_hlsl({ result.spirv_code.Buffer(), result.spirv_code.Size() }, source_code);
+                REngine::shader_compiler_to_hlsl({result.spirv_code.Buffer(), result.spirv_code.Size()}, source_code);
 
                 shader_ci.SourceLanguage = Diligent::SHADER_SOURCE_LANGUAGE_HLSL;
                 shader_ci.Source = source_code.CString();
                 shader_ci.SourceLength = source_code.Length();
             }
 #endif
-            if(backend == GraphicsBackend::Vulkan)
+            if (backend == GraphicsBackend::Vulkan)
             {
                 byteCode_ = result.spirv_code;
                 shader_ci.ByteCode = byteCode_.Buffer();
                 shader_ci.ByteCodeSize = byteCode_.Size();
             }
-            else if(backend == GraphicsBackend::OpenGL)
+            else if (backend == GraphicsBackend::OpenGL)
             {
                 REngine::ShaderCompilerPreProcessResult pre_process_result = {};
                 REngine::shader_compiler_preprocess(compiler_desc, pre_process_result);
                 const auto byte_code = reinterpret_cast<const unsigned char*>(pre_process_result.source_code.CString());
                 byteCode_ = PODVector<unsigned char>(
-                    byte_code, 
+                    byte_code,
                     pre_process_result.source_code.Length());
+                shader_ci.EntryPoint = "main";
             }
         }
 
@@ -400,171 +384,74 @@ namespace Atomic
         case PS:
             ATOMIC_LOGDEBUG("Compiled pixel shader " + GetFullName());
             break;
+        case MAX_SHADER_TYPES:
+        default:
+            ATOMIC_LOGERROR("Unknown shader type");
+            return false;
         }
-        
-        if(backend == GraphicsBackend::D3D11 || backend == GraphicsBackend::D3D12)
+
+#if WIN32
+        if (backend == GraphicsBackend::D3D11 || backend == GraphicsBackend::D3D12)
         {
             const void* byte_code = nullptr;
             uint64_t byte_code_len = 0;
 
             shader->GetBytecode(&byte_code, byte_code_len);
 
-            byteCode_.Resize(byte_code_len);
+            byteCode_.Resize(static_cast<uint32_t>(byte_code_len));
             memcpy(byteCode_.Buffer(), byte_code, sizeof(char) * byte_code_len);
         }
-        
+#endif
+
+        REngine::ShaderCompilerBinDesc bin_desc = {};
+        bin_desc.byte_code = byteCode_.Buffer();
+        bin_desc.byte_code_size = byteCode_.Size();
+        bin_desc.type = type_;
+        bin_desc.reflect_info = &reflect_info;
+
+        if (backend == GraphicsBackend::D3D11 || backend == GraphicsBackend::D3D12)
+            bin_desc.byte_code_type = ShaderByteCodeType::Dxd;
+        else if (backend == GraphicsBackend::Vulkan)
+            bin_desc.byte_code_type = ShaderByteCodeType::SpirV;
+        else
+            bin_desc.byte_code_type = ShaderByteCodeType::Raw;
+
+        uint32_t bin_length = 0;
+        auto bin_data = REngine::shader_compiler_to_bin(bin_desc, &bin_length);
+
+        shader_file_data = bin_data;
+        *shader_file_size = bin_length;
+
+        object_ = shader;
         return true;
     }
 
-    void ShaderVariation::ParseParameters(unsigned char* bufData, unsigned bufSize)
+    void ShaderVariation::SaveByteCode(const String& binaryShaderName, const SharedArrayPtr<uint8_t>& byte_code,
+                                       const uint32_t byte_code_len) const
     {
-        throw std::exception("Not implemented");
-        // ID3D11ShaderReflection* reflection = 0;
-        // D3D11_SHADER_DESC shaderDesc;
-        //
-        // HRESULT hr = D3DReflect(bufData, bufSize, IID_ID3D11ShaderReflection, (void**)&reflection);
-        // if (FAILED(hr) || !reflection)
-        // {
-        //     ATOMIC_SAFE_RELEASE(reflection);
-        //     ATOMIC_LOGD3DERROR("Failed to reflect vertex shader's input signature", hr);
-        //     return;
-        // }
-        //
-        // reflection->GetDesc(&shaderDesc);
-        //
-        // if (type_ == VS)
-        // {
-        //     for (unsigned i = 0; i < shaderDesc.InputParameters; ++i)
-        //     {
-        //         D3D11_SIGNATURE_PARAMETER_DESC paramDesc;
-        //         reflection->GetInputParameterDesc((UINT)i, &paramDesc);
-        //         VertexElementSemantic semantic = (VertexElementSemantic)GetStringListIndex(paramDesc.SemanticName, elementSemanticNames, MAX_VERTEX_ELEMENT_SEMANTICS, true);
-        //         if (semantic != MAX_VERTEX_ELEMENT_SEMANTICS)
-        //         {
-        //             elementHash_ <<= 4;
-        //             elementHash_ += ((int)semantic + 1) * (paramDesc.SemanticIndex + 1);
-        //         }
-        //     }
-        //     elementHash_ <<= 32;
-        // }
-        //
-        // HashMap<String, unsigned> cbRegisterMap;
-        //
-        // for (unsigned i = 0; i < shaderDesc.BoundResources; ++i)
-        // {
-        //     D3D11_SHADER_INPUT_BIND_DESC resourceDesc;
-        //     reflection->GetResourceBindingDesc(i, &resourceDesc);
-        //     String resourceName(resourceDesc.Name);
-        //     if (resourceDesc.Type == D3D_SIT_CBUFFER)
-        //         cbRegisterMap[resourceName] = resourceDesc.BindPoint;
-        //     else if (resourceDesc.Type == D3D_SIT_SAMPLER && resourceDesc.BindPoint < MAX_TEXTURE_UNITS)
-        //         useTextureUnit_[resourceDesc.BindPoint] = true;
-        // }
-        //
-        // for (unsigned i = 0; i < shaderDesc.ConstantBuffers; ++i)
-        // {
-        //     ID3D11ShaderReflectionConstantBuffer* cb = reflection->GetConstantBufferByIndex(i);
-        //     D3D11_SHADER_BUFFER_DESC cbDesc;
-        //     cb->GetDesc(&cbDesc);
-        //     unsigned cbRegister = cbRegisterMap[String(cbDesc.Name)];
-        //
-        //     for (unsigned j = 0; j < cbDesc.Variables; ++j)
-        //     {
-        //         ID3D11ShaderReflectionVariable* var = cb->GetVariableByIndex(j);
-        //         D3D11_SHADER_VARIABLE_DESC varDesc;
-        //         var->GetDesc(&varDesc);
-        //         String varName(varDesc.Name);
-        //         if (varName[0] == 'c')
-        //         {
-        //             varName = varName.Substring(1); // Strip the c to follow Urho3D constant naming convention
-        //             ShaderParameter parameter;
-        //             parameter.type_ = type_;
-        //             parameter.name_ = varName;
-        //             parameter.buffer_ = cbRegister;
-        //             parameter.offset_ = varDesc.StartOffset;
-        //             parameter.size_ = varDesc.Size;
-        //             parameters_[varName] = parameter;
-        //         }
-        //     }
-        // }
-        //
-        // reflection->Release();
-    }
+        const auto cache = owner_->GetSubsystem<ResourceCache>();
+        const auto fileSystem = owner_->GetSubsystem<FileSystem>();
 
-    void ShaderVariation::SaveByteCode(const String& binaryShaderName)
-    {
-        throw std::exception("Not implemented");
-        // ResourceCache* cache = owner_->GetSubsystem<ResourceCache>();
-        // FileSystem* fileSystem = owner_->GetSubsystem<FileSystem>();
-        //
-        // // Filename may or may not be inside the resource system
-        // String fullName = binaryShaderName;
-        // if (!IsAbsolutePath(fullName))
-        // {
-        //     // If not absolute, use the resource dir of the shader
-        //     String shaderFileName = cache->GetResourceFileName(owner_->GetName());
-        //     if (shaderFileName.Empty())
-        //         return;
-        //     fullName = shaderFileName.Substring(0, shaderFileName.Find(owner_->GetName())) + binaryShaderName;
-        // }
-        // String path = GetPath(fullName);
-        // if (!fileSystem->DirExists(path))
-        //     fileSystem->CreateDir(path);
-        //
-        // SharedPtr<File> file(new File(owner_->GetContext(), fullName, FILE_WRITE));
-        // if (!file->IsOpen())
-        //     return;
-        //
-        // file->WriteFileID("USHD");
-        // file->WriteShort((unsigned short)type_);
-        // file->WriteShort(4);
-        // file->WriteUInt(elementHash_ >> 32);
-        //
-        // file->WriteUInt(parameters_.Size());
-        // for (HashMap<StringHash, ShaderParameter>::ConstIterator i = parameters_.Begin(); i != parameters_.End(); ++i)
-        // {
-        //     file->WriteString(i->second_.name_);
-        //     file->WriteUByte((unsigned char)i->second_.buffer_);
-        //     file->WriteUInt(i->second_.offset_);
-        //     file->WriteUInt(i->second_.size_);
-        // }
-        //
-        // unsigned usedTextureUnits = 0;
-        // for (unsigned i = 0; i < MAX_TEXTURE_UNITS; ++i)
-        // {
-        //     if (useTextureUnit_[i])
-        //         ++usedTextureUnits;
-        // }
-        // file->WriteUInt(usedTextureUnits);
-        // for (unsigned i = 0; i < MAX_TEXTURE_UNITS; ++i)
-        // {
-        //     if (useTextureUnit_[i])
-        //     {
-        //         file->WriteString(graphics_->GetTextureUnitName((TextureUnit)i));
-        //         file->WriteUByte((unsigned char)i);
-        //     }
-        // }
-        //
-        // file->WriteUInt(byteCode_.Size());
-        // if (byteCode_.Size())
-        //     file->Write(&byteCode_[0], byteCode_.Size());
-    }
+        // Filename may or may not be inside the resource system
+        auto full_name = binaryShaderName;
+        if (!IsAbsolutePath(full_name))
+        {
+            // If not absolute, use the resource dir of the shader
+            const auto shader_file_name = cache->GetResourceFileName(owner_->GetName());
+            if (shader_file_name.Empty())
+                return;
+            full_name = shader_file_name.Substring(0, shader_file_name.Find(owner_->GetName())) + binaryShaderName;
+        }
+        
+        const auto path = GetPath(full_name);
+        if (!fileSystem->DirExists(path))
+            fileSystem->CreateDir(path);
 
-    void ShaderVariation::CalculateConstantBufferSizes()
-    {
-        throw std::exception("Not implemented");
-        // for (unsigned i = 0; i < MAX_SHADER_PARAMETER_GROUPS; ++i)
-        //     constantBufferSizes_[i] = 0;
-        //
-        // for (HashMap<StringHash, ShaderParameter>::ConstIterator i = parameters_.Begin(); i != parameters_.End(); ++i)
-        // {
-        //     if (i->second_.buffer_ < MAX_SHADER_PARAMETER_GROUPS)
-        //     {
-        //         unsigned oldSize = constantBufferSizes_[i->second_.buffer_];
-        //         unsigned paramEnd = i->second_.offset_ + i->second_.size_;
-        //         if (paramEnd > oldSize)
-        //             constantBufferSizes_[i->second_.buffer_] = paramEnd;
-        //     }
-        // }
+        SharedPtr<File> file(new File(owner_->GetContext(), full_name, FILE_WRITE));
+        if (!file->IsOpen())
+            return;
+
+        file->WriteFileID(s_shader_file_id);
+        file->Write(byte_code.Get(), byte_code_len);
     }
 }
