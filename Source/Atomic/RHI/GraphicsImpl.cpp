@@ -37,6 +37,7 @@
 // ATOMIC END
 
 
+#include "DiligentUtils.h"
 #include "../DebugNew.h"
 
 #ifdef _MSC_VER
@@ -647,28 +648,23 @@ namespace Atomic
 
     void Graphics::Draw(PrimitiveType type, unsigned vertexStart, unsigned vertexCount)
     {
-        throw std::exception("Not implemented");
-        // if (!vertexCount || !impl_->shaderProgram_)
-        //     return;
-        //
-        // PrepareDraw();
-        //
-        // unsigned primitiveCount;
-        // D3D_PRIMITIVE_TOPOLOGY d3dPrimitiveType;
-        //
-        // if (fillMode_ == FILL_POINT)
-        //     type = POINT_LIST;
-        //
-        // GetD3DPrimitiveType(vertexCount, type, primitiveCount, d3dPrimitiveType);
-        // if (d3dPrimitiveType != primitiveType_)
-        // {
-        //     impl_->deviceContext_->IASetPrimitiveTopology(d3dPrimitiveType);
-        //     primitiveType_ = d3dPrimitiveType;
-        // }
-        // impl_->deviceContext_->Draw(vertexCount, vertexStart);
-        //
-        // numPrimitives_ += primitiveCount;
-        // ++numBatches_;
+        auto command = REngine::default_render_command_get();
+
+        if(!vertexCount || !command.shader_program)
+			return;
+
+    	PrepareDraw();
+
+        Diligent::DrawAttribs draw_attribs = {};
+        draw_attribs.NumVertices = vertexCount;
+        draw_attribs.StartVertexLocation = vertexStart;
+        draw_attribs.NumInstances = 1;
+        impl_->GetDeviceContext()->Draw(draw_attribs);
+
+        uint32_t primitive_count;
+        REngine::utils_get_primitive_type(vertexCount, command.pipeline_state_info.primitive_type, &primitive_count);
+        numPrimitives_ += primitive_count;
+        ++numBatches_;
     }
 
     void Graphics::Draw(PrimitiveType type, unsigned indexStart, unsigned indexCount, unsigned minVertex,
@@ -960,145 +956,189 @@ namespace Atomic
 
     void Graphics::SetShaderParameter(StringHash param, const float* data, unsigned count)
     {
-        throw std::exception("Not implemented");
-        // HashMap<StringHash, ShaderParameter>::Iterator i;
-        // if (!impl_->shaderProgram_ || (i = impl_->shaderProgram_->parameters_.Find(param)) == impl_->shaderProgram_->parameters_.End())
-        //     return;
-        //
-        // ConstantBuffer* buffer = i->second_.bufferPtr_;
-        // if (!buffer->IsDirty())
-        //     impl_->dirtyConstantBuffers_.Push(buffer);
-        // buffer->SetParameter(i->second_.offset_, (unsigned)(count * sizeof(float)), data);
+    	const auto& command = REngine::default_render_command_get();
+        if (!command.shader_program)
+            return;
+
+        ShaderParameter parameter;
+        if(!command.shader_program->GetParameter(param, &parameter))
+			return;
+
+        const auto buffer = static_cast<ConstantBuffer*>(parameter.bufferPtr_);
+        if(!buffer)
+			return;
+
+        buffer->SetParameter(parameter.offset_, count * sizeof(float), &data);
     }
 
     void Graphics::SetShaderParameter(StringHash param, float value)
     {
-        throw std::exception("Not implemented");
-        // HashMap<StringHash, ShaderParameter>::Iterator i;
-        // if (!impl_->shaderProgram_ || (i = impl_->shaderProgram_->parameters_.Find(param)) == impl_->shaderProgram_->parameters_.End())
-        //     return;
-        //
-        // ConstantBuffer* buffer = i->second_.bufferPtr_;
-        // if (!buffer->IsDirty())
-        //     impl_->dirtyConstantBuffers_.Push(buffer);
-        // buffer->SetParameter(i->second_.offset_, sizeof(float), &value);
+         const auto& command = REngine::default_render_command_get();
+        if (!command.shader_program)
+            return;
+
+        ShaderParameter parameter;
+        if(!command.shader_program->GetParameter(param, &parameter))
+			return;
+
+        const auto buffer = static_cast<ConstantBuffer*>(parameter.bufferPtr_);
+        if(!buffer)
+			return;
+
+        buffer->SetParameter(parameter.offset_, sizeof(float), &value);
     }
 
     void Graphics::SetShaderParameter(StringHash param, int value)
     {
-        throw std::exception("Not implemented");
-        // HashMap<StringHash, ShaderParameter>::Iterator i;
-        // if (!impl_->shaderProgram_ || (i = impl_->shaderProgram_->parameters_.Find(param)) == impl_->shaderProgram_->parameters_.End())
-        //     return;
-        //
-        // ConstantBuffer* buffer = i->second_.bufferPtr_;
-        // if (!buffer->IsDirty())
-        //     impl_->dirtyConstantBuffers_.Push(buffer);
-        // buffer->SetParameter(i->second_.offset_, sizeof(int), &value);
+         const auto& command = REngine::default_render_command_get();
+        if (!command.shader_program)
+            return;
+
+        ShaderParameter parameter;
+        if(!command.shader_program->GetParameter(param, &parameter))
+			return;
+
+        const auto buffer = static_cast<ConstantBuffer*>(parameter.bufferPtr_);
+        if(!buffer)
+			return;
+
+        buffer->SetParameter(parameter.offset_, sizeof(int), &value);
     }
 
     void Graphics::SetShaderParameter(StringHash param, bool value)
     {
-        throw std::exception("Not implemented");
-        // HashMap<StringHash, ShaderParameter>::Iterator i;
-        // if (!impl_->shaderProgram_ || (i = impl_->shaderProgram_->parameters_.Find(param)) == impl_->shaderProgram_->parameters_.End())
-        //     return;
-        //
-        // ConstantBuffer* buffer = i->second_.bufferPtr_;
-        // if (!buffer->IsDirty())
-        //     impl_->dirtyConstantBuffers_.Push(buffer);
-        // buffer->SetParameter(i->second_.offset_, sizeof(bool), &value);
+         const auto& command = REngine::default_render_command_get();
+        if (!command.shader_program)
+            return;
+
+        ShaderParameter parameter;
+        if(!command.shader_program->GetParameter(param, &parameter))
+			return;
+
+        const auto buffer = static_cast<ConstantBuffer*>(parameter.bufferPtr_);
+        if(!buffer)
+			return;
+
+        buffer->SetParameter(parameter.offset_, sizeof(bool), &value);
     }
 
     void Graphics::SetShaderParameter(StringHash param, const Color& color)
     {
-        throw std::exception("Not implemented");
-        // HashMap<StringHash, ShaderParameter>::Iterator i;
-        // if (!impl_->shaderProgram_ || (i = impl_->shaderProgram_->parameters_.Find(param)) == impl_->shaderProgram_->parameters_.End())
-        //     return;
-        //
-        // ConstantBuffer* buffer = i->second_.bufferPtr_;
-        // if (!buffer->IsDirty())
-        //     impl_->dirtyConstantBuffers_.Push(buffer);
-        // buffer->SetParameter(i->second_.offset_, sizeof(Color), &color);
+         const auto& command = REngine::default_render_command_get();
+        if (!command.shader_program)
+            return;
+
+        ShaderParameter parameter;
+        if(!command.shader_program->GetParameter(param, &parameter))
+			return;
+
+        const auto buffer = static_cast<ConstantBuffer*>(parameter.bufferPtr_);
+        if(!buffer)
+			return;
+
+        buffer->SetParameter(parameter.offset_, sizeof(Color), &color);
     }
 
     void Graphics::SetShaderParameter(StringHash param, const Vector2& vector)
     {
-        throw std::exception("Not implemented");
-        // HashMap<StringHash, ShaderParameter>::Iterator i;
-        // if (!impl_->shaderProgram_ || (i = impl_->shaderProgram_->parameters_.Find(param)) == impl_->shaderProgram_->parameters_.End())
-        //     return;
-        //
-        // ConstantBuffer* buffer = i->second_.bufferPtr_;
-        // if (!buffer->IsDirty())
-        //     impl_->dirtyConstantBuffers_.Push(buffer);
-        // buffer->SetParameter(i->second_.offset_, sizeof(Vector2), &vector);
+         const auto& command = REngine::default_render_command_get();
+        if (!command.shader_program)
+            return;
+
+        ShaderParameter parameter;
+        if(!command.shader_program->GetParameter(param, &parameter))
+			return;
+
+        const auto buffer = static_cast<ConstantBuffer*>(parameter.bufferPtr_);
+        if(!buffer)
+			return;
+
+        buffer->SetParameter(parameter.offset_, sizeof(Vector2), &vector);
     }
 
     void Graphics::SetShaderParameter(StringHash param, const Matrix3& matrix)
     {
-        throw std::exception("Not implemented");
-        // HashMap<StringHash, ShaderParameter>::Iterator i;
-        // if (!impl_->shaderProgram_ || (i = impl_->shaderProgram_->parameters_.Find(param)) == impl_->shaderProgram_->parameters_.End())
-        //     return;
-        //
-        // ConstantBuffer* buffer = i->second_.bufferPtr_;
-        // if (!buffer->IsDirty())
-        //     impl_->dirtyConstantBuffers_.Push(buffer);
-        // buffer->SetVector3ArrayParameter(i->second_.offset_, 3, &matrix);
+         const auto& command = REngine::default_render_command_get();
+        if (!command.shader_program)
+            return;
+
+        ShaderParameter parameter;
+        if(!command.shader_program->GetParameter(param, &parameter))
+			return;
+
+        const auto buffer = static_cast<ConstantBuffer*>(parameter.bufferPtr_);
+        if(!buffer)
+			return;
+
+        buffer->SetParameter(parameter.offset_, sizeof(Matrix3), &matrix);
     }
 
     void Graphics::SetShaderParameter(StringHash param, const Vector3& vector)
     {
-        throw std::exception("Not implemented");
-        // HashMap<StringHash, ShaderParameter>::Iterator i;
-        // if (!impl_->shaderProgram_ || (i = impl_->shaderProgram_->parameters_.Find(param)) == impl_->shaderProgram_->parameters_.End())
-        //     return;
-        //
-        // ConstantBuffer* buffer = i->second_.bufferPtr_;
-        // if (!buffer->IsDirty())
-        //     impl_->dirtyConstantBuffers_.Push(buffer);
-        // buffer->SetParameter(i->second_.offset_, sizeof(Vector3), &vector);
+         const auto& command = REngine::default_render_command_get();
+        if (!command.shader_program)
+            return;
+
+        ShaderParameter parameter;
+        if(!command.shader_program->GetParameter(param, &parameter))
+			return;
+
+        const auto buffer = static_cast<ConstantBuffer*>(parameter.bufferPtr_);
+        if(!buffer)
+			return;
+
+        buffer->SetParameter(parameter.offset_, sizeof(Vector3), &vector);
     }
 
     void Graphics::SetShaderParameter(StringHash param, const Matrix4& matrix)
     {
-        throw std::exception("Not implemented");
-        // HashMap<StringHash, ShaderParameter>::Iterator i;
-        // if (!impl_->shaderProgram_ || (i = impl_->shaderProgram_->parameters_.Find(param)) == impl_->shaderProgram_->parameters_.End())
-        //     return;
-        //
-        // ConstantBuffer* buffer = i->second_.bufferPtr_;
-        // if (!buffer->IsDirty())
-        //     impl_->dirtyConstantBuffers_.Push(buffer);
-        // buffer->SetParameter(i->second_.offset_, sizeof(Matrix4), &matrix);
+         const auto& command = REngine::default_render_command_get();
+        if (!command.shader_program)
+            return;
+
+        ShaderParameter parameter;
+        if(!command.shader_program->GetParameter(param, &parameter))
+			return;
+
+        const auto buffer = static_cast<ConstantBuffer*>(parameter.bufferPtr_);
+        if(!buffer)
+			return;
+
+        buffer->SetParameter(parameter.offset_, sizeof(Matrix4), &matrix);
     }
 
     void Graphics::SetShaderParameter(StringHash param, const Vector4& vector)
     {
-        throw std::exception("Not implemented");
-        // HashMap<StringHash, ShaderParameter>::Iterator i;
-        // if (!impl_->shaderProgram_ || (i = impl_->shaderProgram_->parameters_.Find(param)) == impl_->shaderProgram_->parameters_.End())
-        //     return;
-        //
-        // ConstantBuffer* buffer = i->second_.bufferPtr_;
-        // if (!buffer->IsDirty())
-        //     impl_->dirtyConstantBuffers_.Push(buffer);
-        // buffer->SetParameter(i->second_.offset_, sizeof(Vector4), &vector);
+        const auto& command = REngine::default_render_command_get();
+        if (!command.shader_program)
+            return;
+
+        ShaderParameter parameter;
+        if(!command.shader_program->GetParameter(param, &parameter))
+			return;
+
+        const auto buffer = static_cast<ConstantBuffer*>(parameter.bufferPtr_);
+        if(!buffer)
+			return;
+
+        buffer->SetParameter(parameter.offset_, sizeof(Vector4), &vector);
     }
 
     void Graphics::SetShaderParameter(StringHash param, const Matrix3x4& matrix)
     {
-        throw std::exception("Not implemented");
-        // HashMap<StringHash, ShaderParameter>::Iterator i;
-        // if (!impl_->shaderProgram_ || (i = impl_->shaderProgram_->parameters_.Find(param)) == impl_->shaderProgram_->parameters_.End())
-        //     return;
-        //
-        // ConstantBuffer* buffer = i->second_.bufferPtr_;
-        // if (!buffer->IsDirty())
-        //     impl_->dirtyConstantBuffers_.Push(buffer);
-        // buffer->SetParameter(i->second_.offset_, sizeof(Matrix3x4), &matrix);
+         const auto& command = REngine::default_render_command_get();
+        if (!command.shader_program)
+            return;
+
+        ShaderParameter parameter;
+        if(!command.shader_program->GetParameter(param, &parameter))
+			return;
+
+        const auto buffer = static_cast<ConstantBuffer*>(parameter.bufferPtr_);
+        if(!buffer)
+			return;
+
+        buffer->SetParameter(parameter.offset_, sizeof(Matrix3x4), &matrix);
     }
 
     bool Graphics::NeedParameterUpdate(ShaderParameterGroup group, const void* source)
@@ -1114,8 +1154,11 @@ namespace Atomic
 
     bool Graphics::HasShaderParameter(StringHash param)
     {
-        throw std::exception("Not implemented");
-        // return impl_->shaderProgram_ && impl_->shaderProgram_->parameters_.Find(param) != impl_->shaderProgram_->parameters_.End();
+        const auto& command = REngine::default_render_command_get();
+        if (!command.shader_program)
+            return false;
+        ShaderParameter parameter;
+        return command.shader_program->GetParameter(param, &parameter);
     }
 
     bool Graphics::HasTextureUnit(TextureUnit unit)

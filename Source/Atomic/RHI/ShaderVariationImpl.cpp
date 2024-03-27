@@ -10,6 +10,7 @@
 #include "../Resource/ResourceCache.h"
 #include "./DriverInstance.h"
 #include "./ShaderCompiler.h"
+#include "./DiligentUtils.h"
 
 #include "../DebugNew.h"
 
@@ -163,8 +164,9 @@ namespace Atomic
         memcpy(constantBufferSizes_, bin_result.reflect_info.constant_buffer_sizes, sizeof(bool) * MAX_SHADER_PARAMETER_GROUPS);
         memcpy(useTextureUnit_, bin_result.reflect_info.used_texture_units, sizeof(bool) * MAX_TEXTURE_UNITS);
 
+        const auto full_name = GetFullName();
         Diligent::ShaderCreateInfo ci;
-        ci.Desc.Name = GetFullName().CString();
+        ci.Desc.Name =full_name.CString();
         ci.EntryPoint = "main";
         ci.SourceLanguage = Diligent::SHADER_SOURCE_LANGUAGE_GLSL;
         
@@ -207,8 +209,11 @@ namespace Atomic
 
     bool ShaderVariation::Compile(SharedArrayPtr<uint8_t>& shader_file_data, uint32_t* shader_file_size)
     {
+        const auto full_name = GetFullName();
         Diligent::ShaderCreateInfo shader_ci = {};
+        shader_ci.Desc.Name = full_name.CString();
         shader_ci.SourceLanguage = Diligent::SHADER_SOURCE_LANGUAGE_GLSL;
+        shader_ci.Desc.ShaderType = REngine::utils_get_shader_type(type_);
 
         String source_code = owner_->GetSourceCode(type_);
         String entrypoint;
@@ -237,14 +242,12 @@ namespace Atomic
         case VS:
             {
                 entrypoint = "VS();";
-                shader_ci.Desc.ShaderType = Diligent::SHADER_TYPE_VERTEX;
                 defines.Push("COMPILEVS");
             }
             break;
         case PS:
             {
                 entrypoint = "PS();";
-                shader_ci.Desc.ShaderType = Diligent::SHADER_TYPE_PIXEL;
                 defines.Push("COMPILEPS");
             }
             break;

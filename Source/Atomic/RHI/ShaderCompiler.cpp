@@ -8,6 +8,7 @@
 
 #include "../Engine/Application.h"
 #include "../IO/Log.h"
+#include "../Core/Variant.h"
 
 #include "spirv_parser.hpp"
 #include "spirv_cross.hpp"
@@ -21,6 +22,72 @@
 
 namespace REngine
 {
+    class HLSLRemapperCompiler : public spirv_cross::CompilerHLSL
+    {
+    public:
+        HLSLRemapperCompiler(uint32_t* spirv, uint64_t length) : spirv_cross::CompilerHLSL(spirv, length)
+        {
+            RemapInputLayout();
+            CollectSamplers();
+        }
+
+        std::string compile() override
+        {
+        	auto hlsl = spirv_cross::CompilerHLSL::compile();
+			ReplaceSamplers(hlsl);
+			return hlsl;
+		}
+    private:
+        void RemapInputLayout()
+        {
+            const auto& execution = get_entry_point();
+            if (execution.model != spv::ExecutionModelVertex)
+                return;
+            ir.for_each_typed_id<spirv_cross::SPIRVariable>([&](uint32_t, spirv_cross::SPIRVariable& var)
+            {
+                auto& type = this->get<spirv_cross::SPIRType>(var.basetype);
+                auto& m = ir.meta[var.self].decoration;
+                if(!(type.storage == spv::StorageClassInput && !is_builtin_variable(var)))
+				    return;
+				
+                auto name = String("ATTRIB");
+                name.AppendWithFormat("%d", m.location);
+                add_vertex_attribute_remap({ m.location, name.CString() });
+            });
+        }
+        void CollectSamplers()
+        {
+            ir.for_each_typed_id<spirv_cross::SPIRVariable>([&](uint32_t, spirv_cross::SPIRVariable& var)
+            {
+                auto& type = this->get<spirv_cross::SPIRType>(var.basetype);
+                auto& m = ir.meta[var.self].decoration;
+                if (type.basetype == spirv_cross::SPIRType::SampledImage && type.image.dim == spv::DimBuffer)
+                    return;
+                const auto name = String("_") + String(m.alias.c_str()) + "_sampler";
+            	samplers_.Push(name);
+            });
+        }
+        void ReplaceSamplers(std::string& hlsl)
+        {
+            // spirv_cross generates our HLSL code with this pattern: _<alias>_sampler
+            // we need to remove the underscore for diligent to find the correct sampler
+            const char placeholder = '\1';
+
+            // Replace all underscores with a placeholder
+            for(const auto& name : samplers_)
+            {
+	            for(size_t pos = hlsl.find(name.CString()); pos != std::string::npos; pos = hlsl.find(name.CString(), pos))
+	            	hlsl[pos] = placeholder;
+            }
+
+            // then remove all placeholders chars
+            const auto is_placeholder = [placeholder](char c) { return c == placeholder; };
+            hlsl.erase(std::remove_if(hlsl.begin(), hlsl.end(), is_placeholder), hlsl.end());
+        }
+
+        Atomic::StringVector samplers_{};
+    };
+
     static EShLanguage get_stage_type(Atomic::ShaderType type)
     {
         switch (type)
@@ -441,7 +508,9 @@ namespace REngine
     {
 #if WIN32
         spirv_cross::CompilerHLSL::Options options = {};
-        spirv_cross::CompilerHLSL compiler(static_cast<uint32_t*>(desc.spirv_code), desc.length / sizeof(uint32_t));
+        options.shader_model = 50;
+        options.point_size_compat = true;
+        HLSLRemapperCompiler compiler(static_cast<uint32_t*>(desc.spirv_code), desc.length / sizeof(uint32_t));
         compiler.set_hlsl_options(options);
 
         source_code = Atomic::String(compiler.compile().c_str());
@@ -750,10 +819,10 @@ namespace REngine
     {
         switch (type)
         {
-            case SHADER_TYPE_VERTEX:
+            case Atomic::VS:
                 ext = ".vs.rshader";
                 break;
-            case SHADER_TYPE_PIXEL:
+            case Atomic::PS:
                 ext = ".ps.rshader";
                 break;
         }

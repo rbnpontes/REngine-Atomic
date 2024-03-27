@@ -5,12 +5,10 @@
 
 namespace REngine
 {
-    using namespace Diligent;
     using namespace Atomic;
-    void utils_get_primitive_type(unsigned element_count,
+    Diligent::PRIMITIVE_TOPOLOGY utils_get_primitive_type(unsigned element_count,
         PrimitiveType type,
-        unsigned& primitive_count,
-        PRIMITIVE_TOPOLOGY primitive_topology);
+        uint32_t* primitive_count);
 
     unsigned utils_calc_sub_resource(unsigned mip_slice, unsigned array_slice, unsigned mip_levels);
 
@@ -18,4 +16,5 @@ namespace REngine
     Atomic::ShaderParameterGroup utils_get_shader_parameter_group_type(const Atomic::String& name);
     Atomic::VertexElementSemantic utils_get_element_semantic(const Atomic::String& name, uint8_t* index);
     Atomic::TextureUnit utils_get_texture_unit(const Atomic::String& name);
+    Diligent::SHADER_TYPE utils_get_shader_type(Atomic::ShaderType type);
 }

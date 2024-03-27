@@ -1,14 +1,15 @@
 #include "./PipelineStateBuilder.h"
+#include "./DiligentUtils.h"
 #include "../Container/HashMap.h"
 #include "../Container/Hash.h"
+#include "../IO/Log.h"
 
-#include "DiligentCore/Common/interface/RefCntAutoPtr.hpp"
-#include "IO/Log.h"
+#include <DiligentCore/Common/interface/RefCntAutoPtr.hpp>
 
 namespace REngine
 {
     static Atomic::HashMap<unsigned, Diligent::RefCntAutoPtr<Diligent::IPipelineState>> s_pipelines;
-    static Atomic::HashMap<unsigned, Diligent::RefCntWeakPtr<Diligent::IShaderResourceBinding>> s_srb;
+    static Atomic::HashMap<unsigned, Diligent::RefCntAutoPtr<Diligent::IShaderResourceBinding>> s_srb;
 
     static uint8_t s_num_components_tbl[] = {
         1,
@@ -385,50 +386,79 @@ namespace REngine
         return hash;
     }
 
-    Diligent::RefCntAutoPtr<Diligent::IShaderResourceBinding> pipeline_state_builder_get_or_create_srb(
-        const unsigned pipeline_hash, const Atomic::HashMap<Atomic::String, Diligent::IDeviceObject*>& resources)
+    Diligent::RefCntAutoPtr<Diligent::IShaderResourceBinding> pipeline_state_builder_get_or_create_srb(const ShaderResourceBindingCreateDesc& desc)
     {
-        unsigned key = pipeline_hash;
+        unsigned key = desc.pipeline_hash;
         // build key from resource pointers
-        for (const auto& it : resources)
+        for (const auto& it : *desc.resources)
             Atomic::CombineHash(key, Atomic::MakeHash(it.second_));
 
         if(s_srb.Contains(key))
         {
             auto srb = s_srb[key];
-            // If shader resource binding is not expired. then return it.
-            if(srb.IsValid())
-                return srb.Lock();
+            return srb;
         }
 
-        const auto pipeline = s_pipelines[pipeline_hash];
+        const auto pipeline = s_pipelines[desc.pipeline_hash];
         if(!pipeline)
         {
-            ATOMIC_LOGERRORF("Not found pipeline with hash #%u", pipeline_hash);
+            ATOMIC_LOGERRORF("Not found pipeline with given hash #%u", desc.pipeline_hash);
             return {};
         }
+
+        ATOMIC_LOGDEBUGF("Creating SRB with given hash #%u", key);
 
         Diligent::RefCntAutoPtr<Diligent::IShaderResourceBinding> srb;
         pipeline->CreateShaderResourceBinding(&srb, true);
 
         s_srb[key] = srb;
 
-        // bind resources into shader resource binding
-        // TODO: add here the other shader types
-        constexpr Diligent::SHADER_TYPE shader_types[] = {
-            Diligent::SHADER_TYPE_VERTEX,
-            Diligent::SHADER_TYPE_PIXEL
-        };
-        for(const auto& it : resources)
+
+        for(uint8_t type = 0; type < MAX_SHADER_TYPES; ++type)
         {
-            for(const auto shader_type : shader_types)
+	        for(uint8_t grp = 0; grp < MAX_SHADER_PARAMETER_GROUPS; ++grp)
+			{
+				const auto shader_type = static_cast<ShaderType>(type);
+                const auto d_shader_type = utils_get_shader_type(shader_type);
+                const auto group = static_cast<ShaderParameterGroup>(grp);
+	            const auto name = utils_get_shader_parameter_group_name(shader_type, group);
+
+				const auto var = srb->GetVariableByName(d_shader_type, name);
+                if (var)
+                    var->Set(desc.driver->GetConstantBuffer(shader_type, group));
+			}
+		}
+
+        for(const auto& it : *desc.resources)
+        {
+            for(uint8_t type = 0; type < MAX_SHADER_TYPES; ++type)
             {
+                const auto shader_type = utils_get_shader_type(static_cast<Atomic::ShaderType>(type));
                 const auto var = srb->GetVariableByName(shader_type, it.first_.CString());
                 if(var)
                     var->Set(it.second_);
             }
         }
-        
         return srb;
+    }
+
+    void srb_cache_update_default_cbuffers(const Atomic::ShaderType type, const Atomic::ShaderParameterGroup grp, Diligent::IBuffer* cbuffer)
+    {
+        using namespace Diligent;
+        const auto name = utils_get_shader_parameter_group_name(type, grp);
+        const auto shader_type = utils_get_shader_type(type);
+
+        for(const auto& it : s_srb)
+        {
+	        const auto srb = it.second_;
+            const auto var = srb->GetVariableByName(shader_type, name);
+            if(var)
+                var->Set(cbuffer, SET_SHADER_RESOURCE_FLAG_ALLOW_OVERWRITE);
+        }
+    }
+
+    void srb_cache_release()
+    {
+		s_srb.Clear();
     }
 }

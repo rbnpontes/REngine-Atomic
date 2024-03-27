@@ -64,33 +64,17 @@ namespace REngine
             state.dirty_state ^= static_cast<unsigned>(RenderCommandDirtyState::textures);
         }
 
-        // bind constant buffers
-        if ((state.dirty_state & static_cast<unsigned>(RenderCommandDirtyState::shader_program)) != 0
-            && state.pipeline_state && state.shader_program)
-        {
-            for(unsigned i = 0; i < Atomic::MAX_SHADER_TYPES; ++i)
-            {
-                for(unsigned j = 0; j < Atomic::MAX_SHADER_PARAMETER_GROUPS; ++j)
-                {
-                    const auto type = static_cast<ShaderType>(i);
-                    const auto grp = static_cast<ShaderParameterGroup>(j);
-                    const ConstantBuffer* constant_buffer = state.shader_program->GetConstantBuffer(type, grp);
-
-                    if(!constant_buffer)
-                        continue;
-                    Atomic::String key = utils_get_shader_parameter_group_name(type, grp);
-                    resources[key] = constant_buffer->GetGPUObject();
-                }
-            }
-
-            state.dirty_state ^= static_cast<unsigned>(RenderCommandDirtyState::shader_program);
-        }
-
         if(state.skip_flags & static_cast<unsigned>(RenderCommandSkipFlags::srb_build))
             state.skip_flags ^= static_cast<unsigned>(RenderCommandSkipFlags::srb_build);
         // build shader resource binding if is necessary
         else if(resources.Size() > 0 && state.pipeline_state)
-            state.shader_resource_binding = pipeline_state_builder_get_or_create_srb(state.pipeline_hash, resources);
+        {
+            ShaderResourceBindingCreateDesc srb_desc;
+            srb_desc.resources = &resources;
+            srb_desc.driver = driver;
+            srb_desc.pipeline_hash = state.pipeline_hash;
+            state.shader_resource_binding = pipeline_state_builder_get_or_create_srb(srb_desc);
+        }
 
         // bind render targets if is necessary
         if (state.dirty_state & static_cast<unsigned>(RenderCommandDirtyState::render_targets) || state.dirty_state & static_cast<unsigned>(RenderCommandDirtyState::depth_stencil))

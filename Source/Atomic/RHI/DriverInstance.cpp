@@ -1,5 +1,8 @@
 #include "./DriverInstance.h"
 #include "../IO/Log.h"
+#include "./DiligentUtils.h"
+#include "./PipelineStateBuilder.h"
+
 #if WIN32
 #include <DiligentCore/Graphics/GraphicsEngineD3D11/interface/EngineFactoryD3D11.h>
 #include <DiligentCore/Graphics/GraphicsEngineD3D12/interface/EngineFactoryD3D12.h>
@@ -7,7 +10,7 @@
 #include <DiligentCore/Graphics/GraphicsEngineVulkan/interface/EngineFactoryVk.h>
 #include <DiligentCore/Graphics/GraphicsEngineOpenGL/interface/EngineFactoryOpenGL.h>
 
-#include "DiligentCore/Common/interface/ObjectBase.hpp"
+#include <DiligentCore/Common/interface/ObjectBase.hpp>
 
 namespace REngine
 {
@@ -36,6 +39,23 @@ namespace REngine
         render_device_(nullptr),
         swap_chain_(nullptr)
     {
+        // Setup default constant buffer sizes for Vertex Shaders
+        SetConstantBufferSize(Atomic::VS, Atomic::SP_FRAME, 8/*Shader Default*/);
+        SetConstantBufferSize(Atomic::VS, Atomic::SP_CAMERA, 288/*Shader Default*/);
+        SetConstantBufferSize(Atomic::VS, Atomic::SP_ZONE, 96/*Shader Default*/);
+        SetConstantBufferSize(Atomic::VS, Atomic::SP_LIGHT, 304/*Shader Default*/);
+        SetConstantBufferSize(Atomic::VS, Atomic::SP_MATERIAL, 8192/*Half of 16kb*/);
+        SetConstantBufferSize(Atomic::VS, Atomic::SP_OBJECT, 6256 /*Shader Default*/);
+        // Setup default constant buffer sizes for Pixel Shaders
+        SetConstantBufferSize(Atomic::PS, Atomic::SP_FRAME, 8/*Shader Default*/);
+        SetConstantBufferSize(Atomic::PS, Atomic::SP_CAMERA, 48/*Shader Default*/);
+        SetConstantBufferSize(Atomic::PS, Atomic::SP_ZONE, 80/*Shader Default*/);
+        SetConstantBufferSize(Atomic::PS, Atomic::SP_LIGHT, 328/*Shader Default*/);
+        SetConstantBufferSize(Atomic::PS, Atomic::SP_MATERIAL, 8192/*Half of 16kb*/);
+        SetConstantBufferSize(Atomic::PS, Atomic::SP_OBJECT, 6256 /*Shader Default*/);
+
+        for (uint32_t i = 0; i < _countof(constant_buffers_); ++i)
+            constant_buffers_[i] = {};
     }
 
     void DriverInstance::Release()
@@ -159,10 +179,12 @@ namespace REngine
         
         delete[] device_contexts;
         backend_ = init_desc.backend;
+
+        InitDefaultConstantBuffers();
         return true;
     }
 
-    unsigned DriverInstance::FindBestAdapter(unsigned adapter_id, Atomic::GraphicsBackend backend)
+    unsigned DriverInstance::FindBestAdapter(unsigned adapter_id, Atomic::GraphicsBackend backend) const
     {
         Diligent::Version graphics_version = {};
 #if WIN32
@@ -228,10 +250,61 @@ namespace REngine
         return values.Contains(multisample);
     }
 
+    Diligent::RefCntAutoPtr<Diligent::IBuffer> DriverInstance::GetConstantBuffer(Atomic::ShaderType type,
+	    Atomic::ShaderParameterGroup group)
+    {
+        const uint8_t index = static_cast<uint8_t>(group) * static_cast<uint8_t>(type);
+		if(index >= static_cast<uint8_t>(_countof(constant_buffers_)))
+            return {};
+
+        if(!IsInitialized())
+            return {};
+
+        Diligent::RefCntAutoPtr<Diligent::IBuffer> buffer = constant_buffers_[index];
+        if(constant_buffers_[index])
+            return buffer;
+        buffer = CreateConstantBuffer(type, group, GetConstantBufferSize(type, group));
+		constant_buffers_[index] = buffer;
+
+        // Every time we update default constant buffers, we need to update SRB caches too.
+        srb_cache_update_default_cbuffers(type, group, buffer);
+        return buffer;
+    }
+
+    void DriverInstance::InitDefaultConstantBuffers()
+    {
+        for (unsigned i = 0; i < _countof(constant_buffers_); ++i)
+        {
+			const auto type = static_cast<ShaderType>(i % static_cast<uint8_t>(MAX_SHADER_TYPES));
+			const auto group = static_cast<ShaderParameterGroup>(i / static_cast<uint8_t>(MAX_SHADER_TYPES));
+			constant_buffers_[i] = CreateConstantBuffer(type, group, GetConstantBufferSize(type, group));
+		}
+    }
+
+    Diligent::IBuffer* DriverInstance::CreateConstantBuffer(const Atomic::ShaderType type, const Atomic::ShaderParameterGroup grp,
+                                                            const uint32_t size) const
+    {
+        using namespace Diligent;
+        Atomic::String name = "Atomic::ConstantBuffer(";
+        name.AppendWithFormat("%s)", utils_get_shader_parameter_group_name(type, grp));
+
+		BufferDesc desc;
+		desc.Name = name.CString();
+		desc.Mode = BUFFER_MODE_STRUCTURED;
+		desc.ElementByteStride = 0;
+		desc.Usage = USAGE_DYNAMIC;
+		desc.CPUAccessFlags = CPU_ACCESS_WRITE;
+		desc.BindFlags = BIND_UNIFORM_BUFFER;
+        desc.Size = size;
+
+		IBuffer* buffer;
+		render_device_->CreateBuffer(desc, nullptr, &buffer);
+		return buffer;
+    }
 
     void DriverInstance::OnDebugMessage(Diligent::DEBUG_MESSAGE_SEVERITY severity, const char* message, const char* function, const char* file, int line)
     {
-        String log = "[Diligent]: ";
+        Atomic::String log = "[Diligent]: ";
         log = log.AppendWithFormat("\nMessage: %s\nFunction: %s\nFile:%s\nLine: %i",
             message,
             function,
@@ -239,7 +312,7 @@ namespace REngine
             line);
 
         if(severity == Diligent::DEBUG_MESSAGE_SEVERITY_FATAL_ERROR)
-            log = String("[FATAL]") + log;
+            log = Atomic::String("[FATAL]") + log;
         
         switch (severity)
         {

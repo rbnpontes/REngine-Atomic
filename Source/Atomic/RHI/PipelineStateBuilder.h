@@ -142,11 +142,21 @@ namespace REngine
      */
     unsigned pipeline_state_builder_build_hash(const PipelineStateInfo& info);
 
+    struct ShaderResourceBindingCreateDesc
+    {
+        DriverInstance* driver{nullptr};
+        uint32_t pipeline_hash{0};
+        Atomic::HashMap<Atomic::String, Diligent::IDeviceObject*>* resources{nullptr};
+    };
     /**
      * \brief get or create a shader resource binding from an pipeline hash
-     * \param pipeline_hash 
-     * \param resources 
      * \return 
      */
-    Diligent::RefCntAutoPtr<Diligent::IShaderResourceBinding> pipeline_state_builder_get_or_create_srb(const unsigned pipeline_hash, const Atomic::HashMap<Atomic::String, Diligent::IDeviceObject*>& resources);
+    Diligent::RefCntAutoPtr<Diligent::IShaderResourceBinding> pipeline_state_builder_get_or_create_srb(const ShaderResourceBindingCreateDesc& desc);
+
+    void srb_cache_update_default_cbuffers(const Atomic::ShaderType type, const Atomic::ShaderParameterGroup grp, Diligent::IBuffer* cbuffer);
+    /**
+     * \brief release cached shader resource bindings
+     */
+    void srb_cache_release();
 }

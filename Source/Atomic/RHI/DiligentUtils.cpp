@@ -47,6 +47,15 @@ namespace REngine
         {"sZoneVolumeMap",TU_ZONE}
     };
 
+    static Diligent::SHADER_TYPE s_shader_types[] = {
+    		Diligent::SHADER_TYPE_VERTEX,
+    		Diligent::SHADER_TYPE_PIXEL,
+    		Diligent::SHADER_TYPE_GEOMETRY,
+    		Diligent::SHADER_TYPE_HULL,
+    		Diligent::SHADER_TYPE_DOMAIN,
+    		Diligent::SHADER_TYPE_COMPUTE
+    	};
+
 
     static unsigned NumberPostfix(const Atomic::String& str)
     {
@@ -59,34 +68,29 @@ namespace REngine
         return M_MAX_UNSIGNED;
     }
 
-    void utils_get_primitive_type(unsigned element_count, PrimitiveType type, unsigned& primitive_count, PRIMITIVE_TOPOLOGY primitive_topology)
+    Diligent::PRIMITIVE_TOPOLOGY utils_get_primitive_type(unsigned element_count, PrimitiveType type, uint32_t* primitive_count)
     {
+        using namespace Diligent;
         switch (type)
         {
         case TRIANGLE_LIST:
-            primitive_count = element_count / 3;
-            primitive_topology = PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
-            break;
+            *primitive_count = element_count / 3;
+            return PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
         case LINE_LIST:
-            primitive_count = element_count / 2;
-            primitive_topology = PRIMITIVE_TOPOLOGY_LINE_LIST;
-            break;
+            *primitive_count = element_count / 2;
+            return PRIMITIVE_TOPOLOGY_LINE_LIST;
         case POINT_LIST:
-            primitive_count = element_count;
-            primitive_topology = PRIMITIVE_TOPOLOGY_POINT_LIST;
-            break;
+            *primitive_count = element_count;
+            return PRIMITIVE_TOPOLOGY_POINT_LIST;
         case TRIANGLE_STRIP:
-            primitive_count = element_count - 2;
-            primitive_topology = PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
-            break;
+            *primitive_count = element_count - 2;
+            return PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
         case LINE_STRIP:
-            primitive_count = element_count - 1;
-            primitive_topology = PRIMITIVE_TOPOLOGY_LINE_STRIP;
-            break;
+            *primitive_count = element_count - 1;
+            return PRIMITIVE_TOPOLOGY_LINE_STRIP;
         default:
-            primitive_count = 0;
-            primitive_topology = PRIMITIVE_TOPOLOGY_UNDEFINED;
-            break;
+            *primitive_count = 0;
+            return PRIMITIVE_TOPOLOGY_UNDEFINED;
         }
     }
 
@@ -134,4 +138,8 @@ namespace REngine
         return it != s_texture_unit_map.End() ? it->second_ : MAX_TEXTURE_UNITS;
     }
 
+    Diligent::SHADER_TYPE utils_get_shader_type(Atomic::ShaderType type)
+    {
+        return s_shader_types[type];
+    }
 }

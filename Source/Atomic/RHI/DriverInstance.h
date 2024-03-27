@@ -39,13 +39,33 @@ namespace REngine
         Atomic::PODVector<int> GetMultiSampleLevels(Diligent::TEXTURE_FORMAT color_fmt, Diligent::TEXTURE_FORMAT depth_fmt) const;
         bool CheckMultiSampleSupport(unsigned multisample, Diligent::TEXTURE_FORMAT color_fmt, Diligent::TEXTURE_FORMAT depth_fmt) const;
         uint8_t GetMultiSample() const { return multisample_; }
+
+        uint32_t GetConstantBufferSize(Atomic::ShaderType type, Atomic::ShaderParameterGroup group) const
+        {
+            const uint8_t index = static_cast<uint8_t>(group) * static_cast<uint8_t>(type);
+            if(index >= static_cast<uint8_t>(_countof(constant_buffer_sizes_)))
+				return 0;
+	        return constant_buffer_sizes_[index];
+        }
+        void SetConstantBufferSize(Atomic::ShaderType type, Atomic::ShaderParameterGroup group, uint32_t size)
+        {
+	        const uint8_t index = static_cast<uint8_t>(group) * static_cast<uint8_t>(type);
+            if(index >= static_cast<uint8_t>(_countof(constant_buffer_sizes_)))
+				return;
+	        constant_buffer_sizes_[index] = size;
+            constant_buffers_[index] = nullptr;
+        }
+
+        Diligent::RefCntAutoPtr<Diligent::IBuffer> GetConstantBuffer(Atomic::ShaderType type, Atomic::ShaderParameterGroup group);
     private:
+        void InitDefaultConstantBuffers();
+        Diligent::IBuffer* CreateConstantBuffer(Atomic::ShaderType type, Atomic::ShaderParameterGroup grp, uint32_t size) const;
         static void OnDebugMessage(Diligent::DEBUG_MESSAGE_SEVERITY severity,
             const char* message,
             const char* function,
             const char* file,
             int line);
-        unsigned FindBestAdapter(unsigned adapter_id, Atomic::GraphicsBackend backend);
+        unsigned FindBestAdapter(unsigned adapter_id, Atomic::GraphicsBackend backend) const;
         
         Atomic::GraphicsBackend backend_;
         
@@ -55,5 +75,7 @@ namespace REngine
         Diligent::RefCntAutoPtr<Diligent::ISwapChain> swap_chain_;
 
         uint8_t multisample_;
+        uint32_t constant_buffer_sizes_[static_cast<uint8_t>(Atomic::MAX_SHADER_PARAMETER_GROUPS) * static_cast<uint8_t>(Atomic::MAX_SHADER_TYPES)];
+        Diligent::RefCntAutoPtr<Diligent::IBuffer> constant_buffers_[static_cast<uint8_t>(Atomic::MAX_SHADER_PARAMETER_GROUPS) * static_cast<uint8_t>(Atomic::MAX_SHADER_TYPES)];
     };
 }
