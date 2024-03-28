@@ -2,6 +2,7 @@
 #include "./DiligentUtils.h"
 #include "./PipelineStateBuilder.h"
 #include "../IO/Log.h"
+#include "../Graphics/ConstantBuffer.h"
 
 #if WIN32
 #include <DiligentCore/Graphics/GraphicsEngineD3D11/interface/EngineFactoryD3D11.h>
@@ -11,6 +12,8 @@
 #include <DiligentCore/Graphics/GraphicsEngineOpenGL/interface/EngineFactoryOpenGL.h>
 
 #include <DiligentCore/Common/interface/ObjectBase.hpp>
+
+#include "Graphics/Graphics.h"
 
 namespace REngine
 {
@@ -32,7 +35,8 @@ namespace REngine
 #endif
     }
     
-    DriverInstance::DriverInstance() :
+    DriverInstance::DriverInstance(Atomic::Graphics* graphics) :
+        graphics_(graphics),
         backend_(GraphicsBackend::D3D11),
         engine_factory_(nullptr),
         device_contexts_({}),
@@ -252,7 +256,7 @@ namespace REngine
         return values.Contains(multisample);
     }
 
-    Diligent::RefCntAutoPtr<Diligent::IBuffer> DriverInstance::GetConstantBuffer(const ShaderType type, const ShaderParameterGroup group)
+    Atomic::SharedPtr<Atomic::ConstantBuffer> DriverInstance::GetConstantBuffer(const ShaderType type, const ShaderParameterGroup group)
     {
         const uint8_t index = GetConstantBufferIndex(type, group);
 		if(index >= static_cast<uint8_t>(_countof(constant_buffers_)))
@@ -261,15 +265,19 @@ namespace REngine
         if(!IsInitialized())
             return {};
 
-        Diligent::RefCntAutoPtr<Diligent::IBuffer> buffer = constant_buffers_[index];
+        auto buffer = constant_buffers_[index];
         if(constant_buffers_[index])
             return buffer;
         buffer = CreateConstantBuffer(type, group, GetConstantBufferSize(type, group));
 		constant_buffers_[index] = buffer;
 
         // Every time we update default constant buffers, we need to update SRB caches too.
-        srb_cache_update_default_cbuffers(type, group, buffer);
+        srb_cache_update_default_cbuffers(type, group, buffer->GetGPUObject().Cast<Diligent::IBuffer>(Diligent::IID_Buffer));
         return buffer;
+    }
+
+    void DriverInstance::UploadBufferChanges()
+    {
     }
 
     void DriverInstance::InitDefaultConstantBuffers()
@@ -280,31 +288,24 @@ namespace REngine
 	        {
 			    const auto type = static_cast<ShaderType>(i);
 			    const auto group = static_cast<ShaderParameterGroup>(j);
-                const auto buffer = CreateConstantBuffer(type, group, GetConstantBufferSize(type, group));
-			    constant_buffers_[GetConstantBufferIndex(type, group)] = Diligent::RefCntAutoPtr<Diligent::IBuffer>(buffer);
+                constant_buffers_[GetConstantBufferIndex(type, group)] =
+                    CreateConstantBuffer(type, group, GetConstantBufferSize(type, group));
 	        }
         }
     }
 
-    Diligent::IBuffer* DriverInstance::CreateConstantBuffer(const Atomic::ShaderType type, const Atomic::ShaderParameterGroup grp,
+    Atomic::SharedPtr<Atomic::ConstantBuffer> DriverInstance::CreateConstantBuffer(const Atomic::ShaderType type, const Atomic::ShaderParameterGroup grp,
                                                             const uint32_t size) const
     {
-        using namespace Diligent;
+        using namespace Atomic;
         Atomic::String name = "Atomic::ConstantBuffer(";
         name.AppendWithFormat("%s)", utils_get_shader_parameter_group_name(type, grp));
 
-		BufferDesc desc;
-		desc.Name = name.CString();
-		desc.Mode = BUFFER_MODE_STRUCTURED;
-		desc.ElementByteStride = 0;
-		desc.Usage = USAGE_DYNAMIC;
-		desc.CPUAccessFlags = CPU_ACCESS_WRITE;
-		desc.BindFlags = BIND_UNIFORM_BUFFER;
-        desc.Size = size;
+        const auto constant_buffer = new ConstantBuffer(graphics_->GetContext());
+        constant_buffer->SetDebugName(name);
+        constant_buffer->SetSize(size);
 
-		IBuffer* buffer = nullptr;
-		render_device_->CreateBuffer(desc, nullptr, &buffer);
-		return buffer;
+		return SharedPtr<ConstantBuffer>(constant_buffer);
     }
 
     void DriverInstance::OnDebugMessage(Diligent::DEBUG_MESSAGE_SEVERITY severity, const char* message, const char* function, const char* file, int line)

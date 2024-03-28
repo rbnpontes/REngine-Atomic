@@ -65,7 +65,7 @@ namespace Atomic
 
     Graphics::Graphics(Context* context) :
         Object(context),
-        impl_(new REngine::DriverInstance()),
+        impl_(new REngine::DriverInstance(this)),
         window_(0),
         externalWindow_(0),
         width_(0),
@@ -2209,6 +2209,8 @@ namespace Atomic
         
         REngine::render_command_process(process_desc, command);
         REngine::default_render_command_set(command);
+
+        impl_->UploadBufferChanges();
     }
 
     void Graphics::CreateResolveTexture()

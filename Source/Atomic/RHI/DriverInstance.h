@@ -2,6 +2,7 @@
 #include "../Graphics/GraphicsDefs.h"
 #include "../Math/Vector2.h"
 #include "../Container/Vector.h"
+#include "../Container/Ptr.h"
 
 #include <DiligentCore/Graphics/GraphicsEngine/interface/DeviceContext.h>
 #include <DiligentCore/Graphics/GraphicsEngine/interface/EngineFactory.h>
@@ -9,6 +10,11 @@
 #include <DiligentCore/Graphics/GraphicsEngine/interface/SwapChain.h>
 #include <DiligentCore/Common/interface/RefCntAutoPtr.hpp>
 
+namespace Atomic
+{
+    class ConstantBuffer;
+    class Graphics;
+}
 namespace REngine
 {
     struct DriverInstanceInitDesc
@@ -23,10 +29,11 @@ namespace REngine
         Diligent::TEXTURE_FORMAT color_buffer_format{};
         Diligent::TEXTURE_FORMAT depth_buffer_format{};
     };
+
     class RENGINE_API DriverInstance
     {
     public:
-        DriverInstance();
+        DriverInstance(Atomic::Graphics* graphics);
         void Release();
         bool IsInitialized() const;
         bool InitDevice(const DriverInstanceInitDesc& init_desc);
@@ -56,10 +63,11 @@ namespace REngine
             constant_buffers_[index] = nullptr;
         }
 
-        Diligent::RefCntAutoPtr<Diligent::IBuffer> GetConstantBuffer(Atomic::ShaderType type, Atomic::ShaderParameterGroup group);
+        Atomic::SharedPtr<Atomic::ConstantBuffer> GetConstantBuffer(Atomic::ShaderType type, Atomic::ShaderParameterGroup group);
+        void UploadBufferChanges();
     private:
         void InitDefaultConstantBuffers();
-        Diligent::IBuffer* CreateConstantBuffer(Atomic::ShaderType type, Atomic::ShaderParameterGroup grp, uint32_t size) const;
+        Atomic::SharedPtr<Atomic::ConstantBuffer> CreateConstantBuffer(Atomic::ShaderType type, Atomic::ShaderParameterGroup grp, uint32_t size) const;
         static void OnDebugMessage(Diligent::DEBUG_MESSAGE_SEVERITY severity,
             const char* message,
             const char* function,
@@ -71,6 +79,7 @@ namespace REngine
 	        return static_cast<uint8_t>(type) * static_cast<uint8_t>(Atomic::MAX_SHADER_PARAMETER_GROUPS) + static_cast<uint8_t>(group);
 		}
 
+        Atomic::Graphics* graphics_;
         Atomic::GraphicsBackend backend_;
         
         Diligent::RefCntAutoPtr<Diligent::IEngineFactory> engine_factory_;
@@ -80,6 +89,6 @@ namespace REngine
 
         uint8_t multisample_;
         uint32_t constant_buffer_sizes_[static_cast<uint8_t>(Atomic::MAX_SHADER_PARAMETER_GROUPS) * static_cast<uint8_t>(Atomic::MAX_SHADER_TYPES)];
-        Diligent::RefCntAutoPtr<Diligent::IBuffer> constant_buffers_[static_cast<uint8_t>(Atomic::MAX_SHADER_PARAMETER_GROUPS) * static_cast<uint8_t>(Atomic::MAX_SHADER_TYPES)];
+        Atomic::SharedPtr<Atomic::ConstantBuffer> constant_buffers_[static_cast<uint8_t>(Atomic::MAX_SHADER_PARAMETER_GROUPS) * static_cast<uint8_t>(Atomic::MAX_SHADER_TYPES)];
     };
 }
