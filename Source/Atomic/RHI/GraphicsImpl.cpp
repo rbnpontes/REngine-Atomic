@@ -437,9 +437,13 @@ namespace Atomic
         auto command = REngine::default_render_command_get();
         REngine::render_command_reset(this, command);
         REngine::default_render_command_set(command);
-        
+
+        // Cleanup vertex buffers from previous frame
+        for(uint8_t i = 0; i < MAX_VERTEX_STREAMS; ++i)
+			vertexBuffers_[i] = nullptr;
+        indexBuffer_ = nullptr;
         // Cleanup textures from previous frame
-        for (unsigned i = 0; i < MAX_TEXTURE_UNITS; ++i)
+        for (uint8_t i = 0; i < MAX_TEXTURE_UNITS; ++i)
             SetTexture(i, nullptr);
         vertexShader_ = nullptr;
         pixelShader_ = nullptr;
@@ -805,10 +809,8 @@ namespace Atomic
         auto command = REngine::default_render_command_get();
         for (unsigned i = 0; i < MAX_VERTEX_STREAMS; ++i)
         {
-            VertexBuffer* buffer = nullptr;
-            bool changed = false;
-        
-            buffer = i < buffers.Size() ? buffers[i] : 0;
+	        bool changed = false;
+            VertexBuffer* buffer = i < buffers.Size() ? buffers[i] : nullptr;
             if (buffer)
             {
                 const PODVector<VertexElement>& elements = buffer->GetElements();
@@ -897,8 +899,7 @@ namespace Atomic
                     vs = nullptr;
             }
 
-            Diligent::RefCntAutoPtr<Diligent::IShader> vs_shader = vs ? vs->GetGPUObject().Cast<Diligent::IShader>(Diligent::IID_Shader) : Diligent::RefCntAutoPtr<Diligent::IShader>();
-            command.pipeline_state_info.vs_shader = vs_shader;
+            command.pipeline_state_info.vs_shader = vs;
             command.dirty_state |= static_cast<unsigned>(REngine::RenderCommandDirtyState::pipeline);
             vertexShader_ = vs;
         }
@@ -922,8 +923,7 @@ namespace Atomic
                     ps = nullptr;
             }
 
-            Diligent::RefCntAutoPtr<Diligent::IShader> ps_shader = ps ? ps->GetGPUObject().Cast<Diligent::IShader>(Diligent::IID_Shader) : Diligent::RefCntAutoPtr<Diligent::IShader>();
-            command.pipeline_state_info.ps_shader = ps_shader;
+            command.pipeline_state_info.ps_shader = ps;
             command.dirty_state |= static_cast<unsigned>(REngine::RenderCommandDirtyState::pipeline);
             pixelShader_ = ps;
         }

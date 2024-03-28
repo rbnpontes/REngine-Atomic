@@ -28,7 +28,7 @@
 #include "../Graphics/GraphicsDefs.h"
 
 #if RENGINE_DILIGENT
-#include "../RHI/ShaderCompiler.h"
+#include "../RHI/RHITypes.h"
 #endif
 namespace Atomic
 {

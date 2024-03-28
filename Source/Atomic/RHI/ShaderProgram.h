@@ -1,11 +1,13 @@
 #pragma once
-
 #include "../Container/RefCounted.h"
 #include "../Container/HashMap.h"
 #include "../Graphics/Graphics.h"
 #include "../Graphics/ConstantBuffer.h"
-#include "../Graphics/ShaderVariation.h"
 
+namespace Atomic
+{
+	class ShaderVariation;
+}
 namespace REngine
 {
     struct ShaderProgramCreationDesc

@@ -66,6 +66,7 @@ bool VertexBuffer::SetData(const void* data)
             copy_size,
             data,
             Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
+        return true;
     }
 
     void* hw_data = MapBuffer(0, vertexCount_, true);
@@ -227,7 +228,8 @@ bool VertexBuffer::Create()
         ATOMIC_LOGERROR("Failed to create vertex buffer");
         return false;
     }
-    
+
+    object_ = buffer;
     return true;
 }
 

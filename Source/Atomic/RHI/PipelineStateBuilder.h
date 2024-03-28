@@ -2,6 +2,8 @@
 #include "./DriverInstance.h"
 #include "../Graphics/GraphicsDefs.h"
 #include "../Container/Str.h"
+#include "../Container/Ptr.h"
+#include "../Graphics/ShaderVariation.h"
 
 #include <DiligentCore/Graphics/GraphicsEngine/interface/PipelineState.h>
 #include <DiligentCore/Graphics/GraphicsEngine/interface/ShaderResourceBinding.h>
@@ -109,11 +111,11 @@ namespace REngine
 
         bool read_only_depth{false};
 
-        Diligent::RefCntAutoPtr<Diligent::IShader> vs_shader{};
-        Diligent::RefCntAutoPtr<Diligent::IShader> ps_shader{};
-        Diligent::RefCntAutoPtr<Diligent::IShader> ds_shader{};
-        Diligent::RefCntAutoPtr<Diligent::IShader> hs_shader{};
-        Diligent::RefCntAutoPtr<Diligent::IShader> gs_shader{};
+        Atomic::SharedPtr<Atomic::ShaderVariation> vs_shader{};
+        Atomic::SharedPtr<Atomic::ShaderVariation> ps_shader{};
+        Atomic::SharedPtr<Atomic::ShaderVariation> ds_shader{};
+        Atomic::SharedPtr<Atomic::ShaderVariation> hs_shader{};
+        Atomic::SharedPtr<Atomic::ShaderVariation> gs_shader{};
     };
 
     /**

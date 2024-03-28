@@ -1,5 +1,6 @@
 #include "./ShaderProgram.h"
-
+#include "../Graphics/ShaderVariation.h"
+#include "./DriverInstance.h"
 
 namespace REngine
 {

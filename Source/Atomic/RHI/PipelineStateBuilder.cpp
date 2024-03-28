@@ -185,12 +185,18 @@ namespace REngine
         }
         
         Diligent::GraphicsPipelineStateCreateInfo ci;
-        ci.PSODesc.Name = info.debug_name.CString();
-        ci.pVS = info.vs_shader;
-        ci.pPS = info.ps_shader;
-        ci.pDS = info.ds_shader;
-        ci.pHS = info.hs_shader;
-        ci.pGS = info.gs_shader;
+		ci.PSODesc.Name = info.debug_name.CString();
+
+		if (info.vs_shader && info.vs_shader->GetGPUObject())
+			ci.pVS = info.vs_shader->GetGPUObject().Cast<Diligent::IShader>(Diligent::IID_Shader);
+		if (info.ps_shader && info.ps_shader->GetGPUObject())
+			ci.pPS = info.ps_shader->GetGPUObject().Cast<Diligent::IShader>(Diligent::IID_Shader);
+		if (info.ds_shader && info.ds_shader->GetGPUObject())
+			ci.pDS = info.ds_shader->GetGPUObject().Cast<Diligent::IShader>(Diligent::IID_Shader);
+		if (info.hs_shader && info.hs_shader->GetGPUObject())
+			ci.pHS = info.hs_shader->GetGPUObject().Cast<Diligent::IShader>(Diligent::IID_Shader);
+		if (info.gs_shader && info.gs_shader->GetGPUObject())
+			ci.pGS = info.gs_shader->GetGPUObject().Cast<Diligent::IShader>(Diligent::IID_Shader);
 
         for (unsigned i = 0; i < info.input_layout.num_elements; ++i)
         {
@@ -211,6 +217,7 @@ namespace REngine
 
             s_tmp_layout_elements[i] = layout_element;
         }
+
         ci.GraphicsPipeline.InputLayout.NumElements = info.input_layout.num_elements;
         ci.GraphicsPipeline.InputLayout.LayoutElements = s_tmp_layout_elements;
 
@@ -377,11 +384,11 @@ namespace REngine
         Atomic::CombineHash(hash, info.read_only_depth);
 
         // Shaders
-        Atomic::CombineHash(hash, Atomic::MakeHash(info.vs_shader.ConstPtr()));
-        Atomic::CombineHash(hash, Atomic::MakeHash(info.ps_shader.ConstPtr()));
-        Atomic::CombineHash(hash, Atomic::MakeHash(info.ds_shader.ConstPtr()));
-        Atomic::CombineHash(hash, Atomic::MakeHash(info.hs_shader.ConstPtr()));
-        Atomic::CombineHash(hash, Atomic::MakeHash(info.gs_shader.ConstPtr()));
+        Atomic::CombineHash(hash, Atomic::MakeHash(info.vs_shader.ToHash()));
+        Atomic::CombineHash(hash, Atomic::MakeHash(info.ps_shader.ToHash()));
+        Atomic::CombineHash(hash, Atomic::MakeHash(info.ds_shader.ToHash()));
+        Atomic::CombineHash(hash, Atomic::MakeHash(info.hs_shader.ToHash()));
+        Atomic::CombineHash(hash, Atomic::MakeHash(info.gs_shader.ToHash()));
 
         return hash;
     }

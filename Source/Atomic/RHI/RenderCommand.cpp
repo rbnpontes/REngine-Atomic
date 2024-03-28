@@ -141,11 +141,15 @@ namespace REngine
         {
             state.vertex_buffers[i] = nullptr;
             state.vertex_offsets[i] = 0;
+            s_tmp_vertex_buffers[i] = nullptr;
         }
         state.index_buffer = nullptr;
 
-        for (auto& render_target : state.render_targets)
-            render_target = nullptr;
+        for(uint32_t i =0; i < Atomic::MAX_RENDERTARGETS; ++i)
+        {
+	        state.render_targets[i] = nullptr;
+			s_tmp_render_targets[i] = nullptr;
+        }
         state.depth_stencil = nullptr;
 
         state.pipeline_hash = 0;
