@@ -109,13 +109,14 @@ namespace Atomic
         if (!cache->Exists(binaryShaderName))
             return false;
 
-        const auto file_system = owner_->GetSubsystem<FileSystem>();
-        const auto source_time_stamp = owner_->GetTimeStamp();
+        /*const auto file_system = owner_->GetSubsystem<FileSystem>();
+        const auto source_time_stamp = owner_->GetTimeStamp();*/
         // If source code is loaded from a package, its timestamp will be zero. Else check that binary is not older
         // than source
-        if (source_time_stamp && file_system->GetLastModifiedTime(cache->GetResourceFileName(binaryShaderName)) <
+        // TODO: fix this
+       /* if (source_time_stamp && file_system->GetLastModifiedTime(cache->GetResourceFileName(binaryShaderName)) <
             source_time_stamp)
-            return false;
+            return false;*/
 
         const SharedPtr<File> file = cache->GetFile(binaryShaderName);
         if (!file || file->ReadFileID() != s_shader_file_id)

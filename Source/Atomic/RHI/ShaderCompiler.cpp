@@ -427,6 +427,7 @@ namespace REngine
         auto resources = compiler.get_shader_resources();
 
         memset(&output.constant_buffer_sizes, 0x0, sizeof(ShaderParameterGroup) * MAX_SHADER_PARAMETER_GROUPS);
+
         for (const auto& uniform_buffer : resources.uniform_buffers)
         {
             const auto& type = compiler.get_type(uniform_buffer.base_type_id);
@@ -437,6 +438,7 @@ namespace REngine
             ShaderCompilerConstantBufferDesc buffer_desc = {};
             buffer_desc.name = name;
             buffer_desc.size = static_cast<uint32_t>(buffer_size);
+            buffer_desc.parameter_group = grp_type;
             output.constant_buffers[name] = buffer_desc;
 
             if (grp_type != Atomic::MAX_SHADER_PARAMETER_GROUPS)
@@ -444,16 +446,21 @@ namespace REngine
 
             for (uint32_t i = 0; i < type.member_types.size(); ++i)
             {
-                const auto& member_type_id = type.member_types[i];
                 auto member_name = Atomic::String(
-                    compiler.get_member_name(uniform_buffer.base_type_id, member_type_id).c_str());
+                    compiler.get_member_name(uniform_buffer.base_type_id, i).c_str());
                 const auto& member_offset = compiler.get_member_decoration(
                     uniform_buffer.base_type_id, i, spv::DecorationOffset);
                 const auto& member_size = compiler.get_declared_struct_member_size(type, i);
 
+                if(member_name.Empty())
+                    continue;
+
                 // 'c' is a member naming convention on Urho3D/Atomic, we need to get rid this.
                 if (member_name.Length() > 0 && member_name[0] == 'c')
                     member_name = member_name.Substring(1);
+
+                if (StringHash(member_name) == Atomic::VSP_MODEL)
+                    member_name = member_name;
 
                 Atomic::ShaderParameter shader_param = {};
                 shader_param.buffer_ = buffer_desc.parameter_group;

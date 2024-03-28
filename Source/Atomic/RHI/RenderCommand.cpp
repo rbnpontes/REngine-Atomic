@@ -77,13 +77,13 @@ namespace REngine
         }
 
         // bind render targets if is necessary
-        if (state.dirty_state & static_cast<unsigned>(RenderCommandDirtyState::render_targets) || state.dirty_state & static_cast<unsigned>(RenderCommandDirtyState::depth_stencil))
+        context->SetRenderTargets(num_rts, s_tmp_render_targets, state.depth_stencil,
+                                    Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
+        /*if (state.dirty_state & static_cast<unsigned>(RenderCommandDirtyState::render_targets) || state.dirty_state & static_cast<unsigned>(RenderCommandDirtyState::depth_stencil))
         {
-            context->SetRenderTargets(num_rts, s_tmp_render_targets, state.depth_stencil,
-                                      Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
             state.dirty_state ^= static_cast<unsigned>(RenderCommandDirtyState::render_targets);
             state.dirty_state ^= static_cast<unsigned>(RenderCommandDirtyState::depth_stencil);
-        }
+        }*/
 
         if(state.dirty_state & static_cast<unsigned>(RenderCommandDirtyState::viewport))
         {

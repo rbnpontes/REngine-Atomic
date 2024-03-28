@@ -27,10 +27,11 @@ namespace REngine
         const auto& params = shader->GetParameters();
         for (const auto& it : params)
         {
-            parameters_[it.first_] = it.second_;
-            parameters_[it.first_].bufferPtr_ = graphics_
-        	    ->GetImpl()
-        	    ->GetConstantBuffer(shader->GetShaderType(), static_cast<Atomic::ShaderParameterGroup>(it.second_.buffer_));
+            Atomic::ShaderParameter shader_param = it.second_;
+            shader_param.bufferPtr_ = graphics_
+				->GetImpl()
+				->GetConstantBuffer(shader->GetShaderType(), static_cast<Atomic::ShaderParameterGroup>(it.second_.buffer_));
+            parameters_[it.first_] = shader_param;
         }
     }
 
