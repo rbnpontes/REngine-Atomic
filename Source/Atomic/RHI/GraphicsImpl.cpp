@@ -12,23 +12,23 @@
 #include "../Graphics/Renderer.h"
 #include "../Graphics/Shader.h"
 #include "../Graphics/ShaderPrecache.h"
-#include "../Graphics/ShaderProgram.h"
 #include "../Graphics/Texture2D.h"
 #include "../Graphics/TextureCube.h"
 #include "../Graphics/VertexBuffer.h"
-#include "../IO/File.h"
 #include "../IO/Log.h"
 #include "../Resource/ResourceCache.h"
 
 // RHI BEGIN
 #include "./DriverInstance.h"
 #include "./GraphicsState.h"
+#include "./RenderCommand.h"
+#include "./VertexDeclaration.h"
+#include "./DiligentUtils.h"
 // RHI END
 
 #include <DiligentCore/Graphics/GraphicsEngine/interface/GraphicsTypes.h>
 #include <DiligentCore/Graphics/GraphicsEngine/interface/TextureView.h>
 #include <DiligentCore/Graphics/GraphicsEngine/interface/DeviceContext.h>
-#include <DiligentCore/Graphics/GraphicsEngine/interface/Shader.h>
 #include <DiligentCore/Common/interface/RefCntAutoPtr.hpp>
 
 // ATOMIC BEGIN
@@ -37,7 +37,6 @@
 // ATOMIC END
 
 
-#include "DiligentUtils.h"
 #include "../DebugNew.h"
 
 #ifdef _MSC_VER
@@ -107,6 +106,7 @@ namespace Atomic
     {
         ResetCachedState();
 
+        memset(vertexBuffers_, 0x0, sizeof(VertexBuffer*) * MAX_VERTEX_STREAMS);
         context_->RequireSDL(SDL_INIT_VIDEO);
 
         // Register Graphics library object factories
@@ -439,8 +439,7 @@ namespace Atomic
         REngine::default_render_command_set(command);
 
         // Cleanup vertex buffers from previous frame
-        for(uint8_t i = 0; i < MAX_VERTEX_STREAMS; ++i)
-			vertexBuffers_[i] = nullptr;
+        memset(vertexBuffers_, 0x0, sizeof(VertexBuffer*) * MAX_VERTEX_STREAMS);
         indexBuffer_ = nullptr;
         // Cleanup textures from previous frame
         for (uint8_t i = 0; i < MAX_TEXTURE_UNITS; ++i)
@@ -1839,17 +1838,17 @@ namespace Atomic
             CleanupScratchBuffers();
     }
 
-    ConstantBuffer* Graphics::GetOrCreateConstantBuffer(ShaderType type, unsigned index, unsigned size)
+    ConstantBuffer* Graphics::GetOrCreateConstantBuffer(ShaderType type, unsigned index, unsigned size) const
     {
-        // Ensure that different shader types and index slots get unique buffers, even if the size is same
-        unsigned key = type | (index << 1) | (size << 4);
-        auto constant_buffer = REngine::graphics_state_get_constant_buffer(key);
-
+        auto constant_buffer = REngine::graphics_state_get_constant_buffer(type, size);
         if(constant_buffer)
             return constant_buffer;
 
         constant_buffer = SharedPtr<ConstantBuffer>(new ConstantBuffer(context_));
-        REngine::graphics_state_add_constant_buffer(key, constant_buffer);
+        REngine::ConstantBufferCacheDesc cache_desc;
+        cache_desc.constant_buffer = constant_buffer;
+        cache_desc.type = type;
+        REngine::graphics_state_set_constant_buffer(cache_desc);
         return constant_buffer;
     }
 
@@ -2177,6 +2176,36 @@ namespace Atomic
 
             command.dirty_state |= static_cast<unsigned>(REngine::RenderCommandDirtyState::pipeline);
         }
+
+		if (command.dirty_state & static_cast<uint32_t>(REngine::RenderCommandDirtyState::vertex_buffer))
+		{
+            uint32_t new_vertex_decl_hash = 0;
+			for (unsigned i = 0; i < MAX_VERTEX_STREAMS; ++i)
+			{
+				if (vertexBuffers_[i] == nullptr)
+					continue;
+                CombineHash(new_vertex_decl_hash, static_cast<uint32_t>(vertexBuffers_[i]->GetBufferHash(i)));
+			}
+
+            if(new_vertex_decl_hash)
+            {
+                auto vertex_decl = REngine::graphics_state_get_vertex_declaration(new_vertex_decl_hash);
+                if(!vertex_decl)
+                {
+                    REngine::VertexDeclarationCreationDesc creation_desc;
+                    creation_desc.graphics = this;
+                    creation_desc.vertex_shader = vertexShader_;
+                    creation_desc.vertex_buffers = vertexBuffers_;
+                    vertex_decl = SharedPtr<REngine::VertexDeclaration>(
+                        new REngine::VertexDeclaration(creation_desc)
+                    );
+                    REngine::graphics_state_set_vertex_declaration(new_vertex_decl_hash, vertex_decl);
+                }
+
+	            command.pipeline_state_info.input_layout = vertex_decl->GetInputLayoutDesc();
+				command.dirty_state |= static_cast<unsigned>(REngine::RenderCommandDirtyState::pipeline);
+            }
+		}
         
         REngine::render_command_process(process_desc, command);
         REngine::default_render_command_set(command);

@@ -216,6 +216,7 @@ bool VertexBuffer::Create()
     // TODO: add vertex buffer name support
     BufferDesc buffer_desc = {};
     buffer_desc.BindFlags = BIND_VERTEX_BUFFER;
+    buffer_desc.Mode = BUFFER_MODE_UNDEFINED;
     buffer_desc.CPUAccessFlags = dynamic_ ? CPU_ACCESS_WRITE : CPU_ACCESS_NONE;
     buffer_desc.Usage = dynamic_ ? USAGE_DYNAMIC : USAGE_DEFAULT;
     buffer_desc.Size = vertexCount_ * vertexSize_;

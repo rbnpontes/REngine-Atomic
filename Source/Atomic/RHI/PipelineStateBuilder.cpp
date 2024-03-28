@@ -202,7 +202,7 @@ namespace REngine
         {
             Diligent::LayoutElement layout_element;
             auto element = info.input_layout.elements[i];
-
+            layout_element.HLSLSemantic = "ATTRIB";
             layout_element.InputIndex = element.input_index;
             layout_element.RelativeOffset = element.element_offset;
             layout_element.NumComponents = s_num_components_tbl[element.element_type];
@@ -210,7 +210,9 @@ namespace REngine
             layout_element.IsNormalized = s_is_normalized_tbl[element.element_type];
             layout_element.BufferSlot = element.buffer_index;
             layout_element.Stride = element.buffer_stride;
-            layout_element.Frequency = element.instance_step_rate != 0
+            //layout_element.Stride = Diligent::LAYOUT_ELEMENT_AUTO_STRIDE;
+            //layout_element.RelativeOffset = Diligent::LAYOUT_ELEMENT_AUTO_OFFSET;
+        	layout_element.Frequency = element.instance_step_rate != 0
                                            ? Diligent::INPUT_ELEMENT_FREQUENCY_PER_INSTANCE
                                            : Diligent::INPUT_ELEMENT_FREQUENCY_PER_VERTEX;
             layout_element.InstanceDataStepRate = element.instance_step_rate;

@@ -1,6 +1,6 @@
 #pragma once
 #include "./DriverInstance.h"
-#include "../Graphics/GraphicsDefs.h"
+#include "./RHITypes.h"
 #include "../Container/Str.h"
 #include "../Container/Ptr.h"
 #include "../Graphics/ShaderVariation.h"
@@ -13,64 +13,6 @@
 
 namespace REngine
 {
-    struct InputLayoutElementDesc
-    {
-        unsigned input_index{};
-        unsigned buffer_index{};
-        unsigned buffer_stride{};
-        unsigned element_offset{};
-        unsigned instance_step_rate{};
-        Atomic::VertexElementType element_type;
-    };
-
-    struct InputLayoutDesc
-    {
-        unsigned num_elements{};
-        InputLayoutElementDesc elements[Diligent::MAX_LAYOUT_ELEMENTS]{};
-    };
-    
-    struct PipelineStateOutputDesc
-    {
-        Diligent::TEXTURE_FORMAT depth_stencil_format{};
-        uint8_t num_rts{0};
-        Diligent::TEXTURE_FORMAT render_target_formats[Atomic::MAX_RENDERTARGETS]{};
-        uint8_t multi_sample{1};
-    };
-
-    struct SamplerDesc
-    {
-        Atomic::TextureFilterMode filter_mode{Atomic::FILTER_DEFAULT};
-        uint8_t anisotropy{};
-        bool shadow_compare{};
-        Atomic::TextureAddressMode address_u{Atomic::ADDRESS_WRAP};
-        Atomic::TextureAddressMode address_v{Atomic::ADDRESS_WRAP};
-        Atomic::TextureAddressMode address_w{Atomic::ADDRESS_WRAP};
-
-        unsigned ToHash() const
-        {
-            unsigned hash = filter_mode;
-            Atomic::CombineHash(hash, anisotropy);
-            Atomic::CombineHash(hash, shadow_compare);
-            Atomic::CombineHash(hash, address_u);
-            Atomic::CombineHash(hash, address_v);
-            Atomic::CombineHash(hash, address_w);
-            return hash;
-        }
-    };
-    
-    struct ImmutableSamplersDesc
-    {
-        Atomic::String name{};
-        SamplerDesc sampler;
-
-        unsigned ToHash() const
-        {
-            unsigned hash = Atomic::StringHash::Calculate(name.CString());
-            Atomic::CombineHash(hash, sampler.ToHash());
-            return hash;
-        }
-    };
-    
     struct PipelineStateInfo
     {
         Atomic::String debug_name{};

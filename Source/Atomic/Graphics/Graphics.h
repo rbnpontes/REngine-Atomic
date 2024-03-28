@@ -40,6 +40,7 @@ namespace REngine
 {
     class DriverInstance;
     class ShaderProgram;
+    class VertexDeclaration;
 }
 #endif
 
@@ -54,6 +55,7 @@ class GPUObject;
 #ifndef RENGINE_DILIGENT
 class GraphicsImpl;
 class ShaderProgram;
+class VertexDeclaration;
 #endif
 class RenderSurface;
 class Shader;
@@ -66,7 +68,6 @@ class TextureCube;
 class Vector3;
 class Vector4;
 class VertexBuffer;
-class VertexDeclaration;
 
 struct ShaderParameter;
     
@@ -530,7 +531,7 @@ public:
     void Cleanup(GraphicsClearFlags flags);
 #endif
     /// Get or create a constant buffer. Will be shared between shaders if possible.
-    ConstantBuffer* GetOrCreateConstantBuffer(ShaderType type, unsigned index, unsigned size);
+    ConstantBuffer* GetOrCreateConstantBuffer(ShaderType type, unsigned index, unsigned size) const;
     /// Mark the FBO needing an update. Used only on OpenGL.
     void MarkFBODirty();
     /// Bind a VBO, avoiding redundant operation. Used only on OpenGL.

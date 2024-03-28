@@ -103,6 +103,10 @@ public:
     static const char* elementSemanticNames[];
 #endif
 
+#if RENGINE_DILIGENT
+	const Vector<REngine::ShaderCompilerReflectInputElement>& GetInputElements() const { return input_elements_; }
+#endif
+
 private:
     /// Load bytecode from a file. Return true if successful.
     bool LoadByteCode(const String& binaryShaderName);

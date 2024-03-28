@@ -484,6 +484,12 @@ namespace REngine
             element.element_type = vertex_type;
             element.name = name;
 
+            if(semantic != MAX_VERTEX_ELEMENT_SEMANTICS)
+            {
+                output.element_hash <<= 4;
+                output.element_hash += (static_cast<int>(semantic) + 1) * semantic_index;
+            }
+
             output.input_elements[idx] = element;
             ++idx;
         }
