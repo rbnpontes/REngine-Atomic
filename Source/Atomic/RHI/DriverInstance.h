@@ -3,6 +3,7 @@
 #include "../Math/Vector2.h"
 #include "../Container/Vector.h"
 #include "../Container/Ptr.h"
+#include "../Graphics/ConstantBuffer.h"
 
 #include <DiligentCore/Graphics/GraphicsEngine/interface/DeviceContext.h>
 #include <DiligentCore/Graphics/GraphicsEngine/interface/EngineFactory.h>
@@ -12,7 +13,6 @@
 
 namespace Atomic
 {
-    class ConstantBuffer;
     class Graphics;
 }
 namespace REngine

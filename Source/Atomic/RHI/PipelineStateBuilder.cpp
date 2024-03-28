@@ -434,7 +434,7 @@ namespace REngine
 
 				const auto var = srb->GetVariableByName(d_shader_type, name);
                 if (var)
-                    var->Set(desc.driver->GetConstantBuffer(shader_type, group));
+                    var->Set(desc.driver->GetConstantBuffer(shader_type, group)->GetGPUObject().Cast<Diligent::IBuffer>(Diligent::IID_Shader));
 			}
 		}
 
