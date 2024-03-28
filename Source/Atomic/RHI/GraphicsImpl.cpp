@@ -441,7 +441,8 @@ namespace Atomic
         // Cleanup textures from previous frame
         for (unsigned i = 0; i < MAX_TEXTURE_UNITS; ++i)
             SetTexture(i, nullptr);
-        
+        vertexShader_ = nullptr;
+        pixelShader_ = nullptr;
         numPrimitives_ = 0;
         numBatches_ = 0;
         
@@ -653,6 +654,13 @@ namespace Atomic
 
         if(!vertexCount || !command.shader_program)
 			return;
+
+        if(command.pipeline_state_info.primitive_type != type)
+		{
+			command.pipeline_state_info.primitive_type = type;
+			command.dirty_state |= static_cast<uint32_t>(REngine::RenderCommandDirtyState::pipeline);
+			REngine::default_render_command_set(command);
+		}
 
     	PrepareDraw();
 

@@ -40,19 +40,21 @@ namespace REngine
         swap_chain_(nullptr)
     {
         // Setup default constant buffer sizes for Vertex Shaders
-        SetConstantBufferSize(Atomic::VS, Atomic::SP_FRAME, 8/*Shader Default*/);
+        SetConstantBufferSize(Atomic::VS, Atomic::SP_FRAME, 64/*i can't have a cbuffer too small*/);
         SetConstantBufferSize(Atomic::VS, Atomic::SP_CAMERA, 288/*Shader Default*/);
         SetConstantBufferSize(Atomic::VS, Atomic::SP_ZONE, 96/*Shader Default*/);
         SetConstantBufferSize(Atomic::VS, Atomic::SP_LIGHT, 304/*Shader Default*/);
         SetConstantBufferSize(Atomic::VS, Atomic::SP_MATERIAL, 8192/*Half of 16kb*/);
         SetConstantBufferSize(Atomic::VS, Atomic::SP_OBJECT, 6256 /*Shader Default*/);
+        SetConstantBufferSize(Atomic::VS, Atomic::SP_CUSTOM, 64 /*Shader Default*/);
         // Setup default constant buffer sizes for Pixel Shaders
-        SetConstantBufferSize(Atomic::PS, Atomic::SP_FRAME, 8/*Shader Default*/);
+        SetConstantBufferSize(Atomic::PS, Atomic::SP_FRAME, 64/*i can't have a cbuffer too small*/);
         SetConstantBufferSize(Atomic::PS, Atomic::SP_CAMERA, 48/*Shader Default*/);
         SetConstantBufferSize(Atomic::PS, Atomic::SP_ZONE, 80/*Shader Default*/);
         SetConstantBufferSize(Atomic::PS, Atomic::SP_LIGHT, 328/*Shader Default*/);
         SetConstantBufferSize(Atomic::PS, Atomic::SP_MATERIAL, 8192/*Half of 16kb*/);
         SetConstantBufferSize(Atomic::PS, Atomic::SP_OBJECT, 6256 /*Shader Default*/);
+        SetConstantBufferSize(Atomic::PS, Atomic::SP_CUSTOM, 64 /*Shader Default*/);
 
         for (uint32_t i = 0; i < _countof(constant_buffers_); ++i)
             constant_buffers_[i] = {};
@@ -272,12 +274,16 @@ namespace REngine
 
     void DriverInstance::InitDefaultConstantBuffers()
     {
-        for (unsigned i = 0; i < _countof(constant_buffers_); ++i)
+        for(uint8_t i =0; i < static_cast<uint8_t>(MAX_SHADER_TYPES); ++i)
         {
-			const auto type = static_cast<ShaderType>(i % static_cast<uint8_t>(MAX_SHADER_TYPES));
-			const auto group = static_cast<ShaderParameterGroup>(i / static_cast<uint8_t>(MAX_SHADER_TYPES));
-			constant_buffers_[i] = CreateConstantBuffer(type, group, GetConstantBufferSize(type, group));
-		}
+	        for(uint8_t j = 0; j < static_cast<uint8_t>(MAX_SHADER_PARAMETER_GROUPS); ++j)
+	        {
+			    const auto type = static_cast<ShaderType>(i);
+			    const auto group = static_cast<ShaderParameterGroup>(j);
+                const auto buffer = CreateConstantBuffer(type, group, GetConstantBufferSize(type, group));
+			    constant_buffers_[GetConstantBufferIndex(type, group)] = Diligent::RefCntAutoPtr<Diligent::IBuffer>(buffer);
+	        }
+        }
     }
 
     Diligent::IBuffer* DriverInstance::CreateConstantBuffer(const Atomic::ShaderType type, const Atomic::ShaderParameterGroup grp,
