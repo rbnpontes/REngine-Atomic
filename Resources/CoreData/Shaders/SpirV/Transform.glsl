@@ -1,4 +1,6 @@
 #ifdef COMPILEVS
+#define varying out
+
     in vec4 iPos;
     in vec3 iNormal;
     in vec4 iColor;
@@ -198,4 +200,24 @@
         #define gl_FragData fragData
     #endif
 
+#endif
+
+#ifdef COMPILEPS
+    #define varying in
+    #ifndef MRT_COUNT
+        #if defined(DEFERRED)
+            #define MRT_COUNT 4
+        #elif defined(PREPASS)
+            #define MRT_COUNT 2
+        #else
+            #define MRT_COUNT 1
+        #endif
+    #endif
+/*
+
+    out vec4 fragData[MRT_COUNT];
+
+    #define gl_FragColor fragData[0]
+    #define gl_FragData fragData
+*/
 #endif

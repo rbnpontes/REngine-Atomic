@@ -3,10 +3,10 @@
 #include "Transform.glsl"
 
 #if defined(DIFFMAP) || defined(ALPHAMAP)
-    out vec2 vTexCoord;
+    varying vec2 vTexCoord;
 #endif
 #ifdef VERTEXCOLOR
-    out vec4 vColor;
+    varying vec4 vColor;
 #endif
 
 void VS()

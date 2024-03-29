@@ -213,6 +213,7 @@ namespace Atomic
         const auto full_name = GetFullName();
         Diligent::ShaderCreateInfo shader_ci = {};
         shader_ci.Desc.Name = full_name.CString();
+        shader_ci.Desc.UseCombinedTextureSamplers = true;
         shader_ci.SourceLanguage = Diligent::SHADER_SOURCE_LANGUAGE_GLSL;
         shader_ci.Desc.ShaderType = REngine::utils_get_shader_type(type_);
 
@@ -318,6 +319,25 @@ namespace Atomic
                 compilerOutput_ = result.error;
                 return false;
             }
+
+//#if defined(DEBUG) || defined(_DEBUG)
+//            {
+//                REngine::ShaderCompilerPreProcessResult pre_process_result = {};
+//                REngine::shader_compiler_preprocess(compiler_desc, pre_process_result);
+//
+//                String defines_txt;
+//                for(unsigned i = 0; i < defines.Size(); ++i)
+//                {
+//					defines_txt.Append(defines[i]);
+//                    if(i < defines.Size() - 1)
+//						defines_txt.Append(" ");
+//				}
+//                ATOMIC_LOGDEBUGF("BEGIN PREPROCESS %s", shader_ci.Desc.Name);
+//                ATOMIC_LOGDEBUGF("Defines: %s", defines_txt.CString());
+//                ATOMIC_LOGDEBUG(pre_process_result.source_code);
+//                ATOMIC_LOGDEBUGF("END PREPROCESS %s", shader_ci.Desc.Name);
+//            }
+//#endif
 
             REngine::ShaderCompilerReflectDesc reflect_desc = {
                 result.spirv_code.Buffer(),

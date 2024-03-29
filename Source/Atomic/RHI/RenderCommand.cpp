@@ -100,14 +100,15 @@ namespace REngine
             state.dirty_state ^= static_cast<unsigned>(RenderCommandDirtyState::viewport);
         }
 
-        if(state.dirty_state & static_cast<unsigned>(RenderCommandDirtyState::scissor))
+        // FIXME: scissor rect is not working
+        /*if(state.dirty_state & static_cast<unsigned>(RenderCommandDirtyState::scissor))
         {
             const auto rect = state.scissor;
             const Diligent::Rect scissor = { rect.left_, rect.top_, rect.right_, rect.bottom_};
             context->SetScissorRects(1, &scissor, graphics->GetWidth(), graphics->GetHeight());
 
             state.dirty_state ^= static_cast<unsigned>(RenderCommandDirtyState::scissor);
-        }
+        }*/
         if(state.dirty_state & static_cast<unsigned>(RenderCommandDirtyState::vertex_buffer))
         {
             unsigned next_idx =0;

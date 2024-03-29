@@ -304,12 +304,14 @@ namespace REngine
                                           : 0;
 
         ci.GraphicsPipeline.RasterizerDesc.FillMode = s_fill_mode_tbl[info.fill_mode];
-        ci.GraphicsPipeline.RasterizerDesc.CullMode = s_cull_mode_tbl[info.cull_mode];
-        ci.GraphicsPipeline.RasterizerDesc.FrontCounterClockwise = false;
+        //ci.GraphicsPipeline.RasterizerDesc.CullMode = s_cull_mode_tbl[info.cull_mode];
+        ci.GraphicsPipeline.RasterizerDesc.CullMode = Diligent::CULL_MODE_NONE;
+    	ci.GraphicsPipeline.RasterizerDesc.FrontCounterClockwise = false;
         ci.GraphicsPipeline.RasterizerDesc.DepthBias = scaled_depth_bias;
         ci.GraphicsPipeline.RasterizerDesc.SlopeScaledDepthBias = info.slope_scaled_depth_bias;
         ci.GraphicsPipeline.RasterizerDesc.DepthClipEnable = true;
-        ci.GraphicsPipeline.RasterizerDesc.ScissorEnable = info.scissor_test_enabled;
+        //ci.GraphicsPipeline.RasterizerDesc.ScissorEnable = info.scissor_test_enabled;
+        ci.GraphicsPipeline.RasterizerDesc.ScissorEnable = false;
         ci.GraphicsPipeline.RasterizerDesc.AntialiasedLineEnable = is_not_opengl && info.line_anti_alias;
 
         ci.PSODesc.ResourceLayout.DefaultVariableType = Diligent::SHADER_RESOURCE_VARIABLE_TYPE_DYNAMIC;
@@ -434,7 +436,7 @@ namespace REngine
 
 				const auto var = srb->GetVariableByName(d_shader_type, name);
                 if (var)
-                    var->Set(desc.driver->GetConstantBuffer(shader_type, group)->GetGPUObject().Cast<Diligent::IBuffer>(Diligent::IID_Shader));
+                    var->Set(desc.driver->GetConstantBuffer(shader_type, group)->GetGPUObject().Cast<Diligent::IBuffer>(Diligent::IID_Buffer));
 			}
 		}
 

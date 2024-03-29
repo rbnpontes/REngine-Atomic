@@ -107,7 +107,7 @@ namespace REngine
                 const auto factory = GetEngineFactoryD3D11();
                 engine_factory_ = factory;
                 
-                EngineD3D11CreateInfo ci;
+                EngineD3D11CreateInfo ci = {};
 #if ATOMIC_DEBUG
                 factory->SetMessageCallback(OnDebugMessage);
                 ci.SetValidationLevel(VALIDATION_LEVEL_2);
@@ -124,7 +124,7 @@ namespace REngine
                 const auto factory = GetEngineFactoryD3D12();
                 engine_factory_ = factory;
 
-                EngineD3D12CreateInfo ci;
+                EngineD3D12CreateInfo ci = {};
 #if ATOMIC_DEBUG
                 factory->SetMessageCallback(OnDebugMessage);
 #endif
@@ -142,7 +142,7 @@ namespace REngine
                 const auto factory = GetEngineFactoryVk();
                 engine_factory_ = factory;
 
-                EngineVkCreateInfo ci;
+                EngineVkCreateInfo ci = {};
 #if ATOMIC_DEBUG
                 factory->SetMessageCallback(OnDebugMessage);
                 const char* const ignore_debug_messages[] = {
@@ -163,7 +163,7 @@ namespace REngine
                 const auto factory = GetEngineFactoryOpenGL();
                 engine_factory_ = factory;
 
-                EngineGLCreateInfo ci;
+                EngineGLCreateInfo ci = {};
 #if ATOMIC_DEBUG
                 factory->SetMessageCallback(OnDebugMessage);
 #endif
@@ -278,6 +278,9 @@ namespace REngine
 
     void DriverInstance::UploadBufferChanges()
     {
+        for (auto buffer : constant_buffers_)
+            if (buffer && buffer->IsDirty())
+                buffer->Apply();
     }
 
     void DriverInstance::InitDefaultConstantBuffers()

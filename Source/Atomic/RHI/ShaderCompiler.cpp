@@ -292,8 +292,8 @@ namespace REngine
 
         const auto stage_type = get_stage_type(desc.type);
         ::glslang::TShader shader(stage_type);
-        shader.setEnvInput(glslang::EShSourceGlsl, stage_type, glslang::EShClientVulkan, 100);
-        shader.setEnvClient(glslang::EShClientVulkan, glslang::EShTargetVulkan_1_0);
+        shader.setEnvInput(glslang::EShSourceGlsl, stage_type, glslang::EShClientOpenGL, 100);
+        shader.setEnvClient(glslang::EShClientOpenGL, glslang::EShTargetOpenGL_450);
         shader.setEnvTarget(glslang::EshTargetSpv, glslang::EShTargetSpv_1_0);
         shader.setEntryPoint("main");
         shader.setStringsWithLengths(shader_strings, shader_strings_len, 1);
@@ -317,7 +317,6 @@ namespace REngine
             output.has_error = true;
             return;
         }
-
 
         result = shader.preprocess(&resources,
                                    100,
@@ -361,21 +360,15 @@ namespace REngine
 
         const auto stage_type = get_stage_type(desc.type);
         ::glslang::TShader shader(stage_type);
-        shader.setEnvInput(glslang::EShSourceGlsl, stage_type, glslang::EShClientVulkan, 100);
-        shader.setEnvClient(glslang::EShClientVulkan, glslang::EShTargetVulkan_1_0);
+        shader.setEnvInput(glslang::EShSourceGlsl, stage_type, glslang::EShClientOpenGL, 100);
+        shader.setEnvClient(glslang::EShClientOpenGL, glslang::EShTargetOpenGL_450);
         shader.setEnvTarget(glslang::EshTargetSpv, glslang::EShTargetSpv_1_0);
         shader.setEntryPoint("main");
         shader.setStringsWithLengths(shader_strings, shader_strings_len, 1);
-
         shader.setAutoMapBindings(true);
         shader.setAutoMapLocations(true);
 
-        auto result = shader.parse(&resources,
-                                   100,
-                                   ENoProfile,
-                                   false,
-                                   false,
-                                   EShMsgDefault);
+        auto result = shader.parse(&resources, 100, false, EShMsgDefault);
 
         if (!result)
         {
@@ -393,22 +386,34 @@ namespace REngine
             return;
         }
 
-        program.mapIO();
-
-        std::vector<unsigned int> spirv_code;
-        ::glslang::GlslangToSpv(*program.getIntermediate(stage_type), spirv_code);
-        ::glslang::FinalizeProcess();
-
-        if (spirv_code.empty())
+        if(!program.mapIO())
         {
-            output.has_error = false;
+	        fill_error("Failed to map IO", desc.source_code, &program, output.error);
+            output.has_error = true;
             return;
         }
+        
+        std::vector<uint32_t> spirv_code;
+        const auto intermediate = program.getIntermediate(stage_type);
+        spv::SpvBuildLogger spv_logger;
+        glslang::SpvOptions spv_options;
+        spv_options.generateDebugInfo = true;
+        spv_options.disableOptimizer = false;
+        spv_options.optimizeSize = true;
 
-        if (optimize)
-            spirv_code = Diligent::OptimizeSPIRV(spirv_code, SPV_ENV_VULKAN_1_0,
-                                                 Diligent::SPIRV_OPTIMIZATION_FLAG_PERFORMANCE);
+        glslang::GlslangToSpv(*intermediate, spirv_code, &spv_logger, &spv_options);
+        const std::string spirv_log = spv_logger.getAllMessages();
 
+        ::glslang::FinalizeProcess();
+        if(!spirv_log.empty())
+        {
+            output.error = spirv_log.c_str();
+            output.has_error= true;
+            return;
+        }
+            /*spirv_code = Diligent::OptimizeSPIRV(spirv_code, SPV_ENV_VULKAN_1_0,
+                                                 Diligent::SPIRV_OPTIMIZATION_FLAG_PERFORMANCE);*/
+                                                 
         output.spirv_code = Atomic::PODVector<uint8_t>(
             static_cast<uint8_t*>(static_cast<void*>(spirv_code.data())),
             spirv_code.size() * sizeof(unsigned int)
