@@ -437,7 +437,7 @@ namespace REngine
         {
             const auto& type = compiler.get_type(uniform_buffer.base_type_id);
             const auto& name = Atomic::String(uniform_buffer.name.c_str());
-            const auto& grp_type = utils_get_shader_parameter_group_type(name);
+            const auto& grp_type = utils_get_shader_parameter_group_type(desc.type, name);
             const auto& buffer_size = compiler.get_declared_struct_size(type);
 
             ShaderCompilerConstantBufferDesc buffer_desc = {};
@@ -805,7 +805,7 @@ namespace REngine
             ShaderCompilerConstantBufferDesc buffer_desc = {};
             buffer_desc.name = name;
             buffer_desc.size = buffer.size;
-            buffer_desc.parameter_group = utils_get_shader_parameter_group_type(name);
+            buffer_desc.parameter_group = utils_get_shader_parameter_group_type(file_header->type, name);
             
             result.reflect_info.constant_buffers[name] = buffer_desc;
             if(buffer_desc.parameter_group == MAX_SHADER_PARAMETER_GROUPS)
