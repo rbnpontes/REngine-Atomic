@@ -56,6 +56,7 @@ namespace REngine
         Diligent::TEXTURE_ADDRESS_WRAP,
         Diligent::TEXTURE_ADDRESS_MIRROR,
         Diligent::TEXTURE_ADDRESS_CLAMP,
+        Diligent::TEXTURE_ADDRESS_BORDER
     };
     static Diligent::PRIMITIVE_TOPOLOGY s_primitive_topologies_tbl[] = {
         Diligent::PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
@@ -210,8 +211,6 @@ namespace REngine
             layout_element.IsNormalized = s_is_normalized_tbl[element.element_type];
             layout_element.BufferSlot = element.buffer_index;
             layout_element.Stride = element.buffer_stride;
-            //layout_element.Stride = Diligent::LAYOUT_ELEMENT_AUTO_STRIDE;
-            //layout_element.RelativeOffset = Diligent::LAYOUT_ELEMENT_AUTO_OFFSET;
         	layout_element.Frequency = element.instance_step_rate != 0
                                            ? Diligent::INPUT_ELEMENT_FREQUENCY_PER_INSTANCE
                                            : Diligent::INPUT_ELEMENT_FREQUENCY_PER_VERTEX;

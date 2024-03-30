@@ -57,6 +57,7 @@ namespace REngine
         {
             for (const auto& it : state.textures)
             {
+                assert(!it.first_.Empty() && "It seems binded texture slot name is empty.");
                 if (it.second_)
                     resources[it.first_] = it.second_;
             }

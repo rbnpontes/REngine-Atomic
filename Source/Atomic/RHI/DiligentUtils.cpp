@@ -1,6 +1,5 @@
 #include "DiligentUtils.h"
 #include "../Core/StringUtils.h"
-
 namespace REngine
 {
     static const char* s_shader_param_grp_names[MAX_SHADER_TYPES * MAX_SHADER_PARAMETER_GROUPS] = {
@@ -48,6 +47,24 @@ namespace REngine
         {"sZoneCubeMap", TU_ZONE},
         {"sZoneVolumeMap",TU_ZONE}
     };
+
+    static Atomic::StringVector s_texture_unit_names[] = {
+        {"sDiffMap", "sDiffCubeMap"}, // TU_DIFFUSE
+        {"sNormalMap"}, // TU_NORMAL
+        {"sSpecMap"},  // TU_SPECULAR
+        {"sEmissiveMap"}, // TU_EMISSIVE
+        {"sEnvMap", "sEnvCubeMap"}, // TU_ENVIRONMENT
+        {"sVolumeMap"}, // TU_VOLUMEMAP
+        {"sLightRampMap", "sLightSpotMap", "sLightCubeMap"}, // TU_LIGHTSHAPE
+        {"sLightSpotMap", "sLightCubeMap"},
+        {"sCustom", "sCustom1"}, // TU_CUSTOM
+        {"sLightSpotMap", "sLightCubeMap"},
+        {"sShadowMap"},
+        {"sFaceSelectCubeMap"},
+        {"sIndirectionCubeMap"},
+        {"sZoneCubeMap", "sZoneVolumeMap"}
+    };
+
 
     static Diligent::SHADER_TYPE s_shader_types[] = {
     		Diligent::SHADER_TYPE_VERTEX,
@@ -138,6 +155,15 @@ namespace REngine
     {
         const auto& it = s_texture_unit_map.Find(name);
         return it != s_texture_unit_map.End() ? it->second_ : MAX_TEXTURE_UNITS;
+    }
+
+    Atomic::StringVector utils_get_texture_unit_names(Atomic::TextureUnit unit)
+    {
+        if (unit >= MAX_TEXTURE_UNITS)
+            return {};
+
+        const auto names = s_texture_unit_names[unit];
+        return names;
     }
 
     Diligent::SHADER_TYPE utils_get_shader_type(Atomic::ShaderType type)

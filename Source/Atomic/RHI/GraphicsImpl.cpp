@@ -1208,9 +1208,9 @@ namespace Atomic
                 if (texture->GetMultiSample() > 1 && texture->GetAutoResolve() && texture->IsResolveDirty())
                 {
                     if (texture->GetType() == Texture2D::GetTypeStatic())
-                        ResolveToTexture(static_cast<Texture2D*>(texture));
+                        ResolveToTexture(static_cast<Texture2D*>(texture));  // NOLINT(cppcoreguidelines-pro-type-static-cast-downcast)
                     if (texture->GetType() == TextureCube::GetTypeStatic())
-                        ResolveToTexture(static_cast<TextureCube*>(texture));
+                        ResolveToTexture(static_cast<TextureCube*>(texture)); // NOLINT(cppcoreguidelines-pro-type-static-cast-downcast)
                 }
             }
         
@@ -2163,17 +2163,22 @@ namespace Atomic
             {
                 if(textures_[i] == nullptr)
                     continue;
-                String tex_name = GetTextureUnitName(static_cast<TextureUnit>(i));
+
                 REngine::SamplerDesc sampler_desc;
                 textures_[i]->GetSamplerDesc(sampler_desc);
 
-                // setup immutable samplers
-                command.pipeline_state_info.immutable_samplers[next_tex_idx].name = tex_name;
-                command.pipeline_state_info.immutable_samplers[next_tex_idx].sampler = sampler_desc;
-                command.textures[tex_name] = textures_[i]->GetShaderResourceView();
-                ++next_tex_idx;
+                const auto tex_names = REngine::utils_get_texture_unit_names(static_cast<TextureUnit>(i));
+                for(const auto& tex_name : tex_names)
+                {
+                    if (!command.shader_program->IsInUseTexture(tex_name))
+                        continue;
+                    command.textures[tex_name] = textures_[i]->GetShaderResourceView();
+                    command.pipeline_state_info.immutable_samplers[next_tex_idx].name = tex_name;
+                    command.pipeline_state_info.immutable_samplers[next_tex_idx].sampler = sampler_desc;
+                    ++next_tex_idx;
+                }
             }
-
+            command.pipeline_state_info.num_samplers = next_tex_idx;
             command.dirty_state |= static_cast<unsigned>(REngine::RenderCommandDirtyState::pipeline);
         }
 
@@ -2241,6 +2246,7 @@ namespace Atomic
 
     void Graphics::SetTextureUnitMappings()
     {
+
     }
 
     // ATOMIC BEGIN

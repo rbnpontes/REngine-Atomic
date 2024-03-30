@@ -162,6 +162,8 @@ namespace Atomic
         elementHash_ = bin_result.reflect_info.element_hash;
         input_elements_ = bin_result.reflect_info.input_elements;
         parameters_ = bin_result.reflect_info.parameters;
+        used_textures_ = bin_result.reflect_info.samplers;
+
         memcpy(constantBufferSizes_, bin_result.reflect_info.constant_buffer_sizes, sizeof(bool) * MAX_SHADER_PARAMETER_GROUPS);
         memcpy(useTextureUnit_, bin_result.reflect_info.used_texture_units, sizeof(bool) * MAX_TEXTURE_UNITS);
 
@@ -354,7 +356,7 @@ namespace Atomic
             elementHash_ = reflect_info.element_hash;
             parameters_ = reflect_info.parameters;
             input_elements_ = reflect_info.input_elements;
-
+            used_textures_ = reflect_info.samplers;
 #if WIN32
             // On D3D, spirv code needs to be converted to HLSL
             if (backend == GraphicsBackend::D3D11 || backend == GraphicsBackend::D3D12)

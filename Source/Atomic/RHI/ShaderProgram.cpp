@@ -15,6 +15,8 @@ namespace REngine
 
         CollectShaderParameters(creation_desc.vertex_shader);
         CollectShaderParameters(creation_desc.pixel_shader);
+        CollectShaderTextures(creation_desc.vertex_shader);
+        CollectShaderTextures(creation_desc.pixel_shader);
 
         parameters_.Rehash(Atomic::NextPowerOfTwo(parameters_.Size()));
 
@@ -34,6 +36,13 @@ namespace REngine
             parameters_[it.first_] = shader_param;
         }
     }
+
+    void ShaderProgram::CollectShaderTextures(const Atomic::ShaderVariation* shader)
+    {
+        const auto& textures = shader->GetUseTextureNames();
+		for (const auto& it : textures)
+			used_textures_[it] = it;
+	}
 
     bool ShaderProgram::GetParameter(const Atomic::StringHash& paramName, Atomic::ShaderParameter* parameter)
     {

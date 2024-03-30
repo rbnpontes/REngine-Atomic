@@ -22,11 +22,14 @@ namespace REngine
     public:
         ShaderProgram(const ShaderProgramCreationDesc& creation_desc);
         bool GetParameter(const Atomic::StringHash& paramName, Atomic::ShaderParameter* parameter);
-        unsigned ToHash() { return hash_; }
+        unsigned ToHash() const { return hash_; }
+        bool IsInUseTexture(const Atomic::StringHash& texture) const { return used_textures_.Contains(texture); }
     private:
         void CollectShaderParameters(const Atomic::ShaderVariation* shader);
+        void CollectShaderTextures(const Atomic::ShaderVariation* shader);
         Atomic::Graphics* graphics_;
         Atomic::HashMap<Atomic::StringHash, Atomic::ShaderParameter> parameters_{};
+        Atomic::HashMap<Atomic::StringHash, Atomic::String> used_textures_{};
         unsigned hash_{0};
     };
 }

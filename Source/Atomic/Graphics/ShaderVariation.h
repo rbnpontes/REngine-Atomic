@@ -105,6 +105,7 @@ public:
 
 #if RENGINE_DILIGENT
 	const Vector<REngine::ShaderCompilerReflectInputElement>& GetInputElements() const { return input_elements_; }
+    StringVector GetUseTextureNames() const { return used_textures_; }
 #endif
 
 private:
@@ -156,6 +157,7 @@ private:
     /// Shader compile error string.
     String compilerOutput_;
 #if RENGINE_DILIGENT
+    StringVector used_textures_{};
     Vector<REngine::ShaderCompilerReflectInputElement> input_elements_{};
 #endif
 };
