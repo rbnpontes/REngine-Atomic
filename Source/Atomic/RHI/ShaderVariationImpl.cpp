@@ -168,8 +168,9 @@ namespace Atomic
         memcpy(useTextureUnit_, bin_result.reflect_info.used_texture_units, sizeof(bool) * MAX_TEXTURE_UNITS);
 
         const auto full_name = GetFullName();
-        Diligent::ShaderCreateInfo ci;
+        Diligent::ShaderCreateInfo ci = {};
         ci.Desc.Name =full_name.CString();
+        ci.Desc.UseCombinedTextureSamplers = true;
         ci.EntryPoint = "main";
         ci.SourceLanguage = Diligent::SHADER_SOURCE_LANGUAGE_GLSL;
         

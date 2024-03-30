@@ -303,7 +303,7 @@ namespace REngine
                                           : 0;
 
         ci.GraphicsPipeline.RasterizerDesc.FillMode = s_fill_mode_tbl[info.fill_mode];
-        //ci.GraphicsPipeline.RasterizerDesc.CullMode = s_cull_mode_tbl[info.cull_mode];
+        ci.GraphicsPipeline.RasterizerDesc.CullMode = s_cull_mode_tbl[info.cull_mode];
         ci.GraphicsPipeline.RasterizerDesc.CullMode = Diligent::CULL_MODE_NONE;
     	ci.GraphicsPipeline.RasterizerDesc.FrontCounterClockwise = false;
         ci.GraphicsPipeline.RasterizerDesc.DepthBias = scaled_depth_bias;
