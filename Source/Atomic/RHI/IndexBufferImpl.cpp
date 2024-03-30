@@ -61,6 +61,7 @@ bool IndexBuffer::SetData(const void* data)
             data_size,
             data,
             Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
+        return true;
     }
     
     void* hw_data = MapBuffer(0, indexCount_, true);
@@ -207,7 +208,7 @@ bool IndexBuffer::Create()
         return true;
 
     // TODO: add name support on index buffer
-    Diligent::BufferDesc buffer_desc;
+    Diligent::BufferDesc buffer_desc = {};
     buffer_desc.BindFlags = Diligent::BIND_INDEX_BUFFER;
     buffer_desc.CPUAccessFlags = dynamic_ ? Diligent::CPU_ACCESS_WRITE : Diligent::CPU_ACCESS_NONE;
     buffer_desc.Usage = dynamic_ ? Diligent::USAGE_DYNAMIC : Diligent::USAGE_DEFAULT;
@@ -221,7 +222,8 @@ bool IndexBuffer::Create()
         ATOMIC_LOGERROR("Failed to create index buffer");
         return false;
     }
-    
+
+    object_ = buffer;
     return true;
 }
 
