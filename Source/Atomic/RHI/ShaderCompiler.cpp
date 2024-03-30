@@ -828,6 +828,8 @@ namespace REngine
         result.reflect_info.element_hash = file_header->input_elements_hash;
         result.byte_code = Atomic::SharedArrayPtr<uint8_t>(static_cast<uint8_t*>(malloc(file_header->byte_code_size)));
         result.byte_code_size = file_header->byte_code_size;
+        result.byte_code_type = file_header->byte_code_type;
+        result.type = file_header->type;
         result.has_error = false;
         memcpy(result.byte_code, byte_code, file_header->byte_code_size);
     }
