@@ -141,7 +141,7 @@ namespace Atomic
         const auto backend = graphics_->GetImpl()->GetBackend();
         if(backend == GraphicsBackend::D3D11 || backend == GraphicsBackend::D3D12)
         {
-            if(bin_result.byte_code_type != ShaderByteCodeType::Dxd)
+            if(bin_result.byte_code_type != ShaderByteCodeType::DxB)
             {
                 ATOMIC_LOGERROR("Invalid shader bytecode type. Compiled shader file is not compatible with DirectX bytecode.");
                 return false;
@@ -434,7 +434,7 @@ namespace Atomic
         bin_desc.reflect_info = &reflect_info;
 
         if (backend == GraphicsBackend::D3D11 || backend == GraphicsBackend::D3D12)
-            bin_desc.byte_code_type = ShaderByteCodeType::Dxd;
+            bin_desc.byte_code_type = ShaderByteCodeType::DxB;
         else if (backend == GraphicsBackend::Vulkan)
             bin_desc.byte_code_type = ShaderByteCodeType::SpirV;
         else

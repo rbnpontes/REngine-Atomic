@@ -324,7 +324,7 @@ enum RenderSurfaceUpdateMode
 };
 
 /// Shader types.
-enum ShaderType
+enum ShaderType : uint8_t
 {
     VS = 0,
     PS,
@@ -438,7 +438,7 @@ enum class ShaderByteCodeType : uint8_t
 {
     Raw,
 	SpirV,
-    Dxd,
+    DxB,
     Max
 };
 

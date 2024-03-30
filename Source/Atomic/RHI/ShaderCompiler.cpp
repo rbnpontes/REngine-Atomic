@@ -659,58 +659,57 @@ namespace REngine
         for (const auto& it : desc.reflect_info->parameters)
         {
             const auto& param = it.second_;
-            file_parameters[idx].name_idx = str_seek;
+            file_parameters[idx].name_idx = static_cast<uint32_t>(str_seek);
             file_parameters[idx].buffer_idx = param.buffer_;
             file_parameters[idx].offset = param.offset_;
             file_parameters[idx].size = param.size_;
 
             // Copy name to buffer
-            memcpy(str_buffer + str_seek, param.name_.CString(), param.name_.Length());
-            str_buffer[str_seek = param.name_.Length() + 1] = '\0';
-            ++str_seek;
+            memcpy(str_buffer + str_seek, param.name_.CString(), param.name_.Length()+1);
+            str_seek += param.name_.Length() + 1;
             ++idx;
         }
+
+    	// Copy Texture Names into memory buffer
         idx = 0;
-        // Copy Texture Names into memory buffer
         for (const auto& texture : desc.reflect_info->samplers)
         {
             textures[idx] = str_seek;
 
-            memcpy(str_buffer + str_seek, texture.CString(), texture.Length());
-            str_buffer[str_seek = texture.Length() + 1] = '\0';
-            ++str_seek;
+            memcpy(str_buffer + str_seek, texture.CString(), texture.Length() + 1);
+            str_seek += texture.Length() + 1;
             ++idx;
         }
-        idx = 0;
+
         // Copy Constant Buffers into memory buffer
+        idx = 0;
         for (const auto& it : desc.reflect_info->constant_buffers)
         {
-            constant_buffers[idx].name_idx = str_seek;
+            constant_buffers[idx].name_idx = static_cast<uint32_t>(str_seek);
             constant_buffers[idx].size = it.second_.size;
 
-            memcpy(str_buffer + str_seek, it.second_.name.CString(), it.second_.name.Length());
-            str_buffer[str_seek = it.second_.name.Length() + 1] = '\0';
-            ++str_seek;
+            memcpy(str_buffer + str_seek, it.second_.name.CString(), it.second_.name.Length() + 1);
+            str_seek += it.second_.name.Length() + 1;
             ++idx;
         }
-        idx = 0;
 
+        // Copy Input Elements into memory buffer
+        idx = 0;
         for (const auto& input_element : desc.reflect_info->input_elements)
         {
-            input_elements[idx].name_idx = str_seek;
+            input_elements[idx].name_idx = static_cast<uint32_t>(str_seek);
             input_elements[idx].element_type = input_element.element_type;
             input_elements[idx].index = input_element.index;
             input_elements[idx].semantic_index = input_element.semantic_index;
             input_elements[idx].semantic = input_element.semantic;
 
-            memcpy(str_buffer + str_seek, input_element.name.CString(), input_element.name.Length());
-            str_buffer[str_seek = input_element.name.Length() + 1] = '\0';
-            ++str_seek;
+            memcpy(str_buffer + str_seek, input_element.name.CString(), input_element.name.Length() + 1);
+            str_seek += input_element.name.Length() + 1;
             ++idx;
         }
 
         *output_length = static_cast<uint32_t>(memory_size);
-        return Atomic::SharedArrayPtr<uint8_t>(static_cast<uint8_t*>(buffer));
+        return Atomic::SharedArrayPtr<uint8_t>(buffer);
     }
 
     void shader_compiler_import_bin(void* data, uint32_t data_size, ShaderCompilerImportBinResult& result)
@@ -735,7 +734,7 @@ namespace REngine
         const auto file_header = static_cast<ShaderFileHeader*>(data);
         data_ptr += header_size;
 
-        if(file_header->byte_code_size)
+        if(file_header->byte_code_size == 0)
         {
             result.error = "Invalid Shader file or data corrupted. ByteCode size is invalid.";
             result.has_error = true;
