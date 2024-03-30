@@ -179,7 +179,7 @@ enum LegacyVertexElement
 };
 
 /// Arbitrary vertex declaration element datatypes.
-enum VertexElementType
+enum VertexElementType : uint8_t
 {
     TYPE_INT = 0,
     TYPE_FLOAT,

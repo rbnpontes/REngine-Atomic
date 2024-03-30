@@ -171,11 +171,12 @@ namespace REngine
         unsigned& hash)
     {
         if (hash == 0)
-            hash = pipeline_state_builder_build_hash(info);
+            hash = info.ToHash();
 
         // If hash matches from previous stored pipeline state
         // then return it instead.
-        if (s_pipelines.Contains(hash))
+        const auto pipeline_it = s_pipelines.Find(hash);
+        if (pipeline_it != s_pipelines.End())
             return s_pipelines[hash];
 
         if(info.vs_shader == nullptr || info.ps_shader == nullptr)
@@ -309,8 +310,8 @@ namespace REngine
         ci.GraphicsPipeline.RasterizerDesc.DepthBias = scaled_depth_bias;
         ci.GraphicsPipeline.RasterizerDesc.SlopeScaledDepthBias = info.slope_scaled_depth_bias;
         ci.GraphicsPipeline.RasterizerDesc.DepthClipEnable = true;
-        //ci.GraphicsPipeline.RasterizerDesc.ScissorEnable = info.scissor_test_enabled;
-        ci.GraphicsPipeline.RasterizerDesc.ScissorEnable = false;
+        ci.GraphicsPipeline.RasterizerDesc.ScissorEnable = info.scissor_test_enabled;
+        //ci.GraphicsPipeline.RasterizerDesc.ScissorEnable = false;
         ci.GraphicsPipeline.RasterizerDesc.AntialiasedLineEnable = is_not_opengl && info.line_anti_alias;
 
         ci.PSODesc.ResourceLayout.DefaultVariableType = Diligent::SHADER_RESOURCE_VARIABLE_TYPE_DYNAMIC;

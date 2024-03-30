@@ -4,6 +4,7 @@
 #include "../Container/Vector.h"
 #include "../Container/ArrayPtr.h"
 #include "../Graphics/GraphicsDefs.h"
+#include "../Container/Hash.h"
 #include <DiligentCore/Graphics/GraphicsEngine/interface/InputLayout.h>
 
 namespace REngine
@@ -15,13 +16,32 @@ namespace REngine
         unsigned buffer_stride{};
         unsigned element_offset{};
         unsigned instance_step_rate{};
-        Atomic::VertexElementType element_type;
+        Atomic::VertexElementType element_type{Atomic::MAX_VERTEX_ELEMENT_TYPES};
+
+        uint32_t ToHash() const
+        {
+	        uint32_t hash = input_index;
+            Atomic::CombineHash(hash, buffer_index);
+            Atomic::CombineHash(hash, buffer_stride);
+            Atomic::CombineHash(hash, element_offset);
+            Atomic::CombineHash(hash, instance_step_rate);
+            Atomic::CombineHash(hash, element_type);
+            return hash;
+        }
     };
 
     struct InputLayoutDesc
     {
         unsigned num_elements{};
         InputLayoutElementDesc elements[Diligent::MAX_LAYOUT_ELEMENTS]{};
+
+        uint32_t ToHash() const
+        {
+	        uint32_t hash = num_elements;
+			for(unsigned i =0; i < num_elements; ++i)
+				Atomic::CombineHash(hash, elements[i].ToHash());
+			return hash;
+		}
     };
     
     struct PipelineStateOutputDesc
@@ -30,6 +50,16 @@ namespace REngine
         uint8_t num_rts{0};
         Diligent::TEXTURE_FORMAT render_target_formats[Atomic::MAX_RENDERTARGETS]{};
         uint8_t multi_sample{1};
+
+        uint32_t ToHash() const
+        {
+	        uint32_t hash = depth_stencil_format;
+			Atomic::CombineHash(hash, num_rts);
+			for(unsigned i = 0; i < num_rts; ++i)
+				Atomic::CombineHash(hash, render_target_formats[i]);
+			Atomic::CombineHash(hash, multi_sample);
+			return hash;
+        }
     };
 
     struct SamplerDesc
@@ -70,12 +100,28 @@ namespace REngine
     {
         Atomic::String source_code{};
         Atomic::ShaderType type{};
+
+        uint32_t ToHash() const
+        {
+	        uint32_t hash = Atomic::StringHash::Calculate(source_code.CString());
+			Atomic::CombineHash(hash, type);
+			return hash;
+		}
     };
-    struct ShaderCompilerPreProcessResult
+
+	struct ShaderCompilerPreProcessResult
     {
         Atomic::String source_code{};
         Atomic::String error{};
         bool has_error{false};
+
+        uint32_t ToHash() const
+        {
+	        uint32_t hash = Atomic::StringHash::Calculate(source_code.CString());
+            Atomic::CombineHash(hash, Atomic::StringHash::Calculate(error.CString()));
+            Atomic::CombineHash(hash, has_error ? 1u : 0u);
+            return hash;
+        }
     };
 
     struct ShaderCompilerResult
@@ -131,6 +177,7 @@ namespace REngine
     {
         void* byte_code{ nullptr };
         uint32_t byte_code_size{ 0 };
+        uint32_t shader_hash{ 0 };
         Atomic::ShaderType type{};
         Atomic::ShaderByteCodeType byte_code_type{ Atomic::ShaderByteCodeType::Max};
         ShaderCompilerReflectInfo* reflect_info{ nullptr };
@@ -144,5 +191,6 @@ namespace REngine
         Atomic::ShaderByteCodeType byte_code_type{Atomic::ShaderByteCodeType::Max};
         Atomic::SharedArrayPtr<uint8_t> byte_code{nullptr};
         uint32_t byte_code_size{0};
+        uint32_t shader_hash{ 0 };
     };
 }

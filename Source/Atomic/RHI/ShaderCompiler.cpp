@@ -545,6 +545,8 @@ namespace REngine
         ShaderByteCodeType byte_code_type{ShaderByteCodeType::Max};
         /// Size of ByteCode
         uint32_t byte_code_size{0};
+        /// Shader source hash
+        uint32_t shader_hash{ 0 };
         /// Size of Strings on Shader File
         uint32_t strings_size{0};
         /// Number of Shader Parameters on Shader File
@@ -588,6 +590,7 @@ namespace REngine
         file_header.type = desc.type;
         file_header.byte_code_size = desc.byte_code_size;
         file_header.byte_code_type = desc.byte_code_type;
+        file_header.shader_hash = desc.shader_hash;
         file_header.parameters_count = desc.reflect_info->parameters.Size();
         file_header.textures_count = desc.reflect_info->samplers.Size();
         file_header.constant_buffers_count = desc.reflect_info->constant_buffers.Size();
@@ -829,6 +832,7 @@ namespace REngine
         result.byte_code = Atomic::SharedArrayPtr<uint8_t>(static_cast<uint8_t*>(malloc(file_header->byte_code_size)));
         result.byte_code_size = file_header->byte_code_size;
         result.byte_code_type = file_header->byte_code_type;
+        result.shader_hash = file_header->shader_hash;
         result.type = file_header->type;
         result.has_error = false;
         memcpy(result.byte_code, byte_code, file_header->byte_code_size);

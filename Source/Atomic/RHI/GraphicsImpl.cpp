@@ -1507,15 +1507,15 @@ namespace Atomic
             if (enable && intRect != scissorRect_)
             {
                 scissorRect_ = intRect;
-                command.scissor = intRect;
                 command.dirty_state |= static_cast<unsigned>(REngine::RenderCommandDirtyState::scissor);
             }
         }
         
+        command.scissor = scissorRect_;
+        command.pipeline_state_info.scissor_test_enabled = enable;
         if (enable != scissorTest_)
         {
             scissorTest_ = enable;
-            command.pipeline_state_info.scissor_test_enabled = enable;
             command.dirty_state |= static_cast<unsigned>(REngine::RenderCommandDirtyState::pipeline);
         }
 
@@ -1547,15 +1547,15 @@ namespace Atomic
             if (enable && intRect != scissorRect_)
             {
                 scissorRect_ = intRect;
-                command.scissor = intRect;
                 command.dirty_state |= static_cast<unsigned>(REngine::RenderCommandDirtyState::scissor);
             }
         }
-        
+
+        command.scissor = scissorRect_;
+        command.pipeline_state_info.scissor_test_enabled = enable;
         if (enable != scissorTest_)
         {
             scissorTest_ = enable;
-            command.pipeline_state_info.scissor_test_enabled = enable;
             command.dirty_state |= static_cast<unsigned>(REngine::RenderCommandDirtyState::pipeline);
         }
 

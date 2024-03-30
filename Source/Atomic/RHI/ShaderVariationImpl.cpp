@@ -163,6 +163,7 @@ namespace Atomic
         input_elements_ = bin_result.reflect_info.input_elements;
         parameters_ = bin_result.reflect_info.parameters;
         used_textures_ = bin_result.reflect_info.samplers;
+        hash_ = bin_result.shader_hash;
 
         memcpy(constantBufferSizes_, bin_result.reflect_info.constant_buffer_sizes, sizeof(bool) * MAX_SHADER_PARAMETER_GROUPS);
         memcpy(useTextureUnit_, bin_result.reflect_info.used_texture_units, sizeof(bool) * MAX_TEXTURE_UNITS);
@@ -241,7 +242,6 @@ namespace Atomic
             break;
         }
 
-
         switch (type_)
         {
         case VS:
@@ -308,6 +308,8 @@ namespace Atomic
         source_code.AppendWithFormat("\t%s\n", entrypoint.CString());
         source_code.Append("}");
 
+        hash_ = StringHash::Calculate(source_code.CString());
+
         REngine::ShaderCompilerReflectInfo reflect_info = {};
         {
             REngine::ShaderCompilerDesc compiler_desc = {};
@@ -322,25 +324,6 @@ namespace Atomic
                 compilerOutput_ = result.error;
                 return false;
             }
-
-//#if defined(DEBUG) || defined(_DEBUG)
-//            {
-//                REngine::ShaderCompilerPreProcessResult pre_process_result = {};
-//                REngine::shader_compiler_preprocess(compiler_desc, pre_process_result);
-//
-//                String defines_txt;
-//                for(unsigned i = 0; i < defines.Size(); ++i)
-//                {
-//					defines_txt.Append(defines[i]);
-//                    if(i < defines.Size() - 1)
-//						defines_txt.Append(" ");
-//				}
-//                ATOMIC_LOGDEBUGF("BEGIN PREPROCESS %s", shader_ci.Desc.Name);
-//                ATOMIC_LOGDEBUGF("Defines: %s", defines_txt.CString());
-//                ATOMIC_LOGDEBUG(pre_process_result.source_code);
-//                ATOMIC_LOGDEBUGF("END PREPROCESS %s", shader_ci.Desc.Name);
-//            }
-//#endif
 
             REngine::ShaderCompilerReflectDesc reflect_desc = {
                 result.spirv_code.Buffer(),
@@ -358,6 +341,7 @@ namespace Atomic
             parameters_ = reflect_info.parameters;
             input_elements_ = reflect_info.input_elements;
             used_textures_ = reflect_info.samplers;
+
 #if WIN32
             // On D3D, spirv code needs to be converted to HLSL
             if (backend == GraphicsBackend::D3D11 || backend == GraphicsBackend::D3D12)
@@ -370,6 +354,7 @@ namespace Atomic
                 shader_ci.SourceLength = source_code.Length();
             }
 #endif
+
             if (backend == GraphicsBackend::Vulkan)
             {
                 byteCode_ = result.spirv_code;
@@ -397,7 +382,10 @@ namespace Atomic
 
         if (!shader)
         {
-            compilerOutput_ = String(static_cast<const char*>(shader_output->GetDataPtr()), shader_output->GetSize());
+            compilerOutput_ = String(
+                static_cast<const char*>(shader_output->GetDataPtr()), 
+                static_cast<uint32_t>(shader_output->GetSize())
+            );
             return false;
         }
 
@@ -432,6 +420,7 @@ namespace Atomic
         bin_desc.byte_code = byteCode_.Buffer();
         bin_desc.byte_code_size = byteCode_.Size();
         bin_desc.type = type_;
+        bin_desc.shader_hash = hash_;
         bin_desc.reflect_info = &reflect_info;
 
         if (backend == GraphicsBackend::D3D11 || backend == GraphicsBackend::D3D12)

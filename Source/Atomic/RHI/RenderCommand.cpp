@@ -40,7 +40,7 @@ namespace REngine
         // build pipeline if is necessary
         else if ((state.dirty_state & static_cast<unsigned>(RenderCommandDirtyState::pipeline)) != 0)
         {
-            auto pipeline_hash = pipeline_state_builder_build_hash(state.pipeline_state_info);
+            auto pipeline_hash = state.pipeline_state_info.ToHash();
             if (pipeline_hash != state.pipeline_hash || state.pipeline_state == nullptr)
             {
                 state.pipeline_hash = pipeline_hash;
@@ -101,15 +101,15 @@ namespace REngine
             state.dirty_state ^= static_cast<unsigned>(RenderCommandDirtyState::viewport);
         }
 
-        // FIXME: scissor rect is not working
-        /*if(state.dirty_state & static_cast<unsigned>(RenderCommandDirtyState::scissor))
+        if(state.dirty_state & static_cast<unsigned>(RenderCommandDirtyState::scissor) && 
+            state.pipeline_state_info.scissor_test_enabled)
         {
             const auto rect = state.scissor;
             const Diligent::Rect scissor = { rect.left_, rect.top_, rect.right_, rect.bottom_};
             context->SetScissorRects(1, &scissor, graphics->GetWidth(), graphics->GetHeight());
 
             state.dirty_state ^= static_cast<unsigned>(RenderCommandDirtyState::scissor);
-        }*/
+        }
         if(state.dirty_state & static_cast<unsigned>(RenderCommandDirtyState::vertex_buffer))
         {
             unsigned next_idx =0;

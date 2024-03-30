@@ -106,6 +106,7 @@ public:
 #if RENGINE_DILIGENT
 	const Vector<REngine::ShaderCompilerReflectInputElement>& GetInputElements() const { return input_elements_; }
     StringVector GetUseTextureNames() const { return used_textures_; }
+    uint32_t ToHash() const { return hash_; }
 #endif
 
 private:
@@ -159,6 +160,7 @@ private:
 #if RENGINE_DILIGENT
     StringVector used_textures_{};
     Vector<REngine::ShaderCompilerReflectInputElement> input_elements_{};
+    uint32_t hash_{};
 #endif
 };
 

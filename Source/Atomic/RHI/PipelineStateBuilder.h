@@ -58,6 +58,52 @@ namespace REngine
         Atomic::SharedPtr<Atomic::ShaderVariation> ds_shader{};
         Atomic::SharedPtr<Atomic::ShaderVariation> hs_shader{};
         Atomic::SharedPtr<Atomic::ShaderVariation> gs_shader{};
+
+        uint32_t ToHash() const
+        {
+            uint32_t hash = Atomic::StringHash::Calculate(debug_name.CString());
+            Atomic::CombineHash(hash, color_write_enabled ? 1u : 0u);
+            Atomic::CombineHash(hash, static_cast<uint32_t>(blend_mode));
+            Atomic::CombineHash(hash, alpha_to_coverage_enabled ? 1u : 0u);
+
+            Atomic::CombineHash(hash, static_cast<uint32_t>(fill_mode));
+            Atomic::CombineHash(hash, static_cast<uint32_t>(cull_mode));
+            Atomic::CombineHash(hash, static_cast<uint32_t>(constant_depth_bias));
+            Atomic::CombineHash(hash, static_cast<uint32_t>(slope_scaled_depth_bias));
+            Atomic::CombineHash(hash, scissor_test_enabled ? 1u : 0u);
+            Atomic::CombineHash(hash, line_anti_alias ? 1u : 0u);
+
+            Atomic::CombineHash(hash, depth_write_enabled ? 1u : 0u);
+            Atomic::CombineHash(hash, stencil_test_enabled ? 1u : 0u);
+            Atomic::CombineHash(hash, static_cast<uint32_t>(depth_cmp_function));
+            Atomic::CombineHash(hash, static_cast<uint32_t>(stencil_cmp_function));
+            Atomic::CombineHash(hash, static_cast<uint32_t>(stencil_op_on_passed));
+            Atomic::CombineHash(hash, static_cast<uint32_t>(stencil_op_on_stencil_failed));
+            Atomic::CombineHash(hash, static_cast<uint32_t>(stencil_op_depth_failed));
+            Atomic::CombineHash(hash, stencil_cmp_mask);
+            Atomic::CombineHash(hash, stencil_write_mask);
+
+            Atomic::CombineHash(hash, input_layout.ToHash());
+            Atomic::CombineHash(hash, static_cast<uint32_t>(primitive_type));
+            Atomic::CombineHash(hash, output.ToHash());
+
+            Atomic::CombineHash(hash, num_samplers);
+            for(uint8_t i = 0; i < num_samplers; ++i)
+            	Atomic::CombineHash(hash, immutable_samplers[i].ToHash());
+
+            if(vs_shader)
+				Atomic::CombineHash(hash, vs_shader->ToHash());
+            if(ps_shader)
+                Atomic::CombineHash(hash, ps_shader->ToHash());
+            if(ds_shader)
+				Atomic::CombineHash(hash, ds_shader->ToHash());
+            if(hs_shader)
+                Atomic::CombineHash(hash, hs_shader->ToHash());
+            if(gs_shader)
+				Atomic::CombineHash(hash, gs_shader->ToHash());
+
+            return hash;
+        }
     };
 
     /**
@@ -79,12 +125,6 @@ namespace REngine
      * \brief release cached pipeline states
      */
     void pipeline_state_builder_release();
-    /**
-     * \brief helper function to generate hash from pipeline state info
-     * \param info 
-     * \return 
-     */
-    unsigned pipeline_state_builder_build_hash(const PipelineStateInfo& info);
 
     struct ShaderResourceBindingCreateDesc
     {
