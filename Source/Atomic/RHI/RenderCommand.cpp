@@ -131,6 +131,8 @@ namespace REngine
             state.dirty_state ^= static_cast<unsigned>(RenderCommandDirtyState::vertex_buffer);
         }
 
+        context->SetIndexBuffer(state.index_buffer, 0, Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
+
         if(state.pipeline_state)
             context->SetPipelineState(state.pipeline_state);
         if(state.shader_resource_binding)

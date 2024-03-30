@@ -33,47 +33,46 @@
 namespace Atomic
 {
 
-RenderSurface::RenderSurface(Texture* parentTexture) :
-    parentTexture_(parentTexture),
-    view_(nullptr),
+	RenderSurface::RenderSurface(Texture* parentTexture) :
+		parentTexture_(parentTexture),
+		view_(nullptr),
 #if RENGINE_DILIGENT
-    read_only_view_(nullptr),
+		read_only_view_(nullptr),
 #endif
-    updateMode_(SURFACE_UPDATEVISIBLE),
-    updateQueued_(false),
-    resolveDirty_(false)
-{
-}
+		updateMode_(SURFACE_UPDATEVISIBLE),
+		updateQueued_(false),
+		resolveDirty_(false)
+	{
+	}
 
-void RenderSurface::Release()
-{
-    throw std::exception("Not implemented");
-    // Graphics* graphics = parentTexture_->GetGraphics();
-    // if (graphics && renderTargetView_)
-    // {
-    //     for (unsigned i = 0; i < MAX_RENDERTARGETS; ++i)
-    //     {
-    //         if (graphics->GetRenderTarget(i) == this)
-    //             graphics->ResetRenderTarget(i);
-    //     }
-    //     
-    //     if (graphics->GetDepthStencil() == this)
-    //         graphics->ResetDepthStencil();
-    // }
-    //
-    // ATOMIC_SAFE_RELEASE(renderTargetView_);
-    // ATOMIC_SAFE_RELEASE(readOnlyView_);
-}
+	void RenderSurface::Release()
+	{
+		Graphics* graphics = parentTexture_->GetGraphics();
+		if (graphics && view_)
+		{
+			for (unsigned i = 0; i < MAX_RENDERTARGETS; ++i)
+			{
+				if (graphics->GetRenderTarget(i) == this)
+					graphics->ResetRenderTarget(i);
+			}
 
-bool RenderSurface::CreateRenderBuffer(unsigned width, unsigned height, unsigned format, int multiSample)
-{
-    // Not used on Direct3D
-    return false;
-}
+			if (graphics->GetDepthStencil() == this)
+				graphics->ResetDepthStencil();
+		}
 
-void RenderSurface::OnDeviceLost()
-{
-    // No-op on Direct3D
-}
+		read_only_view_ = nullptr;
+		view_ = nullptr;
+	}
+
+	bool RenderSurface::CreateRenderBuffer(unsigned width, unsigned height, unsigned format, int multiSample)
+	{
+		// Not used on Direct3D
+		return false;
+	}
+
+	void RenderSurface::OnDeviceLost()
+	{
+		// No-op on Direct3D
+	}
 
 }

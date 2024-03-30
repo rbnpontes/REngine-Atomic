@@ -30,8 +30,10 @@ namespace REngine
 				Atomic::CombineHash(hash, vertex_element.semantic_);
 
 				auto input_element = shader_input_elements_map.Find(hash);
-				// Shader must contains the input element
-				assert(input_element != shader_input_elements_map.End());
+
+				// If the shader doesn't have the input element, skip it
+				if(input_element == shader_input_elements_map.End())
+					continue;
 
 				auto& element = input_layout_desc_.elements[input_layout_desc_.num_elements];
 				element.buffer_stride = vertex_buffer->GetVertexSize();
