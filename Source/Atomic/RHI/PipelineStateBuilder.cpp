@@ -185,9 +185,12 @@ namespace REngine
             hash = 0;
             return {};
         }
+
+        String name = info.debug_name;
+        name.AppendWithFormat("#%d", hash);
         
         Diligent::GraphicsPipelineStateCreateInfo ci;
-		ci.PSODesc.Name = info.debug_name.CString();
+		ci.PSODesc.Name = name.CString();
 
 		if (info.vs_shader && info.vs_shader->GetGPUObject())
 			ci.pVS = info.vs_shader->GetGPUObject().Cast<Diligent::IShader>(Diligent::IID_Shader);

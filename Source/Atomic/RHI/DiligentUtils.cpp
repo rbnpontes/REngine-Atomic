@@ -49,20 +49,30 @@ namespace REngine
     };
 
     static Atomic::StringVector s_texture_unit_names[] = {
-        {"sDiffMap", "sDiffCubeMap"}, // TU_DIFFUSE
-        {"sNormalMap"}, // TU_NORMAL
-        {"sSpecMap"},  // TU_SPECULAR
-        {"sEmissiveMap"}, // TU_EMISSIVE
-        {"sEnvMap", "sEnvCubeMap"}, // TU_ENVIRONMENT
-        {"sVolumeMap"}, // TU_VOLUMEMAP
-        {"sLightRampMap", "sLightSpotMap", "sLightCubeMap"}, // TU_LIGHTSHAPE
-        {"sLightSpotMap", "sLightCubeMap"},
-        {"sCustom", "sCustom1"}, // TU_CUSTOM
-        {"sLightSpotMap", "sLightCubeMap"},
-        {"sShadowMap"},
-        {"sFaceSelectCubeMap"},
-        {"sIndirectionCubeMap"},
-        {"sZoneCubeMap", "sZoneVolumeMap"}
+        {"sDiffMap", "sDiffCubeMap"},    // TU_DIFFUSE
+        {"sNormalMap"},                    // TU_NORMAL
+        {"sSpecMap"},                      // TU_SPECULAR
+        {"sEmissiveMap"},                  // TU_EMISSIVE
+        {"sEnvMap", "sEnvCubeMap"},     // TU_ENVIRONMENT
+#ifdef DESKTOP_GRAPHICS
+        {"sVolumeMap"},                    // TU_VOLUMEMAP
+        {"sCustom", "sCustom1"},        // TU_CUSTOM1
+        {"sCustom", "sCustom1"},        // TU_CUSTOM2
+        {"sLightRampMap"},                 // TU_LIGHTRAMP
+        {"sLightSpotMap", "sLightCubeMap"}, // TU_LIGHTSHAPE
+        {"sShadowMap"},                     // TU_SHADOWMAP
+        {"sFaceSelectCubeMap"},             // TU_FACESELECT
+        {"sIndirectionCubeMap"},            // TU_INDIRECTION
+        { "sDepthBuffer"},                  // TU_DEPTHBUFFER
+        {"sLightBuffer"},   	              // TU_LIGHTBUFFER
+        {"sZoneCubeMap", "sZoneVolumeMap"} ,// TU_ZONE
+        {"sAlbedoBuffer"}, // TU_ALBEDOBUFFER
+        {"sNormalBuffer"} // TU_NORMALBUFFER
+#else
+        {"sLightRampMap"} // TU_LIGHTRAMP
+        {"sLightSpotMap", "sLightCubeMap"}, // TU_LIGHTSHAPE
+        {"sShadowMap"},                     // TU_SHADOWMAP
+#endif
     };
 
 
