@@ -110,6 +110,7 @@ public:
 
 #if RENGINE_DILIGENT
     Diligent::RefCntAutoPtr<Diligent::ITextureView> GetRenderTargetView() const { return view_; }
+    Diligent::RefCntAutoPtr<Diligent::ITextureView> GetReadOnlyView() const { return read_only_view_; }
 #else
     /// Return Direct3D9 surface.
     void* GetSurface() const { return surface_; }

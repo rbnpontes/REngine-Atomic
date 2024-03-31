@@ -2133,8 +2133,16 @@ namespace Atomic
 		// setup depth stencil
 		if (command.dirty_state & static_cast<unsigned>(REngine::RenderCommandDirtyState::depth_stencil))
 		{
-			const auto depth_stencil = (depthStencil_ && depthStencil_->GetUsage() == TEXTURE_DEPTHSTENCIL) ?
+			auto depth_stencil = (depthStencil_ && depthStencil_->GetUsage() == TEXTURE_DEPTHSTENCIL) ?
 				depthStencil_->GetRenderTargetView() : impl_->GetSwapChain()->GetDepthBufferDSV();
+
+			if(!depthWrite_ && depthStencil_ && depthStencil_->GetReadOnlyView())
+				depth_stencil = depthStencil_->GetReadOnlyView();
+			else if(renderTargets_[0] && !depthStencil_)
+			{
+				if (renderTargets_[0]->GetWidth() < GetWidth() || renderTargets_[0]->GetHeight() < GetHeight())
+					depth_stencil = nullptr;
+			}
 
 			if (command.depth_stencil != depth_stencil)
 				command.depth_stencil = depth_stencil;
