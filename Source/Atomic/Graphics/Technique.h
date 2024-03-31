@@ -29,6 +29,7 @@ namespace Atomic
 {
 
 class ShaderVariation;
+class Technique;
 
 /// Lighting mode of a pass.
 enum PassLightingMode
@@ -41,6 +42,7 @@ enum PassLightingMode
 /// %Material rendering pass, which defines shaders and render state.
 class ATOMIC_API Pass : public RefCounted
 {
+    friend class Technique;
     ATOMIC_REFCOUNTED(Pass)
 
 public:
@@ -143,6 +145,7 @@ public:
     /// Return the effective pixel shader defines, accounting for excludes. Called internally by Renderer.
     String GetEffectivePixelShaderDefines() const;
 
+    Technique* GetOwner() const { return owner_; }
 private:
     /// Pass index.
     unsigned index_;
@@ -184,6 +187,8 @@ private:
     HashMap<StringHash, Vector<SharedPtr<ShaderVariation> > > extraPixelShaders_;
     /// Pass name.
     String name_;
+    /// Technique owner.
+    Technique* owner_;
 };
 
 /// %Material technique. Consists of several passes.

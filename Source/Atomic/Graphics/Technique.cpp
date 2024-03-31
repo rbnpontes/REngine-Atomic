@@ -252,6 +252,12 @@ Technique::Technique(Context* context) :
 
 Technique::~Technique()
 {
+    for(const auto it : passes_)
+    {
+	    if(it)
+            it->owner_ = nullptr;
+    }
+    passes_.Clear();
 }
 
 void Technique::RegisterObject(Context* context)
@@ -290,6 +296,7 @@ bool Technique::BeginLoad(Deserializer& source)
         if (passElem.HasAttribute("name"))
         {
             Pass* newPass = CreatePass(passElem.GetAttribute("name"));
+            newPass->owner_ = this;
 
             if (passElem.HasAttribute("desktop"))
                 newPass->SetIsDesktop(passElem.GetBool("desktop"));
