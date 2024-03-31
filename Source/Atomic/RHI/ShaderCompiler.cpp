@@ -13,11 +13,12 @@
 #include "spirv_parser.hpp"
 #include "spirv_cross.hpp"
 #include "spirv_hlsl.hpp"
+#include <spirv-tools/libspirv.hpp>
+#include <spirv-tools/optimizer.hpp>
 
 #include <glslang/Public/ShaderLang.h>
 
 #include <SPIRV/GlslangToSpv.h>
-#include <DiligentCore/Graphics/ShaderTools/include/SPIRVTools.hpp>
 
 
 namespace REngine
@@ -392,9 +393,10 @@ namespace REngine
             output.has_error = true;
             return;
         }
-        
-        std::vector<uint32_t> spirv_code;
+
         const auto intermediate = program.getIntermediate(stage_type);
+
+        std::vector<uint32_t> spirv_code;
         spv::SpvBuildLogger spv_logger;
         glslang::SpvOptions spv_options;
         spv_options.generateDebugInfo = true;
@@ -411,9 +413,7 @@ namespace REngine
             output.has_error= true;
             return;
         }
-            /*spirv_code = Diligent::OptimizeSPIRV(spirv_code, SPV_ENV_VULKAN_1_0,
-                                                 Diligent::SPIRV_OPTIMIZATION_FLAG_PERFORMANCE);*/
-                                                 
+
         output.spirv_code = Atomic::PODVector<uint8_t>(
             static_cast<uint8_t*>(static_cast<void*>(spirv_code.data())),
             spirv_code.size() * sizeof(unsigned int)

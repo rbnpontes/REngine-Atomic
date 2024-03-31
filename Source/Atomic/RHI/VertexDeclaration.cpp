@@ -9,7 +9,7 @@ namespace REngine
 		Atomic::HashMap<uint32_t, ShaderCompilerReflectInputElement> shader_input_elements_map;
 		input_layout_desc_.num_elements = 0;
 
-		// Fill Shader Input Elements map
+		// fill Shader Input Elements map
 		for(const auto& element : shader_input_elements)
 		{
 			uint32_t hash = element.semantic_index;
@@ -43,13 +43,30 @@ namespace REngine
 				element.element_type = vertex_element.type_;
 				element.instance_step_rate = vertex_element.perInstance_ ? 1 : 0;
 				++input_layout_desc_.num_elements;
+				// remove item from map
+				shader_input_elements_map.Erase(hash);
 			}
 		}
 
-		//// Loop through the shader input elements in reverse order to get semantics with same name
+		// Some input elements are not found in the vertex buffer, use default values
+		for(const auto& element : shader_input_elements_map)
+		{
+			auto& input_element = input_layout_desc_.elements[input_layout_desc_.num_elements];
+			input_element.buffer_stride = 0;
+			input_element.buffer_index = 0;
+			input_element.input_index =	element.second_.index;
+			input_element.element_offset = 0;
+			input_element.element_type = element.second_.element_type;
+			input_element.instance_step_rate = 0;
+			++input_layout_desc_.num_elements;
+		}
+
+		//// Loop through the shader input elements and find the corresponding vertex element
 		//for(uint8_t attr_idx = 0; attr_idx < static_cast<uint8_t>(shader_input_elements.Size()); ++attr_idx)
 		//{
 		//	const auto& shader_element = shader_input_elements[attr_idx];
+		//	auto& input_element = input_layout_desc_.elements[input_layout_desc_.num_elements];
+		//	bool found = false;
 		//	for(uint8_t buffer_idx = 0; buffer_idx < Atomic::MAX_VERTEX_STREAMS; ++buffer_idx)
 		//	{
 		//		const auto vertex_buffer = creation_desc.vertex_buffers[buffer_idx];
@@ -58,13 +75,26 @@ namespace REngine
 		//		const auto vertex_element = vertex_buffer->GetElement(shader_element.semantic, shader_element.semantic_index);
 		//		if(!vertex_element)
 		//			continue;
-		//		auto& input_element = input_layout_desc_.elements[input_layout_desc_.num_elements];
+
 		//		input_element.buffer_stride = vertex_buffer->GetVertexSize();
 		//		input_element.buffer_index = buffer_idx;
 		//		input_element.input_index = shader_element.index;
 		//		input_element.element_offset = vertex_element->offset_;
 		//		input_element.element_type = vertex_element->type_;
 		//		input_element.instance_step_rate = vertex_element->perInstance_ ? 1 : 0;
+		//		found = true;
+		//		++input_layout_desc_.num_elements;
+		//	}
+
+		//	if(!found)
+		//	{
+		//		// if corresponding vertex element is not found, use default values
+		//		input_element.buffer_stride = 0;
+		//		input_element.buffer_index = 0;
+		//		input_element.input_index = shader_element.index;
+		//		input_element.element_offset = 0;
+		//		input_element.element_type = shader_element.element_type;
+		//		input_element.instance_step_rate = 0;
 		//		++input_layout_desc_.num_elements;
 		//	}
 		//}

@@ -11,7 +11,9 @@
 #else
     varying vec2 vTexCoord;
 #endif
-varying vec3 vNormal;
+#ifdef NORMAL
+    varying vec3 vNormal;
+#endif
 varying vec4 vWorldPos;
 #ifdef VERTEXCOLOR
     varying vec4 vColor;
@@ -46,7 +48,9 @@ void VS()
     mat4 modelMatrix = iModelMatrix;
     vec3 worldPos = GetWorldPos(modelMatrix);
     gl_Position = GetClipPos(worldPos);
-    vNormal = GetWorldNormal(modelMatrix);
+    #ifdef NORMAL
+        vNormal = GetWorldNormal(modelMatrix);
+    #endif
     vWorldPos = vec4(worldPos, GetDepth(gl_Position));
 
     #ifdef VERTEXCOLOR
@@ -134,7 +138,9 @@ void PS()
         mat3 tbn = mat3(vTangent.xyz, vec3(vTexCoord.zw, vTangent.w), vNormal);
         vec3 normal = normalize(tbn * DecodeNormal(texture2D(sNormalMap, vTexCoord.xy)));
     #else
-        vec3 normal = normalize(vNormal);
+        #if NORMAL
+            vec3 normal = normalize(vNormal);
+        #endif
     #endif
 
     // Get fog factor

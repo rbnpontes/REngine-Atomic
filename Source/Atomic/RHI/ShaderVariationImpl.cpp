@@ -262,7 +262,7 @@ namespace Atomic
             return false;
         }
 
-        defines.Push(String("MAXBONES=") + String(Graphics::GetMaxBones()).CString());
+        defines.Push(String("MAXBONES=").AppendWithFormat("%d", Graphics::GetMaxBones()));
 
         // Collect defines into macros
         Vector<String> define_values;
@@ -282,16 +282,17 @@ namespace Atomic
         for (unsigned i = 0; i < defines.Size(); ++i)
         {
             macros_header.Append("#define ");
-            const auto equal_pos = defines[i].Find('=');
+            auto define = defines[i];
+            const auto equal_pos = define.Find('=');
             if (equal_pos != String::NPOS)
             {
-                macros_header.Append(defines[i].Substring(equal_pos + 1));
+                macros_header.Append(define.Substring(equal_pos + 1));
                 macros_header.Append(' ');
-                macros_header.Append(defines[i].Substring(equal_pos + 1, defines[i].Length()));
+                macros_header.Append(define.Substring(equal_pos + 1, define.Length()));
             }
             else
             {
-                macros_header.Append(defines[i]);
+                macros_header.Append(define);
                 macros_header.Append(" 1");
             }
             macros_header.Append('\n');
