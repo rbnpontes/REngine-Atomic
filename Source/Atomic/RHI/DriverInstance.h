@@ -65,6 +65,7 @@ namespace REngine
 
         Atomic::SharedPtr<Atomic::ConstantBuffer> GetConstantBuffer(Atomic::ShaderType type, Atomic::ShaderParameterGroup group);
         void UploadBufferChanges();
+        void ClearConstantBuffers();
     private:
         void InitDefaultConstantBuffers();
         Atomic::SharedPtr<Atomic::ConstantBuffer> CreateConstantBuffer(Atomic::ShaderType type, Atomic::ShaderParameterGroup grp, uint32_t size) const;

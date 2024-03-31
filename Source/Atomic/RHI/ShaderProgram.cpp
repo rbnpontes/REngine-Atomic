@@ -20,8 +20,7 @@ namespace REngine
 
         parameters_.Rehash(Atomic::NextPowerOfTwo(parameters_.Size()));
 
-        hash_ = Atomic::MakeHash(creation_desc.vertex_shader);
-        Atomic::CombineHash(hash_, Atomic::MakeHash(creation_desc.pixel_shader));
+        hash_ = creation_desc.ToHash();
     }
 
     void ShaderProgram::CollectShaderParameters(const Atomic::ShaderVariation* shader)

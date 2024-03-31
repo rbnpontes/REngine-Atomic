@@ -283,6 +283,12 @@ namespace REngine
                 buffer->Apply();
     }
 
+    void DriverInstance::ClearConstantBuffers()
+    {
+        for(uint32_t i =0; i < _countof(constant_buffers_); ++i)
+			constant_buffers_[i] = nullptr;
+    }
+
     void DriverInstance::InitDefaultConstantBuffers()
     {
         for(uint8_t i =0; i < static_cast<uint8_t>(MAX_SHADER_TYPES); ++i)

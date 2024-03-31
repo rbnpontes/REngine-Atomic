@@ -1855,11 +1855,37 @@ namespace Atomic
 	void Graphics::Cleanup(GraphicsClearFlags flags)
 	{
 		if (flags & GRAPHICS_CLEAR_SRB)
+		{
+			const auto cache_count = REngine::srb_cache_items_count();
 			REngine::srb_cache_release();
+			ATOMIC_LOGINFOF("Released (%d) Shader Resource Bindings", cache_count);
+		}
 		if (flags & GRAPHICS_CLEAR_PIPELINES)
+		{
+			const auto cache_count = REngine::pipeline_state_builder_items_count();
 			REngine::pipeline_state_builder_release();
+			ATOMIC_LOGINFOF("Released (%d) Pipeline States", cache_count);
+		}
 		if (flags & GRAPHICS_CLEAR_SHADER_PROGRAMS)
+		{
+			const auto cache_count = REngine::graphics_state_shader_programs_count();
 			REngine::graphics_state_release_shader_programs();
+			ATOMIC_LOGINFOF("Released (%d) Shader Programs", cache_count);
+		}
+		if(flags & GRAPHICS_CLEAR_VERTEX_DECLARATIONS)
+		{
+			const auto cache_count = REngine::graphics_state_vertex_declarations_count();
+			REngine::graphics_state_release_vertex_declarations();
+			ATOMIC_LOGINFOF("Released (%d) Vertex Declarations", cache_count);
+		}
+		if(flags & GRAPHICS_CLEAR_CONSTANT_BUFFERS)
+		{
+			const uint32_t cache_count = static_cast<uint32_t>(MAX_SHADER_PARAMETER_GROUPS) * static_cast<uint32_t>(MAX_SHADER_TYPES) + REngine::graphics_state_constant_buffers_count();
+			impl_->ClearConstantBuffers();
+			REngine::graphics_state_release_constant_buffers();
+			ATOMIC_LOGINFOF("Released (%d) Constant Buffers", cache_count);
+		}
+
 		if (flags & GRAPHICS_CLEAR_SCRATCH_BUFFERS)
 			CleanupScratchBuffers();
 	}

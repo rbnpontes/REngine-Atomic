@@ -126,6 +126,8 @@ namespace REngine
      */
     void pipeline_state_builder_release();
 
+    uint32_t pipeline_state_builder_items_count();
+
     struct ShaderResourceBindingCreateDesc
     {
         DriverInstance* driver{nullptr};
@@ -143,4 +145,6 @@ namespace REngine
      * \brief release cached shader resource bindings
      */
     void srb_cache_release();
+
+    uint32_t srb_cache_items_count();
 }

@@ -15,6 +15,16 @@ namespace REngine
         Atomic::Graphics* graphics{nullptr};
         Atomic::ShaderVariation* vertex_shader{nullptr};
         Atomic::ShaderVariation* pixel_shader{nullptr};
+
+        uint32_t ToHash() const
+        {
+	        uint32_t hash = 0;
+			if(vertex_shader)
+				Atomic::CombineHash(hash, vertex_shader->ToHash());
+			if(pixel_shader)
+				Atomic::CombineHash(hash, pixel_shader->ToHash());
+			return hash;
+		}
     };
     class RENGINE_API ShaderProgram : public Atomic::RefCounted
     {

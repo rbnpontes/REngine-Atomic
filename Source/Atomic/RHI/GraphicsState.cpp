@@ -35,10 +35,14 @@ namespace REngine
 		s_state.constant_buffers.Clear();
     }
 
+    uint32_t graphics_state_constant_buffers_count()
+    {
+		return s_state.constant_buffers.Size();
+    }
+
     Atomic::SharedPtr<ShaderProgram> graphics_state_get_shader_program(const ShaderProgramQuery& query)
     {
-        auto hash = Atomic::MakeHash(query.vertex_shader);
-        Atomic::CombineHash(hash, Atomic::MakeHash(query.pixel_shader));
+        const auto hash = query.ToHash();
 
         const auto& it = s_state.shader_programs.Find(hash);
         if(it == s_state.shader_programs.End())
@@ -47,7 +51,12 @@ namespace REngine
     }
     void graphics_state_set_shader_program(const Atomic::SharedPtr<ShaderProgram> program)
     {
-        s_state.shader_programs[program.ToHash()] = program;
+        s_state.shader_programs[program->ToHash()] = program;
+    }
+
+    uint32_t graphics_state_shader_programs_count()
+    {
+        return s_state.shader_programs.Size();
     }
 
     void graphics_state_release_shader_programs()
@@ -71,6 +80,11 @@ namespace REngine
     void graphics_state_release_vertex_declarations()
     {
     	s_state.vertex_declarations.Clear();
+    }
+
+    uint32_t graphics_state_vertex_declarations_count()
+    {
+        return s_state.vertex_declarations.Size();
     }
 
 

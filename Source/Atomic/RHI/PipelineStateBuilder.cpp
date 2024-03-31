@@ -338,6 +338,11 @@ namespace REngine
         s_srb.Clear();
     }
 
+    uint32_t pipeline_state_builder_items_count()
+    {
+	    return s_pipelines.Size();
+	}
+
     unsigned pipeline_state_builder_build_hash(const PipelineStateInfo& info)
     {
         unsigned hash = Atomic::StringHash::Calculate(info.debug_name.CString());
@@ -472,4 +477,10 @@ namespace REngine
     {
 		s_srb.Clear();
     }
+
+    uint32_t srb_cache_items_count()
+    {
+	    return s_srb.Size();
+    }
+
 }
