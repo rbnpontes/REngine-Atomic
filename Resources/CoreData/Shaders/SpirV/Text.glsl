@@ -5,13 +5,19 @@
 varying vec2 vTexCoord;
 varying vec4 vColor;
 
-#ifdef TEXT_EFFECT_SHADOW
-uniform vec2 cShadowOffset;
-uniform vec4 cShadowColor;
-#endif
-
-#ifdef TEXT_EFFECT_STROKE
-uniform vec4 cStrokeColor;
+#if defined(TEXT_EFFECT_SHADOW) || defined(TEXT_EFFECT_STROKE)
+    layout(binding=6) uniform CustomPS 
+    {
+    #ifdef TEXT_EFFECT_SHADOW
+        vec2 cShadowOffset;
+        vec4 cShadowColor;
+    #endif
+    #ifdef TEXT_EFFECT_STROKE
+        vec4 cStrokeColor;
+    #endif
+        // Uniform Buffer must never be empty. If they won't compile
+        float dummy_;
+    };
 #endif
 
 void VS()

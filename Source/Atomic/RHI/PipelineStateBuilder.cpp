@@ -321,6 +321,9 @@ namespace REngine
 
         Diligent::RefCntAutoPtr<Diligent::IPipelineState> result;
         driver->GetDevice()->CreatePipelineState(ci, &result);
+
+        if(!result)
+            ATOMIC_LOGERRORF("Failed to create pipeline state: %s.", name.CString());
         assert(result);
 
         s_pipelines[hash] = result;

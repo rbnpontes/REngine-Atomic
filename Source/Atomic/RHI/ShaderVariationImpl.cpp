@@ -350,6 +350,7 @@ namespace Atomic
                 source_code.Clear();
                 REngine::shader_compiler_to_hlsl({result.spirv_code.Buffer(), result.spirv_code.Size()}, source_code);
 
+                ATOMIC_LOGDEBUG(source_code);
                 shader_ci.SourceLanguage = Diligent::SHADER_SOURCE_LANGUAGE_HLSL;
                 shader_ci.Source = source_code.CString();
                 shader_ci.SourceLength = source_code.Length();
