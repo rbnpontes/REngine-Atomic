@@ -1,6 +1,7 @@
 #include "./RenderCommand.h"
 
 #include "./DiligentUtils.h"
+#include "IO/Log.h"
 
 namespace REngine
 {
@@ -45,6 +46,7 @@ namespace REngine
             {
                 state.pipeline_hash = pipeline_hash;
                 state.pipeline_state = pipeline_state_builder_acquire(driver, state.pipeline_state_info, pipeline_hash);
+                state.shader_resource_binding = nullptr;
             }
 
             if(pipeline_hash != 0 && state.pipeline_state)
@@ -53,7 +55,7 @@ namespace REngine
 
         // bind textures
         Atomic::HashMap<Atomic::String, Diligent::IDeviceObject*> resources;
-        if ((state.dirty_state & static_cast<unsigned>(RenderCommandDirtyState::textures)) != 0 && state.pipeline_state)
+        if (state.pipeline_state)
         {
             for (const auto& it : state.textures)
             {
@@ -62,13 +64,13 @@ namespace REngine
                     resources[it.first_] = it.second_;
             }
 
-            state.dirty_state ^= static_cast<unsigned>(RenderCommandDirtyState::textures);
+            //state.dirty_state ^= static_cast<unsigned>(RenderCommandDirtyState::textures);
         }
 
         if(state.skip_flags & static_cast<unsigned>(RenderCommandSkipFlags::srb_build))
             state.skip_flags ^= static_cast<unsigned>(RenderCommandSkipFlags::srb_build);
         // build shader resource binding if is necessary
-        else if(resources.Size() > 0 && state.pipeline_state)
+        else if(state.pipeline_state)
         {
             ShaderResourceBindingCreateDesc srb_desc;
             srb_desc.resources = &resources;
@@ -135,8 +137,10 @@ namespace REngine
 
         if(state.pipeline_state)
             context->SetPipelineState(state.pipeline_state);
-        if(state.shader_resource_binding)
+        if (state.shader_resource_binding)
             context->CommitShaderResources(state.shader_resource_binding, Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
+        else if(state.pipeline_state)
+            ATOMIC_LOGERROR("Shader Resource Binding is null");
     }
 
     void render_command_reset(const Atomic::Graphics* graphics, RenderCommandState& state)
