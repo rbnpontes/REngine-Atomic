@@ -718,84 +718,103 @@ namespace Atomic
 	void Graphics::Draw(PrimitiveType type, unsigned indexStart, unsigned indexCount, unsigned baseVertexIndex,
 		unsigned minVertex, unsigned vertexCount)
 	{
-		throw std::exception("Not implemented");
-		// if (!vertexCount || !impl_->shaderProgram_)
-		//     return;
-		//
-		// PrepareDraw();
-		//
-		// unsigned primitiveCount;
-		// D3D_PRIMITIVE_TOPOLOGY d3dPrimitiveType;
-		//
-		// if (fillMode_ == FILL_POINT)
-		//     type = POINT_LIST;
-		//
-		// GetD3DPrimitiveType(indexCount, type, primitiveCount, d3dPrimitiveType);
-		// if (d3dPrimitiveType != primitiveType_)
-		// {
-		//     impl_->deviceContext_->IASetPrimitiveTopology(d3dPrimitiveType);
-		//     primitiveType_ = d3dPrimitiveType;
-		// }
-		// impl_->deviceContext_->DrawIndexed(indexCount, indexStart, baseVertexIndex);
-		//
-		// numPrimitives_ += primitiveCount;
-		// ++numBatches_;
+		auto command = REngine::default_render_command_get();
+		if (!vertexCount || !indexCount || !command.shader_program)
+			return;
+
+		if (fillMode_ == FILL_POINT)
+			type = command.pipeline_state_info.primitive_type = POINT_LIST;
+
+		if (command.pipeline_state_info.primitive_type != type)
+		{
+			command.pipeline_state_info.primitive_type = type;
+			command.dirty_state |= static_cast<uint32_t>(REngine::RenderCommandDirtyState::pipeline);
+			REngine::default_render_command_set(command);
+		}
+		
+		PrepareDraw();
+
+		Diligent::DrawIndexedAttribs draw_attribs = {};
+		draw_attribs.IndexType = indexBuffer_->GetIndexSize() == sizeof(uint16_t) ? Diligent::VT_UINT16 : Diligent::VT_UINT32;
+		draw_attribs.NumIndices = indexCount;
+		draw_attribs.FirstIndexLocation = indexStart;
+		draw_attribs.Flags = Diligent::DRAW_FLAG_VERIFY_ALL;
+		draw_attribs.BaseVertex = baseVertexIndex;
+		impl_->GetDeviceContext()->DrawIndexed(draw_attribs);
+
+		uint32_t primitive_count;
+		REngine::utils_get_primitive_type(vertexCount, command.pipeline_state_info.primitive_type, &primitive_count);
+		numPrimitives_ += primitive_count;
+		++numBatches_;
 	}
 
 	void Graphics::DrawInstanced(PrimitiveType type, unsigned indexStart, unsigned indexCount, unsigned minVertex,
 		unsigned vertexCount,
 		unsigned instanceCount)
 	{
-		throw std::exception("Not implemented");
-		// if (!indexCount || !instanceCount || !impl_->shaderProgram_)
-		//     return;
-		//
-		// PrepareDraw();
-		//
-		// unsigned primitiveCount;
-		// D3D_PRIMITIVE_TOPOLOGY d3dPrimitiveType;
-		//
-		// if (fillMode_ == FILL_POINT)
-		//     type = POINT_LIST;
-		//
-		// GetD3DPrimitiveType(indexCount, type, primitiveCount, d3dPrimitiveType);
-		// if (d3dPrimitiveType != primitiveType_)
-		// {
-		//     impl_->deviceContext_->IASetPrimitiveTopology(d3dPrimitiveType);
-		//     primitiveType_ = d3dPrimitiveType;
-		// }
-		// impl_->deviceContext_->DrawIndexedInstanced(indexCount, instanceCount, indexStart, 0, 0);
-		//
-		// numPrimitives_ += instanceCount * primitiveCount;
-		// ++numBatches_;
+		auto command = REngine::default_render_command_get();
+		if (!vertexCount || !instanceCount || !command.shader_program)
+			return;
+
+		if (fillMode_ == FILL_POINT)
+			type = command.pipeline_state_info.primitive_type = POINT_LIST;
+
+		if (command.pipeline_state_info.primitive_type != type)
+		{
+			command.pipeline_state_info.primitive_type = type;
+			command.dirty_state |= static_cast<uint32_t>(REngine::RenderCommandDirtyState::pipeline);
+			REngine::default_render_command_set(command);
+		}
+
+		PrepareDraw();
+
+		Diligent::DrawIndexedAttribs draw_attribs = {};
+		draw_attribs.IndexType = indexBuffer_->GetIndexSize() == sizeof(uint16_t) ? Diligent::VT_UINT16 : Diligent::VT_UINT32;
+		draw_attribs.NumIndices = indexCount;
+		draw_attribs.FirstIndexLocation = indexStart;
+		draw_attribs.Flags = Diligent::DRAW_FLAG_VERIFY_ALL;
+		draw_attribs.NumInstances = instanceCount;
+
+		impl_->GetDeviceContext()->DrawIndexed(draw_attribs);
+
+		uint32_t primitive_count;
+		REngine::utils_get_primitive_type(vertexCount, command.pipeline_state_info.primitive_type, &primitive_count);
+		numPrimitives_ += primitive_count * instanceCount;
+		++numBatches_;
 	}
 
 	void Graphics::DrawInstanced(PrimitiveType type, unsigned indexStart, unsigned indexCount, unsigned baseVertexIndex,
 		unsigned minVertex, unsigned vertexCount,
 		unsigned instanceCount)
 	{
-		throw std::exception("Not implemented");
-		// if (!indexCount || !instanceCount || !impl_->shaderProgram_)
-		//     return;
-		//
-		// PrepareDraw();
-		//
-		// unsigned primitiveCount;
-		// D3D_PRIMITIVE_TOPOLOGY d3dPrimitiveType;
-		//
-		// if (fillMode_ == FILL_POINT)
-		//     type = POINT_LIST;
-		//
-		// GetD3DPrimitiveType(indexCount, type, primitiveCount, d3dPrimitiveType);
-		// if (d3dPrimitiveType != primitiveType_)
-		// {
-		//     impl_->deviceContext_->IASetPrimitiveTopology(d3dPrimitiveType);
-		//     primitiveType_ = d3dPrimitiveType;
-		// }
-		// impl_->deviceContext_->DrawIndexedInstanced(indexCount, instanceCount, indexStart, baseVertexIndex, 0);
-		//
-		// numPrimitives_ += instanceCount * primitiveCount;
-		// ++numBatches_;
+		auto command = REngine::default_render_command_get();
+		if (!vertexCount || !instanceCount || !command.shader_program)
+			return;
+
+		if (fillMode_ == FILL_POINT)
+			type = command.pipeline_state_info.primitive_type = POINT_LIST;
+
+		if (command.pipeline_state_info.primitive_type != type)
+		{
+			command.pipeline_state_info.primitive_type = type;
+			command.dirty_state |= static_cast<uint32_t>(REngine::RenderCommandDirtyState::pipeline);
+			REngine::default_render_command_set(command);
+		}
+
+		PrepareDraw();
+
+		Diligent::DrawIndexedAttribs draw_attribs = {};
+		draw_attribs.IndexType = indexBuffer_->GetIndexSize() == sizeof(uint16_t) ? Diligent::VT_UINT16 : Diligent::VT_UINT32;
+		draw_attribs.NumIndices = indexCount;
+		draw_attribs.FirstIndexLocation = indexStart;
+		draw_attribs.Flags = Diligent::DRAW_FLAG_VERIFY_ALL;
+		draw_attribs.NumInstances = instanceCount;
+		draw_attribs.BaseVertex = baseVertexIndex;
+
+		uint32_t primitive_count;
+		REngine::utils_get_primitive_type(vertexCount, command.pipeline_state_info.primitive_type, &primitive_count);
+		numPrimitives_ += primitive_count * instanceCount;
+		++numBatches_;
 	}
 
 	void Graphics::SetVertexBuffer(VertexBuffer* buffer)
