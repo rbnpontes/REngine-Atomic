@@ -1413,8 +1413,6 @@ namespace Atomic
 
 	void Graphics::SetBlendMode(BlendMode mode, bool alphaToCoverage)
 	{
-		if (mode == blendMode_ && alphaToCoverage == alphaToCoverage_)
-			return;
 		auto command = REngine::default_render_command_get();
 		command.pipeline_state_info.blend_mode = blendMode_ = mode;
 		command.pipeline_state_info.alpha_to_coverage_enabled = alphaToCoverage_ = alphaToCoverage;
