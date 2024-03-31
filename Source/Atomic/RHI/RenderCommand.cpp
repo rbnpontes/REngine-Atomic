@@ -183,7 +183,7 @@ namespace REngine
 
         if(desc.flags & Atomic::CLEAR_COLOR)
             context->ClearRenderTarget(desc.render_target, desc.clear_color.Data(), Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
-        if(desc.flags & (Atomic::CLEAR_DEPTH | Atomic::CLEAR_STENCIL))
+        if(desc.flags & (Atomic::CLEAR_DEPTH | Atomic::CLEAR_STENCIL) && desc.depth_stencil)
             context->ClearDepthStencil(desc.depth_stencil,
                 desc.clear_stencil_flags,
                 desc.clear_depth,
