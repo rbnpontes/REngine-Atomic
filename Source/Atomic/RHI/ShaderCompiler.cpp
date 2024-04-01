@@ -50,7 +50,13 @@ namespace REngine
                 auto& m = ir.meta[var.self].decoration;
                 if(!(type.storage == spv::StorageClassInput && !is_builtin_variable(var)))
 				    return;
-				
+
+                auto type_name = get_name(var.self);
+                if (type_name.empty())
+                    type_name = get_name(var.basevariable);
+                if(type_name.empty())
+					type_name = get_name(var.basetype);
+
                 auto name = String("ATTRIB");
                 name.AppendWithFormat("%d", m.location);
                 add_vertex_attribute_remap({ m.location, name.CString() });

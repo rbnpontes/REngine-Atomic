@@ -1107,7 +1107,8 @@ namespace Atomic
 		if (!buffer)
 			return;
 
-		buffer->SetParameter(parameter.offset_, sizeof(Matrix3), &matrix);
+		const Matrix3x4 matrix3x4(matrix);
+		buffer->SetParameter(parameter.offset_, sizeof(Matrix3x4), &matrix3x4);
 	}
 
 	void Graphics::SetShaderParameter(StringHash param, const Vector3& vector)

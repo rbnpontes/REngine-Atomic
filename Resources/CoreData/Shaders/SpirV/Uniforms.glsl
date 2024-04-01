@@ -46,7 +46,7 @@
         };
     #endif // CUSTOM_MATERIAL_CBUFFER
     
-    layout(binding=4) uniform ObjectVS
+    layout(std140) uniform ObjectVS
     {
         mat4 cModel;
         #ifdef BILLBOARD
