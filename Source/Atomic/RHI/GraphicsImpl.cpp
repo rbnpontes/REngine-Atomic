@@ -1005,7 +1005,7 @@ namespace Atomic
 		if (!buffer)
 			return;
 
-		buffer->SetParameter(parameter.offset_, count * sizeof(float), &data);
+		buffer->SetParameter(parameter.offset_, count * sizeof(float), data);
 	}
 
 	void Graphics::SetShaderParameter(StringHash param, float value)
