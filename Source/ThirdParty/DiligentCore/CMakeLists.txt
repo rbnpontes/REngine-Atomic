@@ -216,6 +216,9 @@ else()
     message(FATAL_ERROR "No PLATFORM_XXX variable defined. Make sure that 'DiligentCore' folder is processed first")
 endif()
 
+# Disable Archiver
+set(ARCHIVER_SUPPORTED FALSE)
+
 if(PLATFORM_IOS OR PLATFORM_TVOS)
     if(VULKAN_SDK OR MOLTENVK_LIBRARY)
         if(NOT MOLTENVK_LIBRARY)
@@ -282,14 +285,14 @@ else()
 endif()
 
 
-option(DILIGENT_NO_HLSL              "Disable HLSL support in non-Direct3D backends" OFF)
-option(DILIGENT_NO_FORMAT_VALIDATION "Disable source code format validation" OFF)
+option(DILIGENT_NO_HLSL              "Disable HLSL support in non-Direct3D backends" ON)
+option(DILIGENT_NO_FORMAT_VALIDATION "Disable source code format validation" ON)
 option(DILIGENT_NO_DIRECT3D11        "Disable Direct3D11 backend" OFF)
 option(DILIGENT_NO_DIRECT3D12        "Disable Direct3D12 backend" OFF)
 option(DILIGENT_NO_OPENGL            "Disable OpenGL/GLES backend" OFF)
 option(DILIGENT_NO_VULKAN            "Disable Vulkan backend" OFF)
 option(DILIGENT_NO_METAL             "Disable Metal backend" OFF)
-option(DILIGENT_NO_ARCHIVER          "Do not build archiver" OFF)
+option(DILIGENT_NO_ARCHIVER          "Do not build archiver" ON)
 if(${DILIGENT_NO_DIRECT3D11})
     set(D3D11_SUPPORTED FALSE CACHE INTERNAL "D3D11 backend is forcibly disabled")
 endif()
