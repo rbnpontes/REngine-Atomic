@@ -47,7 +47,7 @@ namespace REngine
         SetConstantBufferSize(Atomic::VS, Atomic::SP_FRAME, 64/*i can't have a cbuffer too small*/);
         SetConstantBufferSize(Atomic::VS, Atomic::SP_CAMERA, 288/*Shader Default*/);
         SetConstantBufferSize(Atomic::VS, Atomic::SP_ZONE, 96/*Shader Default*/);
-        SetConstantBufferSize(Atomic::VS, Atomic::SP_LIGHT, 304/*Shader Default*/);
+        SetConstantBufferSize(Atomic::VS, Atomic::SP_LIGHT, 512/*Shader Default*/);
         SetConstantBufferSize(Atomic::VS, Atomic::SP_MATERIAL, 8192/*Half of 16kb*/);
         SetConstantBufferSize(Atomic::VS, Atomic::SP_OBJECT, 6256 /*Shader Default*/);
         SetConstantBufferSize(Atomic::VS, Atomic::SP_CUSTOM, 64 /*Shader Default*/);
@@ -55,7 +55,7 @@ namespace REngine
         SetConstantBufferSize(Atomic::PS, Atomic::SP_FRAME, 64/*i can't have a cbuffer too small*/);
         SetConstantBufferSize(Atomic::PS, Atomic::SP_CAMERA, 48/*Shader Default*/);
         SetConstantBufferSize(Atomic::PS, Atomic::SP_ZONE, 80/*Shader Default*/);
-        SetConstantBufferSize(Atomic::PS, Atomic::SP_LIGHT, 328/*Shader Default*/);
+        SetConstantBufferSize(Atomic::PS, Atomic::SP_LIGHT, 512/*Shader Default*/);
         SetConstantBufferSize(Atomic::PS, Atomic::SP_MATERIAL, 8192/*Half of 16kb*/);
         SetConstantBufferSize(Atomic::PS, Atomic::SP_OBJECT, 6256 /*Shader Default*/);
         SetConstantBufferSize(Atomic::PS, Atomic::SP_CUSTOM, 64 /*Shader Default*/);

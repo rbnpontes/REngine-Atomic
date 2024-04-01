@@ -241,7 +241,9 @@ namespace REngine
             immutable_sampler.Desc.AddressV = s_address_modes_tbl[item.sampler.address_v];
             immutable_sampler.Desc.AddressW = s_address_modes_tbl[item.sampler.address_w];
             immutable_sampler.Desc.MaxAnisotropy = item.sampler.anisotropy;
-            immutable_sampler.Desc.ComparisonFunc = Diligent::COMPARISON_FUNC_EQUAL;
+            immutable_sampler.Desc.ComparisonFunc = Diligent::COMPARISON_FUNC_LESS_EQUAL;
+            immutable_sampler.Desc.MinLOD = -Atomic::M_INFINITY;
+            immutable_sampler.Desc.MaxLOD = Atomic::M_INFINITY;
 
             s_tmp_immutable_samplers[i] = immutable_sampler;
         }
