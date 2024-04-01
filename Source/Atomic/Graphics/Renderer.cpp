@@ -970,6 +970,9 @@ Texture2D* Renderer::GetShadowMap(Light* light, Camera* camera, unsigned viewWid
 
     while (retries)
     {
+        Atomic::String texture_name = "ShadowMap";
+        texture_name.AppendWithFormat("(%dx%d)", width, height);
+        newShadowMap->SetName(texture_name);
         if (!newShadowMap->SetSize(width, height, shadowMapFormat, shadowMapUsage, multiSample))
         {
             width >>= 1;

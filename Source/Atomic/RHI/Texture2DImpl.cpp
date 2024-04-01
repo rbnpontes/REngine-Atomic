@@ -17,6 +17,24 @@
 
 namespace Atomic
 {
+    static void texture2D_create_view(Diligent::ITexture* texture, Diligent::TEXTURE_VIEW_TYPE view_type, Diligent::ITextureView** view)
+    {
+        *view = texture->GetDefaultView(view_type);
+        if(*view)
+			return;
+
+    	Diligent::TextureViewDesc view_desc = {};
+        view_desc.Name = texture->GetDesc().Name;
+		view_desc.ViewType = view_type;
+		view_desc.Format = texture->GetDesc().Format;
+		view_desc.TextureDim = texture->GetDesc().Type;
+
+        if(texture->GetDesc().MiscFlags & Diligent::MISC_TEXTURE_FLAG_GENERATE_MIPS)
+            view_desc.Flags |= Diligent::TEXTURE_VIEW_FLAG_ALLOW_MIP_MAP_GENERATION;
+
+		texture->CreateView(view_desc, view);
+	}
+
     void Texture2D::OnDeviceLost()
     {
         // No-op on Direct3D11
@@ -40,7 +58,7 @@ namespace Atomic
 
         if (renderSurface_)
             renderSurface_->Release();
-        object_ = nullptr;
+        object_ = {};
     }
 
     bool Texture2D::SetData(unsigned level, int x, int y, int width, int height, const void* data)
@@ -441,7 +459,7 @@ namespace Atomic
         
         if (texture_desc.BindFlags & Diligent::BIND_SHADER_RESOURCE)
         {
-            view_ = resolve_texture_ ? resolve_texture_->GetDefaultView(Diligent::TEXTURE_VIEW_SHADER_RESOURCE) : texture->GetDefaultView(Diligent::TEXTURE_VIEW_SHADER_RESOURCE);
+            texture2D_create_view(resolve_texture_ ? resolve_texture_ : texture, Diligent::TEXTURE_VIEW_SHADER_RESOURCE, &view_);
             if (!view_)
             {
                 ATOMIC_LOGERROR("Failed to create shader resource view for texture");
@@ -451,7 +469,7 @@ namespace Atomic
         
         if (usage_ == TEXTURE_RENDERTARGET)
         {
-            renderSurface_->view_ = texture->GetDefaultView(Diligent::TEXTURE_VIEW_RENDER_TARGET);
+            texture2D_create_view(texture, Diligent::TEXTURE_VIEW_RENDER_TARGET, &renderSurface_->view_);
             if (!renderSurface_->view_)
             {
                 ATOMIC_LOGERROR("Failed to create rendertarget view for texture");
@@ -464,8 +482,8 @@ namespace Atomic
             view_desc.ViewType = Diligent::TEXTURE_VIEW_READ_ONLY_DEPTH_STENCIL;
             view_desc.Format = GetDSVFormat(texture_desc.Format);
             view_desc.TextureDim = Diligent::RESOURCE_DIM_TEX_2D;
-
-            renderSurface_->view_ = texture->GetDefaultView(view_desc.ViewType);
+            
+            texture2D_create_view(texture, Diligent::TEXTURE_VIEW_DEPTH_STENCIL, &renderSurface_->view_);
             if (!renderSurface_->view_)
             {
                 ATOMIC_LOGERROR("Failed to create depth-stencil view for texture");

@@ -59,9 +59,9 @@ Texture::Texture(Context* context) :
     ResourceWithMetadata(context),
     GPUObject(GetSubsystem<Graphics>()),
 #ifdef RENGINE_DILIGENT
-    view_(nullptr),
-    texture_(nullptr),
-    resolve_texture_(nullptr),
+    view_({}),
+    texture_({}),
+    resolve_texture_({}),
     format_(Diligent::TEX_FORMAT_UNKNOWN),
 #else
     shaderResourceView_(0),

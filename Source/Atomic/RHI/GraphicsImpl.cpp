@@ -2150,8 +2150,8 @@ namespace Atomic
 		deferredSupport_ = true;
 		hardwareShadowSupport_ = true;
 		instancingSupport_ = true;
-		shadowMapFormat_ = Diligent::TEX_FORMAT_R16_TYPELESS;
-		hiresShadowMapFormat_ = Diligent::TEX_FORMAT_R32_TYPELESS;
+		shadowMapFormat_ = Diligent::TEX_FORMAT_D16_UNORM;
+		hiresShadowMapFormat_ = Diligent::TEX_FORMAT_RG32_FLOAT;
 		dummyColorFormat_ = Diligent::TEX_FORMAT_UNKNOWN;
 		sRGBSupport_ = true;
 		sRGBWriteSupport_ = true;
