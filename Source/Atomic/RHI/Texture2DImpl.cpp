@@ -21,7 +21,10 @@ namespace Atomic
     {
         *view = texture->GetDefaultView(view_type);
         if(*view)
+        {
+	        texture->AddRef();
 			return;
+        }
 
     	Diligent::TextureViewDesc view_desc = {};
         view_desc.Name = texture->GetDesc().Name;
@@ -58,7 +61,10 @@ namespace Atomic
 
         if (renderSurface_)
             renderSurface_->Release();
-        object_ = {};
+
+        view_ = {};
+        resolve_texture_ = {};
+    	object_ = {};
     }
 
     bool Texture2D::SetData(unsigned level, int x, int y, int width, int height, const void* data)

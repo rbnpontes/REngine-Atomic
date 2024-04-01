@@ -2118,16 +2118,16 @@ namespace Atomic
 		if (impl_->IsInitialized())
 			impl_->Release();
 
-		if (impl_->InitDevice(desc))
+		if (!impl_->InitDevice(desc))
 		{
-			CheckFeatureSupport();
-			SetFlushGPU(flushGPU_);
-			multiSample_ = impl_->GetMultiSample();
-			return true;
+			ATOMIC_LOGERROR("Failed to initialize graphics driver.");
+			return false;
 		}
 
-		ATOMIC_LOGERROR("Failed to initialize graphics driver.");
-		return false;
+		CheckFeatureSupport();
+		SetFlushGPU(flushGPU_);
+		multiSample_ = impl_->GetMultiSample();
+		return true;
 	}
 
 	bool Graphics::UpdateSwapChain(int width, int height)

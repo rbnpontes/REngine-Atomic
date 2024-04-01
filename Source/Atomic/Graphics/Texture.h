@@ -214,7 +214,6 @@ protected:
 
 #if RENGINE_DILIGENT
     Diligent::RefCntAutoPtr<Diligent::ITextureView> view_;
-    Diligent::RefCntAutoPtr<Diligent::ITexture> texture_;
     Diligent::RefCntAutoPtr<Diligent::ITexture> resolve_texture_;
 #else
     union

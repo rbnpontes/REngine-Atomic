@@ -60,7 +60,6 @@ Texture::Texture(Context* context) :
     GPUObject(GetSubsystem<Graphics>()),
 #ifdef RENGINE_DILIGENT
     view_({}),
-    texture_({}),
     resolve_texture_({}),
     format_(Diligent::TEX_FORMAT_UNKNOWN),
 #else
