@@ -864,6 +864,7 @@ namespace Atomic
 			if (changed)
 			{
 				command.dirty_state |= static_cast<unsigned>(REngine::RenderCommandDirtyState::vertex_buffer);
+				command.dirty_state |= static_cast<unsigned>(REngine::RenderCommandDirtyState::vertex_decl);
 				REngine::default_render_command_set(command);
 			}
 		}
@@ -928,6 +929,7 @@ namespace Atomic
 
 			command.pipeline_state_info.vs_shader = vs;
 			command.dirty_state |= static_cast<unsigned>(REngine::RenderCommandDirtyState::pipeline);
+			command.dirty_state |= static_cast<unsigned>(REngine::RenderCommandDirtyState::vertex_decl);
 			vertexShader_ = vs;
 		}
 
@@ -2243,7 +2245,9 @@ namespace Atomic
 			command.dirty_state |= static_cast<unsigned>(REngine::RenderCommandDirtyState::pipeline);
 		}
 
-		if (command.dirty_state & static_cast<uint32_t>(REngine::RenderCommandDirtyState::vertex_buffer))
+		auto pipeline_hash = 0u;
+		auto vertex_decl = 0u;
+		if (command.dirty_state & static_cast<uint32_t>(REngine::RenderCommandDirtyState::vertex_decl))
 		{
 			uint32_t new_vertex_decl_hash = 0;
 			for (unsigned i = 0; i < MAX_VERTEX_STREAMS; ++i)
@@ -2256,6 +2260,7 @@ namespace Atomic
 			if (new_vertex_decl_hash)
 			{
 				CombineHash(new_vertex_decl_hash, vertexShader_->ToHash());
+				CombineHash(new_vertex_decl_hash, vertexShader_->GetElementHash());
 				auto vertex_decl = REngine::graphics_state_get_vertex_declaration(new_vertex_decl_hash);
 				if (!vertex_decl)
 				{
@@ -2270,8 +2275,14 @@ namespace Atomic
 				}
 
 				command.pipeline_state_info.input_layout = vertex_decl->GetInputLayoutDesc();
+				command.vertex_decl_hash = new_vertex_decl_hash;
 				command.dirty_state |= static_cast<unsigned>(REngine::RenderCommandDirtyState::pipeline);
+
+				pipeline_hash = pipeline_hash;
 			}
+			pipeline_hash = command.pipeline_state_info.ToHash();
+			vertex_decl = new_vertex_decl_hash;
+			command.dirty_state ^= static_cast<unsigned>(REngine::RenderCommandDirtyState::vertex_decl);
 		}
 
 		REngine::render_command_process(process_desc, command);

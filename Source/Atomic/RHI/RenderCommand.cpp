@@ -167,6 +167,7 @@ namespace REngine
         state.pipeline_hash = 0;
         state.pipeline_state = nullptr;
         state.pipeline_state_info = {};
+        state.vertex_decl_hash = 0;
         state.shader_resource_binding = nullptr;
 
         if(graphics->IsInitialized())

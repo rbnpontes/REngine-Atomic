@@ -27,9 +27,10 @@ namespace REngine
         scissor = 1 << 6,
         vertex_buffer = 1 << 7,
         index_buffer = 1 << 8,
+        vertex_decl = 1 << 9,
         all = render_targets | depth_stencil | pipeline
         | textures | shader_program | viewport
-        | scissor | vertex_buffer | index_buffer
+        | scissor | vertex_buffer | index_buffer | vertex_decl
     };
 
     enum class RenderCommandSkipFlags : unsigned
@@ -54,6 +55,7 @@ namespace REngine
         Diligent::RefCntAutoPtr<Diligent::IShaderResourceBinding> shader_resource_binding{nullptr};
 
         PipelineStateInfo pipeline_state_info{};
+        uint32_t vertex_decl_hash{};
 
         Atomic::IntRect viewport{Atomic::IntRect::ZERO};
         Atomic::IntRect scissor{Atomic::IntRect::ZERO};
