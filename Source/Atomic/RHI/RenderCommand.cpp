@@ -82,6 +82,10 @@ namespace REngine
         // bind render targets if is necessary
         context->SetRenderTargets(num_rts, s_tmp_render_targets, state.depth_stencil,
                                     Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
+        context->SetStencilRef(state.stencil_ref);
+
+        static constexpr float s_blend_factors[] = {1.0f, 1.0f, 1.0f, 1.0f};
+        context->SetBlendFactors(s_blend_factors);
         /*if (state.dirty_state & static_cast<unsigned>(RenderCommandDirtyState::render_targets) || state.dirty_state & static_cast<unsigned>(RenderCommandDirtyState::depth_stencil))
         {
             state.dirty_state ^= static_cast<unsigned>(RenderCommandDirtyState::render_targets);

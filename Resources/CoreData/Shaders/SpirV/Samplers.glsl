@@ -70,4 +70,14 @@
     {
         return dot(vec2(hwDepth, cDepthReconstruct.y / (hwDepth - cDepthReconstruct.x)), cDepthReconstruct.zw);
     }
+
+    float SampleShadow(sampler2DShadow textureSampler, vec4 uv) {
+        // Sample the texture
+        float sampledValue = texture(textureSampler, uv.xyz);
+        
+        // Compare the sampled value with the comparison value
+        if (sampledValue < uv.w)
+            return 0.0;
+        return 1.0;
+    }
 #endif

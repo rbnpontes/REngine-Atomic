@@ -217,6 +217,18 @@ float GetShadow(vec4 shadowPos)
     #elif defined(PCF_SHADOW)
         // Take four samples and average them
         // Note: in case of sampling a point light cube shadow, we optimize out the w divide as it has already been performed
+        // #ifndef POINTLIGHT
+        //     vec2 offsets = cShadowMapInvSize * shadowPos.w;
+        // #else
+        //     vec2 offsets = cShadowMapInvSize;
+        // #endif
+        // return cShadowIntensity.y + cShadowIntensity.x * (textureProj(sShadowMap, shadowPos) +
+        //     textureProj(sShadowMap, vec4(shadowPos.x + offsets.x, shadowPos.yzw)) +
+        //     textureProj(sShadowMap, vec4(shadowPos.x, shadowPos.y + offsets.y, shadowPos.zw)) +
+        //     textureProj(sShadowMap, vec4(shadowPos.xy + offsets.xy, shadowPos.zw)));
+        shadowPos.xyz /= shadowPos.w;
+        // Take four samples and average them
+        // Note: in case of sampling a point light cube shadow, we optimize out the w divide as it has already been performed
         #ifndef POINTLIGHT
             vec2 offsets = cShadowMapInvSize * shadowPos.w;
         #else
