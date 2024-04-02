@@ -1,5 +1,6 @@
 #pragma once
 #include <DiligentCore/Graphics/GraphicsEngine/interface/GraphicsTypes.h>
+#include <DiligentCore/Graphics/GraphicsEngine/interface/Texture.h>
 #include "../Core/Variant.h"
 #include "../Graphics/GraphicsDefs.h"
 
@@ -18,4 +19,7 @@ namespace REngine
     Atomic::TextureUnit utils_get_texture_unit(const Atomic::String& name);
     Atomic::StringVector utils_get_texture_unit_names(Atomic::TextureUnit unit);
     Diligent::SHADER_TYPE utils_get_shader_type(Atomic::ShaderType type);
+    bool utils_is_compressed_texture_format(Diligent::TEXTURE_FORMAT format);
+
+    Diligent::ITextureView* utils_create_texture_view(Diligent::ITexture* texture, Diligent::TEXTURE_VIEW_TYPE view_type);
 }

@@ -181,4 +181,33 @@ namespace REngine
     {
         return s_shader_types[type];
     }
+
+    bool utils_is_compressed_texture_format(Diligent::TEXTURE_FORMAT format)
+    {
+        using namespace Diligent;
+        return format >= TEX_FORMAT_BC1_TYPELESS && format <= TEX_FORMAT_BC5_SNORM;
+    }
+
+    Diligent::ITextureView* utils_create_texture_view(Diligent::ITexture* texture,
+                                                      Diligent::TEXTURE_VIEW_TYPE view_type)
+    {
+        Diligent::ITextureView* view = texture->GetDefaultView(view_type);
+        if(view)
+        {
+	        texture->AddRef();
+			return view;
+        }
+
+    	Diligent::TextureViewDesc view_desc = {};
+        view_desc.Name = texture->GetDesc().Name;
+		view_desc.ViewType = view_type;
+		view_desc.Format = texture->GetDesc().Format;
+		view_desc.TextureDim = texture->GetDesc().Type;
+
+        if(texture->GetDesc().MiscFlags & Diligent::MISC_TEXTURE_FLAG_GENERATE_MIPS)
+            view_desc.Flags |= Diligent::TEXTURE_VIEW_FLAG_ALLOW_MIP_MAP_GENERATION;
+
+		texture->CreateView(view_desc, &view);
+        return view;
+    }
 }

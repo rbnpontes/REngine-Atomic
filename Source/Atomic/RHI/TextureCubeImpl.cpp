@@ -1,15 +1,12 @@
 #include "../Precompiled.h"
 
-#include "../Core/Context.h"
 #include "../Core/Profiler.h"
 #include "../Graphics/Graphics.h"
-#include "../Graphics/GraphicsEvents.h"
 #include "../Graphics/Renderer.h"
 #include "../Graphics/TextureCube.h"
-#include "../IO/FileSystem.h"
 #include "../IO/Log.h"
 #include "../Resource/ResourceCache.h"
-#include "../Resource/XMLFile.h"
+#include "./DiligentUtils.h"
 
 #include "../DebugNew.h"
 
@@ -469,7 +466,10 @@ namespace Atomic
         // When multisample is specified, creating an actual cube texture will fail. Rather create as a 2D texture array
         // whose faces will be rendered to; only the resolve texture will be an actual cube texture
         if (multiSample_ < 2)
-            texture_desc.MiscFlags |= Diligent::MISC_TEXTURE_FLAG_GENERATE_MIPS;
+        {
+	        if(!REngine::utils_is_compressed_texture_format(texture_desc.Format))
+                texture_desc.MiscFlags |= Diligent::MISC_TEXTURE_FLAG_GENERATE_MIPS;
+        }
 
         Diligent::RefCntAutoPtr<Diligent::ITexture> texture;
         graphics_->GetImpl()->GetDevice()->CreateTexture(texture_desc, nullptr, &texture);
@@ -499,9 +499,7 @@ namespace Atomic
             }
         }
 
-        texture = resolve_texture_ ? resolve_texture_ : texture;
-        view_ = texture->GetDefaultView(Diligent::TEXTURE_VIEW_SHADER_RESOURCE);
-
+        view_ = REngine::utils_create_texture_view(resolve_texture_ ? resolve_texture_ : texture, Diligent::TEXTURE_VIEW_SHADER_RESOURCE);
         if(!view_)
         {
             ATOMIC_LOGERROR("Failed to create shader resource view for texture");

@@ -6,19 +6,28 @@
 #include "Lighting.glsl"
 #include "Fog.glsl"
 
-#ifdef NORMALMAP
-    varying vec4 vTexCoord;
-    varying vec4 vTangent;
-#else
-    varying vec2 vTexCoord;
+#if defined(NORMALMAP) || defined(DIFFMAP) || defined(SPECMAP) || defined(EMISSIVEMAP)
+    #define FEATURE_UV 1
+    #if defined(NORMALMAP)
+        varying vec4 vTexCoord;
+    #else
+        varying vec2 vTexCoord;
+    #endif
 #endif
-#ifdef NORMAL
+#if defined(NORMALMAP) || defined(PERPIXEL) || defined(PREPASS) || defined(DEFERRED)
+    #define FEATURE_NORMAL 1
     varying vec3 vNormal;
+#endif
+
+#ifdef NORMALMAP
+    #define FEATURE_UV 1
+    varying vec4 vTangent;
 #endif
 varying vec4 vWorldPos;
 #ifdef VERTEXCOLOR
     varying vec4 vColor;
 #endif
+
 #ifdef PERPIXEL
     #ifdef SHADOW
         #ifndef GL_ES
@@ -35,7 +44,10 @@ varying vec4 vWorldPos;
     #endif
 #else
     varying vec3 vVertexLight;
-    varying vec4 vScreenPos;
+    #ifdef MATERIAL
+        #define FEATURE_SCREENPOS 1
+        varying vec4 vScreenPos;
+    #endif
     #ifdef ENVCUBEMAP
         varying vec3 vReflectionVec;
     #endif
@@ -49,7 +61,7 @@ void VS()
     mat4 modelMatrix = iModelMatrix;
     vec3 worldPos = GetWorldPos(modelMatrix);
     gl_Position = GetClipPos(worldPos);
-    #ifdef NORMAL
+    #ifdef FEATURE_NORMAL
         vNormal = GetWorldNormal(modelMatrix);
     #endif
     vWorldPos = vec4(worldPos, GetDepth(gl_Position));
@@ -64,7 +76,9 @@ void VS()
         vTexCoord = vec4(GetTexCoord(iTexCoord), bitangent.xy);
         vTangent = vec4(tangent.xyz, bitangent.z);
     #else
-        vTexCoord = GetTexCoord(iTexCoord);
+        #ifdef FEATURE_UV
+            vTexCoord = GetTexCoord(iTexCoord);
+        #endif
     #endif
 
     #ifdef PERPIXEL
@@ -101,7 +115,9 @@ void VS()
                 vVertexLight += GetVertexLight(i, worldPos, vNormal) * cVertexLights[i * 3].rgb;
         #endif
         
-        vScreenPos = GetScreenPos(gl_Position);
+        #ifdef FEATURE_SCREENPOS
+            vScreenPos = GetScreenPos(gl_Position);
+        #endif
 
         #ifdef ENVCUBEMAP
             vReflectionVec = worldPos - cCameraPos;
@@ -139,7 +155,7 @@ void PS()
         mat3 tbn = mat3(vTangent.xyz, vec3(vTexCoord.zw, vTangent.w), vNormal);
         vec3 normal = normalize(tbn * DecodeNormal(texture2D(sNormalMap, vTexCoord.xy)));
     #else
-        #if NORMAL
+        #ifdef FEATURE_NORMAL
             vec3 normal = normalize(vNormal);
         #endif
     #endif

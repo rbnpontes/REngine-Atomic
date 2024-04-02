@@ -2247,7 +2247,7 @@ namespace Atomic
 
 		auto pipeline_hash = 0u;
 		auto vertex_decl = 0u;
-		if (command.dirty_state & static_cast<uint32_t>(REngine::RenderCommandDirtyState::vertex_decl))
+		if (command.dirty_state & static_cast<uint32_t>(REngine::RenderCommandDirtyState::vertex_decl) && vertexShader_)
 		{
 			uint32_t new_vertex_decl_hash = 0;
 			for (unsigned i = 0; i < MAX_VERTEX_STREAMS; ++i)

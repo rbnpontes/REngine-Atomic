@@ -81,7 +81,8 @@ Pass::Pass(const String& name) :
     shadersLoadedFrameNumber_(0),
     alphaToCoverage_(false),
     depthWrite_(true),
-    isDesktop_(false)
+    isDesktop_(false),
+    owner_(nullptr)
 {
     name_ = name.ToLower();
     index_ = Technique::GetPassIndex(name_);

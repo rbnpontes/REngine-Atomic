@@ -53,7 +53,7 @@
             mat3 cBillboardRot;
         #endif // BILLBOARD
         #ifdef SKINNED
-            uniform vec4 cSkinMatrices[MAXBONES*3];
+            vec4 cSkinMatrices[MAXBONES*3];
         #endif // SKINNED
     };
 
