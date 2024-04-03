@@ -208,7 +208,7 @@ float Chebyshev(vec2 Moments, float depth)
 #endif
 
 #ifndef GL_ES
-float GetShadow(vec4 shadowPos)
+half GetShadow(vec4 shadowPos)
 {
     #if defined(SIMPLE_SHADOW)
         // Take one sample
@@ -227,17 +227,15 @@ float GetShadow(vec4 shadowPos)
         //     textureProj(sShadowMap, vec4(shadowPos.x, shadowPos.y + offsets.y, shadowPos.zw)) +
         //     textureProj(sShadowMap, vec4(shadowPos.xy + offsets.xy, shadowPos.zw)));
         shadowPos.xyz /= shadowPos.w;
-        // Take four samples and average them
-        // Note: in case of sampling a point light cube shadow, we optimize out the w divide as it has already been performed
-        #ifndef POINTLIGHT
-            vec2 offsets = cShadowMapInvSize * shadowPos.w;
-        #else
-            vec2 offsets = cShadowMapInvSize;
-        #endif
+        vec2 offsets = cShadowMapInvSize * shadowPos.w;
+
+        // Add a small bias to the z coordinate of the shadow position
+        //shadowPos.z -= 0.00005;
+
         return cShadowIntensity.y + cShadowIntensity.x * (textureProj(sShadowMap, shadowPos) +
-            textureProj(sShadowMap, vec4(shadowPos.x + offsets.x, shadowPos.yzw)) +
-            textureProj(sShadowMap, vec4(shadowPos.x, shadowPos.y + offsets.y, shadowPos.zw)) +
-            textureProj(sShadowMap, vec4(shadowPos.xy + offsets.xy, shadowPos.zw)));
+                textureProj(sShadowMap, vec4(shadowPos.x + offsets.x, shadowPos.yzw)) +
+                textureProj(sShadowMap, vec4(shadowPos.x, shadowPos.y + offsets.y, shadowPos.zw)) +
+                textureProj(sShadowMap, vec4(shadowPos.xy + offsets.xy, shadowPos.zw)));
     #elif defined(VSM_SHADOW)
         vec2 samples = texture2D(sShadowMap, shadowPos.xy / shadowPos.w).rg; 
         return cShadowIntensity.y + cShadowIntensity.x * Chebyshev(samples, shadowPos.z / shadowPos.w);
@@ -299,14 +297,21 @@ float GetDirShadow(const vec4 iShadowPos[NUMCASCADES], float depth)
 {
     vec4 shadowPos;
 
-    if (depth < cShadowSplits.x)
-        shadowPos = iShadowPos[0];
-    else if (depth < cShadowSplits.y)
-        shadowPos = iShadowPos[1];
-    else if (depth < cShadowSplits.z)
-        shadowPos = iShadowPos[2];
-    else
-        shadowPos = iShadowPos[3];
+    // If split contains depth, all further splits contain it too
+    vec4 splitSelector = vec4(lessThan(vec4(depth), cShadowSplits));
+    // Subtract with offset to leave only one 1
+    splitSelector.yzw = max(splitSelector.yzw - splitSelector.xyz, 0.0);
+    shadowPos = iShadowPos[0] * splitSelector.x + iShadowPos[1] * splitSelector.y
+            + iShadowPos[2] * splitSelector.z + iShadowPos[3] * splitSelector.w;
+
+    // if (depth < cShadowSplits.x)
+    //     shadowPos = iShadowPos[0];
+    // else if (depth < cShadowSplits.y)
+    //     shadowPos = iShadowPos[1];
+    // else if (depth < cShadowSplits.z)
+    //     shadowPos = iShadowPos[2];
+    // else
+    //     shadowPos = iShadowPos[3];
         
     return GetDirShadowFade(GetShadow(shadowPos), depth);
 }

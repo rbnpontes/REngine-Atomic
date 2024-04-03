@@ -300,10 +300,10 @@ namespace REngine
             stencil_cmp_function];
 
         unsigned depth_bits = 24;
-        auto is_not_opengl = driver->GetBackend() == Atomic::GraphicsBackend::OpenGL;
+        auto is_not_opengl = driver->GetBackend() != Atomic::GraphicsBackend::OpenGL;
         if (info.output.depth_stencil_format == Diligent::TEX_FORMAT_D16_UNORM)
             depth_bits = 16;
-        const int scaled_depth_bias = is_not_opengl
+    	const int scaled_depth_bias = is_not_opengl
                                           ? static_cast<int>(info.constant_depth_bias * static_cast<float>((1 <<
                                               depth_bits)))
                                           : 0;
@@ -313,6 +313,7 @@ namespace REngine
         ci.GraphicsPipeline.RasterizerDesc.CullMode = Diligent::CULL_MODE_NONE;
     	ci.GraphicsPipeline.RasterizerDesc.FrontCounterClockwise = false;
         ci.GraphicsPipeline.RasterizerDesc.DepthBias = scaled_depth_bias;
+        ci.GraphicsPipeline.RasterizerDesc.DepthBiasClamp = M_INFINITY;
         ci.GraphicsPipeline.RasterizerDesc.SlopeScaledDepthBias = info.slope_scaled_depth_bias;
         ci.GraphicsPipeline.RasterizerDesc.DepthClipEnable = true;
         ci.GraphicsPipeline.RasterizerDesc.ScissorEnable = info.scissor_test_enabled;

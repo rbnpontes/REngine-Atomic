@@ -1,4 +1,6 @@
-#define GL3 1
+precision highp float;
+
+#include "BasicConfigs.glsl"
 #include "Uniforms.glsl"
 #include "Samplers.glsl"
 #include "Transform.glsl"

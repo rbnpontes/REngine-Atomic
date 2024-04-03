@@ -19,7 +19,7 @@
         #ifdef VSM_SHADOW
             uniform sampler2D sShadowMap;
         #else
-            uniform sampler2DShadow sShadowMap;
+            uniform highp sampler2DShadow sShadowMap;
         #endif
         uniform samplerCube sFaceSelectCubeMap;
         uniform samplerCube sIndirectionCubeMap;
@@ -71,13 +71,12 @@
         return dot(vec2(hwDepth, cDepthReconstruct.y / (hwDepth - cDepthReconstruct.x)), cDepthReconstruct.zw);
     }
 
-    float SampleShadow(sampler2DShadow textureSampler, vec4 uv) {
-        // Sample the texture
-        float sampledValue = texture(textureSampler, uv.xyz);
-        
-        // Compare the sampled value with the comparison value
-        if (sampledValue < uv.w)
-            return 0.0;
-        return 1.0;
+    /// Sample shadow map texture at given 4-coordinate
+    mediump float SampleShadow(vec4 shadowPos)
+    {
+        return textureProj(sShadowMap, shadowPos);
     }
+
+    #define SampleShadowOffset(shadowPos, offset) \
+        textureProjOffset(sShadowMap, (shadowPos), (offset))
 #endif

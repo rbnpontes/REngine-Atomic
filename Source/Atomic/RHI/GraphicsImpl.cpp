@@ -1446,9 +1446,6 @@ namespace Atomic
 
 	void Graphics::SetDepthBias(float constantBias, float slopeScaledBias)
 	{
-		if (constantBias == constantDepthBias_ || slopeScaledDepthBias_ == slopeScaledBias)
-			return;
-
 		auto command = REngine::default_render_command_get();
 		command.pipeline_state_info.constant_depth_bias = constantDepthBias_ = constantBias;
 		command.pipeline_state_info.slope_scaled_depth_bias = slopeScaledDepthBias_ = slopeScaledBias;
