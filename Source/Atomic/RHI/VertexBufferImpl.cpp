@@ -120,6 +120,7 @@ bool VertexBuffer::SetDataRange(const void* data, unsigned start, unsigned count
             data_offset + data_size,
             data,
             Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
+        return true;
     }
     
     void* hw_data = MapBuffer(start, count, discard);

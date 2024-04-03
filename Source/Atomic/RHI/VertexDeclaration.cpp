@@ -1,5 +1,6 @@
 #include "./VertexDeclaration.h"
 #include "../Graphics/VertexBuffer.h"
+#include <Windows.h>
 
 namespace REngine
 {
@@ -29,16 +30,16 @@ namespace REngine
 				uint32_t hash = vertex_element.index_;
 				Atomic::CombineHash(hash, vertex_element.semantic_);
 
-				auto input_element = shader_input_elements_map.Find(hash);
+				const auto& input_element_it = shader_input_elements_map.Find(hash);
 
 				// If the shader doesn't have the input element, skip it
-				if(input_element == shader_input_elements_map.End())
+				if(input_element_it == shader_input_elements_map.End())
 					continue;
-
+				const auto& input_element = input_element_it->second_;
 				auto& element = input_layout_desc_.elements[input_layout_desc_.num_elements];
 				element.buffer_stride = vertex_buffer->GetVertexSize();
 				element.buffer_index = buffer_idx;
-				element.input_index = input_element->second_.index;
+				element.input_index = input_element.index;
 				element.element_offset = vertex_element.offset_;
 				element.element_type = vertex_element.type_;
 				element.instance_step_rate = vertex_element.perInstance_ ? 1 : 0;

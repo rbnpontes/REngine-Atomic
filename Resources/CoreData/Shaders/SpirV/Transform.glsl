@@ -8,7 +8,7 @@
     in vec2 iTexCoord1;
     in vec4 iTangent;
     in vec4 iBlendWeights;
-    in vec4 iBlendIndices;
+    in ivec4 iBlendIndices;
     in vec3 iCubeTexCoord;
     in vec4 iCubeTexCoord1;
     #ifdef INSTANCED
@@ -19,9 +19,9 @@
     in float iObjectIndex;
     
     #ifdef SKINNED
-        mat4 GetSkinMatrix(vec4 blendWeights, vec4 blendIndices)
+        mat4 GetSkinMatrix(vec4 blendWeights, ivec4 blendIndices)
         {
-            ivec4 idx = ivec4(blendIndices) * 3;
+            ivec4 idx = blendIndices * 3;
             const vec4 lastColumn = vec4(0.0, 0.0, 0.0, 1.0);
             return mat4(cSkinMatrices[idx.x], cSkinMatrices[idx.x + 1], cSkinMatrices[idx.x + 2], lastColumn) * blendWeights.x +
                 mat4(cSkinMatrices[idx.y], cSkinMatrices[idx.y + 1], cSkinMatrices[idx.y + 2], lastColumn) * blendWeights.y +
@@ -69,13 +69,11 @@
         vec3 GetBillboardPos(vec4 iPos, vec2 iSize, mat4 modelMatrix)
         {
             return (iPos * modelMatrix).xyz + vec3(iSize.x, iSize.y, 0.0) * cBillboardRot;
-            // return (modelMatrix * iPos).xyz + cBillboardRot * vec3(iSize.x, iSize.y, 0.0);
         }
         
         vec3 GetBillboardNormal()
         {
             return vec3(-cBillboardRot[0][2], -cBillboardRot[1][2], -cBillboardRot[2][2]);
-            // return vec3(-cBillboardRot[2][0], -cBillboardRot[2][1], -cBillboardRot[2][2]);
         }
     #endif
     
