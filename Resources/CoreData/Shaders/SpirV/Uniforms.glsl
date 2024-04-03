@@ -1,11 +1,11 @@
 #ifdef COMPILEVS
-    layout(binding=0) uniform FrameVS
+    layout(std140) uniform FrameVS
     {
         float cDeltaTime;
         float cElapsedTime;
     };
     
-    layout(binding=1) uniform CameraVS
+    layout(std140) uniform CameraVS
     {
         vec3 cCameraPos;
         float cNearClip;
@@ -19,14 +19,14 @@
         vec4 cClipPlane;
     };
     
-    layout(binding=2) uniform ZoneVS
+    layout(std140) uniform ZoneVS
     {
         vec3 cAmbientStartColor;
         vec3 cAmbientEndColor;
         mat4 cZone;
     };
     
-    layout(binding=3) uniform LightVS
+    layout(std140) uniform LightVS
     {
         vec4 cLightPos;
         vec3 cLightDir;
@@ -39,7 +39,7 @@
     };
     
     #ifndef CUSTOM_MATERIAL_CBUFFER
-        layout(binding=5) uniform MaterialVS
+        layout(std140) uniform MaterialVS
         {
             vec4 cUOffset;
             vec4 cVOffset;

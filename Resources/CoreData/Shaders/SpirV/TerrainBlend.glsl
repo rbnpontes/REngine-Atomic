@@ -1,3 +1,4 @@
+#include "BasicConfigs.glsl"
 #include "Uniforms.glsl"
 #include "Samplers.glsl"
 #include "Transform.glsl"
@@ -6,6 +7,12 @@
 #include "Fog.glsl"
 
 varying vec2 vTexCoord;
+
+#ifdef COMPILEVS
+    layout(std140) uniform CustomVS {
+        vec2 cDetailTiling;
+    };
+#endif
 
 #ifndef GL_ES
 varying vec2 vDetailTexCoord;
@@ -40,16 +47,10 @@ varying vec4 vWorldPos;
     #endif
 #endif
 
-uniform sampler2D sWeightMap0;
-uniform sampler2D sDetailMap1;
-uniform sampler2D sDetailMap2;
-uniform sampler2D sDetailMap3;
-
-#ifndef GL_ES
-uniform vec2 cDetailTiling;
-#else
-uniform mediump vec2 cDetailTiling;
-#endif
+#define sWeightMap0 sDiffMap
+#define sDetailMap1 sNormalMap
+#define sDetailMap2 sSpecMap
+#define sDetailMap3 sEmissiveMap
 
 void VS()
 {
