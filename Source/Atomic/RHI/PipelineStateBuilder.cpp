@@ -261,20 +261,17 @@ namespace REngine
         ci.GraphicsPipeline.BlendDesc.AlphaToCoverageEnable = info.alpha_to_coverage_enabled;
         ci.GraphicsPipeline.BlendDesc.IndependentBlendEnable = false;
 
-        if (info.output.num_rts > 0)
-        {
-            const auto blend_mode = info.blend_mode;
-            ci.GraphicsPipeline.BlendDesc.RenderTargets[0].BlendEnable = s_is_blend_enabled_tbl[blend_mode];
-            ci.GraphicsPipeline.BlendDesc.RenderTargets[0].SrcBlend = s_source_blends_tbl[blend_mode];
-            ci.GraphicsPipeline.BlendDesc.RenderTargets[0].DestBlend = s_dest_blends_tbl[blend_mode];
-            ci.GraphicsPipeline.BlendDesc.RenderTargets[0].BlendOp = s_blend_operations_tbl[blend_mode];
-            ci.GraphicsPipeline.BlendDesc.RenderTargets[0].SrcBlendAlpha = s_source_alpha_blends_tbl[blend_mode];
-            ci.GraphicsPipeline.BlendDesc.RenderTargets[0].DestBlendAlpha = s_dest_alpha_blends_tbl[blend_mode];
-            ci.GraphicsPipeline.BlendDesc.RenderTargets[0].BlendOpAlpha = s_blend_operations_tbl[blend_mode];
-            ci.GraphicsPipeline.BlendDesc.RenderTargets[0].RenderTargetWriteMask = info.color_write_enabled
-                ? Diligent::COLOR_MASK_ALL
-                : Diligent::COLOR_MASK_NONE;
-        }
+        const auto blend_mode = info.blend_mode;
+        ci.GraphicsPipeline.BlendDesc.RenderTargets[0].BlendEnable = s_is_blend_enabled_tbl[blend_mode];
+        ci.GraphicsPipeline.BlendDesc.RenderTargets[0].SrcBlend = s_source_blends_tbl[blend_mode];
+        ci.GraphicsPipeline.BlendDesc.RenderTargets[0].DestBlend = s_dest_blends_tbl[blend_mode];
+        ci.GraphicsPipeline.BlendDesc.RenderTargets[0].BlendOp = s_blend_operations_tbl[blend_mode];
+        ci.GraphicsPipeline.BlendDesc.RenderTargets[0].SrcBlendAlpha = s_source_alpha_blends_tbl[blend_mode];
+        ci.GraphicsPipeline.BlendDesc.RenderTargets[0].DestBlendAlpha = s_dest_alpha_blends_tbl[blend_mode];
+        ci.GraphicsPipeline.BlendDesc.RenderTargets[0].BlendOpAlpha = s_blend_operations_tbl[blend_mode];
+        ci.GraphicsPipeline.BlendDesc.RenderTargets[0].RenderTargetWriteMask = info.color_write_enabled
+            ? Diligent::COLOR_MASK_ALL
+            : Diligent::COLOR_MASK_NONE;
 
         ci.GraphicsPipeline.DepthStencilDesc.DepthEnable = true;
         ci.GraphicsPipeline.DepthStencilDesc.DepthWriteEnable = info.depth_write_enabled;
@@ -310,7 +307,6 @@ namespace REngine
 
         ci.GraphicsPipeline.RasterizerDesc.FillMode = s_fill_mode_tbl[info.fill_mode];
         ci.GraphicsPipeline.RasterizerDesc.CullMode = s_cull_mode_tbl[info.cull_mode];
-        ci.GraphicsPipeline.RasterizerDesc.CullMode = Diligent::CULL_MODE_NONE;
     	ci.GraphicsPipeline.RasterizerDesc.FrontCounterClockwise = false;
         ci.GraphicsPipeline.RasterizerDesc.DepthBias = scaled_depth_bias;
         ci.GraphicsPipeline.RasterizerDesc.DepthBiasClamp = M_INFINITY;

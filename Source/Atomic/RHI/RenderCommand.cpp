@@ -84,7 +84,7 @@ namespace REngine
                                     Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
         context->SetStencilRef(state.stencil_ref);
 
-        static constexpr float s_blend_factors[] = {1.0f, 1.0f, 1.0f, 1.0f};
+        static constexpr float s_blend_factors[] = {.0f, .0f, .0f, .0f};
         context->SetBlendFactors(s_blend_factors);
         /*if (state.dirty_state & static_cast<unsigned>(RenderCommandDirtyState::render_targets) || state.dirty_state & static_cast<unsigned>(RenderCommandDirtyState::depth_stencil))
         {

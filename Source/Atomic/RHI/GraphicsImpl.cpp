@@ -548,59 +548,63 @@ namespace Atomic
 
 	bool Graphics::ResolveToTexture(Texture2D* destination, const IntRect& viewport)
 	{
-		throw std::exception("Not implemented");
-		// if (!destination || !destination->GetRenderSurface())
-		//     return false;
-		//
-		// ATOMIC_PROFILE(ResolveToTexture);
-		//
-		// IntRect vpCopy = viewport;
-		// if (vpCopy.right_ <= vpCopy.left_)
-		//     vpCopy.right_ = vpCopy.left_ + 1;
-		// if (vpCopy.bottom_ <= vpCopy.top_)
-		//     vpCopy.bottom_ = vpCopy.top_ + 1;
-		//
-		// D3D11_BOX srcBox;
-		// srcBox.left = Clamp(vpCopy.left_, 0, width_);
-		// srcBox.top = Clamp(vpCopy.top_, 0, height_);
-		// srcBox.right = Clamp(vpCopy.right_, 0, width_);
-		// srcBox.bottom = Clamp(vpCopy.bottom_, 0, height_);
-		// srcBox.front = 0;
-		// srcBox.back = 1;
-		//
-		// ID3D11Resource* source = 0;
-		// bool resolve = multiSample_ > 1;
-		// impl_->defaultRenderTargetView_->GetResource(&source);
-		//
-		// if (!resolve)
-		// {
-		//     if (!srcBox.left && !srcBox.top && srcBox.right == width_ && srcBox.bottom == height_)
-		//         impl_->deviceContext_->CopyResource((ID3D11Resource*)destination->GetGPUObject(), source);
-		//     else
-		//         impl_->deviceContext_->CopySubresourceRegion((ID3D11Resource*)destination->GetGPUObject(), 0, 0, 0, 0, source, 0, &srcBox);
-		// }
-		// else
-		// {
-		//     if (!srcBox.left && !srcBox.top && srcBox.right == width_ && srcBox.bottom == height_)
-		//     {
-		//         impl_->deviceContext_->ResolveSubresource((ID3D11Resource*)destination->GetGPUObject(), 0, source, 0, (DXGI_FORMAT)
-		//             destination->GetFormat());
-		//     }
-		//     else
-		//     {
-		//         CreateResolveTexture();
-		//
-		//         if (impl_->resolveTexture_)
-		//         {
-		//             impl_->deviceContext_->ResolveSubresource(impl_->resolveTexture_, 0, source, 0, DXGI_FORMAT_R8G8B8A8_UNORM);
-		//             impl_->deviceContext_->CopySubresourceRegion((ID3D11Resource*)destination->GetGPUObject(), 0, 0, 0, 0, impl_->resolveTexture_, 0, &srcBox);
-		//         }
-		//     }
-		// }
-		//
-		// source->Release();
-		//
-		// return true;
+		if (!destination || !destination->GetRenderSurface())
+			return false;
+
+		ATOMIC_PROFILE(ResolveToTexture);
+
+		IntRect vpCopy = viewport;
+		if (vpCopy.right_ <= vpCopy.left_)
+			vpCopy.right_ = vpCopy.left_ + 1;
+		if (vpCopy.bottom_ <= vpCopy.top_)
+			vpCopy.bottom_ = vpCopy.top_ + 1;
+
+		Diligent::Box src_box;
+		src_box.MinX = Clamp(vpCopy.left_, 0, width_);
+		src_box.MinY = Clamp(vpCopy.top_, 0, height_);
+		src_box.MaxX = Clamp(vpCopy.right_, 0, width_);
+		src_box.MaxY = Clamp(vpCopy.bottom_, 0, height_);
+		src_box.MinZ = 0;
+		src_box.MaxZ = 1;
+
+		// TODO: enable this when MSAA is available
+		//bool resolve = multiSample_ > 1;
+		bool resolve = false;
+		auto source = impl_->GetSwapChain()->GetCurrentBackBufferRTV();
+		auto destination_tex = destination->GetGPUObject().Cast<Diligent::ITexture>(Diligent::IID_Texture);
+
+		if (!resolve)
+		{
+			Diligent::CopyTextureAttribs copy_attribs = {};
+			copy_attribs.pSrcTexture = source->GetTexture();
+			copy_attribs.pSrcBox = &src_box;
+			copy_attribs.pDstTexture = destination_tex;
+			impl_->GetDeviceContext()->CopyTexture(copy_attribs);
+		}
+		else
+		{
+			Diligent::ResolveTextureSubresourceAttribs resolve_attribs = {};
+
+			// if it is resolving to fullscreen, just resolve directly to the destination texture
+			// otherwise we must need an auxiliary texture to resolve to
+			if (!src_box.MinX && !src_box.MinY && src_box.MaxX == width_ && src_box.MaxY == height_)
+			{
+				impl_->GetDeviceContext()->ResolveTextureSubresource(source->GetTexture(), destination_tex, resolve_attribs);
+			}
+			else
+			{
+				throw std::exception("Not implemented. You must implement MSAA first");
+				/*CreateResolveTexture();
+
+				if (impl_->resolveTexture_)
+				{
+					impl_->deviceContext_->ResolveSubresource(impl_->resolveTexture_, 0, source, 0, DXGI_FORMAT_R8G8B8A8_UNORM);
+					impl_->deviceContext_->CopySubresourceRegion((ID3D11Resource*)destination->GetGPUObject(), 0, 0, 0, 0, impl_->resolveTexture_, 0, &srcBox);
+				}*/
+			}
+		}
+
+		return true;
 	}
 
 	bool Graphics::ResolveToTexture(Texture2D* texture)
@@ -731,7 +735,7 @@ namespace Atomic
 			command.dirty_state |= static_cast<uint32_t>(REngine::RenderCommandDirtyState::pipeline);
 			REngine::default_render_command_set(command);
 		}
-		
+
 		PrepareDraw();
 
 		Diligent::DrawIndexedAttribs draw_attribs = {};
@@ -1425,8 +1429,6 @@ namespace Atomic
 
 	void Graphics::SetColorWrite(bool enable)
 	{
-		if (colorWrite_ == enable)
-			return;
 		auto command = REngine::default_render_command_get();
 		command.pipeline_state_info.color_write_enabled = colorWrite_ = enable;
 		command.dirty_state |= static_cast<unsigned>(REngine::RenderCommandDirtyState::pipeline);
@@ -1435,9 +1437,6 @@ namespace Atomic
 
 	void Graphics::SetCullMode(CullMode mode)
 	{
-		if (cullMode_ == mode)
-			return;
-
 		auto command = REngine::default_render_command_get();
 		command.pipeline_state_info.cull_mode = cullMode_ = mode;
 		command.dirty_state |= static_cast<unsigned>(REngine::RenderCommandDirtyState::pipeline);
@@ -1872,13 +1871,13 @@ namespace Atomic
 			REngine::graphics_state_release_shader_programs();
 			ATOMIC_LOGINFOF("Released (%d) Shader Programs", cache_count);
 		}
-		if(flags & GRAPHICS_CLEAR_VERTEX_DECLARATIONS)
+		if (flags & GRAPHICS_CLEAR_VERTEX_DECLARATIONS)
 		{
 			const auto cache_count = REngine::graphics_state_vertex_declarations_count();
 			REngine::graphics_state_release_vertex_declarations();
 			ATOMIC_LOGINFOF("Released (%d) Vertex Declarations", cache_count);
 		}
-		if(flags & GRAPHICS_CLEAR_CONSTANT_BUFFERS)
+		if (flags & GRAPHICS_CLEAR_CONSTANT_BUFFERS)
 		{
 			const uint32_t cache_count = static_cast<uint32_t>(MAX_SHADER_PARAMETER_GROUPS) * static_cast<uint32_t>(MAX_SHADER_TYPES) + REngine::graphics_state_constant_buffers_count();
 			impl_->ClearConstantBuffers();
@@ -2179,9 +2178,9 @@ namespace Atomic
 			auto depth_stencil = (depthStencil_ && depthStencil_->GetUsage() == TEXTURE_DEPTHSTENCIL) ?
 				depthStencil_->GetRenderTargetView() : impl_->GetSwapChain()->GetDepthBufferDSV();
 
-			if(!depthWrite_ && depthStencil_ && depthStencil_->GetReadOnlyView())
+			if (!depthWrite_ && depthStencil_ && depthStencil_->GetReadOnlyView())
 				depth_stencil = depthStencil_->GetReadOnlyView();
-			else if(renderTargets_[0] && !depthStencil_)
+			else if (renderTargets_[0] && !depthStencil_)
 			{
 				if (renderTargets_[0]->GetWidth() < GetWidth() || renderTargets_[0]->GetHeight() < GetHeight())
 					depth_stencil = nullptr;
@@ -2340,4 +2339,4 @@ namespace Atomic
 
 
 	// ATOMIC END
-	}
+}

@@ -10,7 +10,7 @@ vec4 GetScreenPos(vec4 clipPos)
 {
     return vec4(
         clipPos.x * cGBufferOffsets.z + cGBufferOffsets.x * clipPos.w,
-        clipPos.y * cGBufferOffsets.w + cGBufferOffsets.y * clipPos.w,
+        -clipPos.y * cGBufferOffsets.w + cGBufferOffsets.y * clipPos.w,
         0.0,
         clipPos.w);
 }

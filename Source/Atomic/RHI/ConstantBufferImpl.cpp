@@ -78,5 +78,6 @@ namespace Atomic
 
         memcpy(mapped_data, shadowData_.Get(), size_);
         graphics_->GetImpl()->GetDeviceContext()->UnmapBuffer(buffer, MAP_WRITE);
+        dirty_ = false;
     }
 }

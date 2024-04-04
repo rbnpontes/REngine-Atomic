@@ -5,26 +5,33 @@
 #include "Fog.glsl"
 
 #ifndef GL_ES
-varying vec4 vScreenPos;
-varying vec2 vReflectUV;
-varying vec2 vWaterUV;
-varying vec4 vEyeVec;
+    varying vec4 vScreenPos;
+    varying vec2 vReflectUV;
+    varying vec2 vWaterUV;
+    varying vec4 vEyeVec;
 #else
-varying highp vec4 vScreenPos;
-varying highp vec2 vReflectUV;
-varying highp vec2 vWaterUV;
-varying highp vec4 vEyeVec;
+    varying highp vec4 vScreenPos;
+    varying highp vec2 vReflectUV;
+    varying highp vec2 vWaterUV;
+    varying highp vec4 vEyeVec;
 #endif
+
 varying vec3 vNormal;
 
 #ifdef COMPILEVS
-uniform vec2 cNoiseSpeed;
-uniform float cNoiseTiling;
+    layout(std140) uniform CustomVS 
+    {
+        vec2 cNoiseSpeed;
+        float cNoiseTiling;
+    };
 #endif
 #ifdef COMPILEPS
-uniform float cNoiseStrength;
-uniform float cFresnelPower;
-uniform vec3 cWaterTint;
+    layout(std140) uniform CustomPS 
+    {
+        float cNoiseStrength;
+        float cFresnelPower;
+        vec3 cWaterTint;
+    };
 #endif
 
 void VS()
