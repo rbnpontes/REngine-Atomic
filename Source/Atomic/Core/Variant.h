@@ -108,6 +108,7 @@ typedef Vector<Variant> VariantVector;
 
 /// Vector of strings.
 typedef Vector<String> StringVector;
+static StringVector STRING_VECTOR_EMPTY = StringVector(0);
 
 /// Map of variants.
 typedef HashMap<StringHash, Variant> VariantMap;

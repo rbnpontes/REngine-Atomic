@@ -168,13 +168,11 @@ namespace REngine
         return it != s_texture_unit_map.End() ? it->second_ : MAX_TEXTURE_UNITS;
     }
 
-    Atomic::StringVector utils_get_texture_unit_names(Atomic::TextureUnit unit)
+    const Atomic::StringVector& utils_get_texture_unit_names(Atomic::TextureUnit unit)
     {
         if (unit >= MAX_TEXTURE_UNITS)
             return {};
-
-        const auto names = s_texture_unit_names[unit];
-        return names;
+        return s_texture_unit_names[unit];
     }
 
     Diligent::SHADER_TYPE utils_get_shader_type(Atomic::ShaderType type)

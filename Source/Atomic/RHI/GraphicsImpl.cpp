@@ -2076,6 +2076,7 @@ namespace Atomic
 		// setup depth stencil
 		if (command->dirty_state & static_cast<unsigned>(REngine::RenderCommandDirtyState::depth_stencil))
 		{
+			ATOMIC_PROFILE(PrepareDraw::SetupDepthStencil);
 			auto depth_stencil = (depthStencil_ && depthStencil_->GetUsage() == TEXTURE_DEPTHSTENCIL) ?
 				depthStencil_->GetRenderTargetView() : impl_->GetSwapChain()->GetDepthBufferDSV();
 
@@ -2094,7 +2095,7 @@ namespace Atomic
 		// setup render targets
 		if (command->dirty_state & static_cast<unsigned>(REngine::RenderCommandDirtyState::render_targets))
 		{
-
+			ATOMIC_PROFILE(PrepareDraw::SetupRenderTargets)
 			unsigned num_rts = 0;
 			for (unsigned i = 0; i < MAX_RENDERTARGETS; ++i)
 			{
@@ -2118,34 +2119,30 @@ namespace Atomic
 		// setup textures
 		if (command->dirty_state & static_cast<unsigned>(REngine::RenderCommandDirtyState::textures) && command->shader_program)
 		{
+			ATOMIC_PROFILE(PrepareDraw::SetupTextures);
 			unsigned next_tex_idx = 0;
 			for (unsigned i = 0; i < MAX_TEXTURE_UNITS; ++i)
 			{
 				if (textures_[i] == nullptr)
 					continue;
 
-				REngine::SamplerDesc sampler_desc;
-				textures_[i]->GetSamplerDesc(sampler_desc);
-
-				const auto tex_names = REngine::utils_get_texture_unit_names(static_cast<TextureUnit>(i));
-				for (const auto& tex_name : tex_names)
-				{
-					if (!command->shader_program->IsInUseTexture(tex_name))
-						continue;
-					command->textures[tex_name] = textures_[i]->GetShaderResourceView();
-					command->pipeline_state_info.immutable_samplers[next_tex_idx].name = tex_name;
-					command->pipeline_state_info.immutable_samplers[next_tex_idx].sampler = sampler_desc;
-					++next_tex_idx;
-				}
+				const auto sampler = command->shader_program->GetSampler(static_cast<TextureUnit>(i));
+				if (!sampler)
+					continue;
+				command->textures[sampler->name] = textures_[i]->GetShaderResourceView();
+				command->pipeline_state_info.immutable_samplers[next_tex_idx].name = sampler->name;
+				textures_[i]->GetSamplerDesc(command->pipeline_state_info.immutable_samplers[next_tex_idx].sampler);
+				++next_tex_idx;
 			}
 			command->pipeline_state_info.num_samplers = next_tex_idx;
 			command->dirty_state |= static_cast<unsigned>(REngine::RenderCommandDirtyState::pipeline);
 		}
 
-		auto pipeline_hash = 0u;
-		auto vertex_decl = 0u;
+		/*auto pipeline_hash = 0u;
+		auto vertex_decl = 0u;*/
 		if (command->dirty_state & static_cast<uint32_t>(REngine::RenderCommandDirtyState::vertex_decl) && vertexShader_)
 		{
+			ATOMIC_PROFILE(PrepareDraw::SetupVertexDecl);
 			uint32_t new_vertex_decl_hash = 0;
 			for (unsigned i = 0; i < MAX_VERTEX_STREAMS; ++i)
 			{
@@ -2175,16 +2172,17 @@ namespace Atomic
 				command->vertex_decl_hash = new_vertex_decl_hash;
 				command->dirty_state |= static_cast<unsigned>(REngine::RenderCommandDirtyState::pipeline);
 
-				pipeline_hash = pipeline_hash;
+				//pipeline_hash = pipeline_hash;
 			}
-			pipeline_hash = command->pipeline_state_info.ToHash();
-			vertex_decl = new_vertex_decl_hash;
+			/*pipeline_hash = command->pipeline_state_info.ToHash();
+			vertex_decl = new_vertex_decl_hash;*/
 			command->dirty_state ^= static_cast<unsigned>(REngine::RenderCommandDirtyState::vertex_decl);
 		}
 
-		REngine::render_command_process(process_desc, command);
-
-		impl_->UploadBufferChanges();
+		{
+			ATOMIC_PROFILE(PrepareDraw::ProcessRenderCmd);
+			REngine::render_command_process(process_desc, command);
+		}
 	}
 
 	void Graphics::CreateResolveTexture()
