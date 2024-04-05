@@ -41,5 +41,12 @@ namespace REngine
         Atomic::HashMap<Atomic::StringHash, Atomic::ShaderParameter> parameters_{};
         Atomic::HashMap<Atomic::StringHash, Atomic::String> used_textures_{};
         unsigned hash_{0};
+
+#if ATOMIC_DEBUG
+        // the properties is used only for debug purposes
+        Atomic::String vs_shader_name_;
+        Atomic::String ps_shader_name_;
+#endif
+
     };
 }

@@ -1,6 +1,7 @@
 #include "./ShaderProgram.h"
 #include "../Graphics/ShaderVariation.h"
 #include "./DriverInstance.h"
+#include <Windows.h>
 
 namespace REngine
 {
@@ -13,6 +14,12 @@ namespace REngine
         assert(creation_desc.vertex_shader && creation_desc.vertex_shader,
                "Vertex Shader and Pixel Shader is Required");
 
+#if ATOMIC_DEBUG
+        vs_shader_name_ = creation_desc.vertex_shader->GetName();
+        ps_shader_name_ = creation_desc.pixel_shader->GetName();
+#endif
+        /*if (creation_desc.vertex_shader->GetName().Contains("Water"))
+            ::DebugBreak();*/
         CollectShaderParameters(creation_desc.vertex_shader);
         CollectShaderParameters(creation_desc.pixel_shader);
         CollectShaderTextures(creation_desc.vertex_shader);

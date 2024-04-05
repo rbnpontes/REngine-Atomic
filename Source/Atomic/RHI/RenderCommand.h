@@ -39,6 +39,12 @@ namespace REngine
         pipeline_build = 1 << 0,
         srb_build = 1 << 1
     };
+
+    struct ShaderParameterUpdateDesc
+    {
+		Atomic::StringHash name{Atomic::StringHash::ZERO};
+        Atomic::Variant value{Atomic::Variant::EMPTY};
+	};
     
     struct RenderCommandState
     {
@@ -63,6 +69,8 @@ namespace REngine
         
         Atomic::HashMap<Atomic::String, Diligent::RefCntAutoPtr<Diligent::ITextureView>> textures{};
         Atomic::SharedPtr<REngine::ShaderProgram> shader_program{};
+
+        Atomic::Vector<ShaderParameterUpdateDesc> shader_parameter_updates{};
 
         unsigned dirty_state{static_cast<unsigned>(RenderCommandDirtyState::all)};
         unsigned skip_flags{static_cast<unsigned>(RenderCommandSkipFlags::none)};
@@ -100,4 +108,6 @@ namespace REngine
     void render_command_reset(const Atomic::Graphics* graphics, RenderCommandState& state);
 
     void render_command_clear(const RenderCommandClearDesc& desc);
+
+    void render_command_update_params(const Atomic::Graphics* graphics, RenderCommandState& state);
 }

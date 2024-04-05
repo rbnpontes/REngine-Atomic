@@ -1,6 +1,5 @@
 #include "./VertexDeclaration.h"
 #include "../Graphics/VertexBuffer.h"
-#include <Windows.h>
 
 namespace REngine
 {

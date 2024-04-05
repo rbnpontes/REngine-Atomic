@@ -63,6 +63,7 @@ enum VariantType
     VAR_RECT,
     VAR_INTVECTOR3,
     VAR_INT64,
+    VAR_FLOATVECTOR,
     MAX_VAR_TYPES
 };
 
@@ -110,6 +111,8 @@ typedef Vector<String> StringVector;
 
 /// Map of variants.
 typedef HashMap<StringHash, Variant> VariantMap;
+
+typedef Vector<float> FloatVector;
 
 /// Typed resource reference.
 struct ATOMIC_API ResourceRef
@@ -460,6 +463,12 @@ public:
         *this = value;
     }
 
+    Variant(const FloatVector& value) :
+		type_(VAR_NONE)
+    {
+	    *this = value;
+	}
+
     /// Destruct.
     ~Variant()
     {
@@ -646,6 +655,14 @@ public:
         return *this;
     }
 
+    /// Assign from a float vector.
+    Variant& operator =(const FloatVector& rhs)
+    {
+	    SetType(VAR_FLOATVECTOR);
+		*(reinterpret_cast<FloatVector*>(&value_)) = rhs;
+		return *this;
+	}
+
     /// Assign from a variant map.
     Variant& operator =(const VariantMap& rhs)
     {
@@ -818,6 +835,12 @@ public:
         return type_ == VAR_STRINGVECTOR ? *(reinterpret_cast<const StringVector*>(&value_)) == rhs : false;
     }
 
+    /// Test for equality with a float vector. To return true, both the type and value must match.
+    bool operator ==(const FloatVector& rhs) const
+    {
+	    return type_ == VAR_FLOATVECTOR ? *(reinterpret_cast<const FloatVector*>(&value_)) == rhs : false;
+	}
+
     /// Test for equality with a variant map. To return true, both the type and value must match.
     bool operator ==(const VariantMap& rhs) const
     {
@@ -939,6 +962,9 @@ public:
 
     /// Test for inequality with a string vector.
     bool operator !=(const StringVector& rhs) const { return !(*this == rhs); }
+
+    /// Test for inequality with a float vector.
+    bool operator !=(const FloatVector& rhs) const { return !(*this == rhs); }
 
     /// Test for inequality with a variant map.
     bool operator !=(const VariantMap& rhs) const { return !(*this == rhs); }
@@ -1134,6 +1160,12 @@ public:
         return type_ == VAR_STRINGVECTOR ? *reinterpret_cast<const StringVector*>(&value_) : emptyStringVector;
     }
 
+    /// Return a float vector or empty on type mismatch.
+    const FloatVector& GetFloatVector() const
+    {
+	    return type_ == VAR_FLOATVECTOR ? *reinterpret_cast<const FloatVector*>(&value_) : emptyFloatVector;
+	}
+
     /// Return a variant map or empty on type mismatch.
     const VariantMap& GetVariantMap() const
     {
@@ -1234,6 +1266,8 @@ public:
     static const VariantVector emptyVariantVector;
     /// Empty string vector.
     static const StringVector emptyStringVector;
+    /// Empty float vector.
+    static const FloatVector emptyFloatVector;
 
 private:
     /// Set new type and allocate/deallocate memory as necessary.
@@ -1286,6 +1320,8 @@ template <> inline VariantType GetVariantType<ResourceRefList>() { return VAR_RE
 template <> inline VariantType GetVariantType<VariantVector>() { return VAR_VARIANTVECTOR; }
 
 template <> inline VariantType GetVariantType<StringVector>() { return VAR_STRINGVECTOR; }
+
+template <> inline VariantType GetVariantType<FloatVector>() { return VAR_FLOATVECTOR; }
 
 template <> inline VariantType GetVariantType<VariantMap>() { return VAR_VARIANTMAP; }
 
@@ -1359,6 +1395,8 @@ template <> ATOMIC_API ResourceRefList Variant::Get<ResourceRefList>() const;
 template <> ATOMIC_API VariantVector Variant::Get<VariantVector>() const;
 
 template <> ATOMIC_API StringVector Variant::Get<StringVector>() const;
+
+template <> ATOMIC_API FloatVector Variant::Get<FloatVector>() const;
 
 template <> ATOMIC_API VariantMap Variant::Get<VariantMap>() const;
 

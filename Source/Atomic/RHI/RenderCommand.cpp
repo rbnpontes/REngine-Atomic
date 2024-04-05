@@ -199,4 +199,125 @@ namespace REngine
                 desc.clear_stencil,
                 Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
     }
+
+    void render_command_write_param(Atomic::ConstantBuffer* buffer, uint32_t offset, const float* data, uint32_t count)
+    {
+        buffer->SetParameter(offset, count * sizeof(float), data);
+    }
+    void render_command_write_param(Atomic::ConstantBuffer* buffer, uint32_t offset, float value)
+    {
+        buffer->SetParameter(offset, sizeof(float), &value);
+    }
+    void render_command_write_param(Atomic::ConstantBuffer* buffer, uint32_t offset, int value)
+    {
+        buffer->SetParameter(offset, sizeof(int), &value);
+    }
+    void render_command_write_param(Atomic::ConstantBuffer* buffer, uint32_t offset, bool value)
+    {
+        buffer->SetParameter(offset, sizeof(bool), &value);
+    }
+    void render_command_write_param(Atomic::ConstantBuffer* buffer, uint32_t offset, const Color& value)
+    {
+	    buffer->SetParameter(offset, sizeof(float) * 4, value.Data());
+    }
+    void render_command_write_param(Atomic::ConstantBuffer* buffer, uint32_t offset, const Vector2& value)
+    {
+        buffer->SetParameter(offset, sizeof(Vector2), value.Data());
+	}
+    void render_command_write_param(Atomic::ConstantBuffer* buffer, uint32_t offset, const Vector3& value)
+    {
+        buffer->SetParameter(offset, sizeof(Vector3), value.Data());
+	}
+    void render_command_write_param(Atomic::ConstantBuffer* buffer, uint32_t offset, const Vector4& value)
+    {
+        buffer->SetParameter(offset, sizeof(Vector4), value.Data());
+	}
+    void render_command_write_param(Atomic::ConstantBuffer* buffer, uint32_t offset, const Matrix3x4& value)
+    {
+        buffer->SetParameter(offset, sizeof(Matrix3x4), &value);
+    }
+    void render_command_write_param(Atomic::ConstantBuffer* buffer, uint32_t offset, const Matrix3& value)
+    {
+        const Matrix3x4 m(value);
+        render_command_write_param(buffer, offset, m);
+    }
+    void render_command_write_param(Atomic::ConstantBuffer* buffer, uint32_t offset, const Matrix4& value)
+    {
+        buffer->SetParameter(offset, sizeof(Matrix4), &value);
+	}
+    void render_command_write_param(Atomic::ConstantBuffer* buffer, uint32_t offset, const Variant& value)
+    {
+	    switch(value.GetType())
+	    {
+	    case VAR_FLOATVECTOR:
+		    {
+                const auto& float_vector = value.GetFloatVector();
+                render_command_write_param(buffer, offset, float_vector.Buffer(), float_vector.Size());
+		    }
+            break;
+		case VAR_FLOAT:
+		    render_command_write_param(buffer, offset, value.GetFloat());
+		    break;
+        case VAR_INT:
+            render_command_write_param(buffer, offset, value.GetInt());
+            break;
+        case VAR_BOOL:
+			render_command_write_param(buffer, offset, value.GetBool());
+            break;
+	    case VAR_COLOR:
+            render_command_write_param(buffer, offset, value.GetColor());
+            break;
+	    case VAR_VECTOR2:
+            render_command_write_param(buffer, offset, value.GetVector2());
+            break;
+	    case VAR_VECTOR3:
+            render_command_write_param(buffer, offset, value.GetVector3());
+            break;
+	    case VAR_VECTOR4:
+            render_command_write_param(buffer, offset, value.GetVector4());
+            break;
+	    case VAR_MATRIX3X4:
+            render_command_write_param(buffer, offset, value.GetMatrix3x4());
+            break;
+	    case VAR_MATRIX3:
+            render_command_write_param(buffer, offset, value.GetMatrix3());
+            break;
+	    case VAR_MATRIX4:
+            render_command_write_param(buffer, offset, value.GetMatrix4());
+			break;
+	    }
+    }
+    void render_command_update_params(const Atomic::Graphics* graphics, RenderCommandState& state)
+    {
+        if (!graphics)
+            return;
+        if (!graphics->IsInitialized())
+            return;
+        if (!state.shader_program)
+            return;
+
+        Vector<ShaderParameterUpdateDesc> not_found_params;
+        for(const auto& desc : state.shader_parameter_updates)
+        {
+            ShaderParameter parameter;
+            if(!state.shader_program->GetParameter(desc.name, &parameter))
+            {
+				not_found_params.Push(desc);
+                continue;
+            }
+
+            const auto buffer = static_cast<ConstantBuffer*>(parameter.bufferPtr_);
+            if (!buffer)
+                continue;
+            render_command_write_param(buffer, parameter.offset_, desc.value);
+        }
+        // if there are not found parameters. add again to render command
+        // maybe they are added later by other shader program
+        if (not_found_params.Size() > 0)
+            state.shader_parameter_updates = not_found_params;
+        else
+            state.shader_parameter_updates.Clear();
+
+        graphics->GetImpl()->UploadBufferChanges();
+    }
 }

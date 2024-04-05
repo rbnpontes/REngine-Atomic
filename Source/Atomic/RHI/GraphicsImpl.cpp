@@ -435,6 +435,7 @@ namespace Atomic
 		// Set default rendertarget and depth buffer
 		ResetRenderTargets();
 		auto command = REngine::default_render_command_get();
+		command.shader_parameter_updates.Clear();
 		REngine::render_command_reset(this, command);
 		REngine::default_render_command_set(command);
 
@@ -671,6 +672,10 @@ namespace Atomic
 
 		PrepareDraw();
 
+		command = REngine::default_render_command_get();
+		REngine::render_command_update_params(this, command);
+		REngine::default_render_command_set(command);
+
 		Diligent::DrawAttribs draw_attribs = {};
 		draw_attribs.NumVertices = vertexCount;
 		draw_attribs.StartVertexLocation = vertexStart;
@@ -705,6 +710,10 @@ namespace Atomic
 
 		PrepareDraw();
 
+		command = REngine::default_render_command_get();
+		REngine::render_command_update_params(this, command);
+		REngine::default_render_command_set(command);
+
 		Diligent::DrawIndexedAttribs draw_attribs = {};
 		draw_attribs.IndexType = indexBuffer_->GetIndexSize() == sizeof(uint16_t) ? Diligent::VT_UINT16 : Diligent::VT_UINT32;
 		draw_attribs.NumIndices = indexCount;
@@ -737,6 +746,10 @@ namespace Atomic
 		}
 
 		PrepareDraw();
+
+		command = REngine::default_render_command_get();
+		REngine::render_command_update_params(this, command);
+		REngine::default_render_command_set(command);
 
 		Diligent::DrawIndexedAttribs draw_attribs = {};
 		draw_attribs.IndexType = indexBuffer_->GetIndexSize() == sizeof(uint16_t) ? Diligent::VT_UINT16 : Diligent::VT_UINT32;
@@ -771,6 +784,10 @@ namespace Atomic
 		}
 
 		PrepareDraw();
+
+		command = REngine::default_render_command_get();
+		REngine::render_command_update_params(this, command);
+		REngine::default_render_command_set(command);
 
 		Diligent::DrawIndexedAttribs draw_attribs = {};
 		draw_attribs.IndexType = indexBuffer_->GetIndexSize() == sizeof(uint16_t) ? Diligent::VT_UINT16 : Diligent::VT_UINT32;
@@ -807,6 +824,10 @@ namespace Atomic
 
 		PrepareDraw();
 
+		command = REngine::default_render_command_get();
+		REngine::render_command_update_params(this, command);
+		REngine::default_render_command_set(command);
+
 		Diligent::DrawIndexedAttribs draw_attribs = {};
 		draw_attribs.IndexType = indexBuffer_->GetIndexSize() == sizeof(uint16_t) ? Diligent::VT_UINT16 : Diligent::VT_UINT32;
 		draw_attribs.NumIndices = indexCount;
@@ -814,6 +835,8 @@ namespace Atomic
 		draw_attribs.Flags = Diligent::DRAW_FLAG_VERIFY_ALL;
 		draw_attribs.NumInstances = instanceCount;
 		draw_attribs.BaseVertex = baseVertexIndex;
+
+		impl_->GetDeviceContext()->DrawIndexed(draw_attribs);
 
 		uint32_t primitive_count;
 		REngine::utils_get_primitive_type(vertexCount, command.pipeline_state_info.primitive_type, &primitive_count);
@@ -999,190 +1022,91 @@ namespace Atomic
 
 	void Graphics::SetShaderParameter(StringHash param, const float* data, unsigned count)
 	{
-		const auto& command = REngine::default_render_command_get();
-		if (!command.shader_program)
-			return;
-
-		ShaderParameter parameter;
-		if (!command.shader_program->GetParameter(param, &parameter))
-			return;
-
-		const auto buffer = static_cast<ConstantBuffer*>(parameter.bufferPtr_);
-		if (!buffer)
-			return;
-
-		buffer->SetParameter(parameter.offset_, count * sizeof(float), data);
+		auto command = REngine::default_render_command_get();
+		const FloatVector result(data, count);
+		const REngine::ShaderParameterUpdateDesc desc = { param, result };
+		command.shader_parameter_updates.Push(desc);
+		REngine::default_render_command_set(command);
 	}
 
 	void Graphics::SetShaderParameter(StringHash param, float value)
 	{
-		const auto& command = REngine::default_render_command_get();
-		if (!command.shader_program)
-			return;
-
-		ShaderParameter parameter;
-		if (!command.shader_program->GetParameter(param, &parameter))
-			return;
-
-		const auto buffer = static_cast<ConstantBuffer*>(parameter.bufferPtr_);
-		if (!buffer)
-			return;
-
-		buffer->SetParameter(parameter.offset_, sizeof(float), &value);
+		auto command = REngine::default_render_command_get();
+		const REngine::ShaderParameterUpdateDesc desc = { param, value };
+		command.shader_parameter_updates.Push(desc);
+		REngine::default_render_command_set(command);
 	}
 
 	void Graphics::SetShaderParameter(StringHash param, int value)
 	{
-		const auto& command = REngine::default_render_command_get();
-		if (!command.shader_program)
-			return;
-
-		ShaderParameter parameter;
-		if (!command.shader_program->GetParameter(param, &parameter))
-			return;
-
-		const auto buffer = static_cast<ConstantBuffer*>(parameter.bufferPtr_);
-		if (!buffer)
-			return;
-
-		buffer->SetParameter(parameter.offset_, sizeof(int), &value);
+		auto command = REngine::default_render_command_get();
+		const REngine::ShaderParameterUpdateDesc desc = { param, value };
+		command.shader_parameter_updates.Push(desc);
+		REngine::default_render_command_set(command);
 	}
 
 	void Graphics::SetShaderParameter(StringHash param, bool value)
 	{
-		const auto& command = REngine::default_render_command_get();
-		if (!command.shader_program)
-			return;
-
-		ShaderParameter parameter;
-		if (!command.shader_program->GetParameter(param, &parameter))
-			return;
-
-		const auto buffer = static_cast<ConstantBuffer*>(parameter.bufferPtr_);
-		if (!buffer)
-			return;
-
-		buffer->SetParameter(parameter.offset_, sizeof(bool), &value);
+		auto command = REngine::default_render_command_get();
+		const REngine::ShaderParameterUpdateDesc desc = { param, value };
+		command.shader_parameter_updates.Push(desc);
+		REngine::default_render_command_set(command);
 	}
 
 	void Graphics::SetShaderParameter(StringHash param, const Color& color)
 	{
-		const auto& command = REngine::default_render_command_get();
-		if (!command.shader_program)
-			return;
-
-		ShaderParameter parameter;
-		if (!command.shader_program->GetParameter(param, &parameter))
-			return;
-
-		const auto buffer = static_cast<ConstantBuffer*>(parameter.bufferPtr_);
-		if (!buffer)
-			return;
-
-		buffer->SetParameter(parameter.offset_, sizeof(Color), &color);
+		auto command = REngine::default_render_command_get();
+		const REngine::ShaderParameterUpdateDesc desc = { param, color };
+		command.shader_parameter_updates.Push(desc);
+		REngine::default_render_command_set(command);
 	}
 
 	void Graphics::SetShaderParameter(StringHash param, const Vector2& vector)
 	{
-		const auto& command = REngine::default_render_command_get();
-		if (!command.shader_program)
-			return;
-
-		ShaderParameter parameter;
-		if (!command.shader_program->GetParameter(param, &parameter))
-			return;
-
-		const auto buffer = static_cast<ConstantBuffer*>(parameter.bufferPtr_);
-		if (!buffer)
-			return;
-
-		buffer->SetParameter(parameter.offset_, sizeof(Vector2), &vector);
+		auto command = REngine::default_render_command_get();
+		const REngine::ShaderParameterUpdateDesc desc = { param, vector };
+		command.shader_parameter_updates.Push(desc);
+		REngine::default_render_command_set(command);
 	}
 
 	void Graphics::SetShaderParameter(StringHash param, const Matrix3& matrix)
 	{
-		const auto& command = REngine::default_render_command_get();
-		if (!command.shader_program)
-			return;
-
-		ShaderParameter parameter;
-		if (!command.shader_program->GetParameter(param, &parameter))
-			return;
-
-		const auto buffer = static_cast<ConstantBuffer*>(parameter.bufferPtr_);
-		if (!buffer)
-			return;
-
-		const Matrix3x4 matrix3x4(matrix);
-		buffer->SetParameter(parameter.offset_, sizeof(Matrix3x4), &matrix3x4);
+		auto command = REngine::default_render_command_get();
+		const REngine::ShaderParameterUpdateDesc desc = { param, matrix };
+		command.shader_parameter_updates.Push(desc);
+		REngine::default_render_command_set(command);
 	}
 
 	void Graphics::SetShaderParameter(StringHash param, const Vector3& vector)
 	{
-		const auto& command = REngine::default_render_command_get();
-		if (!command.shader_program)
-			return;
-
-		ShaderParameter parameter;
-		if (!command.shader_program->GetParameter(param, &parameter))
-			return;
-
-		const auto buffer = static_cast<ConstantBuffer*>(parameter.bufferPtr_);
-		if (!buffer)
-			return;
-
-		buffer->SetParameter(parameter.offset_, sizeof(Vector3), &vector);
+		auto command = REngine::default_render_command_get();
+		const REngine::ShaderParameterUpdateDesc desc = { param, vector };
+		command.shader_parameter_updates.Push(desc);
+		REngine::default_render_command_set(command);
 	}
 
 	void Graphics::SetShaderParameter(StringHash param, const Matrix4& matrix)
 	{
-		const auto& command = REngine::default_render_command_get();
-		if (!command.shader_program)
-			return;
-
-		ShaderParameter parameter;
-		if (!command.shader_program->GetParameter(param, &parameter))
-			return;
-
-		const auto buffer = static_cast<ConstantBuffer*>(parameter.bufferPtr_);
-		if (!buffer)
-			return;
-
-		buffer->SetParameter(parameter.offset_, sizeof(Matrix4), &matrix);
+		auto command = REngine::default_render_command_get();
+		const REngine::ShaderParameterUpdateDesc desc = { param, matrix };
+		command.shader_parameter_updates.Push(desc);
+		REngine::default_render_command_set(command);
 	}
 
 	void Graphics::SetShaderParameter(StringHash param, const Vector4& vector)
 	{
-		const auto& command = REngine::default_render_command_get();
-		if (!command.shader_program)
-			return;
-
-		ShaderParameter parameter;
-		if (!command.shader_program->GetParameter(param, &parameter))
-			return;
-
-		const auto buffer = static_cast<ConstantBuffer*>(parameter.bufferPtr_);
-		if (!buffer)
-			return;
-
-		buffer->SetParameter(parameter.offset_, sizeof(Vector4), &vector);
+		auto command = REngine::default_render_command_get();
+		const REngine::ShaderParameterUpdateDesc desc = { param, vector };
+		command.shader_parameter_updates.Push(desc);
+		REngine::default_render_command_set(command);
 	}
 
 	void Graphics::SetShaderParameter(StringHash param, const Matrix3x4& matrix)
 	{
-		const auto& command = REngine::default_render_command_get();
-		if (!command.shader_program)
-			return;
-
-		ShaderParameter parameter;
-		if (!command.shader_program->GetParameter(param, &parameter))
-			return;
-
-		const auto buffer = static_cast<ConstantBuffer*>(parameter.bufferPtr_);
-		if (!buffer)
-			return;
-
-		buffer->SetParameter(parameter.offset_, sizeof(Matrix3x4), &matrix);
+		auto command = REngine::default_render_command_get();
+		const REngine::ShaderParameterUpdateDesc desc = { param, matrix };
+		command.shader_parameter_updates.Push(desc);
+		REngine::default_render_command_set(command);
 	}
 
 	bool Graphics::NeedParameterUpdate(ShaderParameterGroup group, const void* source)

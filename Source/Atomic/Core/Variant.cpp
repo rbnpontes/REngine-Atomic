@@ -37,6 +37,7 @@ const ResourceRefList Variant::emptyResourceRefList;
 const VariantMap Variant::emptyVariantMap;
 const VariantVector Variant::emptyVariantVector;
 const StringVector Variant::emptyStringVector;
+const FloatVector Variant::emptyFloatVector;
 
 static const char* typeNames[] =
 {
@@ -67,6 +68,7 @@ static const char* typeNames[] =
     "Rect",
     "IntVector3",
     "Int64",
+    "FloatVector",
     0
 };
 
@@ -98,6 +100,10 @@ Variant& Variant::operator =(const Variant& rhs)
 
     case VAR_STRINGVECTOR:
         *(reinterpret_cast<StringVector*>(&value_)) = *(reinterpret_cast<const StringVector*>(&rhs.value_));
+        break;
+
+    case VAR_FLOATVECTOR:
+        *(reinterpret_cast<FloatVector*>(&value_)) = *(reinterpret_cast<const FloatVector*>(&rhs.value_));
         break;
 
     case VAR_VARIANTMAP:
@@ -186,6 +192,9 @@ bool Variant::operator ==(const Variant& rhs) const
 
     case VAR_STRINGVECTOR:
         return *(reinterpret_cast<const StringVector*>(&value_)) == *(reinterpret_cast<const StringVector*>(&rhs.value_));
+
+    case VAR_FLOATVECTOR:
+        return *(reinterpret_cast<const FloatVector*>(&value_)) == *(reinterpret_cast<const FloatVector*>(&rhs.value_));
 
     case VAR_VARIANTMAP:
         return *(reinterpret_cast<const VariantMap*>(&value_)) == *(reinterpret_cast<const VariantMap*>(&rhs.value_));
@@ -540,6 +549,9 @@ bool Variant::IsZero() const
     case VAR_STRINGVECTOR:
         return reinterpret_cast<const StringVector*>(&value_)->Empty();
 
+    case VAR_FLOATVECTOR:
+        return reinterpret_cast<const FloatVector*>(&value_)->Empty();
+
     case VAR_VARIANTMAP:
         return reinterpret_cast<const VariantMap*>(&value_)->Empty();
 
@@ -606,6 +618,10 @@ void Variant::SetType(VariantType newType)
         (reinterpret_cast<StringVector*>(&value_))->~StringVector();
         break;
 
+    case VAR_FLOATVECTOR:
+        (reinterpret_cast<FloatVector*>(&value_))->~FloatVector();
+        break;
+
     case VAR_VARIANTMAP:
         (reinterpret_cast<VariantMap*>(&value_))->~VariantMap();
         break;
@@ -656,6 +672,10 @@ void Variant::SetType(VariantType newType)
 
     case VAR_STRINGVECTOR:
         new(reinterpret_cast<StringVector*>(&value_)) StringVector();
+        break;
+
+    case VAR_FLOATVECTOR:
+        new(reinterpret_cast<FloatVector*>(&value_)) FloatVector();
         break;
 
     case VAR_VARIANTMAP:
@@ -821,6 +841,11 @@ template <> VariantVector Variant::Get<VariantVector>() const
 template <> StringVector Variant::Get<StringVector >() const
 {
     return GetStringVector();
+}
+
+template <> FloatVector Variant::Get<FloatVector>() const
+{
+	return GetFloatVector();
 }
 
 template <> VariantMap Variant::Get<VariantMap>() const
