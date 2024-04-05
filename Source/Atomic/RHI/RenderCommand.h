@@ -100,14 +100,14 @@ namespace REngine
      * \param desc 
      * \param state 
      */
-    void render_command_process(const RenderCommandProcessDesc& desc, RenderCommandState& state);
+    void render_command_process(const RenderCommandProcessDesc& desc, RenderCommandState* state);
     /**
      * \brief reset render command state
      * \param state 
      */
-    void render_command_reset(const Atomic::Graphics* graphics, RenderCommandState& state);
+    void render_command_reset(const Atomic::Graphics* graphics, RenderCommandState* state);
 
     void render_command_clear(const RenderCommandClearDesc& desc);
 
-    void render_command_update_params(const Atomic::Graphics* graphics, RenderCommandState& state);
+    void render_command_update_params(const Atomic::Graphics* graphics, RenderCommandState* state);
 }

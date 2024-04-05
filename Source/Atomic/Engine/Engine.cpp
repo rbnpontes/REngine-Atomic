@@ -1059,6 +1059,12 @@ VariantMap Engine::ParseParameters(const Vector<String>& arguments)
                 ++i;
             }
 #endif
+#ifdef ATOMIC_PROFILING
+            else if(argument == "profiler")
+            {
+	            ret[EP_PROFILER_LISTEN] = true;
+            }
+#endif
         }
     }
 

@@ -63,6 +63,5 @@ namespace REngine
     void graphics_state_release_vertex_declarations();
     uint32_t graphics_state_vertex_declarations_count();
 
-    const RenderCommandState& default_render_command_get();
-    void default_render_command_set(const RenderCommandState state);
+    RenderCommandState* default_render_command_get();
 }

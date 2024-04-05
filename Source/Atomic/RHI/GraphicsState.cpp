@@ -88,13 +88,8 @@ namespace REngine
     }
 
 
-    const RenderCommandState& default_render_command_get()
+    RenderCommandState* default_render_command_get()
     {
-        return s_default_command;
-    }
-
-    void default_render_command_set(const RenderCommandState state)
-    {
-        s_default_command = state;
+        return &s_default_command;
     }
 }
