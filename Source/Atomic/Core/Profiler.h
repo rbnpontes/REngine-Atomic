@@ -125,7 +125,10 @@ private:
 #   define ATOMIC_PROFILE_SCOPED_NON_CONST_ZONE(varname, name, active) \
     	static tracy::SourceLocationData TracyConcat(__tracy_source_location, TracyLine) { name, TracyFunction, TracyFile, (uint32_t)TracyLine, 0 }; \
         tracy::ScopedZone varname(&TracyConcat(__tracy_source_location, TracyLine), active)
-#   define ATOMIC_PROFILE_SCOPED(name, ...) ATOMIC_PROFILE_SCOPED_NON_CONST_ZONE(___tracy_scoped_zone, name, true)
+//#   define ATOMIC_PROFILE_SCOPED(name, ...) ATOMIC_PROFILE_SCOPED_NON_CONST_ZONE(___tracy_scoped_zone, name, true)
+#   define ATOMIC_PROFILE_SCOPED(name, ...) \
+	ZoneNamed(TracyConcat(profiler_scoped, TracyLine), true); \
+    ZoneTextV(TracyConcat(profiler_scoped, TracyLine), name, strlen(name))
 #   define ATOMIC_PROFILE_NONSCOPED(name, ...)
 #   define ATOMIC_PROFILE_END(...)
 #   define ATOMIC_PROFILE_THREAD(name)
