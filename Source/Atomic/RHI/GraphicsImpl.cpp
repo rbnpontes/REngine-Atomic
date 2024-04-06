@@ -2153,6 +2153,7 @@ namespace Atomic
 
 			if (new_vertex_decl_hash)
 			{
+				ATOMIC_PROFILE(PrepareDraw::BuildVertexDecl);
 				CombineHash(new_vertex_decl_hash, vertexShader_->ToHash());
 				CombineHash(new_vertex_decl_hash, vertexShader_->GetElementHash());
 				auto vertex_decl = REngine::graphics_state_get_vertex_declaration(new_vertex_decl_hash);
