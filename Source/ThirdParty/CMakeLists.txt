@@ -101,6 +101,7 @@ add_subdirectory(imgui)
 
 if (ATOMIC_PROFILING)
     add_subdirectory(easy_profiler)
+    add_subdirectory(tracy)
 endif ()
 
 

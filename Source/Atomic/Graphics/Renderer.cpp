@@ -565,7 +565,7 @@ void Renderer::ReloadShaders()
 
 void Renderer::ApplyShadowMapFilter(View* view, Texture2D* shadowMap, float blurScale)
 {
-    ATOMIC_PROFILE(Renderer::ApplyShadowMapFilter);
+    ATOMIC_PROFILE(Renderer_ApplyShadowMapFilter);
     if (shadowMapFilterInstance_ && shadowMapFilter_)
         (shadowMapFilterInstance_->*shadowMapFilter_)(view, shadowMap, blurScale);
 }

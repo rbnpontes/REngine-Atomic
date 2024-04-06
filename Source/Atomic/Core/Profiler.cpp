@@ -23,6 +23,7 @@
 #include "../Precompiled.h"
 #include "../Core/Profiler.h"
 #include "../Core/StringUtils.h"
+#include "../IO/Log.h"
 
 namespace Atomic
 {
@@ -42,14 +43,14 @@ Profiler::~Profiler()
 
 void Profiler::SetEnabled(bool enabled)
 {
-#if ATOMIC_PROFILING
+#if ATOMIC_PROFILING && RENGINE_PROFILER_EASYPROFILER
     ::profiler::setEnabled(enabled);
 #endif
 }
 
 bool Profiler::GetEnabled() const
 {
-#if ATOMIC_PROFILING
+#if ATOMIC_PROFILING && RENGINE_PROFILER_EASYPROFILER
     return ::profiler::isEnabled();
 #else
     return false;
@@ -58,22 +59,28 @@ bool Profiler::GetEnabled() const
 
 void Profiler::StartListen(unsigned short port)
 {
-#if ATOMIC_PROFILING
+#if ATOMIC_PROFILING && RENGINE_PROFILER_TRACY
+    ATOMIC_LOGWARNING("On Tracy Builds, Profiler starts automatically! There's no reason to call Profiler::StartListen");
+#endif
+
+#if ATOMIC_PROFILING && RENGINE_PROFILER_EASYPROFILER
     ::profiler::startListen(port);
 #endif
 }
 
 void Profiler::StopListen()
 {
-#if ATOMIC_PROFILING
+#if ATOMIC_PROFILING && RENGINE_PROFILER_EASYPROFILER
     ::profiler::stopListen();
 #endif
 }
 
 bool Profiler::GetListening() const
 {
-#if ATOMIC_PROFILING
+#if ATOMIC_PROFILING && RENGINE_PROFILER_EASYPROFILER
     return ::profiler::isListening();
+#elif ATOMIC_PROFILING && RENGINE_PROFILER_TRACY
+	return TracyIsConnected;
 #else
     return false;
 #endif
@@ -81,14 +88,14 @@ bool Profiler::GetListening() const
 
 void Profiler::SetEventTracingEnabled(bool enable)
 {
-#if ATOMIC_PROFILING
+#if ATOMIC_PROFILING && RENGINE_PROFILER_EASYPROFILER
     ::profiler::setEventTracingEnabled(enable);
 #endif
 }
 
 bool Profiler::GetEventTracingEnabled()
 {
-#if ATOMIC_PROFILING
+#if ATOMIC_PROFILING && RENGINE_PROFILER_EASYPROFILER
     return ::profiler::isEventTracingEnabled();
 #else
     return false;
@@ -97,14 +104,14 @@ bool Profiler::GetEventTracingEnabled()
 
 void Profiler::SetLowPriorityEventTracing(bool isLowPriority)
 {
-#if ATOMIC_PROFILING
+#if ATOMIC_PROFILING && RENGINE_PROFILER_EASYPROFILER
     ::profiler::setLowPriorityEventTracing(isLowPriority);
 #endif
 }
 
 bool Profiler::GetLowPriorityEventTracing()
 {
-#if ATOMIC_PROFILING
+#if ATOMIC_PROFILING && RENGINE_PROFILER_EASYPROFILER
     return ::profiler::isLowPriorityEventTracing();
 #else
     return false;
@@ -113,7 +120,7 @@ bool Profiler::GetLowPriorityEventTracing()
 
 void Profiler::SaveProfilerData(const String& filePath)
 {
-#if ATOMIC_PROFILING
+#if ATOMIC_PROFILING && RENGINE_PROFILER_EASYPROFILER
     ::profiler::dumpBlocksToFile(filePath.CString());
 #endif
 }
@@ -132,7 +139,7 @@ bool Profiler::GetEventProfilingEnabled() const
 
 void Profiler::BeginBlock(const char* name, const char* file, int line, unsigned int argb, unsigned char status)
 {
-#if ATOMIC_PROFILING
+#if ATOMIC_PROFILING && RENGINE_PROFILER_EASYPROFILER
     // Line used as starting hash value for efficiency.
     // This is likely to not play well with hot code reload.
     unsigned hash = StringHash::Calculate(file, (unsigned)line);
@@ -152,7 +159,7 @@ void Profiler::BeginBlock(const char* name, const char* file, int line, unsigned
 
 void Profiler::EndBlock()
 {
-#if ATOMIC_PROFILING
+#if ATOMIC_PROFILING && RENGINE_PROFILER_EASYPROFILER
     ::profiler::endBlock();
 #endif
 }
