@@ -27,6 +27,8 @@
 #  endif
 #endif
 
+#define RENGINE_API ATOMIC_API
+
 #ifndef ATOMIC_DEPRECATED
 #  define ATOMIC_DEPRECATED __declspec(deprecated)
 #endif

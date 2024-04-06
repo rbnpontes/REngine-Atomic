@@ -60,6 +60,10 @@ public:
 
     virtual String ToString() = 0;
 
+    void SetNamespace(const String& value) { namespace_value_ = value; }
+    String GetNamespace() { return namespace_value_; }
+private:
+    String namespace_value_{};
 };
 
 class JSBPrimitiveType : public JSBType

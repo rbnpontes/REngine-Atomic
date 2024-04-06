@@ -35,6 +35,15 @@
 
 struct SDL_Window;
 
+#ifdef RENGINE_DILIGENT
+namespace REngine
+{
+    class DriverInstance;
+    class ShaderProgram;
+    class VertexDeclaration;
+}
+#endif
+
 namespace Atomic
 {
 
@@ -43,11 +52,14 @@ class File;
 class Image;
 class IndexBuffer;
 class GPUObject;
+#ifndef RENGINE_DILIGENT
 class GraphicsImpl;
+class ShaderProgram;
+class VertexDeclaration;
+#endif
 class RenderSurface;
 class Shader;
 class ShaderPrecache;
-class ShaderProgram;
 class ShaderVariation;
 class Texture;
 class Texture2D;
@@ -56,10 +68,9 @@ class TextureCube;
 class Vector3;
 class Vector4;
 class VertexBuffer;
-class VertexDeclaration;
 
 struct ShaderParameter;
-
+    
 /// CPU-side scratch buffer for vertex data updates.
 struct ScratchBuffer
 {
@@ -256,8 +267,11 @@ public:
     bool IsInitialized() const;
 
     /// Return graphics implementation, which holds the actual API-specific resources.
+#if RENGINE_DILIGENT
+    REngine::DriverInstance* GetImpl() const { return impl_; }
+#else
     GraphicsImpl* GetImpl() const { return impl_; }
-
+#endif
     /// Return OS-specific external window handle. Null if not in use.
     void* GetExternalWindow() const { return externalWindow_; }
 
@@ -334,13 +348,13 @@ public:
     unsigned GetNumBatches() const { return numBatches_; }
 
     /// Return dummy color texture format for shadow maps. Is "NULL" (consume no video memory) if supported.
-    unsigned GetDummyColorFormat() const { return dummyColorFormat_; }
+    TextureFormat GetDummyColorFormat() const { return dummyColorFormat_; }
 
     /// Return shadow map depth texture format, or 0 if not supported.
-    unsigned GetShadowMapFormat() const { return shadowMapFormat_; }
+    TextureFormat GetShadowMapFormat() const { return shadowMapFormat_; }
 
     /// Return 24-bit shadow map depth texture format, or 0 if not supported.
-    unsigned GetHiresShadowMapFormat() const { return hiresShadowMapFormat_; }
+    TextureFormat GetHiresShadowMapFormat() const { return hiresShadowMapFormat_; }
 
     /// Return whether hardware instancing is supported.
     bool GetInstancingSupport() const { return instancingSupport_; }
@@ -375,7 +389,7 @@ public:
     /// Return the number of currently connected monitors.
     int GetMonitorCount() const;
     /// Return hardware format for a compressed image format, or 0 if unsupported.
-    unsigned GetFormat(CompressedFormat format) const;
+    TextureFormat GetFormat(CompressedFormat format) const;
     /// Return a shader variation by name and defines.
     ShaderVariation* GetShader(ShaderType type, const String& name, const String& defines = String::EMPTY) const;
     /// Return a shader variation by name and defines.
@@ -393,8 +407,11 @@ public:
     ShaderVariation* GetPixelShader() const { return pixelShader_; }
 
     /// Return shader program. This is an API-specific class and should not be used by applications.
+#if RENGINE_DILIGENT
+    REngine::ShaderProgram* GetShaderProgram() const;
+#else
     ShaderProgram* GetShaderProgram() const;
-
+#endif
     /// Return texture unit index by name.
     TextureUnit GetTextureUnit(const String& name);
     /// Return texture unit name by index.
@@ -510,8 +527,11 @@ public:
     void CleanupShaderPrograms(ShaderVariation* variation);
     /// Clean up a render surface from all FBOs. Used only on OpenGL.
     void CleanupRenderSurface(RenderSurface* surface);
+#if RENGINE_DILIGENT
+    void Cleanup(GraphicsClearFlags flags);
+#endif
     /// Get or create a constant buffer. Will be shared between shaders if possible.
-    ConstantBuffer* GetOrCreateConstantBuffer(ShaderType type, unsigned index, unsigned size);
+    ConstantBuffer* GetOrCreateConstantBuffer(ShaderType type, unsigned index, unsigned size) const;
     /// Mark the FBO needing an update. Used only on OpenGL.
     void MarkFBODirty();
     /// Bind a VBO, avoiding redundant operation. Used only on OpenGL.
@@ -520,39 +540,39 @@ public:
     void SetUBO(unsigned object);
 
     /// Return the API-specific alpha texture format.
-    static unsigned GetAlphaFormat();
+    static TextureFormat GetAlphaFormat();
     /// Return the API-specific luminance texture format.
-    static unsigned GetLuminanceFormat();
+    static TextureFormat GetLuminanceFormat();
     /// Return the API-specific luminance alpha texture format.
-    static unsigned GetLuminanceAlphaFormat();
+    static TextureFormat GetLuminanceAlphaFormat();
     /// Return the API-specific RGB texture format.
-    static unsigned GetRGBFormat();
+    static TextureFormat GetRGBFormat();
     /// Return the API-specific RGBA texture format.
-    static unsigned GetRGBAFormat();
+    static TextureFormat GetRGBAFormat();
     /// Return the API-specific RGBA 16-bit texture format.
-    static unsigned GetRGBA16Format();
+    static TextureFormat GetRGBA16Format();
     /// Return the API-specific RGBA 16-bit float texture format.
-    static unsigned GetRGBAFloat16Format();
+    static TextureFormat GetRGBAFloat16Format();
     /// Return the API-specific RGBA 32-bit float texture format.
-    static unsigned GetRGBAFloat32Format();
+    static TextureFormat GetRGBAFloat32Format();
     /// Return the API-specific RG 16-bit texture format.
-    static unsigned GetRG16Format();
+    static TextureFormat GetRG16Format();
     /// Return the API-specific RG 16-bit float texture format.
-    static unsigned GetRGFloat16Format();
+    static TextureFormat GetRGFloat16Format();
     /// Return the API-specific RG 32-bit float texture format.
-    static unsigned GetRGFloat32Format();
+    static TextureFormat GetRGFloat32Format();
     /// Return the API-specific single channel 16-bit float texture format.
-    static unsigned GetFloat16Format();
+    static TextureFormat GetFloat16Format();
     /// Return the API-specific single channel 32-bit float texture format.
-    static unsigned GetFloat32Format();
+    static TextureFormat GetFloat32Format();
     /// Return the API-specific linear depth texture format.
-    static unsigned GetLinearDepthFormat();
+    static TextureFormat GetLinearDepthFormat();
     /// Return the API-specific hardware depth-stencil texture format.
-    static unsigned GetDepthStencilFormat();
+    static TextureFormat GetDepthStencilFormat();
     /// Return the API-specific readable hardware depth format, or 0 if not supported.
-    static unsigned GetReadableDepthFormat();
+    static TextureFormat GetReadableDepthFormat();
     /// Return the API-specific texture format from a textual description, for example "rgb".
-    static unsigned GetFormat(const String& formatName);
+    static TextureFormat GetFormat(const String& formatName);
 
     /// Return UV offset required for pixel perfect rendering.
     static const Vector2& GetPixelUVOffset() { return pixelUVOffset; }
@@ -644,7 +664,11 @@ private:
     /// Mutex for accessing the GPU objects vector from several threads.
     Mutex gpuObjectMutex_;
     /// Implementation.
+#if RENGINE_DILIGENT
+    REngine::DriverInstance* impl_;
+#else
     GraphicsImpl* impl_;
+#endif
     /// SDL window.
     SDL_Window* window_;
     /// Window title.
@@ -714,11 +738,11 @@ private:
     /// Scratch buffers.
     Vector<ScratchBuffer> scratchBuffers_;
     /// Shadow map dummy color texture format.
-    unsigned dummyColorFormat_;
+    TextureFormat dummyColorFormat_;
     /// Shadow map depth texture format.
-    unsigned shadowMapFormat_;
+    TextureFormat shadowMapFormat_;
     /// Shadow map 24-bit depth texture format.
-    unsigned hiresShadowMapFormat_;
+    TextureFormat hiresShadowMapFormat_;
     /// Vertex buffers in use.
     VertexBuffer* vertexBuffers_[MAX_VERTEX_STREAMS];
     /// Index buffer in use.

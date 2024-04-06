@@ -234,7 +234,8 @@ public:
         box.back = 1;
 
         graphics_->GetImpl()->GetDeviceContext()->UpdateSubresource((ID3D11Resource*)webTexture2D_->GetTexture2D()->GetGPUObject(), 0, &box, src, srcStride, 0);
-
+#elif RENGINE_DILIGENT
+        throw std::exception("Not implemented");
 #else
         RECT d3dRect;
 
@@ -382,6 +383,7 @@ void WebTexture2D::SetSize(int width, int height)
     TextureUsage textureUsage = TEXTURE_DYNAMIC;
     unsigned format = Graphics::GetRGBAFormat();
 
+    // TODO: fix this
 #ifdef ATOMIC_D3D11
 
     // D3D11 uses a static texture (in BGRA format), required for subresource update with rectangle
@@ -390,7 +392,7 @@ void WebTexture2D::SetSize(int width, int height)
 
 #endif
 
-    if (!texture_->SetSize(width, height, format, textureUsage))
+    if (!texture_->SetSize(width, height, static_cast<TextureFormat>(format), textureUsage))
     {
         ATOMIC_LOGERRORF("Unable to set WebTexture2D size to %i x %i", width, height);
         return;

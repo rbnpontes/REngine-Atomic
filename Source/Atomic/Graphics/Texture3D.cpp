@@ -176,7 +176,8 @@ bool Texture3D::SetSize(int width, int height, int depth, unsigned format, Textu
     width_ = width;
     height_ = height;
     depth_ = depth;
-    format_ = format;
+    // TODO: remove this cast
+    format_ = static_cast<TextureFormat>(format);
 
     return Create();
 }

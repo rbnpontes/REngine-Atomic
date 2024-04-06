@@ -3,6 +3,7 @@ var path = require("path");
 var host = require("./Host");
 var buildTasks = require("./BuildTasks");
 var config = require("./BuildConfig");
+const { getCMakeFlags } = require('./CMakeUtils');
 
 var atomicRoot = config.atomicRoot;
 var buildDir = config.artifactsRoot + "Build/Windows/";
@@ -21,6 +22,7 @@ function copyAtomicNET() {
 
 }
 
+// TODO: copy diligent binaries
 function copyAtomicEditor() {
 
     // Copy the Editor binaries
@@ -58,25 +60,6 @@ function copyAtomicEditor() {
 }
 
 namespace('build', function() {
-
-    // get CMake flags for generator, vsver parameter can be VS2017/VS2015, etc
-    function getCMakeFlags(vsver) {
-
-      var flags = "\"";
-
-      // Redistributable editor build
-      flags += "-DATOMIC_DEV_BUILD=0";
-
-      // graphics backend overrides, defaults to D3D11
-      flags += " -DATOMIC_OPENGL=" + (config["opengl"] ? "ON" : "OFF");
-      flags += " -DATOMIC_D3D9=" + (config["d3d9"] ? "ON" : "OFF");
-
-      flags += "\"";
-
-      return flags;
-
-    }
-
     function getVisualStudioVersion() {
         const expectedVersions = ['vs2015', 'vs2017', 'vs2022'];
         const cfgKeys = Object.keys(config);
@@ -141,7 +124,7 @@ namespace('build', function() {
 
         // Generate Atomic solution, AtomicTool binary, and script bindings
         cmds.push(atomicRoot + "Build/Scripts/Windows/CompileAtomicEditorPhase1.bat " + config["config"] + " " +
-                  vsver + " " + getCMakeFlags(vsver));
+                  vsver + " " + getCMakeFlags(false));
 
         jake.exec(cmds, function() {
 

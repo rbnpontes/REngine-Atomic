@@ -13,6 +13,8 @@ if (ATOMIC_OPENGL)
     add_definitions(-DATOMIC_OPENGL=1)
 elseif (ATOMIC_D3D11)
     add_definitions(-DATOMIC_D3D11=1)
+elseif (RENGINE_DILIGENT)
+    add_definitions(-DRENGINE_DILIGENT=1)
 endif ()
 
 # Define source files

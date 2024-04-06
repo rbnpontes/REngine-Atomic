@@ -1773,14 +1773,6 @@ void View::SetRenderTargets(RenderPathCommand& command)
             {
                 useColorWrite = false;
                 useCustomDepth = true;
-#if !defined(ATOMIC_OPENGL) && !defined(ATOMIC_D3D11)
-                // On D3D9 actual depth-only rendering is illegal, we need a color rendertarget
-                if (!depthOnlyDummyTexture_)
-                {
-                    depthOnlyDummyTexture_ = renderer_->GetScreenBuffer(texture->GetWidth(), texture->GetHeight(),
-                        graphics_->GetDummyColorFormat(), texture->GetMultiSample(), texture->GetAutoResolve(), false, false, false);
-                }
-#endif
                 graphics_->SetRenderTarget(0, GetRenderSurfaceFromTexture(depthOnlyDummyTexture_));
                 graphics_->SetDepthStencil(GetRenderSurfaceFromTexture(texture));
             }
@@ -3088,6 +3080,7 @@ void View::RenderShadowMap(const LightBatchQueue& queue)
     // The shadow map is a depth stencil texture
     if (shadowMap->GetUsage() == TEXTURE_DEPTHSTENCIL)
     {
+        ATOMIC_PROFILE(RenderShadowMap::Clear);
         graphics_->SetColorWrite(false);
         graphics_->SetDepthStencil(shadowMap);
         graphics_->SetRenderTarget(0, shadowMap->GetRenderSurface()->GetLinkedRenderTarget());
@@ -3099,6 +3092,7 @@ void View::RenderShadowMap(const LightBatchQueue& queue)
     }
     else // if the shadow map is a color rendertarget
     {
+        ATOMIC_PROFILE(RenderShadowMap::Clear);
         graphics_->SetColorWrite(true);
         graphics_->SetRenderTarget(0, shadowMap);
         // Disable other render targets
@@ -3115,6 +3109,7 @@ void View::RenderShadowMap(const LightBatchQueue& queue)
     // Render each of the splits
     for (unsigned i = 0; i < queue.shadowSplits_.Size(); ++i)
     {
+        ATOMIC_PROFILE(RenderShadowMap::Split);
         const ShadowBatchQueue& shadowQueue = queue.shadowSplits_[i];
 
         float multiplier = 1.0f;
@@ -3139,6 +3134,7 @@ void View::RenderShadowMap(const LightBatchQueue& queue)
 
         if (!shadowQueue.shadowBatches_.IsEmpty())
         {
+            ATOMIC_PROFILE(RenderShadowMap::Execute);
             graphics_->SetViewport(shadowQueue.shadowViewport_);
             shadowQueue.shadowBatches_.Draw(this, shadowQueue.shadowCamera_, false, false, true);
 

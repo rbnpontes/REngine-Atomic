@@ -258,6 +258,7 @@ void AtomicTool::Start()
 
     }
 
+#if ATOMIC_DOTNET
     if (cmd->RequiresNETService())
     {
         context_->RegisterSubsystem(new IPC(context_));
@@ -273,7 +274,7 @@ void AtomicTool::Start()
 
         context_->RegisterSubsystem(netService);
     }
-
+#endif
     command_ = cmd;
 
     // BEGIN LICENSE MANAGEMENT

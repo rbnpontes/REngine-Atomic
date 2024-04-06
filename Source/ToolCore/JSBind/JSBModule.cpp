@@ -418,7 +418,6 @@ void JSBModule::ScanHeaders()
             String filepath = dir + fileNames[k];
 
             SharedPtr<JSBHeader> header(new JSBHeader(context_, this, filepath));
-
             // Parse the C++ header
             header->Parse();
 
@@ -538,6 +537,10 @@ String JSBModule::GetClassDefineGuard(const String& name, const String& language
 
     Vector<String> defines;
 
+#if RENGINE_DILIGENT
+    defines.Push("!RENGINE_DILIGENT");
+#endif
+    
     for (unsigned i = 0; i < platforms.Size(); i++)
     {
         String platform = platforms[i].ToLower();

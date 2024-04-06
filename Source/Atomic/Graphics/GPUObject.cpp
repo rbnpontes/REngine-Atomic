@@ -35,7 +35,9 @@ GPUObject::GPUObject(Graphics* graphics) :
     dataLost_(false),
     dataPending_(false)
 {
-#ifdef ATOMIC_OPENGL
+#if RENGINE_DILIGENT
+    object_ = {};
+#elif ATOMIC_OPENGL
     object_.name_ = 0;
 #else
     object_.ptr_ = 0;

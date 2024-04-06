@@ -1,22 +1,23 @@
 {
   "name": "atomic-editor",
-  "license" : "MIT",
+  "license": "MIT",
   "author": {
     "name": "Ruben Gomes",
     "email": "rbnpontes@gmail.com"
   },
   "engines": {
-    "node" : ">=18.0.0"
+    "node": ">=18.0.0"
   },
   "engineStrict": true,
   "scripts": {
-    "build:vs2022" : "node ./Scripts/Bootstrap.js --task=build:genvs2022"
+    "build" : "jake -f ./Scripts/Bootstrap.js",
+    "build:vs2022": "node ./Scripts/Bootstrap.js --task=build:genvs2022"
   },
   "dependencies": {
     "dts-generator": "^2.0.0",
-    "fs-extra": "^0.24.0",
+    "fs-extra": "^11.2.0",
     "glob": "^6.0.3",
-    "jake": "^8.0.12",
+    "jake": "^10.8.7",
     "monaco-editor": "^0.9.0",
     "tslint": "^3.2.0",
     "typescript": "^2.4.1"

@@ -57,6 +57,8 @@ public:
 
     void AddValue(const String& name, const String& constantValue = String::EMPTY) { values_[name] = constantValue; }
 
+    void AsClass() { is_class_ = true; }
+    bool IsClass() { return is_class_; }
 private:
 
     String name_;
@@ -67,6 +69,7 @@ private:
 
     JSBHeader* header_;
 
+    bool is_class_;
 };
 
 

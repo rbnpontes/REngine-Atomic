@@ -25,7 +25,6 @@
 #include "../Container/ArrayPtr.h"
 #include "../Core/Object.h"
 #include "../Graphics/GPUObject.h"
-#include "../Graphics/GraphicsDefs.h"
 
 namespace Atomic
 {
@@ -61,6 +60,10 @@ public:
     /// Return whether has unapplied data.
     bool IsDirty() const { return dirty_; }
 
+#if RENGINE_DILIGENT
+    void SetDebugName(const String& name) { dbg_name_ = name; }
+    String GetDebugName() const { return dbg_name_; }
+#endif
 private:
     /// Shadow data.
     SharedArrayPtr<unsigned char> shadowData_;
@@ -68,6 +71,8 @@ private:
     unsigned size_;
     /// Dirty flag.
     bool dirty_;
+
+    String dbg_name_{};
 };
 
 }

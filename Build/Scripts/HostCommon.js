@@ -4,18 +4,7 @@ var config = require("./BuildConfig");
 
 // get the root folder
 var atomicRoot = config.atomicRoot;
-var nodeBinary;
-switch(os.platform()) {
-    case "win32":
-    nodeBinary = atomicRoot + "Build\\Windows\\node\\node.exe";
-    break;
-    case "darwin":
-    nodeBinary = atomicRoot + "Build/Mac/node/node";
-    break;
-    case "linux":
-    nodeBinary = atomicRoot + "Build/Linux/node/node";
-    break;
-}
+var nodeBinary = "node";
 
 
 // patch in our local node_modules

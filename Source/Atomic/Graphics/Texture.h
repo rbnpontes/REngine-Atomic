@@ -27,11 +27,18 @@
 #include "../Math/Color.h"
 #include "../Resource/Resource.h"
 
+#if RENGINE_DILIGENT
+#include "../RHI/PipelineStateBuilder.h"
+
+#include <DiligentCore/Graphics/GraphicsEngine/interface/Texture.h>
+#include <DiligentCore/Common/interface/RefCntAutoPtr.hpp>
+#endif
+
 namespace Atomic
 {
 
 static const int MAX_TEXTURE_QUALITY_LEVELS = 3;
-
+    
 class XMLElement;
 class XMLFile;
 
@@ -70,7 +77,7 @@ public:
     void SetMipsToSkip(int quality, int toSkip);
 
     /// Return API-specific texture format.
-    unsigned GetFormat() const { return format_; }
+    TextureFormat GetFormat() const { return format_; }
 
     /// Return whether the texture format is compressed.
     bool IsCompressed() const;
@@ -153,9 +160,14 @@ public:
     /// Update dirty parameters to the texture object. Called by Graphics when assigning the texture.
     void UpdateParameters();
 
+#if RENGINE_DILIGENT
+    /// Return shader resource view. Used on Shader Resource Binding
+    Diligent::RefCntAutoPtr<Diligent::ITextureView> GetShaderResourceView() const { return view_; }
+    /// Return Texture Sampler Description. Can be used on Pipeline State creation
+    void GetSamplerDesc(REngine::SamplerDesc& sample_desc) const;
+#else
     /// Return shader resource view. Only used on Direct3D11.
     void* GetShaderResourceView() const { return shaderResourceView_; }
-
     /// Return sampler state object. Only used on Direct3D11.
     void* GetSampler() const { return sampler_; }
 
@@ -164,10 +176,13 @@ public:
 
     /// Return texture's target. Only used on OpenGL.
     unsigned GetTarget() const { return target_; }
+#endif
 
-    /// Convert format to sRGB. Not used on Direct3D9.
-    unsigned GetSRGBFormat(unsigned format);
-
+#if RENGINE_DILIGENT
+    static TextureFormat GetSRGBFormat(TextureFormat format);
+#else
+    TextureFormat GetSRGBFormat(TextureFormat format);
+#endif
     /// Set or clear the need resolve flag. Called internally by Graphics.
     void SetResolveDirty(bool enable) { resolveDirty_ = enable; }
 
@@ -181,13 +196,15 @@ public:
     /// Check maximum allowed mip levels for a specific 3D texture size.
     static unsigned CheckMaxLevels(int width, int height, int depth, unsigned requestedLevels);
     /// Return the shader resource view format corresponding to a texture format. Handles conversion of typeless depth texture formats. Only used on Direct3D11.
-    static unsigned GetSRVFormat(unsigned format);
+    static TextureFormat GetSRVFormat(TextureFormat format);
     /// Return the depth-stencil view format corresponding to a texture format. Handles conversion of typeless depth texture formats. Only used on Direct3D11.
-    static unsigned GetDSVFormat(unsigned format);
+    static TextureFormat GetDSVFormat(TextureFormat format);
+#ifndef RENGINE_DILIGENT
     /// Return the non-internal texture format corresponding to an OpenGL internal format.
     static unsigned GetExternalFormat(unsigned format);
     /// Return the data type corresponding to an OpenGL internal format.
     static unsigned GetDataType(unsigned format);
+#endif
 
 protected:
     /// Check whether texture memory budget has been exceeded. Free unused materials in that case to release the texture references.
@@ -195,6 +212,10 @@ protected:
     /// Create the GPU texture. Implemented in subclasses.
     virtual bool Create() { return true; }
 
+#if RENGINE_DILIGENT
+    Diligent::RefCntAutoPtr<Diligent::ITextureView> view_;
+    Diligent::RefCntAutoPtr<Diligent::ITexture> resolve_texture_;
+#else
     union
     {
         /// Direct3D11 shader resource view.
@@ -202,14 +223,14 @@ protected:
         /// OpenGL target.
         unsigned target_;
     };
-
     /// Direct3D11 sampler state object.
     void* sampler_;
     /// Direct3D11 resolve texture object when multisample with autoresolve is used.
     void* resolveTexture_;
-
+#endif
     /// Texture format.
-    unsigned format_;
+    TextureFormat format_;
+
     /// Texture usage type.
     TextureUsage usage_;
     /// Current mip levels.

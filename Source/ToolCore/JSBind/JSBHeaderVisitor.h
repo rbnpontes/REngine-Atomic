@@ -88,10 +88,18 @@ public:
         {
             NamedType* ntype = type->asNamedType();
             String classname = getNameString(ntype->name());
-
+            String _namespace = "";
             if (classname.StartsWith("Atomic::"))
+            {
+                _namespace = "Atomic";
                 classname.Replace("Atomic::", "");
-
+            }
+        	else if(classname.StartsWith("REngine::"))
+            {
+                _namespace = "REngine";
+                classname.Replace("REngine::", "");
+            }
+            
             if (classname == "VariantVector")
             {
                 JSBClass* jclass = JSBPackage::GetClassAllPackages("ScriptVariant");
@@ -136,6 +144,9 @@ public:
                     }
 
                 }
+
+                if(jtype)
+                    jtype->SetNamespace(_namespace);
 
             }
             else if (classname == "String")
@@ -444,12 +455,13 @@ public:
     JSBFunction* processFunction(JSBClass* klass, Function* function)
     {
         JSBFunction* jfunction = new JSBFunction(klass);
-
         // don't ... atm
         if (function->isVariadic())
             return NULL;
 
         String name = getNameString(function->name());
+        if (name.Contains("GetShaderResourceView"))
+            name = name;
 
         jfunction->SetName(name);
 

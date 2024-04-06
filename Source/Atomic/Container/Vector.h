@@ -30,6 +30,7 @@
 #if ATOMIC_CXX11
 #include <initializer_list>
 #endif
+#include <functional>
 
 #ifdef _MSC_VER
 #pragma warning(push)
@@ -470,6 +471,34 @@ public:
     /// Return the buffer with right type.
     T* Buffer() const { return reinterpret_cast<T*>(buffer_); }
 
+    Vector Filter(std::function<bool(T)> callback)
+    {
+        Vector copy;
+        for(unsigned i =0; i < Size(); ++i)
+        {
+            T item = At(i);
+            if(callback(item))
+                copy.Push(item);
+        }
+        return copy;
+    }
+
+    T FirstOrDefault()
+    {
+        if(Size() == 0)
+            return {};
+        return At(0);
+    }
+    T FirstOrDefault(std::function<bool(T)> callback)
+    {
+        for(unsigned i = 0; i < Size(); ++i)
+        {
+            T item = At(i);
+            if(callback(item))
+                return item;
+        }
+        return {};
+    }
 private:
     /// Resize the vector and create/remove new elements as necessary. Current buffer will be stored in tempBuffer in case of reallocation.
     void Resize(unsigned newSize, const T* src, Vector<T>& tempBuffer)

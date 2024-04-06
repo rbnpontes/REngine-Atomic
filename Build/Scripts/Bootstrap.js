@@ -41,6 +41,7 @@ function printHelp() {
     console.log("--noexamples    : Don't include examples with editor");
     console.log("--task=name     : Build the specified task (for development)");
     console.log("--package       : packages the editor to Artifacts/Dist");
+    console.log("--diligent      : Enable Diligent Core renderer");
     if (os.platform() == "win32") {
       console.log("--vs2015        : Build with VS2015");
       console.log("--vs2017        : Build with VS2017");

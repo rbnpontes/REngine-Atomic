@@ -58,10 +58,16 @@ static const char* filterModeNames[] =
 Texture::Texture(Context* context) :
     ResourceWithMetadata(context),
     GPUObject(GetSubsystem<Graphics>()),
+#ifdef RENGINE_DILIGENT
+    view_({}),
+    resolve_texture_({}),
+    format_(Diligent::TEX_FORMAT_UNKNOWN),
+#else
     shaderResourceView_(0),
     sampler_(0),
     resolveTexture_(0),
     format_(0),
+#endif
     usage_(TEXTURE_STATIC),
     levels_(0),
     requestedLevels_(0),
@@ -78,15 +84,14 @@ Texture::Texture(Context* context) :
     resolveDirty_(false),
     levelsDirty_(false)
 {
-    for (int i = 0; i < MAX_COORDS; ++i)
-        addressMode_[i] = ADDRESS_WRAP;
+    for (auto& i : addressMode_)
+        i = ADDRESS_WRAP;
     for (int i = 0; i < MAX_TEXTURE_QUALITY_LEVELS; ++i)
-        mipsToSkip_[i] = (unsigned)(MAX_TEXTURE_QUALITY_LEVELS - 1 - i);
+        mipsToSkip_[i] = static_cast<unsigned>(MAX_TEXTURE_QUALITY_LEVELS - 1 - i);
 }
 
 Texture::~Texture()
-{
-}
+= default;
 
 void Texture::SetNumLevels(unsigned levels)
 {
@@ -309,4 +314,22 @@ void Texture::CheckTextureBudget(StringHash type)
         cache->ReleaseResources(Material::GetTypeStatic());
 }
 
+#if RENGINE_DILIGENT
+void Texture::GetSamplerDesc(REngine::SamplerDesc& desc) const
+{
+    desc.filter_mode = filterMode_;
+    desc.anisotropy = static_cast<uint8_t>(anisotropy_);
+    desc.shadow_compare = shadowCompare_;
+    
+    if(desc.filter_mode == FILTER_DEFAULT)
+        desc.filter_mode = graphics_->GetDefaultTextureFilterMode();
+    if(desc.anisotropy == 0)
+        desc.anisotropy = static_cast<uint8_t>(graphics_->GetDefaultTextureAnisotropy());
+    
+    desc.address_u = addressMode_[COORD_U];
+    desc.address_v = addressMode_[COORD_V];
+    desc.address_w = addressMode_[COORD_W];
+}
+#endif
+    
 }

@@ -38,6 +38,14 @@
 			"SetMaterial" : ["Material"]
 		}
 	},
+	"excludes" : {
+		"Texture" : {
+			"GetTarget" : [],
+			"GetRenderBuffer" : [],
+			"GetExternalFormat" : ["unsigned"],
+			"GetDataType" : []
+		}
+	},
 	"typescript_decl" : {
 
 		"Material" : [

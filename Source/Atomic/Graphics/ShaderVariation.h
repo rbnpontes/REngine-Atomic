@@ -24,55 +24,18 @@
 
 #include "../Container/HashMap.h"
 #include "../Container/RefCounted.h"
-#include "../Container/ArrayPtr.h"
 #include "../Graphics/GPUObject.h"
 #include "../Graphics/GraphicsDefs.h"
 
+#if RENGINE_DILIGENT
+#include "../RHI/RHITypes.h"
+#endif
 namespace Atomic
 {
 
 class ConstantBuffer;
 class Shader;
 
-/// %Shader parameter definition.
-struct ShaderParameter
-{
-    /// Construct with defaults.
-    ShaderParameter() :
-        bufferPtr_(0)
-    {
-    }
-
-    /// %Shader type.
-    ShaderType type_;
-    /// Name of the parameter.
-    String name_;
-
-    union
-    {
-        /// Offset in constant buffer.
-        unsigned offset_;
-        /// OpenGL uniform location.
-        int location_;
-        /// Direct3D9 register index.
-        unsigned register_;
-    };
-
-    union
-    {
-        /// Parameter size. Used only on Direct3D11 to calculate constant buffer size.
-        unsigned size_;
-        /// Parameter OpenGL type.
-        unsigned glType_;
-        /// Number of registers on Direct3D9.
-        unsigned regCount_;
-    };
-
-    /// Constant buffer index. Only used on Direct3D11.
-    unsigned buffer_;
-    /// Constant buffer pointer. Defined only in shader programs.
-    ConstantBuffer* bufferPtr_;
-};
 
 /// Vertex or pixel shader on the GPU.
 class ATOMIC_API ShaderVariation : public RefCounted, public GPUObject
@@ -135,21 +98,42 @@ public:
 
     /// Return defines with the CLIPPLANE define appended. Used internally on Direct3D11 only, will be empty on other APIs.
     const String& GetDefinesClipPlane() { return definesClipPlane_; }
-
+#ifndef RENGINE_DILIGENT
     /// D3D11 vertex semantic names. Used internally.
     static const char* elementSemanticNames[];
+#endif
+
+#if RENGINE_DILIGENT
+	const Vector<REngine::ShaderCompilerReflectInputElement>& GetInputElements() const { return input_elements_; }
+    StringVector GetUseTextureNames() const { return used_textures_; }
+    uint32_t ToHash() const { return hash_; }
+#endif
 
 private:
     /// Load bytecode from a file. Return true if successful.
     bool LoadByteCode(const String& binaryShaderName);
+#if RENGINE_DILIGENT
+    bool Compile(SharedArrayPtr<uint8_t>& shader_file_data, uint32_t* shader_file_size);
+#else
     /// Compile from source. Return true if successful.
     bool Compile();
+#endif
+    
+#ifndef RENGINE_DILIGENT
     /// Inspect the constant parameters and input layout (if applicable) from the shader bytecode.
     void ParseParameters(unsigned char* bufData, unsigned bufSize);
+#endif
+
+
+#if RENGINE_DILIGENT
+    /// Save bytecode to a file.
+    void SaveByteCode(const String& binaryShaderName, const SharedArrayPtr<uint8_t>& byte_code, const uint32_t byte_code_len) const;
+#else
     /// Save bytecode to a file.
     void SaveByteCode(const String& binaryShaderName);
     /// Calculate constant buffer sizes from parameters.
     void CalculateConstantBufferSizes();
+#endif
 
     /// Shader this variation belongs to.
     WeakPtr<Shader> owner_;
@@ -173,6 +157,11 @@ private:
     String definesClipPlane_;
     /// Shader compile error string.
     String compilerOutput_;
+#if RENGINE_DILIGENT
+    StringVector used_textures_{};
+    Vector<REngine::ShaderCompilerReflectInputElement> input_elements_{};
+    uint32_t hash_{};
+#endif
 };
 
 }

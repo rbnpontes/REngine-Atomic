@@ -47,7 +47,8 @@ void ConstantBuffer::SetParameter(unsigned offset, unsigned size, const void* da
     if (offset + size > size_)
         return; // Would overflow the buffer
 
-    memcpy(&shadowData_[offset], data, size);
+    auto dst_data = shadowData_ + offset;
+    memcpy(dst_data, data, size);
     dirty_ = true;
 }
 

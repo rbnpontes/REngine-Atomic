@@ -102,3 +102,8 @@ add_subdirectory(imgui)
 if (ATOMIC_PROFILING)
     add_subdirectory(easy_profiler)
 endif ()
+
+
+if (RENGINE_DILIGENT)
+    add_subdirectory(DiligentCore)
+endif()

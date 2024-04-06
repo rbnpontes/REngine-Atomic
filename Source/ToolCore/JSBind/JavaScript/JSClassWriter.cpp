@@ -94,7 +94,9 @@ void JSClassWriter::GenerateStaticFunctionsSource(String& source, String& packag
     for (unsigned i = 0; i < klass_->functions_.Size(); i++)
     {
         JSBFunction* function = klass_->functions_.At(i);
-
+        bool find = false;
+        if (function->GetName().Contains("GetShaderResourceView", false))
+            find = true;
         if (function->Skip(BINDINGLANGUAGE_JAVASCRIPT) || OmitFunction(function))
             continue;
 

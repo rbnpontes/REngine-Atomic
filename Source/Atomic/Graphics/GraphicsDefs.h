@@ -24,6 +24,11 @@
 
 #include "../Container/HashBase.h"
 #include "../Math/StringHash.h"
+#include "../Math/MathDefs.h"
+
+#if RENGINE_DILIGENT
+#include <DiligentCore/Graphics/GraphicsEngine/interface/GraphicsTypes.h>
+#endif
 
 namespace Atomic
 {
@@ -37,6 +42,36 @@ class Vector3;
 #define DESKTOP_GRAPHICS
 #endif
 
+#if RENGINE_DILIGENT
+    typedef Diligent::TEXTURE_FORMAT TextureFormat;
+#else
+    typedef unsigned TextureFormat;
+#endif
+
+enum class GraphicsBackend : uint8_t
+{
+    D3D11,
+    D3D12,
+    Vulkan,
+    OpenGL
+};
+
+enum GraphicsClearFlags
+{
+	GRAPHICS_CLEAR_SHADER_PROGRAMS = 1 << 0,
+    GRAPHICS_CLEAR_PIPELINES = 1 << 2,
+    GRAPHICS_CLEAR_SRB = 1 << 3,
+    GRAPHICS_CLEAR_SCRATCH_BUFFERS = 1 << 4,
+    GRAPHICS_CLEAR_VERTEX_DECLARATIONS = 1 << 5,
+    GRAPHICS_CLEAR_CONSTANT_BUFFERS = 1 << 6,
+    GRAPHICS_CLEAR_ALL = GRAPHICS_CLEAR_SHADER_PROGRAMS
+	| GRAPHICS_CLEAR_PIPELINES
+	| GRAPHICS_CLEAR_SRB
+	| GRAPHICS_CLEAR_SCRATCH_BUFFERS
+    | GRAPHICS_CLEAR_VERTEX_DECLARATIONS
+    | GRAPHICS_CLEAR_CONSTANT_BUFFERS
+};
+    
 /// Primitive type.
 enum PrimitiveType
 {
@@ -44,8 +79,7 @@ enum PrimitiveType
     LINE_LIST,
     POINT_LIST,
     TRIANGLE_STRIP,
-    LINE_STRIP,
-    TRIANGLE_FAN
+    LINE_STRIP
 };
 
 /// %Geometry type for vertex shader geometry variations.
@@ -149,7 +183,7 @@ enum LegacyVertexElement
 };
 
 /// Arbitrary vertex declaration element datatypes.
-enum VertexElementType
+enum VertexElementType : uint8_t
 {
     TYPE_INT = 0,
     TYPE_FLOAT,
@@ -294,10 +328,11 @@ enum RenderSurfaceUpdateMode
 };
 
 /// Shader types.
-enum ShaderType
+enum ShaderType : uint8_t
 {
     VS = 0,
     PS,
+    MAX_SHADER_TYPES
 };
 
 /// Shader parameter groups for determining need to update. On APIs that support constant buffers, these correspond to different constant buffers.
@@ -317,34 +352,37 @@ enum ShaderParameterGroup
 enum TextureUnit
 {
     TU_DIFFUSE = 0,
-    TU_ALBEDOBUFFER = 0,
-    TU_NORMAL = 1,
-    TU_NORMALBUFFER = 1,
-    TU_SPECULAR = 2,
-    TU_EMISSIVE = 3,
-    TU_ENVIRONMENT = 4,
+    TU_NORMAL,
+    TU_SPECULAR,
+    TU_EMISSIVE,
+    TU_ENVIRONMENT,
 #ifdef DESKTOP_GRAPHICS
-    TU_VOLUMEMAP = 5,
-    TU_CUSTOM1 = 6,
-    TU_CUSTOM2 = 7,
-    TU_LIGHTRAMP = 8,
-    TU_LIGHTSHAPE = 9,
-    TU_SHADOWMAP = 10,
-    TU_FACESELECT = 11,
-    TU_INDIRECTION = 12,
-    TU_DEPTHBUFFER = 13,
-    TU_LIGHTBUFFER = 14,
-    TU_ZONE = 15,
-    MAX_MATERIAL_TEXTURE_UNITS = 8,
-    MAX_TEXTURE_UNITS = 16
+    TU_VOLUMEMAP,
+    TU_CUSTOM1,
+    TU_CUSTOM2,
+    TU_LIGHTRAMP,
+    TU_LIGHTSHAPE,
+    TU_SHADOWMAP,
+    TU_FACESELECT,
+    TU_INDIRECTION,
+    TU_DEPTHBUFFER,
+    TU_LIGHTBUFFER,
+    TU_ZONE,
+    TU_ALBEDOBUFFER,
+    TU_NORMALBUFFER,
 #else
-    TU_LIGHTRAMP = 5,
-    TU_LIGHTSHAPE = 6,
-    TU_SHADOWMAP = 7,
-    MAX_MATERIAL_TEXTURE_UNITS = 5,
-    MAX_TEXTURE_UNITS = 8
+    TU_LIGHTRAMP,
+    TU_LIGHTSHAPE,
+    TU_SHADOWMAP,
 #endif
+    MAX_TEXTURE_UNITS,
 };
+
+#ifdef DESKTOP_GRAPHICS
+    #define MAX_MATERIAL_TEXTURE_UNITS 8
+#else
+    #define MAX_MATERIAL_TEXTURE_UNITS 5
+#endif
 
 /// Billboard camera facing modes.
 enum FaceCameraMode
@@ -367,6 +405,48 @@ enum ShadowQuality
     SHADOWQUALITY_PCF_24BIT,
     SHADOWQUALITY_VSM,
     SHADOWQUALITY_BLUR_VSM
+};
+
+/// %Shader parameter definition.
+struct ATOMIC_API ShaderParameter
+{
+    /// %Shader type.
+    ShaderType type_{MAX_SHADER_TYPES};
+    /// Name of the parameter.
+    String name_{};
+
+    union
+    {
+        /// Offset in constant buffer.
+        unsigned offset_;
+        /// OpenGL uniform location.
+        int location_;
+        /// Direct3D9 register index.
+        unsigned register_;
+    };
+
+    union
+    {
+        /// Parameter size. Used only on Direct3D11 to calculate constant buffer size.
+        unsigned size_;
+        /// Parameter OpenGL type.
+        unsigned glType_;
+        /// Number of registers on Direct3D9.
+        unsigned regCount_;
+    };
+
+    /// Constant buffer index. Only used on Direct3D11.
+    unsigned buffer_{M_MAX_UNSIGNED};
+    /// Constant buffer pointer. Defined only in shader programs.
+    void* bufferPtr_{nullptr};
+};
+
+enum class ShaderByteCodeType : uint8_t
+{
+    Raw,
+	SpirV,
+    DxB,
+    Max
 };
 
 // Inbuilt shader parameters.
@@ -459,6 +539,7 @@ static const unsigned MASK_OBJECTINDEX = 0x2000;
 static const int MAX_RENDERTARGETS = 4;
 static const int MAX_VERTEX_STREAMS = 4;
 static const int MAX_CONSTANT_REGISTERS = 256;
-
+static const int MAX_IMMUTABLE_SAMPLERS = 16;
+    
 static const int BITS_PER_COMPONENT = 8;
 }

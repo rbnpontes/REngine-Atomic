@@ -3,32 +3,17 @@ var path = require("path");
 var host = require("./Host");
 var buildTasks = require("./BuildTasks");
 var config = require("./BuildConfig");
+const { getCMakeFlags } = require('./CMakeUtils');
 
 const nodeSpawn = require('child_process').spawn;
 
 var atomicRoot = config.atomicRoot;
-var buildDir = config.artifactsRoot + "Build/Windows/";
-var editorAppFolder = config.editorAppFolder
 
 namespace('build', function() {
 
   // converts / to \ and removes trailing slash
   function fixpath(path) {
     return path.replace(/\//g, "\\").replace(/\\$/, "");
-  }
-
-  // get CMake flags for generator, vsver parameter can be VS2017/VS2015, etc
-  function getCMakeFlags(vsver) {
-
-    // local cmake builds are always dev builds
-    var flags = "-DATOMIC_DEV_BUILD=1";
-
-    // graphics backend overrides, defaults DX11
-    flags += " -DATOMIC_OPENGL=" + (config["opengl"] ? "ON" : "OFF");
-    flags += " -DATOMIC_D3D11=" + (config["d3d9"] ? "OFF" : "ON");
-
-    return flags;
-
   }
 
   // spawn cmake process
@@ -54,7 +39,7 @@ namespace('build', function() {
     args.push(fixpath(slnRoot));
 
     // CMake flags
-    args.push(getCMakeFlags(vsver));
+    args.push(getCMakeFlags(true));
 
     // we're using nodeSpawn here instead of jake.exec as the later was having much trouble with quotes
     var cmakeProcess = nodeSpawn("cmd.exe", args);
