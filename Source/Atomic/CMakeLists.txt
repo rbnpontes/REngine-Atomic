@@ -207,7 +207,13 @@ endif()
 
 if (ATOMIC_PROFILING)
     target_compile_definitions (Atomic PUBLIC -DATOMIC_PROFILING=1)
-    list(APPEND PUBLIC_THIRD_PARTY_DEPS easy_profiler)
+    if (RENGINE_PROFILER STREQUAL "easy profiler")
+        target_compile_definitions(Atomic PUBLIC -DRENGINE_PROFILER_EASYPROFILER=1)
+        list(APPEND PUBLIC_THIRD_PARTY_DEPS easy_profiler)
+    else ()
+        target_compile_definitions(Atomic PUBLIC -DRENGINE_PROFILER_TRACY=1)
+        list(APPEND PUBLIC_THIRD_PARTY_DEPS TracyClient)
+    endif()
 endif ()
 
 option (ATOMIC_LOGGING "Enable logging" ON)
@@ -276,5 +282,6 @@ if (UNIX OR MINGW)
     target_compile_options(Atomic PUBLIC $<$<COMPILE_LANGUAGE:CXX>:-std=gnu++11>)
 endif ()
 
-target_link_libraries(Atomic ${PUBLIC_THIRD_PARTY_DEPS})
-target_link_libraries(Atomic ${PRIVATE_THIRD_PARTY_DEPS})
+target_link_libraries(Atomic 
+    PUBLIC ${PUBLIC_THIRD_PARTY_DEPS}
+    PRIVATE ${PRIVATE_THIRD_PARTY_DEPS})

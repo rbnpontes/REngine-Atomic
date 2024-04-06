@@ -2065,7 +2065,7 @@ namespace Atomic
 
 	void Graphics::PrepareDraw()
 	{
-		ATOMIC_PROFILE(Graphics::PrepareDraw);
+		ATOMIC_PROFILE(Graphics_PrepareDraw);
 
 		REngine::RenderCommandProcessDesc process_desc;
 		process_desc.driver = impl_;
@@ -2095,7 +2095,7 @@ namespace Atomic
 		// setup render targets
 		if (command->dirty_state & static_cast<unsigned>(REngine::RenderCommandDirtyState::render_targets))
 		{
-			ATOMIC_PROFILE(PrepareDraw::SetupRenderTargets)
+			ATOMIC_PROFILE(PrepareDraw::SetupRenderTargets);
 			unsigned num_rts = 0;
 			for (unsigned i = 0; i < MAX_RENDERTARGETS; ++i)
 			{

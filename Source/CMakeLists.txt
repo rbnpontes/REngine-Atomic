@@ -11,6 +11,11 @@ option(ATOMIC_IK "Enable inverse kinematics subsystem" OFF)
 option(ATOMIC_PROFILING "Enable profiler" ${ATOMIC_RELEASE_OFF})
 option(RENGINE_DILIGENT "Enable Diligent Core rendering" OFF)
 
+if(ATOMIC_PROFILING)
+    set(RENGINE_PROFILER "easy profiler" CACHE STRING "Choose engine profiler")
+    set_property(CACHE RENGINE_PROFILER PROPERTY STRINGS "easy profiler" "tracy")
+endif ()
+
 if (WIN32)
     option (ATOMIC_OPENGL "Use OpenGL" OFF)
     if (ATOMIC_OPENGL AND NOT RENGINE_DILIGENT)

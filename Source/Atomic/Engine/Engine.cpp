@@ -633,6 +633,8 @@ void Engine::RunFrame()
     ApplyFrameLimit();
 
     time->EndFrame();
+
+    ATOMIC_PROFILE_FRAME();
 }
 // ATOMIC END
 

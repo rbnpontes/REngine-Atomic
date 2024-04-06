@@ -27,15 +27,25 @@
 #include "../Core/Timer.h"
 
 #if ATOMIC_PROFILING
+
+#if RENGINE_PROFILER_EASYPROFILER
 #   include <easy/profiler.h>
+#elif RENGINE_PROFILER_TRACY
+#include <tracy/Tracy.hpp>
+namespace profiler { class BaseBlockDescriptor {}; };
+#endif
+
 #else
 namespace profiler { class BaseBlockDescriptor {}; };
 #endif
 
 namespace Atomic
 {
-
+#if RENGINE_PROFILER_TRACY
+static const int PROFILER_DEFAULT_PORT = 8086;
+#else
 static const int PROFILER_DEFAULT_PORT = 28077;
+#endif
 static const uint32_t PROFILER_COLOR_DEFAULT = 0xffffecb3;
 static const uint32_t PROFILER_COLOR_EVENTS = 0xffff9800;
 static const uint32_t PROFILER_COLOR_RESOURCES = 0xff00bcd4;
@@ -101,12 +111,28 @@ private:
 };
 
 #if ATOMIC_PROFILING
+#if RENGINE_PROFILER_EASYPROFILER
+#   define ATOMIC_PROFILE_FRAME()
 #   define ATOMIC_PROFILE(name, ...) EASY_BLOCK(#name, __VA_ARGS__)
 #   define ATOMIC_PROFILE_SCOPED(name, ...) EASY_BLOCK(name, __VA_ARGS__)
 #   define ATOMIC_PROFILE_NONSCOPED(name, ...) EASY_NONSCOPED_BLOCK(name, __VA_ARGS__)
 #   define ATOMIC_PROFILE_END(...) EASY_END_BLOCK
 #   define ATOMIC_PROFILE_THREAD(name) EASY_THREAD(name)
+#elif RENGINE_PROFILER_TRACY
+#   define ATOMIC_PROFILE_FRAME() FrameMark
+//#   define ATOMIC_PROFILE_FIXED_ZONE(varname, name) ZoneNamedN(TracyConcat(__tracy_scoped_zone, TracyLine), #name, true)
+#   define ATOMIC_PROFILE(name, ...) ZoneNamedN(TracyConcat(__tracy_scoped_zone, TracyLine), #name, true)
+#   define ATOMIC_PROFILE_SCOPED_NON_CONST_ZONE(varname, name, active) \
+    	static tracy::SourceLocationData TracyConcat(__tracy_source_location, TracyLine) { name, TracyFunction, TracyFile, (uint32_t)TracyLine, 0 }; \
+        tracy::ScopedZone varname(&TracyConcat(__tracy_source_location, TracyLine), active)
+#   define ATOMIC_PROFILE_SCOPED(name, ...) ATOMIC_PROFILE_SCOPED_NON_CONST_ZONE(___tracy_scoped_zone, name, true)
+#   define ATOMIC_PROFILE_NONSCOPED(name, ...)
+#   define ATOMIC_PROFILE_END(...)
+#   define ATOMIC_PROFILE_THREAD(name)
+#endif
+
 #else
+#   define ATOMIC_PROFILE_FRAME()
 #   define ATOMIC_PROFILE(name, ...)
 #   define ATOMIC_PROFILE_NONSCOPED(name, ...)
 #   define ATOMIC_PROFILE_SCOPED(name, ...)
