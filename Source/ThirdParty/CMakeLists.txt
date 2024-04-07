@@ -51,6 +51,7 @@ add_subdirectory(Recast)
 add_subdirectory(Detour)
 add_subdirectory(DetourCrowd)
 add_subdirectory(DetourTileCache)
+add_subdirectory(eastl)
 
 if (NOT WEB)
     add_subdirectory(Civetweb)
@@ -81,10 +82,6 @@ if (ATOMIC_DATABASE_ODBC)
     add_subdirectory(nanodbc)
 endif ()
 
-if (LINUX OR APPLE OR ATOMIC_OPENGL AND NOT IOS)
-    add_subdirectory(GLEW)
-endif()
-
 if (WIN32)
     add_subdirectory(MojoShader)
 endif()
@@ -104,7 +101,4 @@ if (ATOMIC_PROFILING)
     add_subdirectory(tracy)
 endif ()
 
-
-if (RENGINE_DILIGENT)
-    add_subdirectory(DiligentCore)
-endif()
+add_subdirectory(DiligentCore)

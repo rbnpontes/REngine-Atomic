@@ -122,13 +122,14 @@ set (PUBLIC_THIRD_PARTY_DEPS
     FreeType 
     JO 
     LZ4 
-    PugiXml 
+    PugiXml
     STB 
     SDL 
     ASIO 
     rapidjson 
     WebSocketPP 
-    imgui)
+    imgui
+    EASTL)
 set (PRIVATE_THIRD_PARTY_DEPS)
 
 target_compile_definitions (Atomic PUBLIC -DATOMIC_CXX11=1)

@@ -1,7 +1,8 @@
 #include "./RenderCommand.h"
 
 #include "./DiligentUtils.h"
-#include "IO/Log.h"
+#include "../IO/Log.h"
+#include "../Core/Profiler.h"
 
 namespace REngine
 {
@@ -18,29 +19,33 @@ namespace REngine
         const auto num_rts = Atomic::Min(state->num_rts, Atomic::MAX_RENDERTARGETS);
         state->pipeline_state_info.output.num_rts = num_rts;
 
-        for (unsigned i = 0; i < num_rts; ++i)
         {
-            assert(state->render_targets[i]);
-            const auto rt_format = state->render_targets[i]->GetDesc().Format;
-            if (rt_format != state->pipeline_state_info.output.render_target_formats[i])
+            ATOMIC_PROFILE(RenderCommand::SetupRTs);
+            for (unsigned i = 0; i < num_rts; ++i)
+            {
+                assert(state->render_targets[i]);
+                const auto rt_format = state->render_targets[i]->GetDesc().Format;
+                if (rt_format != state->pipeline_state_info.output.render_target_formats[i])
+                    state->dirty_state |= static_cast<unsigned>(RenderCommandDirtyState::pipeline);
+                state->pipeline_state_info.output.render_target_formats[i] = rt_format;
+                s_tmp_render_targets[i] = state->render_targets[i];
+            }
+
+            auto depth_fmt = Diligent::TEX_FORMAT_UNKNOWN;
+            if (state->depth_stencil)
+                depth_fmt = state->depth_stencil->GetDesc().Format;
+
+            if (depth_fmt != state->pipeline_state_info.output.depth_stencil_format)
                 state->dirty_state |= static_cast<unsigned>(RenderCommandDirtyState::pipeline);
-            state->pipeline_state_info.output.render_target_formats[i] = rt_format;
-            s_tmp_render_targets[i] = state->render_targets[i];
+            state->pipeline_state_info.output.depth_stencil_format = depth_fmt;
         }
-
-        auto depth_fmt = Diligent::TEX_FORMAT_UNKNOWN;
-        if (state->depth_stencil)
-            depth_fmt = state->depth_stencil->GetDesc().Format;
-
-        if (depth_fmt != state->pipeline_state_info.output.depth_stencil_format)
-            state->dirty_state |= static_cast<unsigned>(RenderCommandDirtyState::pipeline);
-        state->pipeline_state_info.output.depth_stencil_format = depth_fmt;
 
         if(state->skip_flags & static_cast<unsigned>(RenderCommandSkipFlags::pipeline_build))
             state->skip_flags ^= static_cast<unsigned>(RenderCommandSkipFlags::pipeline_build);
         // build pipeline if is necessary
         else if ((state->dirty_state & static_cast<unsigned>(RenderCommandDirtyState::pipeline)) != 0)
         {
+            ATOMIC_PROFILE(RenderCommand::PipelineBuild);
             auto pipeline_hash = state->pipeline_state_info.ToHash();
             if (pipeline_hash != state->pipeline_hash || state->pipeline_state == nullptr)
             {
@@ -57,6 +62,7 @@ namespace REngine
         Atomic::HashMap<Atomic::String, Diligent::IDeviceObject*> resources;
         if (state->pipeline_state)
         {
+            ATOMIC_PROFILE(RenderCommand::AddTextures);
             for (const auto& it : state->textures)
             {
                 assert(!it.first_.Empty() && "It seems binded texture slot name is empty.");
@@ -72,6 +78,7 @@ namespace REngine
         // build shader resource binding if is necessary
         else if(state->pipeline_state)
         {
+            ATOMIC_PROFILE(RenderCommand::BuildSRB);
             ShaderResourceBindingCreateDesc srb_desc;
             srb_desc.resources = &resources;
             srb_desc.driver = driver;
@@ -94,6 +101,7 @@ namespace REngine
 
         if(state->dirty_state & static_cast<unsigned>(RenderCommandDirtyState::viewport))
         {
+            ATOMIC_PROFILE(RenderCommand::SetViewport);
             const auto rect = state->viewport;
             Diligent::Viewport viewport;
             viewport.TopLeftX = static_cast<float>(rect.left_);
@@ -110,6 +118,7 @@ namespace REngine
         if(state->dirty_state & static_cast<unsigned>(RenderCommandDirtyState::scissor) && 
             state->pipeline_state_info.scissor_test_enabled)
         {
+            ATOMIC_PROFILE(RenderCommand::SetScissors);
             const auto rect = state->scissor;
             const Diligent::Rect scissor = { rect.left_, rect.top_, rect.right_, rect.bottom_};
             context->SetScissorRects(1, &scissor, graphics->GetWidth(), graphics->GetHeight());
@@ -118,6 +127,7 @@ namespace REngine
         }
         if(state->dirty_state & static_cast<unsigned>(RenderCommandDirtyState::vertex_buffer))
         {
+            ATOMIC_PROFILE(RenderCommand::SetVertexBuffers);
             unsigned next_idx =0;
             for(const auto& buffer : state->vertex_buffers)
             {
@@ -137,12 +147,21 @@ namespace REngine
             state->dirty_state ^= static_cast<unsigned>(RenderCommandDirtyState::vertex_buffer);
         }
 
-        context->SetIndexBuffer(state->index_buffer, 0, Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
+        {
+	        ATOMIC_PROFILE(RenderCommand::SetIndexBuffer);
+            context->SetIndexBuffer(state->index_buffer, 0, Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
+        }
 
         if(state->pipeline_state)
+        {
+	        ATOMIC_PROFILE(RenderCommand::SetPipelineState);
             context->SetPipelineState(state->pipeline_state);
+        }
         if (state->shader_resource_binding)
+        {
+            ATOMIC_PROFILE(RenderCommand::CommitSRB);
             context->CommitShaderResources(state->shader_resource_binding, Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
+        }
         else if(state->pipeline_state)
             ATOMIC_LOGERROR("Shader Resource Binding is null");
     }

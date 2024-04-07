@@ -61,11 +61,11 @@ namespace REngine
         Diligent::RefCntAutoPtr<Diligent::IShaderResourceBinding> shader_resource_binding{nullptr};
 
         PipelineStateInfo pipeline_state_info{};
-        uint32_t vertex_decl_hash{};
+        uint32_t vertex_decl_hash{0};
 
         Atomic::IntRect viewport{Atomic::IntRect::ZERO};
         Atomic::IntRect scissor{Atomic::IntRect::ZERO};
-        uint8_t stencil_ref{};
+        uint8_t stencil_ref{0};
         
         Atomic::HashMap<Atomic::String, Diligent::RefCntAutoPtr<Diligent::ITextureView>> textures{};
         Atomic::SharedPtr<REngine::ShaderProgram> shader_program{};
