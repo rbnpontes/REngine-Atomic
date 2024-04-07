@@ -33,16 +33,6 @@ elseif (ATOMIC_DATABASE_ODBC)
     file (GLOB DATABASE_SOURCE Database/*.cpp Database/*.h Database/ODBC/*.cpp Database/ODBC/*.h)
 endif ()
 
-if (WIN32)
-    if (ATOMIC_OPENGL) # OpenGL
-        file (GLOB GRAPHICS_IMPL_SOURCE Graphics/OpenGL/*.cpp Graphics/OpenGL/*.h)
-    elseif(ATOMIC_D3D11) # DirectX 11
-        file (GLOB GRAPHICS_IMPL_SOURCE Graphics/Direct3D11/*.cpp Graphics/Direct3D11/*.h)
-    endif()
-else()
-    file (GLOB GRAPHICS_IMPL_SOURCE Graphics/OpenGL/*.cpp Graphics/OpenGL/*.h)
-endif()
-
 if (APPLE AND NOT IOS)
     set (PLATFORM_SOURCE IO/MacFileWatcher.mm UI/UIDragDropMac.mm)
 endif()
@@ -55,15 +45,12 @@ set (SOURCE_FILES ${CONTAINER_SOURCE} ${CORE_SOURCE} ${ENGINE_SOURCE} ${INPUT_SO
                   ${ATOMIC2D_SOURCE} ${ENVIRONMENT_SOURCE}
                   ${SCENE_SOURCE} ${UI_SOURCE} ${SYSTEM_UI_SOURCE}
                   ${WEB_SOURCE} ${SCRIPT_SOURCE} ${METRICS_SOURCE}
-                  ${PLATFORM_SOURCE} ${DATABASE_SOURCE} ${IK_SOURCE} ${NAVIGATION_SOURCE})
+                  ${PLATFORM_SOURCE} ${DATABASE_SOURCE} ${IK_SOURCE} 
+                  ${NAVIGATION_SOURCE} ${RHI_SOURCE})
 
 if (NOT WEB)
   set (SOURCE_FILES ${SOURCE_FILES} ${NETWORK_SOURCE})
 endif()
-
-if (RENGINE_DILIGENT)
-    set (SOURCE_FILES ${SOURCE_FILES} ${RHI_SOURCE})
-endif ()
 
 GroupSources("Atomic2D")
 GroupSources("Atomic3D")
@@ -88,10 +75,7 @@ GroupSources("Script")
 GroupSources("Metrics")
 GroupSources("BuildInfo")
 GroupSources("IK")
-
-if (RENGINE_DILIGENT)
-    GroupSources("RHI")
-endif ()
+GroupSources("RHI")
 
 # Handle Git Revision
 include(GetGitRevisionDescription)
@@ -144,26 +128,14 @@ elseif (APPLE)
     if (IOS)
         target_compile_definitions(Atomic PUBLIC -DATOMIC_PLATFORM_IOS=1 -DIOS=1)
     else () # MacOS
-        list(APPEND PRIVATE_THIRD_PARTY_DEPS GLEW)
         target_compile_definitions(Atomic PUBLIC -DATOMIC_PLATFORM_OSX=1)
     endif ()
 elseif (LINUX)
-    list(APPEND PUBLIC_THIRD_PARTY_DEPS pthread GLEW GL dl)
+    list(APPEND PUBLIC_THIRD_PARTY_DEPS pthread dl)
     target_compile_definitions(Atomic PUBLIC -DATOMIC_PLATFORM_LINUX=1)
 elseif (WIN32)
     target_compile_definitions (Atomic PUBLIC -DATOMIC_PLATFORM_WINDOWS=1)
-    list(APPEND PUBLIC_THIRD_PARTY_DEPS user32 gdi32 winmm imm32 ole32 oleaut32 version uuid Ws2_32 MojoShader)
-    
-    if(ATOMIC_OPENGL) # OpenGL
-        find_package(OpenGL REQUIRED)
-        include_directories (${OpenGL_INCLUDE_DIRS})
-        link_directories (${OpenGL_LIBRARY_DIRS})
-        target_compile_definitions (Atomic PRIVATE ${OpenGL_DEFINITIONS})
-        list(APPEND PUBLIC_THIRD_PARTY_DEPS GLEW opengl32 glu32)
-    elseif(ATOMIC_D3D11) # DirectX 11
-        target_compile_definitions (Atomic PUBLIC -DATOMIC_D3D11=1)
-        list(APPEND PUBLIC_THIRD_PARTY_DEPS d3d11 d3dcompiler dxguid)
-    endif()
+    list(APPEND PUBLIC_THIRD_PARTY_DEPS user32 gdi32 winmm imm32 ole32 oleaut32 version uuid Ws2_32)
 elseif (WEB)
     target_compile_definitions(Atomic PUBLIC -DATOMIC_PLATFORM_WEB=1 -DNO_POPEN=1)
 endif ()

@@ -232,7 +232,7 @@ namespace REngine
             const auto& item = info.immutable_samplers[i];
             auto shadow_cmp = item.sampler.shadow_compare ? 1 : 0;
 
-            immutable_sampler.SamplerOrTextureName = item.name.CString();
+            immutable_sampler.SamplerOrTextureName = item.name;
             immutable_sampler.ShaderStages = Diligent::SHADER_TYPE_VS_PS;
             immutable_sampler.Desc.MinFilter = s_min_mag_filters_tbl[item.sampler.filter_mode][shadow_cmp];
             immutable_sampler.Desc.MagFilter = s_min_mag_filters_tbl[item.sampler.filter_mode][shadow_cmp];
@@ -373,27 +373,12 @@ namespace REngine
         Atomic::CombineHash(hash, info.stencil_write_mask);
         // Input Layout
         for (unsigned i = 0; i < info.input_layout.num_elements; ++i)
-        {
-            const auto& element = info.input_layout.elements[i];
-            Atomic::CombineHash(hash, element.buffer_index);
-            Atomic::CombineHash(hash, element.buffer_stride);
-            Atomic::CombineHash(hash, element.element_offset);
-            Atomic::CombineHash(hash, element.instance_step_rate);
-        }
+            Atomic::CombineHash(hash, info.input_layout.elements[i].ToHash());
         // Primitive Type
         Atomic::CombineHash(hash, info.primitive_type);
         // Immutable Samplers
         for (unsigned i = 0; i < info.num_samplers; ++i)
-        {
-            const auto& item = info.immutable_samplers[i];
-            Atomic::CombineHash(hash, Atomic::StringHash::Calculate(item.name.CString()));
-            Atomic::CombineHash(hash, item.sampler.filter_mode);
-            Atomic::CombineHash(hash, item.sampler.anisotropy);
-            Atomic::CombineHash(hash, item.sampler.shadow_compare);
-            Atomic::CombineHash(hash, item.sampler.address_u);
-            Atomic::CombineHash(hash, item.sampler.address_v);
-            Atomic::CombineHash(hash, item.sampler.address_w);
-        }
+            Atomic::CombineHash(hash, info.immutable_samplers[i].ToHash());
 
         Atomic::CombineHash(hash, info.read_only_depth);
 
@@ -409,10 +394,10 @@ namespace REngine
 
     Diligent::RefCntAutoPtr<Diligent::IShaderResourceBinding> pipeline_state_builder_get_or_create_srb(const ShaderResourceBindingCreateDesc& desc)
     {
-        unsigned key = desc.pipeline_hash;
+        u32 key = desc.pipeline_hash;
         // build key from resource pointers
         for (const auto& it : *desc.resources)
-            Atomic::CombineHash(key, Atomic::MakeHash(it.second_));
+            Atomic::CombineHash(key, Atomic::MakeHash(it.second.texture.ConstPtr()));
 
         if(s_srb.Contains(key))
         {
@@ -435,9 +420,9 @@ namespace REngine
         s_srb[key] = srb;
 
 
-        for(uint8_t type = 0; type < MAX_SHADER_TYPES; ++type)
+        for(u8 type = 0; type < MAX_SHADER_TYPES; ++type)
         {
-	        for(uint8_t grp = 0; grp < MAX_SHADER_PARAMETER_GROUPS; ++grp)
+	        for(u8 grp = 0; grp < MAX_SHADER_PARAMETER_GROUPS; ++grp)
 			{
 				const auto shader_type = static_cast<ShaderType>(type);
                 const auto d_shader_type = utils_get_shader_type(shader_type);
@@ -452,12 +437,12 @@ namespace REngine
 
         for(const auto& it : *desc.resources)
         {
-            for(uint8_t type = 0; type < MAX_SHADER_TYPES; ++type)
+            for(u8 type = 0; type < MAX_SHADER_TYPES; ++type)
             {
                 const auto shader_type = utils_get_shader_type(static_cast<Atomic::ShaderType>(type));
-                const auto var = srb->GetVariableByName(shader_type, it.first_.CString());
+                const auto var = srb->GetVariableByName(shader_type, it.second.name);
                 if(var)
-                    var->Set(it.second_);
+                    var->Set(it.second.texture);
             }
         }
         return srb;

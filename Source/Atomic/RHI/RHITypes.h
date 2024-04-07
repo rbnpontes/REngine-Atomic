@@ -6,6 +6,8 @@
 #include "../Graphics/GraphicsDefs.h"
 #include "../Container/Hash.h"
 #include <DiligentCore/Graphics/GraphicsEngine/interface/InputLayout.h>
+#include <DiligentCore/Graphics/GraphicsEngine/interface/TextureView.h>
+#include <DiligentCore/Common/interface/RefCntAutoPtr.hpp>
 
 namespace REngine
 {
@@ -85,16 +87,24 @@ namespace REngine
     
     struct ImmutableSamplersDesc
     {
-        Atomic::String name{};
+        const char* name{};
+        Atomic::StringHash name_hash{};
         SamplerDesc sampler;
 
-        unsigned ToHash() const
+        u32 ToHash() const
         {
-            unsigned hash = Atomic::StringHash::Calculate(name.CString());
+            u32 hash = name_hash.Value();
             Atomic::CombineHash(hash, sampler.ToHash());
             return hash;
         }
     };
+
+    struct ShaderResourceTextureDesc
+    {
+        const char* name;
+        Diligent::RefCntAutoPtr<Diligent::ITextureView> texture;
+    };
+    typedef ea::unordered_map<u32, ShaderResourceTextureDesc> ShaderResourceTextures;
 
 	struct ShaderCompilerDesc
     {
@@ -167,7 +177,8 @@ namespace REngine
         uint64_t element_hash{};
         Atomic::Vector<ShaderCompilerReflectInputElement> input_elements{};
     };
-    struct ShaderCompilerHlslDesc
+
+	struct ShaderCompilerHlslDesc
     {
         void* spirv_code{ nullptr };
         uint32_t length{ 0 };
@@ -182,7 +193,8 @@ namespace REngine
         Atomic::ShaderByteCodeType byte_code_type{ Atomic::ShaderByteCodeType::Max};
         ShaderCompilerReflectInfo* reflect_info{ nullptr };
     };
-    struct ShaderCompilerImportBinResult
+
+	struct ShaderCompilerImportBinResult
     {
         bool has_error{false};
         Atomic::String error{};

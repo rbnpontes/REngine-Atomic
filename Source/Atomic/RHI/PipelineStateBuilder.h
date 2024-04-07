@@ -40,15 +40,15 @@ namespace REngine
         Atomic::StencilOp stencil_op_on_passed{Atomic::OP_KEEP};
         Atomic::StencilOp stencil_op_on_stencil_failed{Atomic::OP_KEEP};
         Atomic::StencilOp stencil_op_depth_failed{Atomic::OP_KEEP};
-        uint8_t stencil_cmp_mask{255};
-        uint8_t stencil_write_mask{255};
+        u8 stencil_cmp_mask{255};
+        u8 stencil_write_mask{255};
         // END DEPTH STENCIL STATE
 
         InputLayoutDesc input_layout;
         Atomic::PrimitiveType primitive_type{Atomic::TRIANGLE_LIST};
         PipelineStateOutputDesc output;
 
-        uint8_t num_samplers{0};
+        u8 num_samplers{0};
         ImmutableSamplersDesc immutable_samplers[Atomic::MAX_IMMUTABLE_SAMPLERS]{};
 
         bool read_only_depth{false};
@@ -131,8 +131,8 @@ namespace REngine
     struct ShaderResourceBindingCreateDesc
     {
         DriverInstance* driver{nullptr};
-        uint32_t pipeline_hash{0};
-        Atomic::HashMap<Atomic::String, Diligent::IDeviceObject*>* resources{nullptr};
+        u32 pipeline_hash{0};
+        ShaderResourceTextures* resources{nullptr};
     };
     /**
      * \brief get or create a shader resource binding from an pipeline hash

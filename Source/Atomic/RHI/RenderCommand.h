@@ -6,7 +6,6 @@
 #include "../Graphics/GraphicsDefs.h"
 #include "../Math/Rect.h"
 #include "../Graphics/Graphics.h"
-#include "../Container/HashMap.h"
 
 #include <DiligentCore/Common/interface/RefCntAutoPtr.hpp>
 #include <DiligentCore/Graphics/GraphicsEngine/interface/Buffer.h>
@@ -49,10 +48,10 @@ namespace REngine
     struct RenderCommandState
     {
         Diligent::RefCntAutoPtr<Diligent::IBuffer> vertex_buffers[Atomic::MAX_VERTEX_STREAMS]{};
-        uint64_t vertex_offsets[Atomic::MAX_VERTEX_STREAMS]{};
+        u64 vertex_offsets[Atomic::MAX_VERTEX_STREAMS]{};
         Diligent::RefCntAutoPtr<Diligent::IBuffer> index_buffer{nullptr};
 
-        uint8_t num_rts{0};
+        u8 num_rts{0};
         Diligent::RefCntAutoPtr<Diligent::ITextureView> render_targets[Atomic::MAX_RENDERTARGETS];
         Diligent::RefCntAutoPtr<Diligent::ITextureView> depth_stencil{nullptr};
 
@@ -61,14 +60,15 @@ namespace REngine
         Diligent::RefCntAutoPtr<Diligent::IShaderResourceBinding> shader_resource_binding{nullptr};
 
         PipelineStateInfo pipeline_state_info{};
-        uint32_t vertex_decl_hash{0};
+        u32 vertex_decl_hash{0};
 
         Atomic::IntRect viewport{Atomic::IntRect::ZERO};
         Atomic::IntRect scissor{Atomic::IntRect::ZERO};
-        uint8_t stencil_ref{0};
-        
-        Atomic::HashMap<Atomic::String, Diligent::RefCntAutoPtr<Diligent::ITextureView>> textures{};
-        Atomic::SharedPtr<REngine::ShaderProgram> shader_program{};
+        u8 stencil_ref{0};
+
+        ShaderResourceTextures textures{};
+
+        Atomic::SharedPtr<ShaderProgram> shader_program{};
 
         Atomic::Vector<ShaderParameterUpdateDesc> shader_parameter_updates{};
 
@@ -89,7 +89,7 @@ namespace REngine
         Diligent::ITextureView* depth_stencil{nullptr};
         Atomic::Color clear_color{Atomic::Color::BLACK};
         float clear_depth{0};
-        uint8_t clear_stencil{0};
+        u8 clear_stencil{0};
         Diligent::CLEAR_DEPTH_STENCIL_FLAGS clear_stencil_flags{Diligent::CLEAR_DEPTH_FLAG_NONE};
         unsigned flags{0};
     };

@@ -59,19 +59,19 @@ namespace REngine
         }
 
         // bind textures
-        Atomic::HashMap<Atomic::String, Diligent::IDeviceObject*> resources;
-        if (state->pipeline_state)
-        {
-            ATOMIC_PROFILE(RenderCommand::AddTextures);
-            for (const auto& it : state->textures)
-            {
-                assert(!it.first_.Empty() && "It seems binded texture slot name is empty.");
-                if (it.second_)
-                    resources[it.first_] = it.second_;
-            }
+        //Atomic::HashMap<Atomic::String, Diligent::IDeviceObject*> resources;
+        //if (state->pipeline_state)
+        //{
+        //    ATOMIC_PROFILE(RenderCommand::AddTextures);
+        //    for (const auto& it : state->textures)
+        //    {
+        //        assert(!it.first_.Empty() && "It seems binded texture slot name is empty.");
+        //        if (it.second_)
+        //            resources[it.first_] = it.second_;
+        //    }
 
-            //state.dirty_state ^= static_cast<unsigned>(RenderCommandDirtyState::textures);
-        }
+        //    //state.dirty_state ^= static_cast<unsigned>(RenderCommandDirtyState::textures);
+        //}
 
         if(state->skip_flags & static_cast<unsigned>(RenderCommandSkipFlags::srb_build))
             state->skip_flags ^= static_cast<unsigned>(RenderCommandSkipFlags::srb_build);
@@ -80,7 +80,7 @@ namespace REngine
         {
             ATOMIC_PROFILE(RenderCommand::BuildSRB);
             ShaderResourceBindingCreateDesc srb_desc;
-            srb_desc.resources = &resources;
+            srb_desc.resources = &state->textures;
             srb_desc.driver = driver;
             srb_desc.pipeline_hash = state->pipeline_hash;
             state->shader_resource_binding = pipeline_state_builder_get_or_create_srb(srb_desc);
@@ -197,8 +197,7 @@ namespace REngine
         state->scissor = Atomic::IntRect::ZERO;
         state->stencil_ref = 0;
 
-        for (auto it : state->textures)
-            it.second_ = nullptr;
+        state->textures.clear();
 
         state->shader_program = {};
         state->dirty_state = static_cast<unsigned>(RenderCommandDirtyState::all);

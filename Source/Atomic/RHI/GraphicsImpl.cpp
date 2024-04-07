@@ -2129,8 +2129,10 @@ namespace Atomic
 				const auto sampler = command->shader_program->GetSampler(static_cast<TextureUnit>(i));
 				if (!sampler)
 					continue;
-				command->textures[sampler->name] = textures_[i]->GetShaderResourceView();
-				command->pipeline_state_info.immutable_samplers[next_tex_idx].name = sampler->name;
+				REngine::ShaderResourceTextureDesc& text_desc = command->textures[sampler->hash.Value()];
+				text_desc.texture = textures_[i]->GetShaderResourceView();
+				text_desc.name = sampler->name.CString();
+				command->pipeline_state_info.immutable_samplers[next_tex_idx].name = sampler->name.CString();
 				textures_[i]->GetSamplerDesc(command->pipeline_state_info.immutable_samplers[next_tex_idx].sampler);
 				++next_tex_idx;
 			}
