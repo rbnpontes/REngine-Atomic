@@ -49,6 +49,7 @@
 #include "../Graphics/Texture3D.h"
 #include "../Graphics/TextureCube.h"
 #include "../Graphics/Zone.h"
+#include "../Graphics/DrawCommandQueue.h"
 #include "../IO/FileSystem.h"
 #include "../IO/Log.h"
 
@@ -415,6 +416,8 @@ void RegisterGraphicsLibrary(Context* context)
     Text3DText::RegisterObject(context);
     Text3D::RegisterObject(context);
     // ATOMIC END
+
+    DrawCommandQueue::RegisterObject(context);
 }
 
 // ATOMIC BEGIN

@@ -40,111 +40,113 @@ namespace REngine
             state->pipeline_state_info.output.depth_stencil_format = depth_fmt;
         }
 
-        if(state->skip_flags & static_cast<unsigned>(RenderCommandSkipFlags::pipeline_build))
-            state->skip_flags ^= static_cast<unsigned>(RenderCommandSkipFlags::pipeline_build);
-        // build pipeline if is necessary
-        else if ((state->dirty_state & static_cast<unsigned>(RenderCommandDirtyState::pipeline)) != 0)
         {
+	        
             ATOMIC_PROFILE(RenderCommand::PipelineBuild);
-            auto pipeline_hash = state->pipeline_state_info.ToHash();
-            if (pipeline_hash != state->pipeline_hash || state->pipeline_state == nullptr)
+            if(state->skip_flags & static_cast<unsigned>(RenderCommandSkipFlags::pipeline_build))
+                state->skip_flags ^= static_cast<unsigned>(RenderCommandSkipFlags::pipeline_build);
+            // build pipeline if is necessary
+            else if ((state->dirty_state & static_cast<unsigned>(RenderCommandDirtyState::pipeline)) != 0)
             {
-                state->pipeline_hash = pipeline_hash;
-                state->pipeline_state = pipeline_state_builder_acquire(driver, state->pipeline_state_info, pipeline_hash);
-                state->shader_resource_binding = nullptr;
-            }
+                auto pipeline_hash = state->pipeline_state_info.ToHash();
+                if (pipeline_hash != state->pipeline_hash || state->pipeline_state == nullptr)
+                {
+                    state->pipeline_hash = pipeline_hash;
+                    state->pipeline_state = pipeline_state_builder_acquire(driver, state->pipeline_state_info, pipeline_hash);
+                    state->shader_resource_binding = nullptr;
+                }
 
-            if(pipeline_hash != 0 && state->pipeline_state)
-                state->dirty_state ^= static_cast<unsigned>(RenderCommandDirtyState::pipeline);
+                if(pipeline_hash != 0 && state->pipeline_state)
+                    state->dirty_state ^= static_cast<unsigned>(RenderCommandDirtyState::pipeline);
+            }
         }
 
-        // bind textures
-        //Atomic::HashMap<Atomic::String, Diligent::IDeviceObject*> resources;
-        //if (state->pipeline_state)
-        //{
-        //    ATOMIC_PROFILE(RenderCommand::AddTextures);
-        //    for (const auto& it : state->textures)
-        //    {
-        //        assert(!it.first_.Empty() && "It seems binded texture slot name is empty.");
-        //        if (it.second_)
-        //            resources[it.first_] = it.second_;
-        //    }
-
-        //    //state.dirty_state ^= static_cast<unsigned>(RenderCommandDirtyState::textures);
-        //}
-
-        if(state->skip_flags & static_cast<unsigned>(RenderCommandSkipFlags::srb_build))
-            state->skip_flags ^= static_cast<unsigned>(RenderCommandSkipFlags::srb_build);
-        // build shader resource binding if is necessary
-        else if(state->pipeline_state)
         {
             ATOMIC_PROFILE(RenderCommand::BuildSRB);
-            ShaderResourceBindingCreateDesc srb_desc;
-            srb_desc.resources = &state->textures;
-            srb_desc.driver = driver;
-            srb_desc.pipeline_hash = state->pipeline_hash;
-            state->shader_resource_binding = pipeline_state_builder_get_or_create_srb(srb_desc);
+            if(state->skip_flags & static_cast<unsigned>(RenderCommandSkipFlags::srb_build))
+                state->skip_flags ^= static_cast<unsigned>(RenderCommandSkipFlags::srb_build);
+            // build shader resource binding if is necessary
+            else if(state->pipeline_state)
+            {
+                ShaderResourceBindingCreateDesc srb_desc;
+                srb_desc.resources = &state->textures;
+                srb_desc.driver = driver;
+                srb_desc.pipeline_hash = state->pipeline_hash;
+                state->shader_resource_binding = pipeline_state_builder_get_or_create_srb(srb_desc);
+            }
         }
 
-        // bind render targets if is necessary
-        context->SetRenderTargets(num_rts, s_tmp_render_targets, state->depth_stencil,
-                                    Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
-        context->SetStencilRef(state->stencil_ref);
-
-        static constexpr float s_blend_factors[] = {.0f, .0f, .0f, .0f};
-        context->SetBlendFactors(s_blend_factors);
-        /*if (state.dirty_state & static_cast<unsigned>(RenderCommandDirtyState::render_targets) || state.dirty_state & static_cast<unsigned>(RenderCommandDirtyState::depth_stencil))
         {
-            state.dirty_state ^= static_cast<unsigned>(RenderCommandDirtyState::render_targets);
-            state.dirty_state ^= static_cast<unsigned>(RenderCommandDirtyState::depth_stencil);
-        }*/
+            ATOMIC_PROFILE(RenderCommand::SetRTs);
+            // bind render targets if is necessary
+            context->SetRenderTargets(num_rts, s_tmp_render_targets, state->depth_stencil,
+                                        Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
+        }
+        {
+            ATOMIC_PROFILE(RenderCommand::SetStencilRef);
+            context->SetStencilRef(state->stencil_ref);
+        }
 
-        if(state->dirty_state & static_cast<unsigned>(RenderCommandDirtyState::viewport))
+        {
+            ATOMIC_PROFILE(RenderCommand::SetBlendFactors);
+            static constexpr float s_blend_factors[] = {.0f, .0f, .0f, .0f};
+            context->SetBlendFactors(s_blend_factors);
+        }
+
         {
             ATOMIC_PROFILE(RenderCommand::SetViewport);
-            const auto rect = state->viewport;
-            Diligent::Viewport viewport;
-            viewport.TopLeftX = static_cast<float>(rect.left_);
-            viewport.TopLeftY = static_cast<float>(rect.top_);
-            viewport.Width = static_cast<float>(rect.right_ - rect.left_);
-            viewport.Height = static_cast<float>(rect.bottom_ - rect.top_);
-            viewport.MinDepth = 0.0f;
-            viewport.MaxDepth = 1.0f;
-            context->SetViewports(1, &viewport, graphics->GetWidth(), graphics->GetHeight());
+            if(state->dirty_state & static_cast<unsigned>(RenderCommandDirtyState::viewport))
+            {
+                const auto rect = state->viewport;
+                Diligent::Viewport viewport;
+                viewport.TopLeftX = static_cast<float>(rect.left_);
+                viewport.TopLeftY = static_cast<float>(rect.top_);
+                viewport.Width = static_cast<float>(rect.right_ - rect.left_);
+                viewport.Height = static_cast<float>(rect.bottom_ - rect.top_);
+                viewport.MinDepth = 0.0f;
+                viewport.MaxDepth = 1.0f;
+                context->SetViewports(1, &viewport, graphics->GetWidth(), graphics->GetHeight());
 
-            state->dirty_state ^= static_cast<unsigned>(RenderCommandDirtyState::viewport);
+                state->dirty_state ^= static_cast<unsigned>(RenderCommandDirtyState::viewport);
+            }
         }
 
-        if(state->dirty_state & static_cast<unsigned>(RenderCommandDirtyState::scissor) && 
-            state->pipeline_state_info.scissor_test_enabled)
         {
+	        
             ATOMIC_PROFILE(RenderCommand::SetScissors);
-            const auto rect = state->scissor;
-            const Diligent::Rect scissor = { rect.left_, rect.top_, rect.right_, rect.bottom_};
-            context->SetScissorRects(1, &scissor, graphics->GetWidth(), graphics->GetHeight());
+            if(state->dirty_state & static_cast<unsigned>(RenderCommandDirtyState::scissor) && 
+                state->pipeline_state_info.scissor_test_enabled)
+            {
+                const auto rect = state->scissor;
+                const Diligent::Rect scissor = { rect.left_, rect.top_, rect.right_, rect.bottom_};
+                context->SetScissorRects(1, &scissor, graphics->GetWidth(), graphics->GetHeight());
 
-            state->dirty_state ^= static_cast<unsigned>(RenderCommandDirtyState::scissor);
+                state->dirty_state ^= static_cast<unsigned>(RenderCommandDirtyState::scissor);
+            }
         }
-        if(state->dirty_state & static_cast<unsigned>(RenderCommandDirtyState::vertex_buffer))
+
         {
             ATOMIC_PROFILE(RenderCommand::SetVertexBuffers);
-            unsigned next_idx =0;
-            for(const auto& buffer : state->vertex_buffers)
+            if(state->dirty_state & static_cast<unsigned>(RenderCommandDirtyState::vertex_buffer))
             {
-                if(!buffer)
-                    continue;
-                s_tmp_vertex_buffers[next_idx] = buffer;
-                ++next_idx;
-            }
+                unsigned next_idx =0;
+                for(const auto& buffer : state->vertex_buffers)
+                {
+                    if(!buffer)
+                        continue;
+                    s_tmp_vertex_buffers[next_idx] = buffer;
+                    ++next_idx;
+                }
 
-            if(next_idx > 0)
-                context->SetVertexBuffers(
-                    0,
-                    next_idx,
-                    s_tmp_vertex_buffers,
-                    state->vertex_offsets,
-                    Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
-            state->dirty_state ^= static_cast<unsigned>(RenderCommandDirtyState::vertex_buffer);
+                if(next_idx > 0)
+                    context->SetVertexBuffers(
+                        0,
+                        next_idx,
+                        s_tmp_vertex_buffers,
+                        state->vertex_offsets,
+                        Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
+                state->dirty_state ^= static_cast<unsigned>(RenderCommandDirtyState::vertex_buffer);
+            }
         }
 
         {
@@ -152,18 +154,24 @@ namespace REngine
             context->SetIndexBuffer(state->index_buffer, 0, Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
         }
 
-        if(state->pipeline_state)
         {
-	        ATOMIC_PROFILE(RenderCommand::SetPipelineState);
-            context->SetPipelineState(state->pipeline_state);
+
+        	ATOMIC_PROFILE(RenderCommand::SetPipelineState);
+            if(state->pipeline_state)
+            {
+                context->SetPipelineState(state->pipeline_state);
+            }
         }
-        if (state->shader_resource_binding)
+
         {
             ATOMIC_PROFILE(RenderCommand::CommitSRB);
-            context->CommitShaderResources(state->shader_resource_binding, Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
+            if (state->shader_resource_binding)
+            {
+                context->CommitShaderResources(state->shader_resource_binding, Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
+            }
+            else if(state->pipeline_state)
+                ATOMIC_LOGERROR("Shader Resource Binding is null");
         }
-        else if(state->pipeline_state)
-            ATOMIC_LOGERROR("Shader Resource Binding is null");
     }
 
     void render_command_reset(const Atomic::Graphics* graphics, RenderCommandState* state)
