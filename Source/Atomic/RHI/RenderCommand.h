@@ -27,9 +27,11 @@ namespace REngine
         vertex_buffer = 1 << 7,
         index_buffer = 1 << 8,
         vertex_decl = 1 << 9,
+        srb = 1 << 10,
         all = render_targets | depth_stencil | pipeline
         | textures | shader_program | viewport
         | scissor | vertex_buffer | index_buffer | vertex_decl
+        | srb
     };
 
     enum class RenderCommandSkipFlags : unsigned
@@ -110,4 +112,6 @@ namespace REngine
     void render_command_clear(const RenderCommandClearDesc& desc);
 
     void render_command_update_params(const Atomic::Graphics* graphics, RenderCommandState* state);
+
+	void render_command_write_param(Atomic::ConstantBuffer* buffer, uint32_t offset, const Atomic::Variant& value)
 }

@@ -397,7 +397,11 @@ namespace REngine
         u32 key = desc.pipeline_hash;
         // build key from resource pointers
         for (const auto& it : *desc.resources)
-            Atomic::CombineHash(key, Atomic::MakeHash(it.second.texture.ConstPtr()));
+        {
+	        if(!it.texture)
+                continue;
+            Atomic::CombineHash(key, Atomic::MakeHash(it.texture.ConstPtr()));
+        }
 
         if(s_srb.Contains(key))
         {
@@ -419,7 +423,7 @@ namespace REngine
 
         s_srb[key] = srb;
 
-
+        // Bind Constant Buffers
         for(u8 type = 0; type < MAX_SHADER_TYPES; ++type)
         {
 	        for(u8 grp = 0; grp < MAX_SHADER_PARAMETER_GROUPS; ++grp)
@@ -440,9 +444,9 @@ namespace REngine
             for(u8 type = 0; type < MAX_SHADER_TYPES; ++type)
             {
                 const auto shader_type = utils_get_shader_type(static_cast<Atomic::ShaderType>(type));
-                const auto var = srb->GetVariableByName(shader_type, it.second.name);
+                const auto var = srb->GetVariableByName(shader_type, it.name);
                 if(var)
-                    var->Set(it.second.texture);
+                    var->Set(it.texture);
             }
         }
         return srb;

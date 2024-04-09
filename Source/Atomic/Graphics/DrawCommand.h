@@ -214,6 +214,9 @@ namespace Atomic
 		virtual u32 GetStencilCompareMask() = 0;
 		virtual u32 GetStencilWriteMask() = 0;
 		virtual bool GetClipPlane() = 0;
+
+		virtual u32 GetPrimitiveCount() = 0;
+		virtual u32 GetNumBatches() = 0;
 	};
 
 }

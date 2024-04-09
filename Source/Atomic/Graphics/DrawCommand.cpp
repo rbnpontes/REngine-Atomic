@@ -17,24 +17,31 @@ namespace REngine
 
 	static Diligent::ITextureView* s_depth_stencil = nullptr;
 	static u8 s_num_rts = 0;
-	static Diligent::IPipelineState* s_pipeline = nullptr;
+
 	static ea::array<Diligent::IBuffer*, MAX_VERTEX_STREAMS> s_vertex_buffers = {};
 	static ea::array<u64, MAX_VERTEX_STREAMS> s_vertex_offsets = {};
-	static u8 s_num_vertex_buffers = 0;
+	static u32 s_vertex_buffer_hash = 0;
+	static Diligent::IBuffer* s_index_buffer = nullptr;
+
+	static ea::queue<ShaderParameterUpdateDesc> s_empty_params_queue = {};
 
 	class DrawCommandImpl : public IDrawCommand
 	{
 	public:
-		DrawCommandImpl(Graphics* graphics, const Diligent::RefCntAutoPtr<Diligent::IDeviceContext>& context) :
+		DrawCommandImpl(Graphics* graphics, Diligent::IDeviceContext* context) :
 			context_(context),
 			graphics_(graphics),
 			viewport_(IntRect::ZERO),
-			dirty_flags_(static_cast<u32>(RenderCommandDirtyState::all))
+			dirty_flags_(static_cast<u32>(RenderCommandDirtyState::all)),
+			curr_pipeline_hash_(0),
+			curr_vertx_decl_hash(0),
+			curr_vertex_buffer_hash(0)
 		{
 			pipeline_info_ = new PipelineStateInfo();
 		}
 		~DrawCommandImpl()
 		{
+			// TODO: clear static states too
 			delete pipeline_info_;
 		}
 
@@ -45,6 +52,26 @@ namespace REngine
 
 			const auto wnd_size = graphics_->GetRenderTargetDimensions();
 			viewport_ = IntRect(0, 0, wnd_size.x_, wnd_size.y_);
+
+			pipeline_state_ = nullptr;
+			vertex_declaration_ = nullptr;
+			shader_program_ = nullptr;
+			depth_stencil_ = nullptr;
+			index_buffer_ = nullptr;
+			shader_resource_binding_ = nullptr;
+
+			params_2_update_ = {};
+
+			render_targets_.fill(nullptr);
+			textures_.fill(ShaderResourceTextureDesc{});
+			vertex_buffers_.fill(nullptr);
+
+			
+			curr_pipeline_hash_ = curr_vertex_buffer_hash = curr_vertx_decl_hash = 0u;
+
+			dirty_flags_ = static_cast<u32>(RenderCommandDirtyState::all);
+			num_batches_ = 0;
+			primitive_count_ = 0;
 		}
 		void Clear(const DrawCommandClearDesc& desc) override
 		{
@@ -61,7 +88,25 @@ namespace REngine
 
 			ClearBySoftware(desc);
 		}
+		void Draw(const DrawCommandDrawDesc& desc) override
+		{
+			ATOMIC_PROFILE(IDrawCommand::Draw);
 
+			PrepareDraw();
+
+			context_->DrawIndexed({
+				desc.index_count,
+				desc.index_type,
+				DRAW_FLAG_NONE,
+				1,
+				desc.index_start,
+				desc.base_vertex_index,
+				1
+			});
+		}
+
+		u32 GetPrimitiveCount() override { return primitive_count_; }
+		u32 GetNumBatches() override { return num_batches_; }
 	private:
 		bool PrepareRenderTargets()
 		{
@@ -145,12 +190,182 @@ namespace REngine
 
 			return true;
 		}
+		void PreparePipelineState()
+		{
+			if ((dirty_flags_ & static_cast<u32>(RenderCommandDirtyState::pipeline)) == 0)
+				return;
+
+			auto hash = pipeline_info_->ToHash();
+			if(hash == curr_pipeline_hash_)
+				return;
+			pipeline_state_ = pipeline_state_builder_acquire(graphics_->GetImpl(), *pipeline_info_, hash);
+			curr_pipeline_hash_ = hash;
+			dirty_flags_ ^= static_cast<u32>(RenderCommandDirtyState::pipeline);
+			// If pipeline state is changed, we need to update shader resource binding.
+			dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::srb);
+		}
+		void PrepareSRB()
+		{
+			ATOMIC_PROFILE(IDrawCommand::PrepareSRB);
+			if(!shader_resource_binding_)
+				dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::srb);
+
+			if ((dirty_flags_ & static_cast<u32>(RenderCommandDirtyState::srb)) == 0)
+				return;
+
+			ShaderResourceBindingCreateDesc create_desc;
+			create_desc.pipeline_hash = curr_pipeline_hash_;
+			create_desc.resources = &textures_;
+			create_desc.driver = graphics_->GetImpl();
+			shader_resource_binding_ = pipeline_state_builder_get_or_create_srb(create_desc);
+			dirty_flags_ ^= static_cast<u32>(RenderCommandDirtyState::srb);
+		}
+		void PrepareVertexBuffers()
+		{
+			ATOMIC_PROFILE(IDrawCommand::PrepareVertexBuffers);
+			// Other Draw Commands can change vertex buffer, so we need to check if it is changed.
+			if(s_vertex_buffer_hash != curr_vertex_buffer_hash)
+			{
+				dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::vertex_buffer);
+				s_vertex_buffer_hash = curr_vertex_buffer_hash;
+			}
+
+			if((dirty_flags_ & static_cast<u32>(RenderCommandDirtyState::vertex_buffer)) == 0)
+				return;
+
+			dirty_flags_ ^= static_cast<u32>(RenderCommandDirtyState::vertex_buffer);
+
+			u32 next_idx = 0;
+			u32 new_vertex_decl_hash = 0;
+			for(const auto& buffer : vertex_buffers_)
+			{
+				if(!buffer)
+					continue;
+				CombineHash(new_vertex_decl_hash, buffer->GetBufferHash(next_idx));
+				s_vertex_buffers[next_idx] = buffer->GetGPUObject().Cast<Diligent::IBuffer>(Diligent::IID_Buffer);
+				++next_idx;
+			}
+
+			if (next_idx == 0)
+				return;
+
+			context_->SetVertexBuffers(
+				0,
+				next_idx,
+				s_vertex_buffers.data(),
+				nullptr,
+				RESOURCE_STATE_TRANSITION_MODE_TRANSITION,
+				SET_VERTEX_BUFFERS_FLAG_NONE);
+
+			if (!new_vertex_decl_hash)
+				return;
+
+			if(pipeline_info_->vs_shader)
+			{
+				CombineHash(new_vertex_decl_hash, pipeline_info_->vs_shader->ToHash());
+				CombineHash(new_vertex_decl_hash, pipeline_info_->vs_shader->GetElementHash());
+			}
+
+			curr_vertx_decl_hash = new_vertex_decl_hash;
+		}
+		void PrepareIndexBuffer()
+		{
+			ATOMIC_PROFILE(IDrawCommand::PrepareIndexBuffer);
+			if (!index_buffer_)
+				return;
+			if ((dirty_flags_ & static_cast<u32>(RenderCommandDirtyState::index_buffer)) == 0)
+				return;
+
+			dirty_flags_ ^= static_cast<u32>(RenderCommandDirtyState::index_buffer);
+
+			const auto buffer = index_buffer_->GetGPUObject().Cast<Diligent::IBuffer>(Diligent::IID_Buffer);
+
+			if(buffer != s_index_buffer)
+				context_->SetIndexBuffer(buffer, 0, Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
+			s_index_buffer = buffer;
+		}
+		void PrepareVertexDeclarations()
+		{
+			if((dirty_flags_ & static_cast<u32>(RenderCommandDirtyState::vertex_decl)) == 0)
+				return;
+			dirty_flags_ ^= static_cast<u32>(RenderCommandDirtyState::vertex_decl);
+
+			const auto vertex_decl = graphics_state_get_vertex_declaration(curr_vertx_decl_hash);
+			if(vertex_decl)
+			{
+				if(vertex_decl != vertex_declaration_)
+				{
+					dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::pipeline);
+					pipeline_info_->input_layout = vertex_decl->GetInputLayoutDesc();
+				}
+				vertex_declaration_ = vertex_decl;
+				return;
+			}
+
+			VertexDeclarationCreationDesc creation_desc;
+			creation_desc.graphics = graphics_;
+			creation_desc.hash = curr_vertx_decl_hash;
+			creation_desc.vertex_buffers = &vertex_buffers_;
+			creation_desc.vertex_shader = pipeline_info_->vs_shader;
+			vertex_declaration_ = new VertexDeclaration(creation_desc);
+			graphics_state_set_vertex_declaration(curr_vertx_decl_hash, vertex_declaration_);
+
+			dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::pipeline);
+			pipeline_info_->input_layout = vertex_decl->GetInputLayoutDesc();
+		}
+		void PrepareParametersToUpload()
+		{
+			ATOMIC_PROFILE(IDrawCommand::PrepareParametersToUpload);
+			if (params_2_update_.empty() || !shader_program_)
+				return;
+
+			for(;!params_2_update_.empty(); params_2_update_.pop())
+			{
+				const auto& desc = params_2_update_.front();
+				ShaderParameter parameter;
+				if(!shader_program_->GetParameter(desc.name, &parameter))
+				{
+					s_empty_params_queue.push(desc);
+					continue;
+				}
+
+				const auto buffer = static_cast<ConstantBuffer*>(parameter.bufferPtr_);
+				if(!buffer)
+					continue;
+				render_command_write_param(buffer, parameter.offset_, desc.value);
+			}
+
+			ea::swap(s_empty_params_queue, params_2_update_);
+			graphics_->GetImpl()->UploadBufferChanges();
+		}
+
 		void PrepareClear()
 		{
 			ATOMIC_PROFILE(IDrawCommand::PrepareClear);
 			const auto changed = PrepareDepthStencil() || PrepareDepthStencil();
 			if (changed)
 				BoundRenderTargets();
+		}
+		void PrepareDraw()
+		{
+			ATOMIC_PROFILE(IDrawCommand::PrepareDraw);
+			const auto changed_rts = PrepareDepthStencil() || PrepareRenderTargets();
+
+			PrepareVertexBuffers();
+			PrepareIndexBuffer();
+			PrepareVertexDeclarations();
+
+			PreparePipelineState();
+			PrepareSRB();
+			PrepareParametersToUpload();
+
+			if(changed_rts)
+				BoundRenderTargets();
+
+			if(pipeline_state_)
+				context_->SetPipelineState(pipeline_state_);
+			if(shader_resource_binding_)
+				context_->CommitShaderResources(shader_resource_binding_, RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
 		}
 		void BoundRenderTargets() const
 		{
@@ -187,6 +402,11 @@ namespace REngine
 				return;
 			}
 
+			// Clear assigns an own vertex and index buffer, in this case we must
+			// reset internal state.
+			s_vertex_buffer_hash = 0;
+			s_index_buffer = nullptr;
+
 			// Clear command by software requires to do a lot of things
 			// First we need to get the quad geometry from the renderer. (TODO: this will be used shader procedural triangle)
 			// Second we need to get clear framebuffer shaders
@@ -221,8 +441,9 @@ namespace REngine
 			pipeline_info.stencil_op_on_stencil_failed = OP_KEEP;
 			pipeline_info.stencil_op_depth_failed = OP_KEEP;
 			pipeline_info.primitive_type = TRIANGLE_LIST;
-			u32 pipeline_hash = 0;
+
 			ShaderResourceTextures textures_dummy = {};
+			u32 pipeline_hash = 0;
 
 			auto pipeline = pipeline_state_builder_acquire(graphics_->GetImpl(), pipeline_info, pipeline_hash);
 			auto srb = pipeline_state_builder_get_or_create_srb({
@@ -236,7 +457,7 @@ namespace REngine
 			WriteShaderParameter(program, PSP_MATDIFFCOLOR, &clear_color, sizeof(Matrix4));
 
 			DrawIndexedAttribs draw_attribs = {};
-			draw_attribs.IndexType = GetVertexSize(geometry->GetIndexBuffer()->GetIndexSize());
+			draw_attribs.IndexType = GetIndexSize(geometry->GetIndexBuffer()->GetIndexSize());
 			draw_attribs.BaseVertex = geometry->GetVertexStart();
 			draw_attribs.FirstIndexLocation = geometry->GetIndexStart();
 			draw_attribs.NumInstances = 1;
@@ -283,25 +504,43 @@ namespace REngine
 				return;
 			static_cast<ConstantBuffer*>(shader_param.bufferPtr_)->SetParameter(shader_param.offset_, length, data);
 		}
-		static Diligent::VALUE_TYPE GetVertexSize(u32 size)
+		static Diligent::VALUE_TYPE GetIndexSize(u32 size)
 		{
 			return size == sizeof(u16) ? Diligent::VT_UINT16 : Diligent::VT_UINT32;
 		}
 
 		Graphics* graphics_;
-		Diligent::RefCntAutoPtr<Diligent::IDeviceContext> context_;
+		Diligent::IDeviceContext* context_;
 		PipelineStateInfo* pipeline_info_;
+		Diligent::RefCntAutoPtr<Diligent::IPipelineState> pipeline_state_;
+		Diligent::RefCntAutoPtr<Diligent::IShaderResourceBinding> shader_resource_binding_;
 
-		ea::array<WeakPtr<RenderSurface>, MAX_RENDERTARGETS> render_targets_;
 		WeakPtr<RenderSurface> depth_stencil_;
+		ea::queue<ShaderParameterUpdateDesc> params_2_update_;
+
+		// arrays
+		ea::array<WeakPtr<RenderSurface>, MAX_RENDERTARGETS> render_targets_;
+		ea::array<ShaderResourceTextureDesc, MAX_TEXTURE_UNITS> textures_;
+		ea::array<SharedPtr<VertexBuffer>, MAX_VERTEX_STREAMS> vertex_buffers_;
+		SharedPtr<IndexBuffer> index_buffer_;
+
+		SharedPtr<VertexDeclaration> vertex_declaration_;
+		SharedPtr<ShaderProgram> shader_program_;
 
 		IntRect viewport_{};
 		u32 dirty_flags_{};
+
+		u32 curr_vertx_decl_hash{};
+		u32 curr_vertex_buffer_hash{};
+		u32 curr_pipeline_hash_{};
+
+		u32 primitive_count_;
+		u32 num_batches_;
 	};
 
 	Atomic::IDrawCommand* graphics_create_command(Atomic::Graphics* graphics)
 	{
-		return new DrawCommandImpl(graphics);
+		return new DrawCommandImpl(graphics, graphics->GetImpl()->GetDeviceContext());
 	}
 
 }

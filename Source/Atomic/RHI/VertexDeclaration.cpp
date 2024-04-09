@@ -5,6 +5,7 @@ namespace REngine
 {
 	VertexDeclaration::VertexDeclaration(const VertexDeclarationCreationDesc& creation_desc)
 	{
+		hash_ = creation_desc.hash;
 		const auto& shader_input_elements = creation_desc.vertex_shader->GetInputElements();
 		Atomic::HashMap<uint32_t, ShaderCompilerReflectInputElement> shader_input_elements_map;
 		input_layout_desc_.num_elements = 0;
@@ -19,7 +20,7 @@ namespace REngine
 
 		for(uint32_t buffer_idx = 0; buffer_idx < Atomic::MAX_VERTEX_STREAMS; ++buffer_idx)
 		{
-			const auto vertex_buffer = creation_desc.vertex_buffers[buffer_idx];
+			const auto vertex_buffer = creation_desc.vertex_buffers->at(buffer_idx);
 			if (!vertex_buffer)
 				continue;
 

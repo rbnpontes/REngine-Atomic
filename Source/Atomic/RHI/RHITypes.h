@@ -101,10 +101,11 @@ namespace REngine
 
     struct ShaderResourceTextureDesc
     {
-        const char* name;
-        Diligent::RefCntAutoPtr<Diligent::ITextureView> texture;
+        const char* name{nullptr};
+        Atomic::TextureUnit unit{ Atomic::MAX_TEXTURE_UNITS };
+        Diligent::RefCntAutoPtr<Diligent::ITextureView> texture {};
     };
-    typedef ea::unordered_map<u32, ShaderResourceTextureDesc> ShaderResourceTextures;
+    typedef ea::array<ShaderResourceTextureDesc, Atomic::MAX_TEXTURE_UNITS> ShaderResourceTextures;
 
 	struct ShaderCompilerDesc
     {
