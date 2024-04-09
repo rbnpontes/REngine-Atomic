@@ -536,7 +536,7 @@ static const unsigned MASK_INSTANCEMATRIX2 = 0x800;
 static const unsigned MASK_INSTANCEMATRIX3 = 0x1000;
 static const unsigned MASK_OBJECTINDEX = 0x2000;
 
-static const int MAX_RENDERTARGETS = 4;
+static const u8 MAX_RENDERTARGETS = 4;
 static const int MAX_VERTEX_STREAMS = 4;
 static const int MAX_CONSTANT_REGISTERS = 256;
 static const int MAX_IMMUTABLE_SAMPLERS = 16;

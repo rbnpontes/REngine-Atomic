@@ -50,7 +50,7 @@ namespace REngine
     {
         Diligent::TEXTURE_FORMAT depth_stencil_format{};
         uint8_t num_rts{0};
-        Diligent::TEXTURE_FORMAT render_target_formats[Atomic::MAX_RENDERTARGETS]{};
+        ea::array<Diligent::TEXTURE_FORMAT, Atomic::MAX_RENDERTARGETS> render_target_formats{};
         uint8_t multi_sample{1};
 
         uint32_t ToHash() const

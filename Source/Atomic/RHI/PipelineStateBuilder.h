@@ -44,9 +44,9 @@ namespace REngine
         u8 stencil_write_mask{255};
         // END DEPTH STENCIL STATE
 
-        InputLayoutDesc input_layout;
+        InputLayoutDesc input_layout{};
         Atomic::PrimitiveType primitive_type{Atomic::TRIANGLE_LIST};
-        PipelineStateOutputDesc output;
+        PipelineStateOutputDesc output{};
 
         u8 num_samplers{0};
         ImmutableSamplersDesc immutable_samplers[Atomic::MAX_IMMUTABLE_SAMPLERS]{};
@@ -62,6 +62,7 @@ namespace REngine
         uint32_t ToHash() const
         {
             uint32_t hash = Atomic::StringHash::Calculate(debug_name.CString());
+
             Atomic::CombineHash(hash, color_write_enabled ? 1u : 0u);
             Atomic::CombineHash(hash, static_cast<uint32_t>(blend_mode));
             Atomic::CombineHash(hash, alpha_to_coverage_enabled ? 1u : 0u);

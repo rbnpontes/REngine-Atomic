@@ -198,6 +198,8 @@ namespace REngine
         state->vertex_decl_hash = 0;
         state->shader_resource_binding = nullptr;
 
+        state->pipeline_state_info.rt_formats.fill(Diligent::TEX_FORMAT_UNKNOWN);
+
         if(graphics->IsInitialized())
             state->viewport = Atomic::IntRect(0, 0, graphics->GetWidth(), graphics->GetHeight());
         else

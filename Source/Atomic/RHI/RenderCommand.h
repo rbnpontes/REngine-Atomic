@@ -52,8 +52,8 @@ namespace REngine
         Diligent::RefCntAutoPtr<Diligent::IBuffer> index_buffer{nullptr};
 
         u8 num_rts{0};
-        Diligent::RefCntAutoPtr<Diligent::ITextureView> render_targets[Atomic::MAX_RENDERTARGETS];
-        Diligent::RefCntAutoPtr<Diligent::ITextureView> depth_stencil{nullptr};
+    	Diligent::ITextureView* render_targets[Atomic::MAX_RENDERTARGETS];
+        Diligent::ITextureView* depth_stencil{nullptr};
 
         unsigned pipeline_hash;
         Diligent::RefCntAutoPtr<Diligent::IPipelineState> pipeline_state{nullptr};

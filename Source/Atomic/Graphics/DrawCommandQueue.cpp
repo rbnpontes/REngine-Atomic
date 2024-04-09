@@ -4,7 +4,8 @@
 namespace Atomic
 {
 	DrawCommandQueue::DrawCommandQueue(Context* context) : Object(context),
-		commands_({})
+		commands_in_use_({}),
+		available_commands_({})
 	{
 	}
 
