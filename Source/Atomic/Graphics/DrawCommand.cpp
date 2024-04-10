@@ -4,11 +4,13 @@
 #include "Model.h"
 #include "Renderer.h"
 #include "Shader.h"
+#include "Texture2D.h"
 #include "../RHI/RenderCommand.h"
 #include "../RHI/PipelineStateBuilder.h"
 #include "../Core/Profiler.h"
 #include "../IO/Log.h"
 #include "../RHI/GraphicsState.h"
+#include "RHI/DiligentUtils.h"
 
 namespace REngine
 {
@@ -36,7 +38,13 @@ namespace REngine
 			enable_clip_planes_(false),
 			curr_pipeline_hash_(0),
 			curr_vertx_decl_hash(0),
-			curr_vertex_buffer_hash(0)
+			curr_vertex_buffer_hash(0),
+			num_batches_(0),
+			primitive_count_(0),
+			vertex_buffers_({}),
+			vertex_offsets_({}),
+			params_2_update_({})
+
 		{
 			pipeline_info_ = new PipelineStateInfo();
 		}
@@ -106,6 +114,11 @@ namespace REngine
 				desc.base_vertex_index,
 				1
 			});
+
+			u32 primitive_count;
+			utils_get_primitive_type(desc.vertex_count, pipeline_info_->primitive_type, &primitive_count);
+			primitive_count_ += primitive_count;
+			++num_batches_;
 		}
 		void Draw(const DrawCommandInstancedDrawDesc& desc) override
 		{
@@ -122,6 +135,11 @@ namespace REngine
 				desc.base_vertex_index,
 				1
 			});
+
+			u32 primitive_count;
+			utils_get_primitive_type(desc.vertex_count, pipeline_info_->primitive_type, &primitive_count);
+			primitive_count_ += primitive_count * desc.instance_count;
+			++num_batches_;
 		}
 		void SetVertexBuffer(VertexBuffer* buffer) override
 		{
@@ -228,9 +246,608 @@ namespace REngine
 			if (enable_clip_planes_)
 				SetShaderParameter(VSP_CLIPPLANE, clip_plane_);
 		}
+		void SetShaderParameter(StringHash param, const float* data, u32 count) override
+		{
+			const FloatVector vec(data, count);
+			const Variant var = vec;
+			SetShaderParameter(param, var);
+		}
+		void SetShaderParameter(StringHash param, const FloatVector& value) override
+		{
+			const Variant var = value;
+			SetShaderParameter(param, var);
+		}
+		void SetShaderParameter(StringHash param, float value) override
+		{
+			const Variant var = value;
+			SetShaderParameter(param, var);
+		}
+		void SetShaderParameter(StringHash param, int value) override
+		{
+			const Variant var = value;
+			SetShaderParameter(param, var);
+		}
+		void SetShaderParameter(StringHash param, bool value) override
+		{
+			const Variant var = value;
+			SetShaderParameter(param, var);
+		}
+		void SetShaderParameter(StringHash param, const Color& value) override
+		{
+			const Variant var = value;
+			SetShaderParameter(param, var);
+		}
+		void SetShaderParameter(StringHash param, const Vector2& value) override
+		{
+			const Variant var = value;
+			SetShaderParameter(param, var);
+		}
+		void SetShaderParameter(StringHash param, const Vector3& value) override
+		{
+			const Variant var = value;
+			SetShaderParameter(param, var);
+		}
+		void SetShaderParameter(StringHash param, const Vector4& value) override
+		{
+			const Variant var = value;
+			SetShaderParameter(param, var);
+		}
+		void SetShaderParameter(StringHash param, const IntVector2& value) override
+		{
+			const Variant var = value;
+			SetShaderParameter(param, var);
+		}
+		void SetShaderParameter(StringHash param, const IntVector3& value) override
+		{
+			const Variant var = value;
+			SetShaderParameter(param, var);
+		}
+		void SetShaderParameter(StringHash param, const Matrix3& value) override
+		{
+			const Variant var = value;
+			SetShaderParameter(param, var);
+		}
+		void SetShaderParameter(StringHash param, const Matrix3x4& value) override
+		{
+			const Variant var = value;
+			SetShaderParameter(param, var);
+		}
+		void SetShaderParameter(StringHash param, const Matrix4& value) override
+		{
+			const Variant var = value;
+			SetShaderParameter(param, var);
+		}
+		void SetShaderParameter(StringHash param, const Variant& value) override
+		{
+			params_2_update_.push({ param, value });
+		}
+		bool HasShaderParameter(StringHash param) override
+		{
+			if (!shader_program_)
+				return false;
+			ShaderParameter shader_param;
+			return shader_program_->GetParameter(param, &shader_param);
+		}
+		void SetTexture(TextureUnit unit, RenderSurface* surface) override
+		{
+			return SetTexture(unit, surface ? surface->GetParentTexture() : static_cast<Texture*>(nullptr));
+		}
+		void SetTexture(TextureUnit unit, Texture* texture) override
+		{
+			if (unit >= MAX_TEXTURE_UNITS)
+				return;
 
+			if (textures_[unit].owner == texture)
+				return;
+
+			textures_[unit] = {
+				nullptr,
+				unit,
+				texture->GetGPUObject().Cast<Diligent::ITextureView>(Diligent::IID_TextureView),
+				SharedPtr<Texture>(texture)
+			};
+			dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::textures);
+		}
+		bool HasTexture(TextureUnit unit) override
+		{
+			if (unit >= MAX_TEXTURE_UNITS || !shader_program_)
+				return false;
+			return shader_program_->GetSampler(unit) != nullptr;
+		}
+		void SetRenderTarget(u8 index, RenderSurface* surface) override
+		{
+			if (index >= MAX_RENDERTARGETS)
+				return;
+
+			if (render_targets_[index] == surface)
+				return;
+
+			render_targets_[index] = surface;
+			dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::render_targets);
+
+			if (!surface)
+				return;
+
+			Texture* parent_texture = surface->GetParentTexture();
+			for(u8 i =0; i < MAX_TEXTURE_UNITS; ++i)
+			{
+				if(textures_[i].owner == parent_texture)
+					SetTexture(static_cast<TextureUnit>(i), textures_[i].owner->GetBackupTexture());
+			}
+
+			if(parent_texture->GetMultiSample() > 1 && parent_texture->GetAutoResolve())
+			{
+				parent_texture->SetResolveDirty(true);
+				surface->SetResolveDirty(true);
+			}
+
+			if (parent_texture->GetLevels() > 1)
+				parent_texture->SetLevelsDirty();
+
+			const auto format = surface->GetParentTexture()->GetFormat();
+			if(pipeline_info_->output.render_target_formats[index] != format)
+				dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::pipeline);
+			pipeline_info_->output.render_target_formats[index] = format;
+		}
+		void SetRenderTarget(u8 index, Texture2D* texture) override
+		{
+			if (texture)
+				SetRenderTarget(index, texture->GetRenderSurface());
+			else
+				SetRenderTarget(index, static_cast<RenderSurface*>(nullptr));
+		}
+		void SetDepthStencil(RenderSurface* surface) override
+		{
+			ATOMIC_PROFILE(IDrawCommand::SetDepthStencil);
+			if(depth_stencil_ == surface)
+				return;
+
+			depth_stencil_ = surface;
+			dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::depth_stencil);
+
+			if(pipeline_info_->output.depth_stencil_format != surface->GetParentTexture()->GetFormat())
+				dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::pipeline);
+			pipeline_info_->output.depth_stencil_format = surface->GetParentTexture()->GetFormat();
+		}
+		void SetDepthStencil(Texture2D* texture) override
+		{
+			if (texture)
+				SetDepthStencil(texture->GetRenderSurface());
+			else
+				SetDepthStencil(static_cast<RenderSurface*>(nullptr));
+		}
+		void ResetRenderTarget(u8 index) override
+		{
+			SetRenderTarget(index, static_cast<RenderSurface*>(nullptr));
+		}
+		void ResetRenderTargets() override
+		{
+			for (u8 i = 0; i < MAX_RENDERTARGETS; ++i)
+				ResetRenderTarget(i);
+		}
+		void ResetDepthStencil() override
+		{
+			SetDepthStencil(static_cast<RenderSurface*>(nullptr));
+		}
+		void SetPrimitiveType(PrimitiveType type) override
+		{
+			if(pipeline_info_->primitive_type != type)
+				dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::pipeline);
+			pipeline_info_->primitive_type = type;
+		}
+		void SetViewport(const IntRect& viewport) override
+		{
+			const IntVector2 size = graphics_->GetRenderTargetDimensions();
+			IntRect rect_cpy = viewport;
+
+			if (rect_cpy.right_ <= rect_cpy.left_)
+				rect_cpy.right_ = rect_cpy.left_ + 1;
+			if (rect_cpy.bottom_ <= rect_cpy.top_)
+				rect_cpy.bottom_ = rect_cpy.top_ + 1;
+			rect_cpy.left_	 = Clamp(rect_cpy.left_, 0, size.x_);
+			rect_cpy.top_	 = Clamp(rect_cpy.top_, 0, size.y_);
+			rect_cpy.right_	 = Clamp(rect_cpy.right_, 0, size.x_);
+			rect_cpy.bottom_ = Clamp(rect_cpy.bottom_, 0, size.y_);
+
+			if(viewport_ == rect_cpy)
+				return;
+
+			viewport_ = rect_cpy;
+			dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::viewport);
+
+			SetScissorTest(false);
+		}
+		void SetBlendMode(BlendMode mode, bool alpha_to_coverage) override
+		{
+			if(pipeline_info_->blend_mode != mode)
+				dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::pipeline);
+			if(pipeline_info_->alpha_to_coverage_enabled != alpha_to_coverage)
+				dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::pipeline);
+			pipeline_info_->blend_mode = mode;
+			pipeline_info_->alpha_to_coverage_enabled = alpha_to_coverage;
+		}
+		void SetColorWrite(bool enable) override
+		{
+			if(pipeline_info_->color_write_enabled == enable)
+				return;
+			pipeline_info_->color_write_enabled = enable;
+			dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::pipeline);
+		}
+		void SetCullMode(CullMode mode) override
+		{
+			if(pipeline_info_->cull_mode == mode)
+				return;
+			pipeline_info_->cull_mode = mode;
+			dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::pipeline);
+		}
+		void SetDepthBias(float constant_bias, float slope_scaled_bias) override
+		{
+			if(pipeline_info_->constant_depth_bias == constant_bias && pipeline_info_->slope_scaled_depth_bias == slope_scaled_bias)
+				return;
+			pipeline_info_->constant_depth_bias = constant_bias;
+			pipeline_info_->slope_scaled_depth_bias = slope_scaled_bias;
+			dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::pipeline);
+		}
+		void SetDepthTest(CompareMode mode) override
+		{
+			if(pipeline_info_->depth_cmp_function == mode)
+				return;
+			pipeline_info_->depth_cmp_function = mode;
+			dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::pipeline);
+		}
+		void SetDepthWrite(bool enable) override
+		{
+			if(pipeline_info_->depth_write_enabled == enable)
+				return;
+			pipeline_info_->depth_write_enabled = enable;
+			dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::pipeline);
+		}
+		void SetFillMode(FillMode mode) override
+		{
+			if(pipeline_info_->fill_mode == mode)
+				return;
+			pipeline_info_->fill_mode = mode;
+			dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::pipeline);
+		}
+		void SetLineAntiAlias(bool enable) override
+		{
+			if(pipeline_info_->stencil_test_enabled == enable)
+				return;
+			pipeline_info_->stencil_test_enabled = enable;
+			dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::pipeline);
+		}
+		void SetScissorTest(bool enable, const IntRect& rect) override
+		{
+			const IntVector2 rt_size = graphics_->GetRenderTargetDimensions();
+			const IntVector2 view_pos(viewport_.left_, viewport_.top_);
+
+			if(enable)
+			{
+				IntRect int_rect;
+				int_rect.left_	 = Clamp(rect.left_	+ view_pos.x_, 0, rt_size.x_ - 1);
+				int_rect.top_	 = Clamp(rect.top_		+ view_pos.y_, 0, rt_size.y_ - 1);
+				int_rect.right_  = Clamp(rect.right_	+ view_pos.x_, 0, rt_size.x_);
+				int_rect.bottom_ = Clamp(rect.bottom_	+ view_pos.y_, 0, rt_size.y_);
+
+				if(int_rect.right_ == int_rect.left_)
+					int_rect.right_++;
+				if(int_rect.bottom_ == int_rect.top_)
+					int_rect.bottom_++;
+
+				if(int_rect.right_ < int_rect.left_ || int_rect.bottom_ < int_rect.top_)
+					enable = false;
+
+				if(enable && int_rect != scissor_)
+				{
+					scissor_ = int_rect;
+					dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::scissor);
+				}
+			}
+
+			if(pipeline_info_->scissor_test_enabled != enable)
+				dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::pipeline);
+			pipeline_info_->scissor_test_enabled = enable;
+		}
+		void SetScissorTest(bool enable, const Atomic::Rect& rect = Atomic::Rect::FULL, bool border_inclusive = true) override
+		{
+			// During some light rendering loops, a full rect is toggled on/off repeatedly.
+			// Disable scissor in that case to reduce state changes
+			if(rect.min_.x_ <= 0.0f && rect.min_.y_ <= 0.0f && rect.max_.x_ >= 1.0f && rect.max_.y_ >= 1.0f)
+				enable = false;
+
+			if(enable)
+			{
+				const IntVector2 rt_size = graphics_->GetRenderTargetDimensions();
+				const IntVector2 view_size(viewport_.Size());
+				const IntVector2 view_pos(viewport_.left_, viewport_.top_);
+				const int expand = border_inclusive ? 1 : 0;
+				IntRect int_rect;
+
+				int_rect.left_	 = Clamp(static_cast<i32>((rect.min_.x_ + 1.0f) * 0.5f * view_size.x_) + view_pos.x_, 0, rt_size.x_ - 1);
+				int_rect.top_	 = Clamp(static_cast<i32>((-rect.max_.y_ + 1.0f) * 0.5f * view_size.y_) + view_pos.y_, 0, rt_size.y_ - 1);
+				int_rect.right_	 = Clamp(static_cast<i32>((rect.max_.x_ + 1.0f) * 0.5f * view_size.x_) + view_pos.x_ + expand, 0, rt_size.x_);
+				int_rect.bottom_ = Clamp(static_cast<i32>((-rect.min_.y_ + 1.0f) * 0.5f * view_size.y_) + view_pos.y_ + expand, 0, rt_size.y_);
+
+				if (int_rect.right_ == int_rect.left_)
+					int_rect.right_++;
+				if(int_rect.bottom_ == int_rect.top_)
+					int_rect.bottom_++;
+
+				if(int_rect.right_ < int_rect.left_ || int_rect.bottom_ < int_rect.top_)
+					enable = false;
+
+				if(enable && int_rect != scissor_)
+				{
+					scissor_ = int_rect;
+					dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::scissor);
+				}
+			}
+
+			if(pipeline_info_->scissor_test_enabled != enable)
+				dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::pipeline);
+
+			pipeline_info_->scissor_test_enabled = enable;
+		}
+		void SetStencilTest(const DrawCommandStencilTestDesc& desc) override
+		{
+			if(desc.enable != pipeline_info_->stencil_test_enabled)
+				dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::pipeline);
+			pipeline_info_->stencil_test_enabled = desc.enable;
+
+			if (!desc.enable)
+				return;
+
+			if(desc.mode != pipeline_info_->stencil_cmp_function)
+				dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::pipeline);
+			pipeline_info_->stencil_cmp_function = desc.mode;
+
+			if(desc.pass != pipeline_info_->stencil_op_on_passed)
+				dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::pipeline);
+			pipeline_info_->stencil_op_on_passed = desc.pass;
+
+			if(desc.fail != pipeline_info_->stencil_op_on_stencil_failed)
+				dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::pipeline);
+			pipeline_info_->stencil_op_on_stencil_failed = desc.fail;
+
+			if(desc.depth_fail != pipeline_info_->stencil_op_depth_failed)
+				dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::pipeline);
+			pipeline_info_->stencil_op_depth_failed = desc.depth_fail;
+
+			if(desc.compare_mask != pipeline_info_->stencil_cmp_mask)
+				dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::pipeline);
+			pipeline_info_->stencil_cmp_mask = desc.compare_mask;
+
+			if(desc.write_mask != pipeline_info_->stencil_write_mask)
+				dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::pipeline);
+			pipeline_info_->stencil_write_mask = desc.write_mask;
+
+			stencil_ref_ = desc.stencil_ref;
+		}
+		void SetClipPlane(const DrawCommandClipPlaneDesc& desc) override
+		{
+			enable_clip_planes_ = desc.enable;
+			if(!enable_clip_planes_)
+				return;
+
+			const Matrix4 view_proj = desc.projection * desc.view;
+			clip_plane_ = desc.clip_plane.Transformed(view_proj).ToVector4();
+			SetShaderParameter(VSP_CLIPPLANE, clip_plane_);
+		}
+		bool ResolveTexture(Texture2D* dest) override
+		{
+			throw std::exception("Not implemented");
+		}
+		bool ResolveTexture(Texture2D* dest, const IntRect& viewport) override
+		{
+			if(!dest || !dest->GetRenderSurface())
+				return false;
+			ATOMIC_PROFILE(IDrawCommand::ResolveTexture);
+
+			const auto rt_size = graphics_->GetRenderTargetDimensions();
+			IntRect vp_copy = viewport;
+			if (vp_copy.right_ <= vp_copy.left_)
+				vp_copy.right_ = vp_copy.left_ + 1;
+			if (vp_copy.bottom_ <= vp_copy.top_)
+				vp_copy.bottom_ = vp_copy.top_ + 1;
+
+			Diligent::Box src_box;
+			src_box.MinX = Clamp(vp_copy.left_, 0, rt_size.x_);
+			src_box.MinY = Clamp(vp_copy.top_, 0, rt_size.y_);
+			src_box.MaxX = Clamp(vp_copy.right_, 0, rt_size.x_);
+			src_box.MaxY = Clamp(vp_copy.bottom_, 0, rt_size.y_);
+			src_box.MinZ = 0;
+			src_box.MaxZ = 1;
+
+			// TODO: enable this when MSAA is available
+			//bool resolve = multiSample_ > 1;
+			bool resolve = false;
+			auto source = graphics_->GetImpl()->GetSwapChain()->GetCurrentBackBufferRTV();
+			auto destination_tex = dest->GetGPUObject().Cast<Diligent::ITexture>(Diligent::IID_Texture);
+
+			if(!resolve)
+			{
+				Diligent::CopyTextureAttribs copy_attribs = {};
+				copy_attribs.pSrcTexture = source->GetTexture();
+				copy_attribs.pSrcBox = &src_box;
+				copy_attribs.pDstTexture = destination_tex;
+				context_->CopyTexture(copy_attribs);
+			}
+			else
+			{
+				Diligent::ResolveTextureSubresourceAttribs resolve_attribs = {};
+				// if it is resolving to fullscreen, just resolve directly to the destination texture
+				// otherwise we must need an auxiliary texture to resolve to
+				if (!src_box.MinX && !src_box.MinY && src_box.MaxX == rt_size.x_ && src_box.MaxY == rt_size.y_)
+				{
+					context_->ResolveTextureSubresource(source->GetTexture(), destination_tex, resolve_attribs);
+				}
+				else
+				{
+					throw std::exception("Not implemented. You must implement MSAA first");
+				}
+			}
+
+			return true;
+		}
+		bool ResolveTexture(TextureCube* dest) override
+		{
+			throw std::exception("Not implemented");
+		}
 		u32 GetPrimitiveCount() override { return primitive_count_; }
 		u32 GetNumBatches() override { return num_batches_; }
+
+		VertexBuffer* GetVertexBuffer(u8 index) override
+		{
+			return vertex_buffers_[index];
+		}
+		IndexBuffer* GetIndexBuffer() override
+		{
+			return index_buffer_;
+		}
+		ShaderVariation* GetShader(ShaderType type) override
+		{
+			static ShaderVariation* s_shaders[MAX_SHADER_TYPES] = {
+				pipeline_info_->vs_shader,
+				pipeline_info_->ps_shader,
+			};
+			if(type >= MAX_SHADER_TYPES)
+				return nullptr;
+
+			return s_shaders[type];
+		}
+		Texture* GetTexture(TextureUnit unit) override
+		{
+			if(unit >= MAX_TEXTURE_UNITS)
+				return nullptr;
+			return textures_[unit].owner;
+		}
+		RenderSurface* GetRenderTarget(u8 index) override
+		{
+			if(index >= MAX_RENDERTARGETS)
+				return nullptr;
+			return render_targets_[index];
+		}
+		RenderSurface* GetDepthStencil() override
+		{
+			return depth_stencil_;
+		}
+		PrimitiveType GetPrimitiveType() override
+		{
+			return pipeline_info_->primitive_type;
+		}
+		IntRect GetViewport() override
+		{
+			return viewport_;
+		}
+		BlendMode GetBlendMode() override
+		{
+			return pipeline_info_->blend_mode;
+		}
+		bool GetAlphaToCoverage() override
+		{
+			return pipeline_info_->alpha_to_coverage_enabled;
+		}
+		bool GetColorWrite() override
+		{
+			return pipeline_info_->color_write_enabled;
+		}
+		CullMode GetCullMode() override
+		{
+			return pipeline_info_->cull_mode;
+		}
+		float GetDepthBias() override
+		{
+			return pipeline_info_->constant_depth_bias;
+		}
+		float GetSlopeScaledDepthBias() override
+		{
+			return pipeline_info_->slope_scaled_depth_bias;
+		}
+		CompareMode GetDepthTest() override
+		{
+			return pipeline_info_->depth_cmp_function;
+		}
+		bool GetDepthWrite() override
+		{
+			return pipeline_info_->depth_write_enabled;
+		}
+		FillMode GetFillMode() override
+		{
+			return pipeline_info_->fill_mode;
+		}
+		bool GetLineAntiAlias() override
+		{
+			return pipeline_info_->stencil_test_enabled;
+		}
+		bool GetScissorTest() override
+		{
+			return pipeline_info_->scissor_test_enabled;
+		}
+		IntRect GetScissorRect() override
+		{
+			return scissor_;
+		}
+		bool GetStencilTest() override
+		{
+			return pipeline_info_->stencil_test_enabled;
+		}
+		CompareMode GetStencilTestMode() override
+		{
+			return pipeline_info_->stencil_cmp_function;
+		}
+		StencilOp GetStencilPass() override
+		{
+			return pipeline_info_->stencil_op_on_passed;
+		}
+		StencilOp GetStencilFail() override
+		{
+			return pipeline_info_->stencil_op_on_stencil_failed;
+		}
+		StencilOp GetStencilZFail() override
+		{
+			return pipeline_info_->stencil_op_depth_failed;
+		}
+		u32 GetStencilRef() override
+		{
+			return stencil_ref_;
+		}
+		u32 GetStencilCompareMask() override
+		{
+			return pipeline_info_->stencil_cmp_mask;
+		}
+		u32 GetStencilWriteMask() override
+		{
+			return pipeline_info_->stencil_write_mask;
+		}
+		bool GetClipPlane() override
+		{
+			return enable_clip_planes_;
+		}
+		ShaderProgram* GetShaderProgram() override
+		{
+			return shader_program_;
+		}
+		IntVector2 GetRenderTargetDimensions() override
+		{
+			int width, height;
+			if(render_targets_[0])
+			{
+				width = render_targets_[0]->GetWidth();
+				height = render_targets_[0]->GetHeight();
+			}
+			else if(depth_stencil_)
+			{
+				width = depth_stencil_->GetWidth();
+				height = depth_stencil_->GetHeight();
+			}
+			else
+			{
+				width = graphics_->GetWidth();
+				height = graphics_->GetHeight();
+			}
+
+			return IntVector2(width, height);
+		}
 	private:
 		bool PrepareRenderTargets()
 		{
@@ -437,6 +1054,36 @@ namespace REngine
 			dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::pipeline);
 			pipeline_info_->input_layout = vertex_decl->GetInputLayoutDesc();
 		}
+		void PrepareTextures()
+		{
+			ATOMIC_PROFILE(IDrawCommand::PrepareTextures);
+
+			if (!shader_program_)
+				return;
+			if((dirty_flags_ & static_cast<u32>(RenderCommandDirtyState::textures)) == 0)
+				return;
+			dirty_flags_ ^= static_cast<u32>(RenderCommandDirtyState::textures);
+
+			u32 next_sampler_idx = 0;
+			for(auto& desc : textures_)
+			{
+				if(!desc.owner)
+					continue;
+
+				const auto sampler = shader_program_->GetSampler(desc.unit);
+				if (!sampler)
+					continue;
+				desc.name = sampler->name.CString();
+				const u32 sampler_hash = pipeline_info_->immutable_samplers->sampler.ToHash();
+				desc.owner->GetSamplerDesc(pipeline_info_->immutable_samplers[next_sampler_idx].sampler);
+
+				if(sampler_hash != pipeline_info_->immutable_samplers[next_sampler_idx].sampler.ToHash())
+					dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::pipeline);
+				++next_sampler_idx;
+			}
+
+			pipeline_info_->num_samplers = next_sampler_idx;
+		}
 		void PrepareParametersToUpload()
 		{
 			ATOMIC_PROFILE(IDrawCommand::PrepareParametersToUpload);
@@ -478,13 +1125,48 @@ namespace REngine
 			PrepareVertexBuffers();
 			PrepareIndexBuffer();
 			PrepareVertexDeclarations();
-
+			PrepareTextures();
 			PreparePipelineState();
 			PrepareSRB();
 			PrepareParametersToUpload();
 
 			if(changed_rts)
 				BoundRenderTargets();
+
+			const auto rt_size = graphics_->GetRenderTargetDimensions();
+			if(dirty_flags_ & static_cast<u32>(RenderCommandDirtyState::viewport))
+			{
+				dirty_flags_ ^= static_cast<u32>(RenderCommandDirtyState::viewport);
+
+				const auto rect = viewport_;
+                Diligent::Viewport viewport;
+                viewport.TopLeftX = static_cast<float>(rect.left_);
+                viewport.TopLeftY = static_cast<float>(rect.top_);
+                viewport.Width = static_cast<float>(rect.right_ - rect.left_);
+                viewport.Height = static_cast<float>(rect.bottom_ - rect.top_);
+                viewport.MinDepth = 0.0f;
+                viewport.MaxDepth = 1.0f;
+				context_->SetViewports(1, &viewport, rt_size.x_, rt_size.y_);
+			}
+
+			if(dirty_flags_ & static_cast<u32>(RenderCommandDirtyState::scissor) && pipeline_info_->scissor_test_enabled)
+			{
+				dirty_flags_ ^= static_cast<u32>(RenderCommandDirtyState::scissor);
+
+				const auto rect = scissor_;
+				const Diligent::Rect scissor_rect = {
+									rect.left_,
+									rect.top_,
+									rect.right_,
+									rect.bottom_
+								};
+				context_->SetScissorRects(1, &scissor_rect, rt_size.x_, rt_size.y_);
+			}
+
+			context_->SetStencilRef(stencil_ref_);
+
+			static constexpr float s_blend_factors[] = { .0f, .0f, .0f, .0f };
+			context_->SetBlendFactors(s_blend_factors);
 
 			if(pipeline_state_)
 				context_->SetPipelineState(pipeline_state_);
@@ -691,7 +1373,11 @@ namespace REngine
 		bool enable_clip_planes_{};
 		Vector4 clip_plane_{};
 
+		IntRect scissor_{};
 		IntRect viewport_{};
+
+		u8 stencil_ref_{};
+
 		u32 dirty_flags_{};
 
 		u32 curr_vertx_decl_hash{};

@@ -5,6 +5,7 @@
 #include "../Container/ArrayPtr.h"
 #include "../Graphics/GraphicsDefs.h"
 #include "../Container/Hash.h"
+#include "../Graphics/Texture.h"
 #include <DiligentCore/Graphics/GraphicsEngine/interface/InputLayout.h>
 #include <DiligentCore/Graphics/GraphicsEngine/interface/TextureView.h>
 #include <DiligentCore/Common/interface/RefCntAutoPtr.hpp>
@@ -104,6 +105,7 @@ namespace REngine
         const char* name{nullptr};
         Atomic::TextureUnit unit{ Atomic::MAX_TEXTURE_UNITS };
         Diligent::RefCntAutoPtr<Diligent::ITextureView> texture {};
+        Atomic::SharedPtr<Atomic::Texture> owner{};
     };
     typedef ea::array<ShaderResourceTextureDesc, Atomic::MAX_TEXTURE_UNITS> ShaderResourceTextures;
 

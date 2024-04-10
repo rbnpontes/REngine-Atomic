@@ -61,7 +61,6 @@ namespace Atomic
 	}
 
 	const Vector2 Graphics::pixelUVOffset(0.0f, 0.0f);
-	bool Graphics::gl3Support = false;
 
 	Graphics::Graphics(Context* context) :
 		Object(context),
@@ -93,8 +92,6 @@ namespace Atomic
 		instancingSupport_(false),
 		sRGBSupport_(false),
 		sRGBWriteSupport_(false),
-		numPrimitives_(0),
-		numBatches_(0),
 		maxScratchBufferRequest_(0),
 		defaultTextureFilterMode_(FILTER_TRILINEAR),
 		defaultTextureAnisotropy_(4),
@@ -106,7 +103,6 @@ namespace Atomic
 	{
 		ResetCachedState();
 
-		memset(vertexBuffers_, 0x0, sizeof(VertexBuffer*) * MAX_VERTEX_STREAMS);
 		context_->RequireSDL(SDL_INIT_VIDEO);
 
 		// Register Graphics library object factories
@@ -432,23 +428,8 @@ namespace Atomic
 				return false;
 		}
 
-		// Set default rendertarget and depth buffer
-		ResetRenderTargets();
-		auto command = REngine::default_render_command_get();
-		command->shader_parameter_updates.Clear();
-		REngine::render_command_reset(this, command);
-
-		// Cleanup vertex buffers from previous frame
-		memset(vertexBuffers_, 0x0, sizeof(VertexBuffer*) * MAX_VERTEX_STREAMS);
-		indexBuffer_ = nullptr;
-		// Cleanup textures from previous frame
-		for (uint8_t i = 0; i < MAX_TEXTURE_UNITS; ++i)
-			SetTexture(i, nullptr);
-		vertexShader_ = nullptr;
-		pixelShader_ = nullptr;
-		numPrimitives_ = 0;
-		numBatches_ = 0;
-
+		if(draw_command_)
+			draw_command_->Reset();
 		SendEvent(E_BEGINRENDERING);
 		return true;
 	}
@@ -469,151 +450,25 @@ namespace Atomic
 		Cleanup(GRAPHICS_CLEAR_SCRATCH_BUFFERS);
 	}
 
-	void Graphics::Clear(unsigned flags, const Color& color, float depth, unsigned stencil)
+	void Graphics::Clear(unsigned flags, const Color& color, float depth, unsigned stencil) const
 	{
-		ATOMIC_PROFILE(Graphics::Clear);
-		IntVector2 rtSize = GetRenderTargetDimensions();
-
-		bool oldColorWrite = colorWrite_;
-		bool oldDepthWrite = depthWrite_;
-
-		// D3D11 clear always clears the whole target regardless of viewport or scissor test settings
-		// Emulate partial clear by rendering a quad
-		if (!viewport_.left_ && !viewport_.top_ && viewport_.right_ == rtSize.x_ && viewport_.bottom_ == rtSize.y_)
-		{
-			// Make sure we use the read-write version of the depth stencil
-			SetDepthWrite(true);
-			// Skip pipeline build and silence pipeline creation warning
-			auto command = REngine::default_render_command_get();
-			command->skip_flags |= static_cast<unsigned>(REngine::RenderCommandSkipFlags::pipeline_build);
-
-			PrepareDraw();
-			{
-				ATOMIC_PROFILE(Graphics::ClearByHardware);
-				command = REngine::default_render_command_get();
-
-				REngine::RenderCommandClearDesc clear_desc;
-				clear_desc.flags = flags;
-				clear_desc.clear_color = color;
-				clear_desc.clear_depth = depth;
-				clear_desc.driver = impl_;
-
-				if ((flags & CLEAR_COLOR) && command->render_targets[0])
-					clear_desc.render_target = command->render_targets[0];
-
-				if ((flags & (CLEAR_DEPTH | CLEAR_STENCIL)) && command->depth_stencil)
-				{
-					if (flags & CLEAR_DEPTH)
-						clear_desc.clear_stencil_flags |= Diligent::CLEAR_DEPTH_FLAG;
-					if (flags & CLEAR_STENCIL)
-						clear_desc.clear_stencil_flags |= Diligent::CLEAR_STENCIL_FLAG;
-					clear_desc.depth_stencil = command->depth_stencil;
-				}
-
-				REngine::render_command_clear(clear_desc);
-			}
-		}
-		else
-		{
-			ATOMIC_PROFILE(Graphics::ClearByShader);
-			Renderer* renderer = GetSubsystem<Renderer>();
-			if (!renderer)
-				return;
-
-			Geometry* geometry = renderer->GetQuadGeometry();
-
-			Matrix3x4 model = Matrix3x4::IDENTITY;
-			Matrix4 projection = Matrix4::IDENTITY;
-			model.m23_ = Clamp(depth, 0.0f, 1.0f);
-
-			SetBlendMode(BLEND_REPLACE);
-			SetColorWrite((flags & CLEAR_COLOR) != 0);
-			SetCullMode(CULL_NONE);
-			SetDepthTest(CMP_ALWAYS);
-			SetDepthWrite((flags & CLEAR_DEPTH) != 0);
-			SetFillMode(FILL_SOLID);
-			SetScissorTest(false);
-			SetStencilTest((flags & CLEAR_STENCIL) != 0, CMP_ALWAYS, OP_REF, OP_KEEP, OP_KEEP, stencil);
-			SetShaders(GetShader(VS, "ClearFramebuffer"), GetShader(PS, "ClearFramebuffer"));
-			SetShaderParameter(VSP_MODEL, model);
-			SetShaderParameter(VSP_VIEWPROJ, projection);
-			SetShaderParameter(PSP_MATDIFFCOLOR, color);
-
-			geometry->Draw(this);
-
-			SetStencilTest(false);
-			ClearParameterSources();
-		}
-
-		// Restore color & depth write state now
-		SetColorWrite(oldColorWrite);
-		SetDepthWrite(oldDepthWrite);
+		if (!draw_command_)
+			return;
+		draw_command_->Clear({
+			flags,
+			color,
+			depth,
+			stencil
+		});
 	}
 
-	bool Graphics::ResolveToTexture(Texture2D* destination, const IntRect& viewport)
+	bool Graphics::ResolveToTexture(Texture2D* destination, const IntRect& viewport) const
 	{
-		if (!destination || !destination->GetRenderSurface())
-			return false;
-
-		ATOMIC_PROFILE(ResolveToTexture);
-
-		IntRect vpCopy = viewport;
-		if (vpCopy.right_ <= vpCopy.left_)
-			vpCopy.right_ = vpCopy.left_ + 1;
-		if (vpCopy.bottom_ <= vpCopy.top_)
-			vpCopy.bottom_ = vpCopy.top_ + 1;
-
-		Diligent::Box src_box;
-		src_box.MinX = Clamp(vpCopy.left_, 0, width_);
-		src_box.MinY = Clamp(vpCopy.top_, 0, height_);
-		src_box.MaxX = Clamp(vpCopy.right_, 0, width_);
-		src_box.MaxY = Clamp(vpCopy.bottom_, 0, height_);
-		src_box.MinZ = 0;
-		src_box.MaxZ = 1;
-
-		// TODO: enable this when MSAA is available
-		//bool resolve = multiSample_ > 1;
-		bool resolve = false;
-		auto source = impl_->GetSwapChain()->GetCurrentBackBufferRTV();
-		auto destination_tex = destination->GetGPUObject().Cast<Diligent::ITexture>(Diligent::IID_Texture);
-
-		if (!resolve)
-		{
-			Diligent::CopyTextureAttribs copy_attribs = {};
-			copy_attribs.pSrcTexture = source->GetTexture();
-			copy_attribs.pSrcBox = &src_box;
-			copy_attribs.pDstTexture = destination_tex;
-			impl_->GetDeviceContext()->CopyTexture(copy_attribs);
-		}
-		else
-		{
-			Diligent::ResolveTextureSubresourceAttribs resolve_attribs = {};
-
-			// if it is resolving to fullscreen, just resolve directly to the destination texture
-			// otherwise we must need an auxiliary texture to resolve to
-			if (!src_box.MinX && !src_box.MinY && src_box.MaxX == width_ && src_box.MaxY == height_)
-			{
-				impl_->GetDeviceContext()->ResolveTextureSubresource(source->GetTexture(), destination_tex, resolve_attribs);
-			}
-			else
-			{
-				throw std::exception("Not implemented. You must implement MSAA first");
-				/*CreateResolveTexture();
-
-				if (impl_->resolveTexture_)
-				{
-					impl_->deviceContext_->ResolveSubresource(impl_->resolveTexture_, 0, source, 0, DXGI_FORMAT_R8G8B8A8_UNORM);
-					impl_->deviceContext_->CopySubresourceRegion((ID3D11Resource*)destination->GetGPUObject(), 0, 0, 0, 0, impl_->resolveTexture_, 0, &srcBox);
-				}*/
-			}
-		}
-
-		return true;
+		return draw_command_->ResolveTexture(destination, viewport);
 	}
 
-	bool Graphics::ResolveToTexture(Texture2D* texture)
+	bool Graphics::ResolveToTexture(Texture2D* texture) const
 	{
-		throw std::exception("Not implemented");
 		// if (!texture)
 		//     return false;
 		// RenderSurface* surface = texture->GetRenderSurface();
@@ -629,11 +484,11 @@ namespace Atomic
 		//
 		// impl_->deviceContext_->ResolveSubresource(dest, 0, source, 0, (DXGI_FORMAT)texture->GetFormat());
 		// return true;
+		return draw_command_->ResolveTexture(texture);
 	}
 
-	bool Graphics::ResolveToTexture(TextureCube* texture)
+	bool Graphics::ResolveToTexture(TextureCube* texture) const
 	{
-		throw std::exception("Not implemented");
 		// if (!texture)
 		//     return false;
 		//
@@ -656,213 +511,93 @@ namespace Atomic
 		// }
 		//
 		// return true;
+		return draw_command_->ResolveTexture(texture);
 	}
 
 
-	void Graphics::Draw(PrimitiveType type, unsigned vertexStart, unsigned vertexCount)
+	void Graphics::Draw(PrimitiveType type, unsigned vertexStart, unsigned vertexCount) const
 	{
-		auto command = REngine::default_render_command_get();
-
-		if (!vertexCount || !command->shader_program)
+		if (!draw_command_)
 			return;
 
-		if (command->pipeline_state_info.primitive_type != type)
-		{
-			command->pipeline_state_info.primitive_type = type;
-			command->dirty_state |= static_cast<uint32_t>(REngine::RenderCommandDirtyState::pipeline);
-		}
-
-		PrepareDraw();
-
-		{
-			ATOMIC_PROFILE(GraphicsDraw);
-			command = REngine::default_render_command_get();
-			REngine::render_command_update_params(this, command);
-
-			Diligent::DrawAttribs draw_attribs = {};
-			draw_attribs.NumVertices = vertexCount;
-			draw_attribs.StartVertexLocation = vertexStart;
-			draw_attribs.NumInstances = 1;
-			draw_attribs.Flags = Diligent::DRAW_FLAG_VERIFY_ALL;
-
-			impl_->GetDeviceContext()->Draw(draw_attribs);
-
-			uint32_t primitive_count;
-			REngine::utils_get_primitive_type(vertexCount, command->pipeline_state_info.primitive_type, &primitive_count);
-			numPrimitives_ += primitive_count;
-			++numBatches_;
-		}
+		draw_command_->SetPrimitiveType(type);
+		DrawCommandDrawDesc desc = {};
+		desc.vertex_start = vertexStart;
+		desc.vertex_count = vertexCount;
+		draw_command_->Draw(desc);
 	}
 
-	void Graphics::Draw(PrimitiveType type, unsigned indexStart, unsigned indexCount, unsigned minVertex,
-		unsigned vertexCount)
+	auto Graphics::Draw(PrimitiveType type, unsigned indexStart, unsigned indexCount, unsigned minVertex,
+	                    unsigned vertexCount) const -> void
 	{
-		auto command = REngine::default_render_command_get();
-		if (!vertexCount || !command->shader_program)
+		if(!draw_command_)
 			return;
 
-		if (fillMode_ == FILL_POINT)
-			type = command->pipeline_state_info.primitive_type = POINT_LIST;
-
-		if (command->pipeline_state_info.primitive_type != type)
-		{
-			command->pipeline_state_info.primitive_type = type;
-			command->dirty_state |= static_cast<uint32_t>(REngine::RenderCommandDirtyState::pipeline);
-		}
-
-
-		PrepareDraw();
-
-		{
-			ATOMIC_PROFILE(GraphicsDraw);
-			command = REngine::default_render_command_get();
-			REngine::render_command_update_params(this, command);
-
-			Diligent::DrawIndexedAttribs draw_attribs = {};
-			draw_attribs.IndexType = indexBuffer_->GetIndexSize() == sizeof(uint16_t) ? Diligent::VT_UINT16 : Diligent::VT_UINT32;
-			draw_attribs.NumIndices = indexCount;
-			draw_attribs.FirstIndexLocation = indexStart;
-			draw_attribs.Flags = Diligent::DRAW_FLAG_VERIFY_ALL;
-
-			impl_->GetDeviceContext()->DrawIndexed(draw_attribs);
-
-			uint32_t primitive_count;
-			REngine::utils_get_primitive_type(vertexCount, command->pipeline_state_info.primitive_type, &primitive_count);
-			numPrimitives_ += primitive_count;
-			++numBatches_;
-		}
+		draw_command_->SetPrimitiveType(type);
+		DrawCommandDrawDesc desc = {};
+		desc.index_start = indexStart;
+		desc.index_count = indexCount;
+		desc.min_vertex = minVertex;
+		desc.vertex_count = vertexCount;
+		draw_command_->Draw(desc);
 	}
 
 	void Graphics::Draw(PrimitiveType type, unsigned indexStart, unsigned indexCount, unsigned baseVertexIndex,
-		unsigned minVertex, unsigned vertexCount)
+		unsigned minVertex, unsigned vertexCount) const
 	{
-		auto command = REngine::default_render_command_get();
-		if (!vertexCount || !indexCount || !command->shader_program)
+		if(!draw_command_)
 			return;
 
-		if (fillMode_ == FILL_POINT)
-			type = command->pipeline_state_info.primitive_type = POINT_LIST;
-
-		if (command->pipeline_state_info.primitive_type != type)
-		{
-			command->pipeline_state_info.primitive_type = type;
-			command->dirty_state |= static_cast<uint32_t>(REngine::RenderCommandDirtyState::pipeline);
-		}
-
-		PrepareDraw();
-
-		{
-			ATOMIC_PROFILE(GraphicsDraw);
-			command = REngine::default_render_command_get();
-			REngine::render_command_update_params(this, command);
-
-			Diligent::DrawIndexedAttribs draw_attribs = {};
-			draw_attribs.IndexType = indexBuffer_->GetIndexSize() == sizeof(uint16_t) ? Diligent::VT_UINT16 : Diligent::VT_UINT32;
-			draw_attribs.NumIndices = indexCount;
-			draw_attribs.FirstIndexLocation = indexStart;
-			draw_attribs.Flags = Diligent::DRAW_FLAG_VERIFY_ALL;
-			draw_attribs.BaseVertex = baseVertexIndex;
-			impl_->GetDeviceContext()->DrawIndexed(draw_attribs);
-
-			uint32_t primitive_count;
-			REngine::utils_get_primitive_type(vertexCount, command->pipeline_state_info.primitive_type, &primitive_count);
-			numPrimitives_ += primitive_count;
-			++numBatches_;
-		}
+		draw_command_->SetPrimitiveType(type);
+		DrawCommandDrawDesc desc = {};
+		desc.index_start = indexStart;
+		desc.index_count = indexCount;
+		desc.base_vertex_index = baseVertexIndex;
+		desc.min_vertex = minVertex;
+		desc.vertex_count = vertexCount;
+		draw_command_->Draw(desc);
 	}
 
 	void Graphics::DrawInstanced(PrimitiveType type, unsigned indexStart, unsigned indexCount, unsigned minVertex,
 		unsigned vertexCount,
-		unsigned instanceCount)
+		unsigned instanceCount) const
 	{
-		auto command = REngine::default_render_command_get();
-		if (!vertexCount || !instanceCount || !command->shader_program)
+		if (!draw_command_)
 			return;
 
-		if (fillMode_ == FILL_POINT)
-			type = command->pipeline_state_info.primitive_type = POINT_LIST;
-
-		if (command->pipeline_state_info.primitive_type != type)
-		{
-			command->pipeline_state_info.primitive_type = type;
-			command->dirty_state |= static_cast<uint32_t>(REngine::RenderCommandDirtyState::pipeline);
-		}
-
-		PrepareDraw();
-
-		{
-			ATOMIC_PROFILE(GraphicsDraw);
-
-			command = REngine::default_render_command_get();
-			REngine::render_command_update_params(this, command);
-
-			Diligent::DrawIndexedAttribs draw_attribs = {};
-			draw_attribs.IndexType = indexBuffer_->GetIndexSize() == sizeof(uint16_t) ? Diligent::VT_UINT16 : Diligent::VT_UINT32;
-			draw_attribs.NumIndices = indexCount;
-			draw_attribs.FirstIndexLocation = indexStart;
-			draw_attribs.Flags = Diligent::DRAW_FLAG_VERIFY_ALL;
-			draw_attribs.NumInstances = instanceCount;
-
-			impl_->GetDeviceContext()->DrawIndexed(draw_attribs);
-
-			uint32_t primitive_count;
-			REngine::utils_get_primitive_type(vertexCount, command->pipeline_state_info.primitive_type, &primitive_count);
-			numPrimitives_ += primitive_count * instanceCount;
-			++numBatches_;
-		}
+		draw_command_->SetPrimitiveType(type);
+		DrawCommandInstancedDrawDesc desc = {};
+		desc.index_start = indexStart;
+		desc.index_count = indexCount;
+		desc.min_vertex = minVertex;
+		desc.vertex_count = vertexCount;
+		desc.instance_count = instanceCount;
+		draw_command_->Draw(desc);
 	}
 
 	void Graphics::DrawInstanced(PrimitiveType type, unsigned indexStart, unsigned indexCount, unsigned baseVertexIndex,
 		unsigned minVertex, unsigned vertexCount,
-		unsigned instanceCount)
+		unsigned instanceCount) const
 	{
-		auto command = REngine::default_render_command_get();
-		if (!vertexCount || !instanceCount || !command->shader_program)
+		if(!draw_command_)
 			return;
-
-		if (fillMode_ == FILL_POINT)
-			type = command->pipeline_state_info.primitive_type = POINT_LIST;
-
-		if (command->pipeline_state_info.primitive_type != type)
-		{
-			command->pipeline_state_info.primitive_type = type;
-			command->dirty_state |= static_cast<uint32_t>(REngine::RenderCommandDirtyState::pipeline);
-		}
-
-		PrepareDraw();
-
-		{
-			ATOMIC_PROFILE(GraphicsDraw);
-
-			command = REngine::default_render_command_get();
-			REngine::render_command_update_params(this, command);
-
-			Diligent::DrawIndexedAttribs draw_attribs = {};
-			draw_attribs.IndexType = indexBuffer_->GetIndexSize() == sizeof(uint16_t) ? Diligent::VT_UINT16 : Diligent::VT_UINT32;
-			draw_attribs.NumIndices = indexCount;
-			draw_attribs.FirstIndexLocation = indexStart;
-			draw_attribs.Flags = Diligent::DRAW_FLAG_VERIFY_ALL;
-			draw_attribs.NumInstances = instanceCount;
-			draw_attribs.BaseVertex = baseVertexIndex;
-
-			impl_->GetDeviceContext()->DrawIndexed(draw_attribs);
-
-			uint32_t primitive_count;
-			REngine::utils_get_primitive_type(vertexCount, command->pipeline_state_info.primitive_type, &primitive_count);
-			numPrimitives_ += primitive_count * instanceCount;
-			++numBatches_;
-		}
+		draw_command_->SetPrimitiveType(type);
+		DrawCommandInstancedDrawDesc desc = {};
+		desc.index_start = indexStart;
+		desc.index_count = indexCount;
+		desc.base_vertex_index = baseVertexIndex;
+		desc.min_vertex = minVertex;
+		desc.vertex_count = vertexCount;
+		desc.instance_count = instanceCount;
+		draw_command_->Draw(desc);
 	}
 
-	void Graphics::SetVertexBuffer(VertexBuffer* buffer)
+	void Graphics::SetVertexBuffer(VertexBuffer* buffer) const
 	{
-		// Note: this is not multi-instance safe
-		static PODVector<VertexBuffer*> vertex_buffers(1);
-		vertex_buffers[0] = buffer;
-		SetVertexBuffers(vertex_buffers);
+		draw_command_->SetVertexBuffer(buffer);
 	}
 
-	bool Graphics::SetVertexBuffers(const PODVector<VertexBuffer*>& buffers, unsigned instanceOffset)
+	bool Graphics::SetVertexBuffers(const PODVector<VertexBuffer*>& buffers, unsigned instanceOffset) const
 	{
 		if (buffers.Size() > MAX_VERTEX_STREAMS)
 		{
@@ -870,320 +605,144 @@ namespace Atomic
 			return false;
 		}
 
-		auto command = REngine::default_render_command_get();
-		for (unsigned i = 0; i < MAX_VERTEX_STREAMS; ++i)
-		{
-			bool changed = false;
-			VertexBuffer* buffer = i < buffers.Size() ? buffers[i] : nullptr;
-			if (buffer)
-			{
-				const PODVector<VertexElement>& elements = buffer->GetElements();
-				// Check if buffer has per-instance data
-				const auto has_instance_data = elements.Size() && elements[0].perInstance_;
-				const auto offset = has_instance_data ? instanceOffset * buffer->GetVertexSize() : 0;
+		if(!draw_command_)
+			return false;
 
-				if (buffer != vertexBuffers_[i] || offset != command->vertex_offsets[i])
-				{
-					vertexBuffers_[i] = buffer;
-					command->vertex_buffers[i] = buffer->GetGPUObject().Cast<Diligent::IBuffer>(Diligent::IID_Buffer);
-					command->vertex_offsets[i] = offset;
-					changed = true;
-				}
-			}
-			else if (vertexBuffers_[i])
-			{
-				vertexBuffers_[i] = nullptr;
-				command->vertex_buffers[i] = nullptr;
-				command->vertex_offsets[i] = 0;
-				changed = true;
-			}
-
-			if (changed)
-			{
-				command->dirty_state |= static_cast<unsigned>(REngine::RenderCommandDirtyState::vertex_buffer);
-				command->dirty_state |= static_cast<unsigned>(REngine::RenderCommandDirtyState::vertex_decl);
-			}
-		}
-
+		draw_command_->SetVertexBuffers(buffers, instanceOffset);
 		return true;
 	}
 
-	bool Graphics::SetVertexBuffers(const Vector<SharedPtr<VertexBuffer>>& buffers, unsigned instanceOffset)
+	bool Graphics::SetVertexBuffers(const Vector<SharedPtr<VertexBuffer>>& buffers, unsigned instanceOffset) const
 	{
 		return SetVertexBuffers(reinterpret_cast<const PODVector<VertexBuffer*>&>(buffers), instanceOffset);
 	}
 
-	void Graphics::SetIndexBuffer(IndexBuffer* buffer)
+	void Graphics::SetIndexBuffer(IndexBuffer* buffer) const
 	{
-		if (buffer == indexBuffer_)
+		if (!draw_command_)
 			return;
-
-		auto command = REngine::default_render_command_get();
-		if (buffer)
-			command->index_buffer = buffer->GetGPUObject().Cast<Diligent::IBuffer>(Diligent::IID_Buffer);
-		else
-			command->index_buffer = nullptr;
-		indexBuffer_ = buffer;
-
+		draw_command_->SetIndexBuffer(buffer);
 	}
 
-	void Graphics::SetShaders(ShaderVariation* vs, ShaderVariation* ps)
+	void Graphics::SetShaders(ShaderVariation* vs, ShaderVariation* ps) const
 	{
-		// Switch to the clip plane variations if necessary
-		if (useClipPlane_)
-		{
-			if (vs)
-				vs = vs->GetOwner()->GetVariation(VS, vs->GetDefinesClipPlane());
-			if (ps)
-				ps = ps->GetOwner()->GetVariation(PS, ps->GetDefinesClipPlane());
-		}
-
-		if (vs == vertexShader_ && ps == pixelShader_)
+		if(!draw_command_)
 			return;
-
-		const auto command = REngine::default_render_command_get();
-		if (vs != vertexShader_)
-		{
-			// Create the shader now if not yet created. If already attempted, do not retry
-			if (vs && !vs->GetGPUObject())
-			{
-				if (vs->GetCompilerOutput().Empty())
-				{
-					ATOMIC_PROFILE(CompileVertexShader);
-
-					bool success = vs->Create();
-					if (!success)
-					{
-						ATOMIC_LOGERROR("Failed to compile vertex shader " + vs->GetFullName() + ":\n" + vs->GetCompilerOutput());
-						vs = nullptr;
-					}
-				}
-				else
-					vs = nullptr;
-			}
-
-			command->pipeline_state_info.vs_shader = vs;
-			command->dirty_state |= static_cast<unsigned>(REngine::RenderCommandDirtyState::pipeline);
-			command->dirty_state |= static_cast<unsigned>(REngine::RenderCommandDirtyState::vertex_decl);
-			vertexShader_ = vs;
-		}
-
-		if (ps != pixelShader_)
-		{
-			if (ps && !ps->GetGPUObject())
-			{
-				if (ps->GetCompilerOutput().Empty())
-				{
-					ATOMIC_PROFILE(CompilePixelShader);
-
-					bool success = ps->Create();
-					if (!success)
-					{
-						ATOMIC_LOGERROR("Failed to compile pixel shader " + ps->GetFullName() + ":\n" + ps->GetCompilerOutput());
-						ps = nullptr;
-					}
-				}
-				else
-					ps = nullptr;
-			}
-
-			command->pipeline_state_info.ps_shader = ps;
-			command->dirty_state |= static_cast<unsigned>(REngine::RenderCommandDirtyState::pipeline);
-			pixelShader_ = ps;
-		}
-
-		// Update current shader parameters & constant buffers
-		if (vertexShader_ && pixelShader_)
-		{
-			REngine::ShaderProgramQuery query{ vertexShader_, pixelShader_ };
-			SharedPtr<REngine::ShaderProgram> shader_program = REngine::graphics_state_get_shader_program(query);
-
-			if (!shader_program)
-			{
-				REngine::ShaderProgramCreationDesc creation_desc = {};
-				creation_desc.graphics = this;
-				creation_desc.vertex_shader = vertexShader_;
-				creation_desc.pixel_shader = pixelShader_;
-				shader_program = new REngine::ShaderProgram(creation_desc);
-				REngine::graphics_state_set_shader_program(shader_program);
-			}
-
-			command->shader_program = shader_program;
-			command->dirty_state |= static_cast<unsigned>(REngine::RenderCommandDirtyState::shader_program);
-		}
-		else
-		{
-			command->shader_program = nullptr;
-			command->dirty_state ^= static_cast<unsigned>(REngine::RenderCommandDirtyState::shader_program);
-		}
-
-		// Store shader combination if shader dumping in progress
-		if (shaderPrecache_)
-			shaderPrecache_->StoreShaders(vertexShader_, pixelShader_);
-
-		// Update clip plane parameter if necessary
-		if (useClipPlane_)
-			SetShaderParameter(VSP_CLIPPLANE, clipPlane_);
+		const DrawCommandShadersDesc desc = { vs, ps };
+		draw_command_->SetShaders(desc);
 	}
 
-	void Graphics::SetShaderParameter(StringHash param, const float* data, unsigned count)
+	void Graphics::SetShaderParameter(StringHash param, const float* data, unsigned count) const
 	{
-		auto command = REngine::default_render_command_get();
-		const FloatVector result(data, count);
-		const REngine::ShaderParameterUpdateDesc desc = { param, result };
-		command->shader_parameter_updates.Push(desc);
+		if (!draw_command_)
+			return;
+		draw_command_->SetShaderParameter(param, data, count);
 	}
 
-	void Graphics::SetShaderParameter(StringHash param, float value)
+	void Graphics::SetShaderParameter(StringHash param, float value) const
 	{
-		auto command = REngine::default_render_command_get();
-		const REngine::ShaderParameterUpdateDesc desc = { param, value };
-		command->shader_parameter_updates.Push(desc);
+		if (!draw_command_)
+			return;
+		draw_command_->SetShaderParameter(param, value);
 	}
 
-	void Graphics::SetShaderParameter(StringHash param, int value)
+	void Graphics::SetShaderParameter(StringHash param, int value) const
 	{
-		auto command = REngine::default_render_command_get();
-		const REngine::ShaderParameterUpdateDesc desc = { param, value };
-		command->shader_parameter_updates.Push(desc);
+		if (!draw_command_)
+			return;
+		draw_command_->SetShaderParameter(param, value);
 	}
 
-	void Graphics::SetShaderParameter(StringHash param, bool value)
+	void Graphics::SetShaderParameter(StringHash param, bool value) const
 	{
-		auto command = REngine::default_render_command_get();
-		const REngine::ShaderParameterUpdateDesc desc = { param, value };
-		command->shader_parameter_updates.Push(desc);
+		if(!draw_command_)
+			return;
+		draw_command_->SetShaderParameter(param, value);
 	}
 
-	void Graphics::SetShaderParameter(StringHash param, const Color& color)
+	void Graphics::SetShaderParameter(StringHash param, const Color& color) const
 	{
-		auto command = REngine::default_render_command_get();
-		const REngine::ShaderParameterUpdateDesc desc = { param, color };
-		command->shader_parameter_updates.Push(desc);
+		if(!draw_command_)
+			return;
+		draw_command_->SetShaderParameter(param, color);
 	}
 
-	void Graphics::SetShaderParameter(StringHash param, const Vector2& vector)
+	void Graphics::SetShaderParameter(StringHash param, const Vector2& vector) const
 	{
-		auto command = REngine::default_render_command_get();
-		const REngine::ShaderParameterUpdateDesc desc = { param, vector };
-		command->shader_parameter_updates.Push(desc);
+		if(!draw_command_)
+			return;
+		draw_command_->SetShaderParameter(param, vector);
 	}
 
-	void Graphics::SetShaderParameter(StringHash param, const Matrix3& matrix)
+	void Graphics::SetShaderParameter(StringHash param, const Matrix3& matrix) const
 	{
-		auto command = REngine::default_render_command_get();
-		const REngine::ShaderParameterUpdateDesc desc = { param, matrix };
-		command->shader_parameter_updates.Push(desc);
+		if(!draw_command_)
+			return;
+		draw_command_->SetShaderParameter(param, matrix);
 	}
 
-	void Graphics::SetShaderParameter(StringHash param, const Vector3& vector)
+	void Graphics::SetShaderParameter(StringHash param, const Vector3& vector) const
 	{
-		auto command = REngine::default_render_command_get();
-		const REngine::ShaderParameterUpdateDesc desc = { param, vector };
-		command->shader_parameter_updates.Push(desc);
+		if (!draw_command_)
+			return;
+		draw_command_->SetShaderParameter(param, vector);
 	}
 
-	void Graphics::SetShaderParameter(StringHash param, const Matrix4& matrix)
+	void Graphics::SetShaderParameter(StringHash param, const Matrix4& matrix) const
 	{
-		auto command = REngine::default_render_command_get();
-		const REngine::ShaderParameterUpdateDesc desc = { param, matrix };
-		command->shader_parameter_updates.Push(desc);
+		if(!draw_command_)
+			return;
+		draw_command_->SetShaderParameter(param, matrix);
 	}
 
-	void Graphics::SetShaderParameter(StringHash param, const Vector4& vector)
+	void Graphics::SetShaderParameter(StringHash param, const Vector4& vector) const
 	{
-		auto command = REngine::default_render_command_get();
-		const REngine::ShaderParameterUpdateDesc desc = { param, vector };
-		command->shader_parameter_updates.Push(desc);
+		if(!draw_command_)
+			return;
+		draw_command_->SetShaderParameter(param, vector);
 	}
 
-	void Graphics::SetShaderParameter(StringHash param, const Matrix3x4& matrix)
+	void Graphics::SetShaderParameter(StringHash param, const Matrix3x4& matrix) const
 	{
-		auto command = REngine::default_render_command_get();
-		const REngine::ShaderParameterUpdateDesc desc = { param, matrix };
-		command->shader_parameter_updates.Push(desc);
+		if(!draw_command_)
+			return;
+		draw_command_->SetShaderParameter(param, matrix);
 	}
 
 	bool Graphics::NeedParameterUpdate(ShaderParameterGroup group, const void* source)
 	{
-		if ((unsigned)(size_t)shaderParameterSources_[group] == M_MAX_UNSIGNED || shaderParameterSources_[group] != source)
-		{
-			shaderParameterSources_[group] = source;
-			return true;
-		}
-		else
-			return false;
+		return false;
 	}
 
-	bool Graphics::HasShaderParameter(StringHash param)
+	bool Graphics::HasShaderParameter(StringHash param) const
 	{
-		const auto& command = REngine::default_render_command_get();
-		if (!command->shader_program)
+		if(!draw_command_)
 			return false;
-		ShaderParameter parameter;
-		return command->shader_program->GetParameter(param, &parameter);
+		return draw_command_->HasShaderParameter(param);
 	}
 
-	bool Graphics::HasTextureUnit(TextureUnit unit)
+	bool Graphics::HasTextureUnit(TextureUnit unit) const
 	{
-		return (vertexShader_ && vertexShader_->HasTextureUnit(unit)) || (pixelShader_ && pixelShader_->HasTextureUnit(unit));
+		return draw_command_->HasTexture(unit);
 	}
 
 	void Graphics::ClearParameterSource(ShaderParameterGroup group)
 	{
-		shaderParameterSources_[group] = (const void*)M_MAX_UNSIGNED;
 	}
 
 	void Graphics::ClearParameterSources()
 	{
-		for (unsigned i = 0; i < MAX_SHADER_PARAMETER_GROUPS; ++i)
-			shaderParameterSources_[i] = (const void*)M_MAX_UNSIGNED;
 	}
 
 	void Graphics::ClearTransformSources()
 	{
-		shaderParameterSources_[SP_CAMERA] = (const void*)M_MAX_UNSIGNED;
-		shaderParameterSources_[SP_OBJECT] = (const void*)M_MAX_UNSIGNED;
 	}
 
-	void Graphics::SetTexture(unsigned index, Texture* texture)
+	void Graphics::SetTexture(unsigned index, Texture* texture) const
 	{
-		if (index >= MAX_TEXTURE_UNITS)
+		if(!draw_command_)
 			return;
-
-		// Check if texture is currently bound as a rendertarget. In that case, use its backup texture, or blank if not defined
-		if (texture)
-		{
-			if (renderTargets_[0] && renderTargets_[0]->GetParentTexture() == texture)
-				texture = texture->GetBackupTexture();
-			else
-			{
-				// Resolve multisampled texture now as necessary
-				if (texture->GetMultiSample() > 1 && texture->GetAutoResolve() && texture->IsResolveDirty())
-				{
-					if (texture->GetType() == Texture2D::GetTypeStatic())
-						ResolveToTexture(static_cast<Texture2D*>(texture));  // NOLINT(cppcoreguidelines-pro-type-static-cast-downcast)
-					if (texture->GetType() == TextureCube::GetTypeStatic())
-						ResolveToTexture(static_cast<TextureCube*>(texture)); // NOLINT(cppcoreguidelines-pro-type-static-cast-downcast)
-				}
-			}
-
-			if (texture->GetLevelsDirty())
-				texture->RegenerateLevels();
-		}
-
-		if (texture && texture->GetParametersDirty())
-		{
-			texture->UpdateParameters();
-			textures_[index] = nullptr; // Force reassign
-		}
-
-		if (texture != textures_[index])
-		{
-			textures_[index] = texture;
-			auto command = REngine::default_render_command_get();
-			command->dirty_state |= static_cast<unsigned>(REngine::RenderCommandDirtyState::textures);
-		}
+		draw_command_->SetTexture(static_cast<TextureUnit>(index), texture);
 	}
 
 	void SetTextureForUpdate(Texture* texture)
@@ -1235,329 +794,150 @@ namespace Atomic
 		SetViewport(IntRect(0, 0, width_, height_));
 	}
 
-	void Graphics::ResetRenderTarget(unsigned index)
+	void Graphics::ResetRenderTarget(unsigned index) const
 	{
 		SetRenderTarget(index, static_cast<RenderSurface*>(nullptr));
 	}
 
-	void Graphics::ResetDepthStencil()
+	void Graphics::ResetDepthStencil() const
 	{
 		SetDepthStencil(static_cast<RenderSurface*>(nullptr));
 	}
 
-	void Graphics::SetRenderTarget(unsigned index, RenderSurface* renderTarget)
+	void Graphics::SetRenderTarget(unsigned index, RenderSurface* renderTarget) const
 	{
-		ATOMIC_PROFILE(Graphics::SetRenderTarget);
-		if (index >= MAX_RENDERTARGETS)
+		if(!draw_command_)
 			return;
+		draw_command_->SetRenderTarget(index, renderTarget);
+	}
 
-		if (renderTarget == renderTargets_[index])
+	void Graphics::SetRenderTarget(unsigned index, Texture2D* texture) const
+	{
+		if(!draw_command_)
 			return;
+		draw_command_->SetRenderTarget(index, texture);
+	}
 
-		renderTargets_[index] = renderTarget;
-		auto command = REngine::default_render_command_get();
-		command->dirty_state |= static_cast<unsigned>(REngine::RenderCommandDirtyState::render_targets);
-
-		if (renderTarget == nullptr)
+	void Graphics::SetDepthStencil(RenderSurface* depthStencil) const
+	{
+		if(!draw_command_)
 			return;
-
-		// If the rendertarget is also bound as a texture, replace with backup texture or null
-		Texture* parentTexture = renderTarget->GetParentTexture();
-
-		for (unsigned i = 0; i < MAX_TEXTURE_UNITS; ++i)
-		{
-			if (textures_[i] == parentTexture)
-				SetTexture(i, textures_[i]->GetBackupTexture());
-		}
-
-		// If multisampled, mark the texture & surface needing resolve
-		if (parentTexture->GetMultiSample() > 1 && parentTexture->GetAutoResolve())
-		{
-			parentTexture->SetResolveDirty(true);
-			renderTarget->SetResolveDirty(true);
-		}
-
-		// If mipmapped, mark the levels needing regeneration
-		if (parentTexture->GetLevels() > 1)
-			parentTexture->SetLevelsDirty();
+		draw_command_->SetDepthStencil(depthStencil);
 	}
 
-	void Graphics::SetRenderTarget(unsigned index, Texture2D* texture)
+	void Graphics::SetDepthStencil(Texture2D* texture) const
 	{
-		RenderSurface* renderTarget = 0;
-		if (texture)
-			renderTarget = texture->GetRenderSurface();
-
-		SetRenderTarget(index, renderTarget);
-	}
-
-	void Graphics::SetDepthStencil(RenderSurface* depthStencil)
-	{
-		ATOMIC_PROFILE(Graphics::SetDepthStencil);
-		depthStencil_ = depthStencil;
-		auto command = REngine::default_render_command_get();
-		command->dirty_state |= static_cast<unsigned>(REngine::RenderCommandDirtyState::render_targets);
-	}
-
-	void Graphics::SetDepthStencil(Texture2D* texture)
-	{
-		RenderSurface* depthStencil = 0;
-		if (texture)
-			depthStencil = texture->GetRenderSurface();
-
-		SetDepthStencil(depthStencil);
-	}
-
-	void Graphics::SetViewport(const IntRect& rect)
-	{
-		IntVector2 size = GetRenderTargetDimensions();
-
-		IntRect rectCopy = rect;
-
-		if (rectCopy.right_ <= rectCopy.left_)
-			rectCopy.right_ = rectCopy.left_ + 1;
-		if (rectCopy.bottom_ <= rectCopy.top_)
-			rectCopy.bottom_ = rectCopy.top_ + 1;
-		rectCopy.left_ = Clamp(rectCopy.left_, 0, size.x_);
-		rectCopy.top_ = Clamp(rectCopy.top_, 0, size.y_);
-		rectCopy.right_ = Clamp(rectCopy.right_, 0, size.x_);
-		rectCopy.bottom_ = Clamp(rectCopy.bottom_, 0, size.y_);
-
-		auto command = REngine::default_render_command_get();
-		command->viewport = rectCopy;
-		command->dirty_state |= static_cast<unsigned>(REngine::RenderCommandDirtyState::viewport);
-
-		viewport_ = rectCopy;
-
-		// Disable scissor test, needs to be re-enabled by the user
-		SetScissorTest(false);
-	}
-
-	void Graphics::SetBlendMode(BlendMode mode, bool alphaToCoverage)
-	{
-		auto command = REngine::default_render_command_get();
-		command->pipeline_state_info.blend_mode = blendMode_ = mode;
-		command->pipeline_state_info.alpha_to_coverage_enabled = alphaToCoverage_ = alphaToCoverage;
-		command->dirty_state |= static_cast<unsigned>(REngine::RenderCommandDirtyState::pipeline);
-	}
-
-	void Graphics::SetColorWrite(bool enable)
-	{
-		ATOMIC_PROFILE(Graphics::SetColorWrite);
-		auto command = REngine::default_render_command_get();
-		command->pipeline_state_info.color_write_enabled = colorWrite_ = enable;
-		command->dirty_state |= static_cast<unsigned>(REngine::RenderCommandDirtyState::pipeline);
-	}
-
-	void Graphics::SetCullMode(CullMode mode)
-	{
-		auto command = REngine::default_render_command_get();
-		command->pipeline_state_info.cull_mode = cullMode_ = mode;
-		command->dirty_state |= static_cast<unsigned>(REngine::RenderCommandDirtyState::pipeline);
-	}
-
-	void Graphics::SetDepthBias(float constantBias, float slopeScaledBias)
-	{
-		auto command = REngine::default_render_command_get();
-		command->pipeline_state_info.constant_depth_bias = constantDepthBias_ = constantBias;
-		command->pipeline_state_info.slope_scaled_depth_bias = slopeScaledDepthBias_ = slopeScaledBias;
-		command->dirty_state |= static_cast<unsigned>(REngine::RenderCommandDirtyState::pipeline);
-	}
-
-	void Graphics::SetDepthTest(CompareMode mode)
-	{
-		if (mode == depthTestMode_)
+		if(!draw_command_)
 			return;
-
-		depthTestMode_ = mode;
-		auto command = REngine::default_render_command_get();
-		command->pipeline_state_info.depth_cmp_function = mode;
-		command->dirty_state |= static_cast<unsigned>(REngine::RenderCommandDirtyState::pipeline);
+		draw_command_->SetDepthStencil(texture);
 	}
 
-	void Graphics::SetDepthWrite(bool enable)
+	void Graphics::SetViewport(const IntRect& rect) const
 	{
-		ATOMIC_PROFILE(Graphics::SetDepthWrite);
-		depthWrite_ = enable;
-		auto command = REngine::default_render_command_get();
-		command->pipeline_state_info.depth_write_enabled = enable;
-		command->dirty_state |= static_cast<unsigned>(REngine::RenderCommandDirtyState::pipeline);
-	}
-
-	void Graphics::SetFillMode(FillMode mode)
-	{
-		if (mode == fillMode_)
+		if(!draw_command_)
 			return;
-
-		fillMode_ = mode;
-		auto command = REngine::default_render_command_get();
-		command->pipeline_state_info.fill_mode = mode;
-		command->dirty_state |= static_cast<unsigned>(REngine::RenderCommandDirtyState::pipeline);
+		draw_command_->SetViewport(rect);
 	}
 
-	void Graphics::SetLineAntiAlias(bool enable)
+	void Graphics::SetBlendMode(BlendMode mode, bool alphaToCoverage) const
 	{
-		if (enable == lineAntiAlias_)
+		if(!draw_command_)
 			return;
-
-		lineAntiAlias_ = enable;
-		auto command = REngine::default_render_command_get();
-		command->pipeline_state_info.line_anti_alias = enable;
-		command->dirty_state |= static_cast<unsigned>(REngine::RenderCommandDirtyState::pipeline);
+		draw_command_->SetBlendMode(mode, alphaToCoverage);
 	}
 
-	void Graphics::SetScissorTest(bool enable, const Rect& rect, bool borderInclusive)
+	void Graphics::SetColorWrite(bool enable) const
 	{
-		auto command = REngine::default_render_command_get();
-		// During some light rendering loops, a full rect is toggled on/off repeatedly.
-		// Disable scissor in that case to reduce state changes
-		if (rect.min_.x_ <= 0.0f && rect.min_.y_ <= 0.0f && rect.max_.x_ >= 1.0f && rect.max_.y_ >= 1.0f)
-			enable = false;
-
-		if (enable)
-		{
-			IntVector2 rtSize(GetRenderTargetDimensions());
-			IntVector2 viewSize(viewport_.Size());
-			IntVector2 viewPos(viewport_.left_, viewport_.top_);
-			IntRect intRect;
-			int expand = borderInclusive ? 1 : 0;
-
-			intRect.left_ = Clamp((int)((rect.min_.x_ + 1.0f) * 0.5f * viewSize.x_) + viewPos.x_, 0, rtSize.x_ - 1);
-			intRect.top_ = Clamp((int)((-rect.max_.y_ + 1.0f) * 0.5f * viewSize.y_) + viewPos.y_, 0, rtSize.y_ - 1);
-			intRect.right_ = Clamp((int)((rect.max_.x_ + 1.0f) * 0.5f * viewSize.x_) + viewPos.x_ + expand, 0, rtSize.x_);
-			intRect.bottom_ = Clamp((int)((-rect.min_.y_ + 1.0f) * 0.5f * viewSize.y_) + viewPos.y_ + expand, 0, rtSize.y_);
-
-			if (intRect.right_ == intRect.left_)
-				intRect.right_++;
-			if (intRect.bottom_ == intRect.top_)
-				intRect.bottom_++;
-
-			if (intRect.right_ < intRect.left_ || intRect.bottom_ < intRect.top_)
-				enable = false;
-
-			if (enable && intRect != scissorRect_)
-			{
-				scissorRect_ = intRect;
-				command->dirty_state |= static_cast<unsigned>(REngine::RenderCommandDirtyState::scissor);
-			}
-		}
-
-		command->scissor = scissorRect_;
-		command->pipeline_state_info.scissor_test_enabled = enable;
-		if (enable != scissorTest_)
-		{
-			scissorTest_ = enable;
-			command->dirty_state |= static_cast<unsigned>(REngine::RenderCommandDirtyState::pipeline);
-		}
+		if(!draw_command_)
+			return;
+		draw_command_->SetColorWrite(enable);
 	}
 
-	void Graphics::SetScissorTest(bool enable, const IntRect& rect)
+	void Graphics::SetCullMode(CullMode mode) const
 	{
-		auto command = REngine::default_render_command_get();
-		IntVector2 rtSize(GetRenderTargetDimensions());
-		IntVector2 viewPos(viewport_.left_, viewport_.top_);
+		if(!draw_command_)
+			return;
+		draw_command_->SetCullMode(mode);
+	}
 
-		if (enable)
-		{
-			IntRect intRect;
-			intRect.left_ = Clamp(rect.left_ + viewPos.x_, 0, rtSize.x_ - 1);
-			intRect.top_ = Clamp(rect.top_ + viewPos.y_, 0, rtSize.y_ - 1);
-			intRect.right_ = Clamp(rect.right_ + viewPos.x_, 0, rtSize.x_);
-			intRect.bottom_ = Clamp(rect.bottom_ + viewPos.y_, 0, rtSize.y_);
+	void Graphics::SetDepthBias(float constantBias, float slopeScaledBias) const
+	{
+		if(!draw_command_)
+			return;
+		draw_command_->SetDepthBias(constantBias, slopeScaledBias);
+	}
 
-			if (intRect.right_ == intRect.left_)
-				intRect.right_++;
-			if (intRect.bottom_ == intRect.top_)
-				intRect.bottom_++;
+	void Graphics::SetDepthTest(CompareMode mode) const
+	{
+		if(!draw_command_)
+			return;
+		draw_command_->SetDepthTest(mode);
+	}
 
-			if (intRect.right_ < intRect.left_ || intRect.bottom_ < intRect.top_)
-				enable = false;
+	void Graphics::SetDepthWrite(bool enable) const
+	{
+		if(!draw_command_)
+			return;
+		draw_command_->SetDepthWrite(enable);
+	}
 
-			if (enable && intRect != scissorRect_)
-			{
-				scissorRect_ = intRect;
-				command->dirty_state |= static_cast<unsigned>(REngine::RenderCommandDirtyState::scissor);
-			}
-		}
+	void Graphics::SetFillMode(FillMode mode) const
+	{
+		if(!draw_command_)
+			return;
+		draw_command_->SetFillMode(mode);
+	}
 
-		command->scissor = scissorRect_;
-		command->pipeline_state_info.scissor_test_enabled = enable;
-		if (enable != scissorTest_)
-		{
-			scissorTest_ = enable;
-			command->dirty_state |= static_cast<unsigned>(REngine::RenderCommandDirtyState::pipeline);
-		}
+	void Graphics::SetLineAntiAlias(bool enable) const
+	{
+		if(!draw_command_)
+			return;
+		draw_command_->SetLineAntiAlias(enable);
+	}
+
+	void Graphics::SetScissorTest(bool enable, const Rect& rect, bool borderInclusive) const
+	{
+		if(!draw_command_)
+			return;
+		draw_command_->SetScissorTest(enable, rect, borderInclusive);
+	}
+
+	void Graphics::SetScissorTest(bool enable, const IntRect& rect) const
+	{
+		if(!draw_command_)
+			return;
+		draw_command_->SetScissorTest(enable, rect);
 	}
 
 	void Graphics::SetStencilTest(bool enable, CompareMode mode, StencilOp pass, StencilOp fail, StencilOp zFail,
 		unsigned stencilRef,
-		unsigned compareMask, unsigned writeMask)
+		unsigned compareMask, unsigned writeMask) const
 	{
-		auto command = REngine::default_render_command_get();
-		if (enable != stencilTest_)
-		{
-			stencilTest_ = enable;
-			command->pipeline_state_info.stencil_test_enabled = enable;
-			command->dirty_state |= static_cast<unsigned>(REngine::RenderCommandDirtyState::pipeline);
-		}
-
-		if (enable)
-		{
-			if (mode != stencilTestMode_)
-			{
-				stencilTestMode_ = mode;
-				command->pipeline_state_info.stencil_cmp_function = mode;
-				command->dirty_state |= static_cast<unsigned>(REngine::RenderCommandDirtyState::pipeline);
-			}
-			if (pass != stencilPass_)
-			{
-				stencilPass_ = pass;
-				command->pipeline_state_info.stencil_op_on_passed = pass;
-				command->dirty_state |= static_cast<unsigned>(REngine::RenderCommandDirtyState::pipeline);
-			}
-			if (fail != stencilFail_)
-			{
-				stencilFail_ = fail;
-				command->pipeline_state_info.stencil_op_on_stencil_failed = fail;
-				command->dirty_state |= static_cast<unsigned>(REngine::RenderCommandDirtyState::pipeline);
-			}
-			if (zFail != stencilZFail_)
-			{
-				stencilZFail_ = zFail;
-				command->pipeline_state_info.stencil_op_depth_failed = zFail;
-				command->dirty_state |= static_cast<unsigned>(REngine::RenderCommandDirtyState::pipeline);
-			}
-			if (compareMask != stencilCompareMask_)
-			{
-				stencilCompareMask_ = compareMask;
-				command->pipeline_state_info.stencil_cmp_mask = static_cast<uint8_t>(compareMask);
-				command->dirty_state |= static_cast<unsigned>(REngine::RenderCommandDirtyState::pipeline);
-			}
-			if (writeMask != stencilWriteMask_)
-			{
-				stencilWriteMask_ = writeMask;
-				command->pipeline_state_info.stencil_write_mask = static_cast<uint8_t>(writeMask);
-				command->dirty_state |= static_cast<unsigned>(REngine::RenderCommandDirtyState::pipeline);
-			}
-			if (stencilRef != stencilRef_)
-			{
-				stencilRef_ = stencilRef;
-				command->stencil_ref = static_cast<uint8_t>(stencilRef);
-				command->dirty_state |= static_cast<unsigned>(REngine::RenderCommandDirtyState::pipeline);
-			}
-		}
+		if(!draw_command_)
+			return;
+		DrawCommandStencilTestDesc desc;
+		desc.enable = enable;
+		desc.mode = mode;
+		desc.pass = pass;
+		desc.fail = fail;
+		desc.depth_fail = zFail;
+		desc.stencil_ref = stencilRef;
+		desc.compare_mask = compareMask;
+		desc.write_mask = writeMask;
+		draw_command_->SetStencilTest(desc);
 	}
 
-	void Graphics::SetClipPlane(bool enable, const Plane& clipPlane, const Matrix3x4& view, const Matrix4& projection)
+	void Graphics::SetClipPlane(bool enable, const Plane& clipPlane, const Matrix3x4& view, const Matrix4& projection) const
 	{
-		useClipPlane_ = enable;
-
-		if (!enable)
+		if(!draw_command_)
 			return;
 
-		Matrix4 viewProj = projection * view;
-		clipPlane_ = clipPlane.Transformed(viewProj).ToVector4();
-		SetShaderParameter(VSP_CLIPPLANE, clipPlane_);
+		DrawCommandClipPlaneDesc desc;
+		desc.clip_plane = clipPlane;
+		desc.view = view;
+		desc.projection = projection;
+		desc.enable = enable;
+		draw_command_->SetClipPlane(desc);
 	}
 
 	bool Graphics::IsInitialized() const
@@ -1620,59 +1000,34 @@ namespace Atomic
 
 	VertexBuffer* Graphics::GetVertexBuffer(unsigned index) const
 	{
-		return index < MAX_VERTEX_STREAMS ? vertexBuffers_[index] : nullptr;
+		if(!draw_command_)
+			return nullptr;
+		return draw_command_->GetVertexBuffer(index);
 	}
 
 	TextureUnit Graphics::GetTextureUnit(const String& name)
 	{
-		HashMap<String, TextureUnit>::Iterator i = textureUnits_.Find(name);
-		if (i != textureUnits_.End())
-			return i->second_;
-		else
-			return MAX_TEXTURE_UNITS;
+		return REngine::utils_get_texture_unit(name);
 	}
 
 	const String& Graphics::GetTextureUnitName(TextureUnit unit)
 	{
-		for (HashMap<String, TextureUnit>::Iterator i = textureUnits_.Begin(); i != textureUnits_.End(); ++i)
-		{
-			if (i->second_ == unit)
-				return i->first_;
-		}
-		return String::EMPTY;
+		return REngine::utils_get_texture_unit_names(unit)[0];
 	}
 
 	Texture* Graphics::GetTexture(unsigned index) const
 	{
-		return index < MAX_TEXTURE_UNITS ? textures_[index] : nullptr;
+		return draw_command_->GetTexture(static_cast<TextureUnit>(index));
 	}
 
 	RenderSurface* Graphics::GetRenderTarget(unsigned index) const
 	{
-		return index < MAX_RENDERTARGETS ? renderTargets_[index] : nullptr;
+		return draw_command_->GetRenderTarget(index);
 	}
 
 	IntVector2 Graphics::GetRenderTargetDimensions() const
 	{
-		int width, height;
-
-		if (renderTargets_[0])
-		{
-			width = renderTargets_[0]->GetWidth();
-			height = renderTargets_[0]->GetHeight();
-		}
-		else if (depthStencil_) // Depth-only rendering
-		{
-			width = depthStencil_->GetWidth();
-			height = depthStencil_->GetHeight();
-		}
-		else
-		{
-			width = width_;
-			height = height_;
-		}
-
-		return IntVector2(width, height);
+		return draw_command_->GetRenderTargetDimensions();
 	}
 
 	bool Graphics::GetDither() const
@@ -2057,135 +1412,13 @@ namespace Atomic
 
 	void Graphics::ResetCachedState()
 	{
-		const auto command = REngine::default_render_command_get();
-		REngine::render_command_reset(this, command);
-
-		memset(textures_, 0x0, sizeof(Texture*) * MAX_TEXTURE_UNITS);
+		if(!draw_command_)
+			return;
+		draw_command_->Reset();
 	}
 
 	void Graphics::PrepareDraw()
 	{
-		ATOMIC_PROFILE(Graphics_PrepareDraw);
-
-		REngine::RenderCommandProcessDesc process_desc;
-		process_desc.driver = impl_;
-		process_desc.graphics = this;
-
-		const auto command = REngine::default_render_command_get();
-
-		// setup depth stencil
-		if (command->dirty_state & static_cast<unsigned>(REngine::RenderCommandDirtyState::depth_stencil))
-		{
-			ATOMIC_PROFILE(PrepareDraw::SetupDepthStencil);
-			auto depth_stencil = (depthStencil_ && depthStencil_->GetUsage() == TEXTURE_DEPTHSTENCIL) ?
-				depthStencil_->GetRenderTargetView() : impl_->GetSwapChain()->GetDepthBufferDSV();
-
-			if (!depthWrite_ && depthStencil_ && depthStencil_->GetReadOnlyView())
-				depth_stencil = depthStencil_->GetReadOnlyView();
-			else if (renderTargets_[0] && !depthStencil_)
-			{
-				if (renderTargets_[0]->GetWidth() < GetWidth() || renderTargets_[0]->GetHeight() < GetHeight())
-					depth_stencil = nullptr;
-			}
-
-			if (command->depth_stencil != depth_stencil)
-				command->depth_stencil = depth_stencil;
-		}
-
-		// setup render targets
-		if (command->dirty_state & static_cast<unsigned>(REngine::RenderCommandDirtyState::render_targets))
-		{
-			ATOMIC_PROFILE(PrepareDraw::SetupRenderTargets);
-			unsigned num_rts = 0;
-			for (unsigned i = 0; i < MAX_RENDERTARGETS; ++i)
-			{
-				if (!renderTargets_[i])
-					continue;
-
-				command->render_targets[num_rts] = (renderTargets_[i] && renderTargets_[i]->GetUsage() == TEXTURE_RENDERTARGET)
-					? renderTargets_[i]->GetRenderTargetView() : Diligent::RefCntAutoPtr<Diligent::ITextureView>();
-				num_rts = i + 1;
-			}
-			command->num_rts = static_cast<uint8_t>(num_rts);
-
-			if (!renderTargets_[0] &&
-				(!depthStencil_ || (depthStencil_ && depthStencil_->GetWidth() == width_ && depthStencil_->GetHeight() == height_)))
-			{
-				command->num_rts = 1;
-				command->render_targets[0] = impl_->GetSwapChain()->GetCurrentBackBufferRTV();
-			}
-		}
-
-		// setup textures
-		if (command->dirty_state & static_cast<unsigned>(REngine::RenderCommandDirtyState::textures) && command->shader_program)
-		{
-			ATOMIC_PROFILE(PrepareDraw::SetupTextures);
-			unsigned next_tex_idx = 0;
-			for (unsigned i = 0; i < MAX_TEXTURE_UNITS; ++i)
-			{
-				if (textures_[i] == nullptr)
-					continue;
-
-				const auto sampler = command->shader_program->GetSampler(static_cast<TextureUnit>(i));
-				if (!sampler)
-					continue;
-				REngine::ShaderResourceTextureDesc& text_desc = command->textures[sampler->hash.Value()];
-				text_desc.texture = textures_[i]->GetShaderResourceView();
-				text_desc.name = sampler->name.CString();
-				command->pipeline_state_info.immutable_samplers[next_tex_idx].name = sampler->name.CString();
-				textures_[i]->GetSamplerDesc(command->pipeline_state_info.immutable_samplers[next_tex_idx].sampler);
-				++next_tex_idx;
-			}
-			command->pipeline_state_info.num_samplers = next_tex_idx;
-			command->dirty_state |= static_cast<unsigned>(REngine::RenderCommandDirtyState::pipeline);
-		}
-
-		/*auto pipeline_hash = 0u;
-		auto vertex_decl = 0u;*/
-		if (command->dirty_state & static_cast<uint32_t>(REngine::RenderCommandDirtyState::vertex_decl) && vertexShader_)
-		{
-			ATOMIC_PROFILE(PrepareDraw::SetupVertexDecl);
-			uint32_t new_vertex_decl_hash = 0;
-			for (unsigned i = 0; i < MAX_VERTEX_STREAMS; ++i)
-			{
-				if (vertexBuffers_[i] == nullptr)
-					continue;
-				CombineHash(new_vertex_decl_hash, static_cast<uint32_t>(vertexBuffers_[i]->GetBufferHash(i)));
-			}
-
-			if (new_vertex_decl_hash)
-			{
-				ATOMIC_PROFILE(PrepareDraw::BuildVertexDecl);
-				CombineHash(new_vertex_decl_hash, vertexShader_->ToHash());
-				CombineHash(new_vertex_decl_hash, vertexShader_->GetElementHash());
-				auto vertex_decl = REngine::graphics_state_get_vertex_declaration(new_vertex_decl_hash);
-				if (!vertex_decl)
-				{
-					REngine::VertexDeclarationCreationDesc creation_desc;
-					creation_desc.graphics = this;
-					creation_desc.vertex_shader = vertexShader_;
-					creation_desc.vertex_buffers = vertexBuffers_;
-					vertex_decl = SharedPtr<REngine::VertexDeclaration>(
-						new REngine::VertexDeclaration(creation_desc)
-					);
-					REngine::graphics_state_set_vertex_declaration(new_vertex_decl_hash, vertex_decl);
-				}
-
-				command->pipeline_state_info.input_layout = vertex_decl->GetInputLayoutDesc();
-				command->vertex_decl_hash = new_vertex_decl_hash;
-				command->dirty_state |= static_cast<unsigned>(REngine::RenderCommandDirtyState::pipeline);
-
-				//pipeline_hash = pipeline_hash;
-			}
-			/*pipeline_hash = command->pipeline_state_info.ToHash();
-			vertex_decl = new_vertex_decl_hash;*/
-			command->dirty_state ^= static_cast<unsigned>(REngine::RenderCommandDirtyState::vertex_decl);
-		}
-
-		{
-			ATOMIC_PROFILE(PrepareDraw::ProcessRenderCmd);
-			REngine::render_command_process(process_desc, command);
-		}
 	}
 
 	void Graphics::CreateResolveTexture()

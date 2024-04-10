@@ -5,6 +5,7 @@
 #include "./VertexBuffer.h"
 #include "./IndexBuffer.h"
 #include "./ShaderVariation.h"
+#include "./ShaderProgram.h"
 
 #include <DiligentCore/Graphics/GraphicsEngine/interface/GraphicsTypes.h>
 
@@ -68,6 +69,7 @@ namespace Atomic
 
 	class IDrawCommand
 	{
+	public:
 		/// Reset draw command to default state
 		virtual void Reset() = 0;
 		// Execution Commands
@@ -124,8 +126,6 @@ namespace Atomic
 		virtual void SetTexture(TextureUnit unit, Texture* texture) =0;
 		/// Bound render target by unit
 		virtual void SetTexture(TextureUnit unit, RenderSurface* surface) =0;
-		/// Bound texture by name.
-		virtual void SetTexture(const String& name, Texture* texture) =0;
 		/// Test if current shaders have a texture bound to a unit.
 		virtual bool HasTexture(TextureUnit unit) =0;
 		/// Bound render target.
@@ -147,7 +147,7 @@ namespace Atomic
 		/// Set viewport
 		virtual void SetViewport(const IntRect& viewport) = 0;
 		/// Set blend mode
-		virtual void SetBlendMode(BlendMode mode) = 0;
+		virtual void SetBlendMode(BlendMode mode, bool alpha_to_coverage = false) = 0;
 		/// Enable color write
 		virtual void SetColorWrite(bool enable) = 0;
 		/// Set cull mode
@@ -172,7 +172,7 @@ namespace Atomic
 		virtual void SetClipPlane(const DrawCommandClipPlaneDesc& desc) = 0;
 
 		/// Resolve backbuffer to a texture.
-		virtual bool ResolveTexture(Texture2D* desc) = 0;
+		virtual bool ResolveTexture(Texture2D* dest) = 0;
 		/// Resolve backbuffer to a texture by specifying a viewport.
 		virtual bool ResolveTexture(Texture2D* dest, const IntRect& viewport) = 0;
 		/// Resolve backbuffer to a texture cube.
@@ -184,13 +184,13 @@ namespace Atomic
 		virtual IndexBuffer* GetIndexBuffer() = 0;
 		virtual ShaderVariation* GetShader(ShaderType type) = 0;
 		virtual Texture* GetTexture(TextureUnit unit) = 0;
-		virtual Texture* GetTexture(const String& name) = 0;
 		/// Get render target by index. Index must be between 0 <= MAX_RENDERTARGETS.
 		virtual RenderSurface* GetRenderTarget(u8 index) = 0;
 		virtual RenderSurface* GetDepthStencil() = 0;
 		virtual PrimitiveType GetPrimitiveType() = 0;
 		virtual IntRect GetViewport() = 0;
 		virtual BlendMode GetBlendMode() = 0;
+		virtual bool GetAlphaToCoverage() = 0;
 		virtual bool GetColorWrite() = 0;
 		virtual CullMode GetCullMode() = 0;
 		virtual float GetDepthBias() = 0;
@@ -210,7 +210,8 @@ namespace Atomic
 		virtual u32 GetStencilCompareMask() = 0;
 		virtual u32 GetStencilWriteMask() = 0;
 		virtual bool GetClipPlane() = 0;
-
+		virtual REngine::ShaderProgram* GetShaderProgram() = 0;
+		virtual IntVector2 GetRenderTargetDimensions() = 0;
 		virtual u32 GetPrimitiveCount() = 0;
 		virtual u32 GetNumBatches() = 0;
 	};

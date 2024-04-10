@@ -32,6 +32,7 @@
 #include "../Math/Plane.h"
 #include "../Math/Rect.h"
 #include "../Resource/Image.h"
+#include "./DrawCommand.h"
 
 struct SDL_Window;
 
@@ -136,65 +137,65 @@ public:
     /// End frame rendering and swap buffers.
     void EndFrame();
     /// Clear any or all of rendertarget, depth buffer and stencil buffer.
-    void Clear(unsigned flags, const Color& color = Color(0.0f, 0.0f, 0.0f, 0.0f), float depth = 1.0f, unsigned stencil = 0);
+    void Clear(unsigned flags, const Color& color = Color(0.0f, 0.0f, 0.0f, 0.0f), float depth = 1.0f, unsigned stencil = 0) const;
     /// Resolve multisampled backbuffer to a texture rendertarget. The texture's size should match the viewport size.
-    bool ResolveToTexture(Texture2D* destination, const IntRect& viewport);
+    bool ResolveToTexture(Texture2D* destination, const IntRect& viewport) const;
     /// Resolve a multisampled texture on itself.
-    bool ResolveToTexture(Texture2D* texture);
+    bool ResolveToTexture(Texture2D* texture) const;
     /// Resolve a multisampled cube texture on itself.
-    bool ResolveToTexture(TextureCube* texture);
+    bool ResolveToTexture(TextureCube* texture) const;
     /// Draw non-indexed geometry.
-    void Draw(PrimitiveType type, unsigned vertexStart, unsigned vertexCount);
+    void Draw(PrimitiveType type, unsigned vertexStart, unsigned vertexCount) const;
     /// Draw indexed geometry.
-    void Draw(PrimitiveType type, unsigned indexStart, unsigned indexCount, unsigned minVertex, unsigned vertexCount);
+    void Draw(PrimitiveType type, unsigned indexStart, unsigned indexCount, unsigned minVertex, unsigned vertexCount) const;
     /// Draw indexed geometry with vertex index offset.
-    void Draw(PrimitiveType type, unsigned indexStart, unsigned indexCount, unsigned baseVertexIndex, unsigned minVertex, unsigned vertexCount);
+    void Draw(PrimitiveType type, unsigned indexStart, unsigned indexCount, unsigned baseVertexIndex, unsigned minVertex, unsigned vertexCount) const;
     /// Draw indexed, instanced geometry. An instancing vertex buffer must be set.
     void DrawInstanced(PrimitiveType type, unsigned indexStart, unsigned indexCount, unsigned minVertex, unsigned vertexCount,
-        unsigned instanceCount);
+        unsigned instanceCount) const;
     /// Draw indexed, instanced geometry with vertex index offset.
     void DrawInstanced(PrimitiveType type, unsigned indexStart, unsigned indexCount, unsigned baseVertexIndex, unsigned minVertex,
-        unsigned vertexCount, unsigned instanceCount);
+        unsigned vertexCount, unsigned instanceCount) const;
     /// Set vertex buffer.
-    void SetVertexBuffer(VertexBuffer* buffer);
+    void SetVertexBuffer(VertexBuffer* buffer) const;
     /// Set multiple vertex buffers.
-    bool SetVertexBuffers(const PODVector<VertexBuffer*>& buffers, unsigned instanceOffset = 0);
+    bool SetVertexBuffers(const PODVector<VertexBuffer*>& buffers, unsigned instanceOffset = 0) const;
     /// Set multiple vertex buffers.
-    bool SetVertexBuffers(const Vector<SharedPtr<VertexBuffer> >& buffers, unsigned instanceOffset = 0);
+    bool SetVertexBuffers(const Vector<SharedPtr<VertexBuffer> >& buffers, unsigned instanceOffset = 0) const;
     /// Set index buffer.
-    void SetIndexBuffer(IndexBuffer* buffer);
+    void SetIndexBuffer(IndexBuffer* buffer) const;
     /// Set shaders.
-    void SetShaders(ShaderVariation* vs, ShaderVariation* ps);
+    void SetShaders(ShaderVariation* vs, ShaderVariation* ps) const;
     /// Set shader float constants.
-    void SetShaderParameter(StringHash param, const float* data, unsigned count);
+    void SetShaderParameter(StringHash param, const float* data, unsigned count) const;
     /// Set shader float constant.
-    void SetShaderParameter(StringHash param, float value);
+    void SetShaderParameter(StringHash param, float value) const;
     /// Set shader integer constant.
-    void SetShaderParameter(StringHash param, int value);
+    void SetShaderParameter(StringHash param, int value) const;
     /// Set shader boolean constant.
-    void SetShaderParameter(StringHash param, bool value);
+    void SetShaderParameter(StringHash param, bool value) const;
     /// Set shader color constant.
-    void SetShaderParameter(StringHash param, const Color& color);
+    void SetShaderParameter(StringHash param, const Color& color) const;
     /// Set shader 2D vector constant.
-    void SetShaderParameter(StringHash param, const Vector2& vector);
+    void SetShaderParameter(StringHash param, const Vector2& vector) const;
     /// Set shader 3x3 matrix constant.
-    void SetShaderParameter(StringHash param, const Matrix3& matrix);
+    void SetShaderParameter(StringHash param, const Matrix3& matrix) const;
     /// Set shader 3D vector constant.
-    void SetShaderParameter(StringHash param, const Vector3& vector);
+    void SetShaderParameter(StringHash param, const Vector3& vector) const;
     /// Set shader 4x4 matrix constant.
-    void SetShaderParameter(StringHash param, const Matrix4& matrix);
+    void SetShaderParameter(StringHash param, const Matrix4& matrix) const;
     /// Set shader 4D vector constant.
-    void SetShaderParameter(StringHash param, const Vector4& vector);
+    void SetShaderParameter(StringHash param, const Vector4& vector) const;
     /// Set shader 3x4 matrix constant.
-    void SetShaderParameter(StringHash param, const Matrix3x4& matrix);
+    void SetShaderParameter(StringHash param, const Matrix3x4& matrix) const;
     /// Set shader constant from a variant. Supported variant types: bool, float, vector2, vector3, vector4, color.
     void SetShaderParameter(StringHash param, const Variant& value);
     /// Check whether a shader parameter group needs update. Does not actually check whether parameters exist in the shaders.
-    bool NeedParameterUpdate(ShaderParameterGroup group, const void* source);
+    static bool NeedParameterUpdate(ShaderParameterGroup group, const void* source);
     /// Check whether a shader parameter exists on the currently set shaders.
-    bool HasShaderParameter(StringHash param);
+    bool HasShaderParameter(StringHash param) const;
     /// Check whether the current vertex or pixel shader uses a texture unit.
-    bool HasTextureUnit(TextureUnit unit);
+    bool HasTextureUnit(TextureUnit unit) const;
     /// Clear remembered shader parameter source group.
     void ClearParameterSource(ShaderParameterGroup group);
     /// Clear remembered shader parameter sources.
@@ -202,7 +203,7 @@ public:
     /// Clear remembered transform shader parameter sources.
     void ClearTransformSources();
     /// Set texture.
-    void SetTexture(unsigned index, Texture* texture);
+    void SetTexture(unsigned index, Texture* texture) const;
     /// Bind texture unit 0 for update. Called by Texture. Used only on OpenGL.
     void SetTextureForUpdate(Texture* texture);
     /// Dirty texture parameters of all textures (when global settings change.)
@@ -214,46 +215,46 @@ public:
     /// Reset all rendertargets, depth-stencil surface and viewport.
     void ResetRenderTargets();
     /// Reset specific rendertarget.
-    void ResetRenderTarget(unsigned index);
+    void ResetRenderTarget(unsigned index) const;
     /// Reset depth-stencil surface.
-    void ResetDepthStencil();
+    void ResetDepthStencil() const;
     /// Set rendertarget.
-    void SetRenderTarget(unsigned index, RenderSurface* renderTarget);
+    void SetRenderTarget(unsigned index, RenderSurface* renderTarget) const;
     /// Set rendertarget.
-    void SetRenderTarget(unsigned index, Texture2D* texture);
+    void SetRenderTarget(unsigned index, Texture2D* texture) const;
     /// Set depth-stencil surface.
-    void SetDepthStencil(RenderSurface* depthStencil);
+    void SetDepthStencil(RenderSurface* depthStencil) const;
     /// Set depth-stencil surface.
-    void SetDepthStencil(Texture2D* texture);
+    void SetDepthStencil(Texture2D* texture) const;
     /// Set viewport.
-    void SetViewport(const IntRect& rect);
+    void SetViewport(const IntRect& rect) const;
     /// Set blending and alpha-to-coverage modes. Alpha-to-coverage is not supported on Direct3D9.
-    void SetBlendMode(BlendMode mode, bool alphaToCoverage = false);
+    void SetBlendMode(BlendMode mode, bool alphaToCoverage = false) const;
     /// Set color write on/off.
-    void SetColorWrite(bool enable);
+    void SetColorWrite(bool enable) const;
     /// Set hardware culling mode.
-    void SetCullMode(CullMode mode);
+    void SetCullMode(CullMode mode) const;
     /// Set depth bias.
-    void SetDepthBias(float constantBias, float slopeScaledBias);
+    void SetDepthBias(float constantBias, float slopeScaledBias) const;
     /// Set depth compare.
-    void SetDepthTest(CompareMode mode);
+    void SetDepthTest(CompareMode mode) const;
     /// Set depth write on/off.
-    void SetDepthWrite(bool enable);
+    void SetDepthWrite(bool enable) const;
     /// Set polygon fill mode.
-    void SetFillMode(FillMode mode);
+    void SetFillMode(FillMode mode) const;
     /// Set line antialiasing on/off.
-    void SetLineAntiAlias(bool enable);
+    void SetLineAntiAlias(bool enable) const;
     /// Set scissor test.
-    void SetScissorTest(bool enable, const Rect& rect = Rect::FULL, bool borderInclusive = true);
+    void SetScissorTest(bool enable, const Rect& rect = Rect::FULL, bool borderInclusive = true) const;
     /// Set scissor test.
-    void SetScissorTest(bool enable, const IntRect& rect);
+    void SetScissorTest(bool enable, const IntRect& rect) const;
     /// Set stencil test.
     void SetStencilTest
         (bool enable, CompareMode mode = CMP_ALWAYS, StencilOp pass = OP_KEEP, StencilOp fail = OP_KEEP, StencilOp zFail = OP_KEEP,
-            unsigned stencilRef = 0, unsigned compareMask = M_MAX_UNSIGNED, unsigned writeMask = M_MAX_UNSIGNED);
+            unsigned stencilRef = 0, unsigned compareMask = M_MAX_UNSIGNED, unsigned writeMask = M_MAX_UNSIGNED) const;
     /// Set a custom clipping plane. The plane is specified in world space, but is dependent on the view and projection matrices.
     void SetClipPlane(bool enable, const Plane& clipPlane = Plane::UP, const Matrix3x4& view = Matrix3x4::IDENTITY,
-        const Matrix4& projection = Matrix4::IDENTITY);
+        const Matrix4& projection = Matrix4::IDENTITY) const;
     /// Begin dumping shader variation names to an XML file for precaching.
     void BeginDumpShaders(const String& fileName);
     /// End dumping shader variations names.
@@ -342,10 +343,20 @@ public:
     bool IsDeviceLost() const;
 
     /// Return number of primitives drawn this frame.
-    unsigned GetNumPrimitives() const { return numPrimitives_; }
+    unsigned GetNumPrimitives() const
+    {
+        if (!draw_command_)
+            return 0;
+        return draw_command_->GetPrimitiveCount();
+    }
 
     /// Return number of batches drawn this frame.
-    unsigned GetNumBatches() const { return numBatches_; }
+    unsigned GetNumBatches() const
+    {
+        if (!draw_command_)
+            return 0;
+	    return draw_command_->GetNumBatches();
+    }
 
     /// Return dummy color texture format for shadow maps. Is "NULL" (consume no video memory) if supported.
     TextureFormat GetDummyColorFormat() const { return dummyColorFormat_; }
@@ -398,22 +409,38 @@ public:
     VertexBuffer* GetVertexBuffer(unsigned index) const;
 
     /// Return current index buffer.
-    IndexBuffer* GetIndexBuffer() const { return indexBuffer_; }
+    IndexBuffer* GetIndexBuffer() const
+    {
+        if (!draw_command_)
+            return nullptr;
+        return draw_command_->GetIndexBuffer();
+    }
 
     /// Return current vertex shader.
-    ShaderVariation* GetVertexShader() const { return vertexShader_; }
+    ShaderVariation* GetVertexShader() const
+    {
+	    if(!draw_command_)
+			return nullptr;
+		return draw_command_->GetShader(VS);
+    }
 
     /// Return current pixel shader.
-    ShaderVariation* GetPixelShader() const { return pixelShader_; }
+    ShaderVariation* GetPixelShader() const
+    {
+	    if(!draw_command_)
+            return nullptr;
+        return draw_command_->GetShader(PS);
+    }
 
     /// Return shader program. This is an API-specific class and should not be used by applications.
-#if RENGINE_DILIGENT
-    REngine::ShaderProgram* GetShaderProgram() const;
-#else
-    ShaderProgram* GetShaderProgram() const;
-#endif
+    REngine::ShaderProgram* GetShaderProgram() const
+    {
+	    if(!draw_command_)
+            return nullptr;
+		return draw_command_->GetShaderProgram();
+    }
     /// Return texture unit index by name.
-    TextureUnit GetTextureUnit(const String& name);
+    static TextureUnit GetTextureUnit(const String& name);
     /// Return texture unit name by index.
     const String& GetTextureUnitName(TextureUnit unit);
     /// Return current texture by texture unit index.
@@ -429,73 +456,188 @@ public:
     RenderSurface* GetRenderTarget(unsigned index) const;
 
     /// Return current depth-stencil surface.
-    RenderSurface* GetDepthStencil() const { return depthStencil_; }
+    RenderSurface* GetDepthStencil() const
+    {
+        if(!draw_command_)
+            return nullptr;
+    	return draw_command_->GetDepthStencil();
+    }
 
     /// Return the viewport coordinates.
-    IntRect GetViewport() const { return viewport_; }
+    IntRect GetViewport() const
+    {
+	    if(!draw_command_)
+			return IntRect::ZERO;
+		return draw_command_->GetViewport();
+    }
 
     /// Return blending mode.
-    BlendMode GetBlendMode() const { return blendMode_; }
+    BlendMode GetBlendMode() const
+    {
+	    if(!draw_command_)
+            return BLEND_REPLACE;
+        return draw_command_->GetBlendMode();
+    }
 
     /// Return whether alpha-to-coverage is enabled.
-    bool GetAlphaToCoverage() const { return alphaToCoverage_; }
+    bool GetAlphaToCoverage() const
+    {
+	    if(!draw_command_)
+			return false;
+        return draw_command_->GetAlphaToCoverage();
+    }
 
     /// Return whether color write is enabled.
-    bool GetColorWrite() const { return colorWrite_; }
+    bool GetColorWrite() const
+    {
+        if (!draw_command_)
+            return false;
+        return draw_command_->GetColorWrite();
+    }
 
     /// Return hardware culling mode.
-    CullMode GetCullMode() const { return cullMode_; }
+    CullMode GetCullMode() const
+    {
+	    if(!draw_command_)
+			return CULL_NONE;
+		return draw_command_->GetCullMode();
+    }
 
     /// Return depth constant bias.
-    float GetDepthConstantBias() const { return constantDepthBias_; }
+    float GetDepthConstantBias() const
+    {
+	    if(!draw_command_)
+            return 0.0f;
+        return draw_command_->GetDepthBias();
+    }
 
     /// Return depth slope scaled bias.
-    float GetDepthSlopeScaledBias() const { return slopeScaledDepthBias_; }
+    float GetDepthSlopeScaledBias() const
+    {
+        if (!draw_command_)
+            return 0.0f;
+        return draw_command_->GetSlopeScaledDepthBias();
+    }
 
     /// Return depth compare mode.
-    CompareMode GetDepthTest() const { return depthTestMode_; }
+    CompareMode GetDepthTest() const
+    {
+	    if(!draw_command_)
+			return CMP_ALWAYS;
+		return draw_command_->GetDepthTest();
+    }
 
     /// Return whether depth write is enabled.
-    bool GetDepthWrite() const { return depthWrite_; }
+    bool GetDepthWrite() const
+    {
+	    if(!draw_command_)
+            return false;
+        return draw_command_->GetDepthWrite();
+    }
 
     /// Return polygon fill mode.
-    FillMode GetFillMode() const { return fillMode_; }
+    FillMode GetFillMode() const
+    {
+	    if(!draw_command_)
+            return FILL_SOLID;
+        return draw_command_->GetFillMode();
+    }
 
     /// Return whether line antialiasing is enabled.
-    bool GetLineAntiAlias() const { return lineAntiAlias_; }
+    bool GetLineAntiAlias() const
+    {
+	    if(!draw_command_)
+			return false;
+		return draw_command_->GetLineAntiAlias();
+    }
 
     /// Return whether stencil test is enabled.
-    bool GetStencilTest() const { return stencilTest_; }
+    bool GetStencilTest() const
+    {
+        if (!draw_command_)
+            return false;
+        return draw_command_->GetStencilTest();
+    }
 
     /// Return whether scissor test is enabled.
-    bool GetScissorTest() const { return scissorTest_; }
+    bool GetScissorTest() const
+    {
+        if (!draw_command_)
+            return false;
+        return draw_command_->GetScissorTest();
+    }
 
     /// Return scissor rectangle coordinates.
-    const IntRect& GetScissorRect() const { return scissorRect_; }
+    const IntRect& GetScissorRect() const
+    {
+        if (!draw_command_)
+            return {};
+        return draw_command_->GetScissorRect();
+    }
 
     /// Return stencil compare mode.
-    CompareMode GetStencilTestMode() const { return stencilTestMode_; }
+    CompareMode GetStencilTestMode() const
+    {
+	    if(!draw_command_)
+            return CMP_ALWAYS;
+        return draw_command_->GetStencilTestMode();
+    }
 
     /// Return stencil operation to do if stencil test passes.
-    StencilOp GetStencilPass() const { return stencilPass_; }
+    StencilOp GetStencilPass() const
+    {
+	    if(!draw_command_)
+            return OP_KEEP;
+		return draw_command_->GetStencilPass();
+    }
 
     /// Return stencil operation to do if stencil test fails.
-    StencilOp GetStencilFail() const { return stencilFail_; }
+    StencilOp GetStencilFail() const
+    {
+	    if(!draw_command_)
+			return OP_KEEP;
+        return draw_command_->GetStencilFail();
+    }
 
     /// Return stencil operation to do if depth compare fails.
-    StencilOp GetStencilZFail() const { return stencilZFail_; }
+    StencilOp GetStencilZFail() const
+    {
+	    if(!draw_command_)
+            return OP_KEEP;
+        return draw_command_->GetStencilZFail();
+    }
 
     /// Return stencil reference value.
-    unsigned GetStencilRef() const { return stencilRef_; }
+    unsigned GetStencilRef() const
+    {
+	    if(!draw_command_)
+			return 0;
+		return draw_command_->GetStencilRef();
+    }
 
     /// Return stencil compare bitmask.
-    unsigned GetStencilCompareMask() const { return stencilCompareMask_; }
+    unsigned GetStencilCompareMask() const
+    {
+        if (!draw_command_)
+            return 0;
+        return draw_command_->GetStencilCompareMask();
+    }
 
     /// Return stencil write bitmask.
-    unsigned GetStencilWriteMask() const { return stencilWriteMask_; }
+    unsigned GetStencilWriteMask() const
+    {
+        if(!draw_command_)
+            return 0;
+    	return draw_command_->GetStencilWriteMask();
+    }
 
     /// Return whether a custom clipping plane is in use.
-    bool GetUseClipPlane() const { return useClipPlane_; }
+    bool GetUseClipPlane() const
+    {
+        if (!draw_command_)
+            return false;
+        return draw_command_->GetClipPlane();
+    }
 
     /// Return shader cache directory, Direct3D only.
     const String& GetShaderCacheDir() const { return shaderCacheDir_; }
@@ -664,11 +806,7 @@ private:
     /// Mutex for accessing the GPU objects vector from several threads.
     Mutex gpuObjectMutex_;
     /// Implementation.
-#if RENGINE_DILIGENT
     REngine::DriverInstance* impl_;
-#else
-    GraphicsImpl* impl_;
-#endif
     /// SDL window.
     SDL_Window* window_;
     /// Window title.
@@ -727,10 +865,6 @@ private:
     bool sRGBSupport_;
     /// sRGB conversion on write support flag.
     bool sRGBWriteSupport_;
-    /// Number of primitives this frame.
-    unsigned numPrimitives_;
-    /// Number of batches this frame.
-    unsigned numBatches_;
     /// Largest scratch buffer request this frame.
     unsigned maxScratchBufferRequest_;
     /// GPU objects.
@@ -743,78 +877,10 @@ private:
     TextureFormat shadowMapFormat_;
     /// Shadow map 24-bit depth texture format.
     TextureFormat hiresShadowMapFormat_;
-    /// Vertex buffers in use.
-    VertexBuffer* vertexBuffers_[MAX_VERTEX_STREAMS];
-    /// Index buffer in use.
-    IndexBuffer* indexBuffer_;
-    /// Current vertex declaration hash.
-    unsigned long long vertexDeclarationHash_;
-    /// Current primitive type.
-    unsigned primitiveType_;
-    /// Vertex shader in use.
-    ShaderVariation* vertexShader_;
-    /// Pixel shader in use.
-    ShaderVariation* pixelShader_;
-    /// Textures in use.
-    Texture* textures_[MAX_TEXTURE_UNITS];
-    /// Texture unit mappings.
-    HashMap<String, TextureUnit> textureUnits_;
-    /// Rendertargets in use.
-    RenderSurface* renderTargets_[MAX_RENDERTARGETS];
-    /// Depth-stencil surface in use.
-    RenderSurface* depthStencil_;
-    /// Viewport coordinates.
-    IntRect viewport_;
     /// Default texture filtering mode.
     TextureFilterMode defaultTextureFilterMode_;
     /// Default texture max. anisotropy level.
     unsigned defaultTextureAnisotropy_;
-    /// Blending mode.
-    BlendMode blendMode_;
-    /// Alpha-to-coverage enable.
-    bool alphaToCoverage_;
-    /// Color write enable.
-    bool colorWrite_;
-    /// Hardware culling mode.
-    CullMode cullMode_;
-    /// Depth constant bias.
-    float constantDepthBias_;
-    /// Depth slope scaled bias.
-    float slopeScaledDepthBias_;
-    /// Depth compare mode.
-    CompareMode depthTestMode_;
-    /// Depth write enable flag.
-    bool depthWrite_;
-    /// Line antialiasing enable flag.
-    bool lineAntiAlias_;
-    /// Polygon fill mode.
-    FillMode fillMode_;
-    /// Scissor test enable flag.
-    bool scissorTest_;
-    /// Scissor test rectangle.
-    IntRect scissorRect_;
-    /// Stencil test compare mode.
-    CompareMode stencilTestMode_;
-    /// Stencil operation on pass.
-    StencilOp stencilPass_;
-    /// Stencil operation on fail.
-    StencilOp stencilFail_;
-    /// Stencil operation on depth fail.
-    StencilOp stencilZFail_;
-    /// Stencil test reference value.
-    unsigned stencilRef_;
-    /// Stencil compare bitmask.
-    unsigned stencilCompareMask_;
-    /// Stencil write bitmask.
-    unsigned stencilWriteMask_;
-    /// Current custom clip plane in post-projection space.
-    Vector4 clipPlane_;
-    /// Stencil test enable flag.
-    bool stencilTest_;
-    /// Custom clip plane enable flag.
-    bool useClipPlane_;
-    /// Remembered shader parameter sources.
-    const void* shaderParameterSources_[MAX_SHADER_PARAMETER_GROUPS];
     /// Base directory for shaders.
     String shaderPath_;
     /// Cache directory for Direct3D binary shaders.
@@ -832,10 +898,10 @@ private:
     /// Graphics API name.
     String apiName_;
 
+    ea::shared_ptr<IDrawCommand> draw_command_;
+
     /// Pixel perfect UV offset.
     static const Vector2 pixelUVOffset;
-    /// OpenGL3 support flag.
-    static bool gl3Support;
 
 // ATOMIC BEGIN
     static unsigned numPasses_;
