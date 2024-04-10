@@ -151,7 +151,6 @@ namespace REngine
 		}
 		void SetShaders(const DrawCommandShadersDesc& desc) override
 		{
-
 			// TODO: add support for other shaders
 			static ShaderVariation* s_shaders[MAX_SHADER_TYPES] = {
 				desc.vs,
