@@ -79,13 +79,9 @@ namespace Atomic
 		virtual void Draw(const DrawCommandInstancedDrawDesc& desc) = 0;
 		// State Commands
 		/// Bind vertex buffer.
-		virtual void SetVertexBuffer(VertexBuffer* buffer, u32 instance_offset = 0) = 0;
+		virtual void SetVertexBuffer(VertexBuffer* buffer) = 0;
 		/// Bind vertex buffers.
 		virtual void SetVertexBuffers(const PODVector<VertexBuffer*> buffers, u32 instance_offset = 0) = 0;
-		/// Bind vertex buffers.
-		virtual void SetVertexBuffers(const Vector<SharedPtr<VertexBuffer>>& buffers, u32 instance_offset = 0) = 0;
-		/// Bind vertex buffers.
-		virtual void SetVertexBuffers(const ea::vector<SharedPtr<VertexBuffer>>& buffers, u32 instance_offset = 0) = 0;
 		/// Bind vertex buffers.
 		virtual void SetVertexBuffers(const ea::vector<VertexBuffer*>& buffers, u32 instance_offset = 0) = 0;
 		/// Bind index buffer.

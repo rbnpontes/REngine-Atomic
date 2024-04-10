@@ -3,6 +3,7 @@
 #include "Geometry.h"
 #include "Model.h"
 #include "Renderer.h"
+#include "Shader.h"
 #include "../RHI/RenderCommand.h"
 #include "../RHI/PipelineStateBuilder.h"
 #include "../Core/Profiler.h"
@@ -19,7 +20,6 @@ namespace REngine
 	static u8 s_num_rts = 0;
 
 	static ea::array<Diligent::IBuffer*, MAX_VERTEX_STREAMS> s_vertex_buffers = {};
-	static ea::array<u64, MAX_VERTEX_STREAMS> s_vertex_offsets = {};
 	static u32 s_vertex_buffer_hash = 0;
 	static Diligent::IBuffer* s_index_buffer = nullptr;
 
@@ -33,6 +33,7 @@ namespace REngine
 			graphics_(graphics),
 			viewport_(IntRect::ZERO),
 			dirty_flags_(static_cast<u32>(RenderCommandDirtyState::all)),
+			enable_clip_planes_(false),
 			curr_pipeline_hash_(0),
 			curr_vertx_decl_hash(0),
 			curr_vertex_buffer_hash(0)
@@ -65,8 +66,10 @@ namespace REngine
 			render_targets_.fill(nullptr);
 			textures_.fill(ShaderResourceTextureDesc{});
 			vertex_buffers_.fill(nullptr);
+			vertex_offsets_.fill(0);
 
-			
+			enable_clip_planes_ = false;
+			clip_plane_ = Vector4::ZERO;
 			curr_pipeline_hash_ = curr_vertex_buffer_hash = curr_vertx_decl_hash = 0u;
 
 			dirty_flags_ = static_cast<u32>(RenderCommandDirtyState::all);
@@ -103,6 +106,128 @@ namespace REngine
 				desc.base_vertex_index,
 				1
 			});
+		}
+		void Draw(const DrawCommandInstancedDrawDesc& desc) override
+		{
+			ATOMIC_PROFILE(IDrawCommand::Draw);
+
+			PrepareDraw();
+
+			context_->DrawIndexed({
+				desc.index_count,
+				desc.index_type,
+				DRAW_FLAG_NONE,
+				desc.instance_count,
+				desc.index_start,
+				desc.base_vertex_index,
+				1
+			});
+		}
+		void SetVertexBuffer(VertexBuffer* buffer) override
+		{
+			if(vertex_buffers_[0] != buffer)
+				return;
+
+			vertex_offsets_.fill(0);
+			vertex_buffers_.fill(nullptr);
+			vertex_buffers_[0] = buffer;
+			curr_vertex_buffer_hash = MakeHash(buffer);
+			dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::vertex_buffer);
+		}
+		void SetVertexBuffers(const PODVector<VertexBuffer*> buffers, u32 instance_offset) override
+		{
+			SetVertexBuffers(buffers.Buffer(), buffers.Size(), instance_offset);
+		}
+		void SetVertexBuffers(const ea::vector<VertexBuffer*>& buffers, u32 instance_offset) override
+		{
+			SetVertexBuffers(const_cast<VertexBuffer**>(buffers.data()), buffers.size(), instance_offset);
+		}
+		void SetIndexBuffer(IndexBuffer* buffer) override
+		{
+			if(index_buffer_ == buffer)
+				return;
+			index_buffer_ = buffer;
+			dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::index_buffer);
+		}
+		void SetShaders(const DrawCommandShadersDesc& desc) override
+		{
+
+			// TODO: add support for other shaders
+			static ShaderVariation* s_shaders[MAX_SHADER_TYPES] = {
+				desc.vs,
+				desc.ps,
+			};
+			static ShaderVariation* s_pipeline_shaders[MAX_SHADER_TYPES] = {
+				pipeline_info_->vs_shader,
+				pipeline_info_->ps_shader,
+			};
+
+			if(enable_clip_planes_)
+			{
+				for(u8 i = 0; i < MAX_SHADER_TYPES; ++i)
+				{
+					if(!s_shaders[i])
+						continue;
+					s_shaders[i] = s_shaders[i]->GetOwner()->GetVariation(
+						static_cast<ShaderType>(i),
+						s_shaders[i]->GetDefinesClipPlane()
+					);
+				}
+			}
+
+			bool changed = false;
+			for(u8 i = 0; i < MAX_SHADER_TYPES; ++i)
+			{
+				if(s_shaders[i] == s_pipeline_shaders[i])
+					continue;
+				changed = true;
+				break;
+			}
+
+			if (!changed)
+				return;
+
+			for(u8 i =0; i < MAX_SHADER_TYPES; ++i)
+			{
+				// TODO: schedule shader creation to run at worker thread
+				if(s_shaders[i] && !s_shaders[i]->GetGPUObject())
+				{
+					if(!s_shaders[i]->GetCompilerOutput().Empty())
+						s_shaders[i] = nullptr;
+					else if(!s_shaders[i]->Create())
+					{
+						ATOMIC_LOGERROR("Failed to create shader: " + s_shaders[i]->GetName());
+						s_shaders[i] = nullptr;
+					}
+				}
+
+				dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::pipeline);
+			}
+
+			auto vs_shader = s_shaders[VS];
+			auto ps_shader = s_shaders[PS];
+			/*auto gs_shader = desc.gs;
+			auto ds_shader = desc.ds;
+			auto hs_shader = desc.hs;*/
+
+			if(vs_shader && ps_shader)
+			{
+				ShaderProgramQuery query{
+					vs_shader,
+					ps_shader
+				};
+				shader_program_ = GetOrCreateShaderProgram(query);
+
+				dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::shader_program);
+			}
+			else
+			{
+				shader_program_ = nullptr;
+				dirty_flags_ ^= static_cast<u32>(RenderCommandDirtyState::shader_program);
+			}
+
+			if (enable_clip_planes_)
+				SetShaderParameter(VSP_CLIPPLANE, clip_plane_);
 		}
 
 		u32 GetPrimitiveCount() override { return primitive_count_; }
@@ -253,7 +378,7 @@ namespace REngine
 				0,
 				next_idx,
 				s_vertex_buffers.data(),
-				nullptr,
+				vertex_offsets_.data(),
 				RESOURCE_STATE_TRANSITION_MODE_TRANSITION,
 				SET_VERTEX_BUFFERS_FLAG_NONE);
 
@@ -469,7 +594,7 @@ namespace REngine
 				0,
 				1,
 				s_vertex_buffers.data(),
-				s_vertex_offsets.data(),
+				nullptr,
 				RESOURCE_STATE_TRANSITION_MODE_TRANSITION,
 				SET_VERTEX_BUFFERS_FLAG_RESET);
 			context_->SetIndexBuffer(nullptr, 0, RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
@@ -477,6 +602,42 @@ namespace REngine
 			context_->SetPipelineState(pipeline);
 			context_->CommitShaderResources(srb, RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
 			context_->DrawIndexed(draw_attribs);
+		}
+
+		void SetVertexBuffers(VertexBuffer** buffers, u32 count, u32 instance_offset)
+		{
+			if (count > MAX_VERTEX_STREAMS)
+				ATOMIC_LOGWARNING("Too many vertex buffers");
+
+			curr_vertex_buffer_hash = 0;
+			count = Min(count, MAX_VERTEX_STREAMS);
+			for(u32 i =0; i < MAX_VERTEX_STREAMS; ++i)
+			{
+				bool changed = false;
+				auto buffer = i < count ? buffers[i] : nullptr;
+
+				if(buffer)
+				{
+					CombineHash(curr_vertex_buffer_hash, MakeHash(buffer));
+					const auto& elements = buffer->GetElements();
+					// Check if buffer has per-instance data
+					const auto has_instance_data = elements.Size() && elements[0].perInstance_;
+					const auto offset = has_instance_data ? instance_offset * buffer->GetVertexSize() : 0;
+
+					if(buffer != vertex_buffers_[i])
+						dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::vertex_buffer);
+					vertex_buffers_[i] = buffer;
+					vertex_offsets_[i] = instance_offset;
+					continue;
+				}
+
+				if(vertex_buffers_[i])
+				{
+					vertex_buffers_[i] = nullptr;
+					vertex_offsets_[i] = 0;
+					dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::vertex_buffer);
+				}
+			}
 		}
 
 		SharedPtr<ShaderProgram> GetOrCreateShaderProgram(const ShaderProgramQuery& query) const
@@ -522,10 +683,14 @@ namespace REngine
 		ea::array<WeakPtr<RenderSurface>, MAX_RENDERTARGETS> render_targets_;
 		ea::array<ShaderResourceTextureDesc, MAX_TEXTURE_UNITS> textures_;
 		ea::array<SharedPtr<VertexBuffer>, MAX_VERTEX_STREAMS> vertex_buffers_;
+		ea::array<u64, MAX_VERTEX_STREAMS> vertex_offsets_;
 		SharedPtr<IndexBuffer> index_buffer_;
 
 		SharedPtr<VertexDeclaration> vertex_declaration_;
 		SharedPtr<ShaderProgram> shader_program_;
+
+		bool enable_clip_planes_{};
+		Vector4 clip_plane_{};
 
 		IntRect viewport_{};
 		u32 dirty_flags_{};
