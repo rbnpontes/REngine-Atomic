@@ -23,6 +23,7 @@
 #pragma once
 
 #include "../Container/RefCounted.h"
+#include "./TypeTraits.h"
 
 #include <cassert>
 #include <cstddef>
@@ -654,7 +655,26 @@ template <class T, class ... Args> SharedPtr<T> MakeShared(Args && ... args)
 {
     return SharedPtr<T>(new T(std::forward<Args>(args)...));
 }
-
 #endif
 
+}
+namespace eastl
+{
+    template <class T>
+    struct EngineRefCounterDeleter
+    {
+	    void operator () (T* ptr)
+	    {
+            if(ptr)
+                ptr->ReleaseRef();
+	    }
+    };
+	template <class T, class ... Args> shared_ptr<T> MakeShared(Args && ... args)
+	{
+		return eastl::shared_ptr<T>(new T(std::forward<Args>(args)...), EngineRefCounterDeleter<T>());
+	}
+    template <class T> shared_ptr<T> MakeShared(T* ptr)
+	{
+		return eastl::shared_ptr<T>(ptr, EngineRefCounterDeleter<T>());
+	}
 }

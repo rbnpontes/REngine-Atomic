@@ -420,9 +420,10 @@ namespace REngine
             return;
         }
 
-        output.spirv_code = Atomic::PODVector<uint8_t>(
-            static_cast<uint8_t*>(static_cast<void*>(spirv_code.data())),
-            spirv_code.size() * sizeof(unsigned int)
+        const auto buffer = static_cast<uint8_t*>(static_cast<void*>(spirv_code.data()));
+        output.spirv_code = ea::vector<u8>(
+            buffer,
+            buffer + (spirv_code.size() * sizeof(unsigned int))
         );
         output.has_error = false;
     }
@@ -590,7 +591,7 @@ namespace REngine
         uint8_t semantic{0};
     };
 
-    Atomic::SharedArrayPtr<uint8_t> shader_compiler_to_bin(const ShaderCompilerBinDesc& desc, uint32_t* output_length)
+    ea::shared_array<u8> shader_compiler_to_bin(const ShaderCompilerBinDesc& desc, uint32_t* output_length)
     {
         ShaderFileHeader file_header = {};
         file_header.type = desc.type;
@@ -718,10 +719,10 @@ namespace REngine
         }
 
         *output_length = static_cast<uint32_t>(memory_size);
-        return Atomic::SharedArrayPtr<uint8_t>(buffer);
+        return ea::shared_array<u8>(buffer);
     }
 
-    void shader_compiler_import_bin(void* data, uint32_t data_size, ShaderCompilerImportBinResult& result)
+    void shader_compiler_import_bin(void* data, u32 data_size, ShaderCompilerImportBinResult& result)
     {
         constexpr auto header_size = sizeof(ShaderFileHeader);
         if(!data || data_size == 0)
@@ -835,13 +836,13 @@ namespace REngine
         }
         
         result.reflect_info.element_hash = file_header->input_elements_hash;
-        result.byte_code = Atomic::SharedArrayPtr<uint8_t>(static_cast<uint8_t*>(malloc(file_header->byte_code_size)));
+        result.byte_code = ea::shared_array<u8>(static_cast<uint8_t*>(malloc(file_header->byte_code_size)));
         result.byte_code_size = file_header->byte_code_size;
         result.byte_code_type = file_header->byte_code_type;
         result.shader_hash = file_header->shader_hash;
         result.type = file_header->type;
         result.has_error = false;
-        memcpy(result.byte_code, byte_code, file_header->byte_code_size);
+        memcpy(result.byte_code.get(), byte_code, file_header->byte_code_size);
     }
 
     void shader_compiler_get_file_ext(Atomic::ShaderType type, Atomic::String& ext)

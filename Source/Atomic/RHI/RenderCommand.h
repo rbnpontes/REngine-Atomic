@@ -113,5 +113,5 @@ namespace REngine
 
     void render_command_update_params(const Atomic::Graphics* graphics, RenderCommandState* state);
 
-	void render_command_write_param(Atomic::ConstantBuffer* buffer, uint32_t offset, const Atomic::Variant& value)
+    void render_command_write_param(Atomic::ConstantBuffer* buffer, uint32_t offset, const Atomic::Variant& value);
 }

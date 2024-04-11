@@ -167,27 +167,27 @@ public:
     /// Set shaders.
     void SetShaders(ShaderVariation* vs, ShaderVariation* ps) const;
     /// Set shader float constants.
-    void SetShaderParameter(StringHash param, const float* data, unsigned count) const;
+    void SetShaderParameter(StringHash param, const float* data, unsigned count);
     /// Set shader float constant.
-    void SetShaderParameter(StringHash param, float value) const;
+    void SetShaderParameter(StringHash param, float value);
     /// Set shader integer constant.
-    void SetShaderParameter(StringHash param, int value) const;
+    void SetShaderParameter(StringHash param, int value);
     /// Set shader boolean constant.
-    void SetShaderParameter(StringHash param, bool value) const;
+    void SetShaderParameter(StringHash param, bool value);
     /// Set shader color constant.
-    void SetShaderParameter(StringHash param, const Color& color) const;
+    void SetShaderParameter(StringHash param, const Color& color);
     /// Set shader 2D vector constant.
-    void SetShaderParameter(StringHash param, const Vector2& vector) const;
+    void SetShaderParameter(StringHash param, const Vector2& vector);
     /// Set shader 3x3 matrix constant.
-    void SetShaderParameter(StringHash param, const Matrix3& matrix) const;
+    void SetShaderParameter(StringHash param, const Matrix3& matrix);
     /// Set shader 3D vector constant.
-    void SetShaderParameter(StringHash param, const Vector3& vector) const;
+    void SetShaderParameter(StringHash param, const Vector3& vector);
     /// Set shader 4x4 matrix constant.
-    void SetShaderParameter(StringHash param, const Matrix4& matrix) const;
+    void SetShaderParameter(StringHash param, const Matrix4& matrix);
     /// Set shader 4D vector constant.
-    void SetShaderParameter(StringHash param, const Vector4& vector) const;
+    void SetShaderParameter(StringHash param, const Vector4& vector);
     /// Set shader 3x4 matrix constant.
-    void SetShaderParameter(StringHash param, const Matrix3x4& matrix) const;
+    void SetShaderParameter(StringHash param, const Matrix3x4& matrix);
     /// Set shader constant from a variant. Supported variant types: bool, float, vector2, vector3, vector4, color.
     void SetShaderParameter(StringHash param, const Variant& value);
     /// Check whether a shader parameter group needs update. Does not actually check whether parameters exist in the shaders.
@@ -268,11 +268,7 @@ public:
     bool IsInitialized() const;
 
     /// Return graphics implementation, which holds the actual API-specific resources.
-#if RENGINE_DILIGENT
     REngine::DriverInstance* GetImpl() const { return impl_; }
-#else
-    GraphicsImpl* GetImpl() const { return impl_; }
-#endif
     /// Return OS-specific external window handle. Null if not in use.
     void* GetExternalWindow() const { return externalWindow_; }
 

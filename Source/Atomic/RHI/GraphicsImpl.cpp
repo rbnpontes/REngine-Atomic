@@ -38,6 +38,7 @@
 
 
 #include "../DebugNew.h"
+#include "Graphics/DrawCommandQueue.h"
 
 #ifdef _MSC_VER
 #pragma warning(disable:4355)
@@ -632,77 +633,77 @@ namespace Atomic
 		draw_command_->SetShaders(desc);
 	}
 
-	void Graphics::SetShaderParameter(StringHash param, const float* data, unsigned count) const
+	void Graphics::SetShaderParameter(StringHash param, const float* data, unsigned count)
 	{
 		if (!draw_command_)
 			return;
 		draw_command_->SetShaderParameter(param, data, count);
 	}
 
-	void Graphics::SetShaderParameter(StringHash param, float value) const
+	void Graphics::SetShaderParameter(StringHash param, float value)
 	{
 		if (!draw_command_)
 			return;
 		draw_command_->SetShaderParameter(param, value);
 	}
 
-	void Graphics::SetShaderParameter(StringHash param, int value) const
+	void Graphics::SetShaderParameter(StringHash param, int value)
 	{
 		if (!draw_command_)
 			return;
 		draw_command_->SetShaderParameter(param, value);
 	}
 
-	void Graphics::SetShaderParameter(StringHash param, bool value) const
+	void Graphics::SetShaderParameter(StringHash param, bool value)
 	{
 		if(!draw_command_)
 			return;
 		draw_command_->SetShaderParameter(param, value);
 	}
 
-	void Graphics::SetShaderParameter(StringHash param, const Color& color) const
+	void Graphics::SetShaderParameter(StringHash param, const Color& color)
 	{
 		if(!draw_command_)
 			return;
 		draw_command_->SetShaderParameter(param, color);
 	}
 
-	void Graphics::SetShaderParameter(StringHash param, const Vector2& vector) const
+	void Graphics::SetShaderParameter(StringHash param, const Vector2& vector)
 	{
 		if(!draw_command_)
 			return;
 		draw_command_->SetShaderParameter(param, vector);
 	}
 
-	void Graphics::SetShaderParameter(StringHash param, const Matrix3& matrix) const
+	void Graphics::SetShaderParameter(StringHash param, const Matrix3& matrix)
 	{
 		if(!draw_command_)
 			return;
 		draw_command_->SetShaderParameter(param, matrix);
 	}
 
-	void Graphics::SetShaderParameter(StringHash param, const Vector3& vector) const
+	void Graphics::SetShaderParameter(StringHash param, const Vector3& vector)
 	{
 		if (!draw_command_)
 			return;
 		draw_command_->SetShaderParameter(param, vector);
 	}
 
-	void Graphics::SetShaderParameter(StringHash param, const Matrix4& matrix) const
+	void Graphics::SetShaderParameter(StringHash param, const Matrix4& matrix)
 	{
 		if(!draw_command_)
 			return;
 		draw_command_->SetShaderParameter(param, matrix);
 	}
 
-	void Graphics::SetShaderParameter(StringHash param, const Vector4& vector) const
+	void Graphics::SetShaderParameter(StringHash param, const Vector4& vector)
 	{
 		if(!draw_command_)
 			return;
 		draw_command_->SetShaderParameter(param, vector);
 	}
 
-	void Graphics::SetShaderParameter(StringHash param, const Matrix3x4& matrix) const
+	void Graphics::SetShaderParameter(StringHash param, const Matrix3x4& matrix)
 	{
 		if(!draw_command_)
 			return;
@@ -1380,6 +1381,7 @@ namespace Atomic
 		CheckFeatureSupport();
 		SetFlushGPU(flushGPU_);
 		multiSample_ = impl_->GetMultiSample();
+		draw_command_ = GetSubsystem<DrawCommandQueue>()->CreateImmediateCommand();
 		return true;
 	}
 

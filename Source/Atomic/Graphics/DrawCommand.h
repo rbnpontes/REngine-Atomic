@@ -1,16 +1,24 @@
 #pragma once
 #include "../Core/Object.h"
 #include "./GraphicsDefs.h"
-#include "./TextureCube.h"
-#include "./VertexBuffer.h"
-#include "./IndexBuffer.h"
-#include "./ShaderVariation.h"
-#include "./ShaderProgram.h"
+#include "./Math/Plane.h"
 
 #include <DiligentCore/Graphics/GraphicsEngine/interface/GraphicsTypes.h>
 
+namespace REngine
+{
+	class ShaderProgram;
+}
 namespace Atomic
 {
+	class ShaderVariation;
+	class IndexBuffer;
+	class VertexBuffer;
+	class Texture;
+	class Texture2D;
+	class TextureCube;
+	class RenderSurface;
+
 	typedef Diligent::VALUE_TYPE ValueType;
 	struct DrawCommandClearDesc
 	{
@@ -70,6 +78,7 @@ namespace Atomic
 	class IDrawCommand
 	{
 	public:
+		virtual ~IDrawCommand() = default;
 		/// Reset draw command to default state
 		virtual void Reset() = 0;
 		// Execution Commands
@@ -220,5 +229,5 @@ namespace Atomic
 
 namespace REngine
 {
-	static Atomic::IDrawCommand* graphics_create_command(Atomic::Graphics* graphics);
+	Atomic::IDrawCommand* graphics_create_command(Atomic::Graphics* graphics);
 }

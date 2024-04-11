@@ -1,16 +1,22 @@
-#include "DrawCommand.h"
+#include "./DrawCommand.h"
 
-#include "Geometry.h"
-#include "Model.h"
-#include "Renderer.h"
-#include "Shader.h"
-#include "Texture2D.h"
+#include "./Geometry.h"
+#include "./Model.h"
+#include "./Renderer.h"
+#include "./Shader.h"
+#include "./Texture2D.h"
+#include "./TextureCube.h"
+#include "./VertexBuffer.h"
+#include "./IndexBuffer.h"
+#include "./ShaderVariation.h"
+#include "./ShaderProgram.h"
+
 #include "../RHI/RenderCommand.h"
 #include "../RHI/PipelineStateBuilder.h"
 #include "../Core/Profiler.h"
 #include "../IO/Log.h"
 #include "../RHI/GraphicsState.h"
-#include "RHI/DiligentUtils.h"
+#include "../RHI/DiligentUtils.h"
 
 namespace REngine
 {
@@ -221,15 +227,15 @@ namespace REngine
 				dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::pipeline);
 			}
 
-			auto vs_shader = s_shaders[VS];
-			auto ps_shader = s_shaders[PS];
+			const auto vs_shader = s_shaders[VS];
+			const auto ps_shader = s_shaders[PS];
 			/*auto gs_shader = desc.gs;
 			auto ds_shader = desc.ds;
 			auto hs_shader = desc.hs;*/
 
 			if(vs_shader && ps_shader)
 			{
-				ShaderProgramQuery query{
+				const ShaderProgramQuery query{
 					vs_shader,
 					ps_shader
 				};
@@ -337,14 +343,14 @@ namespace REngine
 			if (unit >= MAX_TEXTURE_UNITS)
 				return;
 
-			if (textures_[unit].owner == texture)
+			if (textures_[unit].owner.get() == texture)
 				return;
 
 			textures_[unit] = {
 				nullptr,
 				unit,
 				texture->GetGPUObject().Cast<Diligent::ITextureView>(Diligent::IID_TextureView),
-				SharedPtr<Texture>(texture)
+				ea::MakeShared(texture)
 			};
 			dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::textures);
 		}
@@ -371,7 +377,7 @@ namespace REngine
 			Texture* parent_texture = surface->GetParentTexture();
 			for(u8 i =0; i < MAX_TEXTURE_UNITS; ++i)
 			{
-				if(textures_[i].owner == parent_texture)
+				if(textures_[i].owner.get() == parent_texture)
 					SetTexture(static_cast<TextureUnit>(i), textures_[i].owner->GetBackupTexture());
 			}
 
@@ -719,7 +725,7 @@ namespace REngine
 		{
 			if(unit >= MAX_TEXTURE_UNITS)
 				return nullptr;
-			return textures_[unit].owner;
+			return textures_[unit].owner.get();
 		}
 		RenderSurface* GetRenderTarget(u8 index) override
 		{
@@ -1074,7 +1080,7 @@ namespace REngine
 				if (!sampler)
 					continue;
 				desc.name = sampler->name.CString();
-				const u32 sampler_hash = pipeline_info_->immutable_samplers->sampler.ToHash();
+				const u32 sampler_hash = pipeline_info_->immutable_samplers[next_sampler_idx].sampler.ToHash();
 				desc.owner->GetSamplerDesc(pipeline_info_->immutable_samplers[next_sampler_idx].sampler);
 
 				if(sampler_hash != pipeline_info_->immutable_samplers[next_sampler_idx].sampler.ToHash())
@@ -1390,7 +1396,7 @@ namespace REngine
 
 	Atomic::IDrawCommand* graphics_create_command(Atomic::Graphics* graphics)
 	{
-		return new DrawCommandImpl(graphics, graphics->GetImpl()->GetDeviceContext());
+		Atomic::IDrawCommand* result = new DrawCommandImpl(graphics, graphics->GetImpl()->GetDeviceContext());
+		return result;
 	}
-
 }

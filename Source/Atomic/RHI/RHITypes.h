@@ -2,16 +2,22 @@
 #include "../Core/Variant.h"
 #include "../Container/Str.h"
 #include "../Container/Vector.h"
-#include "../Container/ArrayPtr.h"
 #include "../Graphics/GraphicsDefs.h"
 #include "../Container/Hash.h"
-#include "../Graphics/Texture.h"
-#include <DiligentCore/Graphics/GraphicsEngine/interface/InputLayout.h>
+
 #include <DiligentCore/Graphics/GraphicsEngine/interface/TextureView.h>
 #include <DiligentCore/Common/interface/RefCntAutoPtr.hpp>
 
+namespace Atomic
+{
+	class ShaderVariation;
+    class Texture;
+}
+
 namespace REngine
 {
+    class DriverInstance;
+
     struct InputLayoutElementDesc
     {
         unsigned input_index{};
@@ -36,7 +42,13 @@ namespace REngine
     struct InputLayoutDesc
     {
         unsigned num_elements{};
-        InputLayoutElementDesc elements[Diligent::MAX_LAYOUT_ELEMENTS]{};
+        ea::array<InputLayoutElementDesc, Atomic::MAX_VERTEX_STREAMS> elements;
+
+        InputLayoutDesc()
+        {
+            num_elements = 0;
+            elements.fill({});
+        }
 
         uint32_t ToHash() const
         {
@@ -49,10 +61,18 @@ namespace REngine
     
     struct PipelineStateOutputDesc
     {
-        Diligent::TEXTURE_FORMAT depth_stencil_format{};
+        Atomic::TextureFormat depth_stencil_format{};
         uint8_t num_rts{0};
-        ea::array<Diligent::TEXTURE_FORMAT, Atomic::MAX_RENDERTARGETS> render_target_formats{};
+        ea::array<Atomic::TextureFormat, Atomic::MAX_RENDERTARGETS> render_target_formats{};
         uint8_t multi_sample{1};
+
+        PipelineStateOutputDesc()
+        {
+            depth_stencil_format = Atomic::TextureFormat::TEX_FORMAT_UNKNOWN;
+            num_rts = 0;
+            multi_sample = 1;
+            render_target_formats.fill(Atomic::TextureFormat::TEX_FORMAT_UNKNOWN);
+        }
 
         uint32_t ToHash() const
         {
@@ -88,9 +108,16 @@ namespace REngine
     
     struct ImmutableSamplersDesc
     {
-        const char* name{};
-        Atomic::StringHash name_hash{};
+        const char* name;
+        Atomic::StringHash name_hash;
         SamplerDesc sampler;
+
+        ImmutableSamplersDesc()
+        {
+            name = nullptr;
+            name_hash = Atomic::StringHash::ZERO;
+            sampler = {};
+        }
 
         u32 ToHash() const
         {
@@ -105,9 +132,58 @@ namespace REngine
         const char* name{nullptr};
         Atomic::TextureUnit unit{ Atomic::MAX_TEXTURE_UNITS };
         Diligent::RefCntAutoPtr<Diligent::ITextureView> texture {};
-        Atomic::SharedPtr<Atomic::Texture> owner{};
+        ea::shared_ptr<Atomic::Texture> owner{};
     };
     typedef ea::array<ShaderResourceTextureDesc, Atomic::MAX_TEXTURE_UNITS> ShaderResourceTextures;
+
+    struct PipelineStateInfo
+    {
+        Atomic::String debug_name{};
+
+        // BEGIN BLEND STATE
+        bool color_write_enabled{true};
+        Atomic::BlendMode blend_mode{Atomic::BLEND_REPLACE};
+        bool alpha_to_coverage_enabled{false};
+        // END BLEND_STATE
+
+        // BEGIN RASTERIZER STATE
+        Atomic::FillMode fill_mode{Atomic::FILL_SOLID};
+        Atomic::CullMode cull_mode{Atomic::CULL_CCW};
+        float constant_depth_bias{0.f};
+        float slope_scaled_depth_bias{0.f};
+        bool scissor_test_enabled{false};
+        bool line_anti_alias{false};
+        // END RASTERIZER STATE
+
+        // BEGIN DEPTH STENCIL STATE
+        bool depth_write_enabled{true};
+        bool stencil_test_enabled{false};
+        Atomic::CompareMode depth_cmp_function{Atomic::CMP_LESSEQUAL};
+        Atomic::CompareMode stencil_cmp_function{Atomic::CMP_ALWAYS};
+        Atomic::StencilOp stencil_op_on_passed{Atomic::OP_KEEP};
+        Atomic::StencilOp stencil_op_on_stencil_failed{Atomic::OP_KEEP};
+        Atomic::StencilOp stencil_op_depth_failed{Atomic::OP_KEEP};
+        u8 stencil_cmp_mask{255};
+        u8 stencil_write_mask{255};
+        // END DEPTH STENCIL STATE
+
+        InputLayoutDesc input_layout;
+        Atomic::PrimitiveType primitive_type{Atomic::TRIANGLE_LIST};
+        PipelineStateOutputDesc output;
+
+        u8 num_samplers{0};
+        ea::array<ImmutableSamplersDesc, Atomic::MAX_IMMUTABLE_SAMPLERS> immutable_samplers{};
+
+        bool read_only_depth{false};
+
+        Atomic::ShaderVariation* vs_shader{};
+        Atomic::ShaderVariation* ps_shader{};
+        Atomic::ShaderVariation* ds_shader{};
+        Atomic::ShaderVariation* hs_shader{};
+        Atomic::ShaderVariation* gs_shader{};
+
+        uint32_t ToHash() const;
+    };
 
 	struct ShaderCompilerDesc
     {
@@ -139,7 +215,7 @@ namespace REngine
 
     struct ShaderCompilerResult
     {
-        Atomic::PODVector<uint8_t> spirv_code;
+        ea::vector<u8> spirv_code;
         Atomic::String error{};
         bool has_error{ false };
     };
@@ -204,7 +280,7 @@ namespace REngine
         Atomic::ShaderType type{Atomic::MAX_SHADER_TYPES};
         ShaderCompilerReflectInfo reflect_info{};
         Atomic::ShaderByteCodeType byte_code_type{Atomic::ShaderByteCodeType::Max};
-        Atomic::SharedArrayPtr<uint8_t> byte_code{nullptr};
+        ea::shared_array<u8> byte_code{nullptr};
         uint32_t byte_code_size{0};
         uint32_t shader_hash{ 0 };
     };

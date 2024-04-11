@@ -1,5 +1,6 @@
 #include "../Graphics/Graphics.h"
 #include "../Graphics/Material.h"
+#include "./DriverInstance.h"
 
 #include <DiligentCore/Graphics/GraphicsEngine/interface/GraphicsTypes.h>
 

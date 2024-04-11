@@ -26,13 +26,10 @@
 #include "../Graphics/GraphicsDefs.h"
 #include "../Math/Color.h"
 #include "../Resource/Resource.h"
-
-#if RENGINE_DILIGENT
-#include "../RHI/PipelineStateBuilder.h"
+#include "../RHI/RHITypes.h"
 
 #include <DiligentCore/Graphics/GraphicsEngine/interface/Texture.h>
 #include <DiligentCore/Common/interface/RefCntAutoPtr.hpp>
-#endif
 
 namespace Atomic
 {
@@ -160,23 +157,10 @@ public:
     /// Update dirty parameters to the texture object. Called by Graphics when assigning the texture.
     void UpdateParameters();
 
-#if RENGINE_DILIGENT
     /// Return shader resource view. Used on Shader Resource Binding
     Diligent::RefCntAutoPtr<Diligent::ITextureView> GetShaderResourceView() const { return view_; }
     /// Return Texture Sampler Description. Can be used on Pipeline State creation
     void GetSamplerDesc(REngine::SamplerDesc& sample_desc) const;
-#else
-    /// Return shader resource view. Only used on Direct3D11.
-    void* GetShaderResourceView() const { return shaderResourceView_; }
-    /// Return sampler state object. Only used on Direct3D11.
-    void* GetSampler() const { return sampler_; }
-
-    /// Return resolve texture. Only used on Direct3D11.
-    void* GetResolveTexture() const { return resolveTexture_; }
-
-    /// Return texture's target. Only used on OpenGL.
-    unsigned GetTarget() const { return target_; }
-#endif
 
 #if RENGINE_DILIGENT
     static TextureFormat GetSRGBFormat(TextureFormat format);

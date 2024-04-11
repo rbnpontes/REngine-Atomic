@@ -48,8 +48,8 @@ namespace Atomic
 
         if (!LoadByteCode(binary_shader_name))
         {
-            SharedArrayPtr<uint8_t> shader_file_data;
-            uint32_t shader_file_size = 0;
+            ea::shared_array<u8> shader_file_data;
+            u32 shader_file_size = 0;
             // Compile shader if don't have valid bytecode
             if (!Compile(shader_file_data, &shader_file_size))
                 return false;
@@ -89,7 +89,7 @@ namespace Atomic
         for (unsigned int& constant_buffer_size : constantBufferSizes_)
             constant_buffer_size = 0;
         parameters_.Clear();
-        byteCode_.Clear();
+        byteCode_.clear();
         elementHash_ = 0;
     }
 
@@ -158,7 +158,7 @@ namespace Atomic
             return false;
         }
         
-        byteCode_ = PODVector<uint8_t>(bin_result.byte_code, bin_result.byte_code_size);
+        byteCode_ = ea::vector<u8>(bin_result.byte_code.get(), bin_result.byte_code.get() + bin_result.byte_code_size);
         elementHash_ = bin_result.reflect_info.element_hash;
         input_elements_ = bin_result.reflect_info.input_elements;
         parameters_ = bin_result.reflect_info.parameters;
@@ -190,11 +190,11 @@ namespace Atomic
         case GraphicsBackend::D3D11:
         case GraphicsBackend::D3D12:
         case GraphicsBackend::Vulkan:
-            ci.ByteCode = bin_result.byte_code;
+            ci.ByteCode = bin_result.byte_code.get();
             ci.ByteCodeSize = bin_result.byte_code_size;
             break;
         case GraphicsBackend::OpenGL:
-            ci.Source = static_cast<char*>(static_cast<void*>(bin_result.byte_code));
+            ci.Source = static_cast<char*>(static_cast<void*>(bin_result.byte_code.get()));
             ci.SourceLength = bin_result.byte_code_size;
             break;
         }
@@ -212,7 +212,7 @@ namespace Atomic
         return true;
     }
 
-    bool ShaderVariation::Compile(SharedArrayPtr<uint8_t>& shader_file_data, uint32_t* shader_file_size)
+    bool ShaderVariation::Compile(ea::shared_array<u8>& shader_file_data, u32* shader_file_size)
     {
         const auto full_name = GetFullName();
         Diligent::ShaderCreateInfo shader_ci = {};
@@ -327,8 +327,8 @@ namespace Atomic
             }
 
             REngine::ShaderCompilerReflectDesc reflect_desc = {
-                result.spirv_code.Buffer(),
-                result.spirv_code.Size(),
+                result.spirv_code.data(),
+                static_cast<u32>(result.spirv_code.size()),
                 type_
             };
             REngine::shader_compiler_reflect(reflect_desc, reflect_info);
@@ -348,7 +348,7 @@ namespace Atomic
             if (backend == GraphicsBackend::D3D11 || backend == GraphicsBackend::D3D12)
             {
                 source_code.Clear();
-                REngine::shader_compiler_to_hlsl({result.spirv_code.Buffer(), result.spirv_code.Size()}, source_code);
+                REngine::shader_compiler_to_hlsl({result.spirv_code.data(), static_cast<u32>(result.spirv_code.size())}, source_code);
 
                 //ATOMIC_LOGDEBUG(source_code);
                 shader_ci.SourceLanguage = Diligent::SHADER_SOURCE_LANGUAGE_HLSL;
@@ -360,17 +360,18 @@ namespace Atomic
             if (backend == GraphicsBackend::Vulkan)
             {
                 byteCode_ = result.spirv_code;
-                shader_ci.ByteCode = byteCode_.Buffer();
-                shader_ci.ByteCodeSize = byteCode_.Size();
+                shader_ci.ByteCode = byteCode_.data();
+                shader_ci.ByteCodeSize = byteCode_.size();
             }
             else if (backend == GraphicsBackend::OpenGL)
             {
                 REngine::ShaderCompilerPreProcessResult pre_process_result = {};
                 REngine::shader_compiler_preprocess(compiler_desc, pre_process_result);
                 const auto byte_code = reinterpret_cast<const unsigned char*>(pre_process_result.source_code.CString());
-                byteCode_ = PODVector<unsigned char>(
+                byteCode_ = ea::vector<u8>(
                     byte_code,
-                    pre_process_result.source_code.Length());
+                    byte_code + pre_process_result.source_code.Length()
+                );
                 shader_ci.EntryPoint = "main";
             }
         }
@@ -413,14 +414,14 @@ namespace Atomic
 
             shader->GetBytecode(&byte_code, byte_code_len);
 
-            byteCode_.Resize(static_cast<uint32_t>(byte_code_len));
-            memcpy(byteCode_.Buffer(), byte_code, sizeof(char) * byte_code_len);
+            byteCode_.resize(static_cast<uint32_t>(byte_code_len));
+            memcpy(byteCode_.data(), byte_code, sizeof(char) * byte_code_len);
         }
 #endif
 
         REngine::ShaderCompilerBinDesc bin_desc = {};
-        bin_desc.byte_code = byteCode_.Buffer();
-        bin_desc.byte_code_size = byteCode_.Size();
+        bin_desc.byte_code = byteCode_.data();
+        bin_desc.byte_code_size = byteCode_.size();
         bin_desc.type = type_;
         bin_desc.shader_hash = hash_;
         bin_desc.reflect_info = &reflect_info;
@@ -442,8 +443,8 @@ namespace Atomic
         return true;
     }
 
-    void ShaderVariation::SaveByteCode(const String& binaryShaderName, const SharedArrayPtr<uint8_t>& byte_code,
-                                       const uint32_t byte_code_len) const
+    void ShaderVariation::SaveByteCode(const String& binaryShaderName, const ea::shared_array<u8>& byte_code,
+                                       const u32 byte_code_len) const
     {
         const auto cache = owner_->GetSubsystem<ResourceCache>();
         const auto fileSystem = owner_->GetSubsystem<FileSystem>();
@@ -468,6 +469,6 @@ namespace Atomic
             return;
 
         file->WriteFileID(s_shader_file_id);
-        file->Write(byte_code.Get(), byte_code_len);
+        file->Write(byte_code.get(), byte_code_len);
     }
 }

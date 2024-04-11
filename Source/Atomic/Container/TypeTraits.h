@@ -5,6 +5,7 @@
 #include <eastl/vector.h>
 #include <eastl/array.h>
 #include <eastl/shared_ptr.h>
+#include <eastl/shared_array.h>
 #include <eastl/queue.h>
 #include <stdint.h>
 

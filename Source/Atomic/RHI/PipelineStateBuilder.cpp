@@ -1,8 +1,10 @@
 #include "./PipelineStateBuilder.h"
 #include "./DiligentUtils.h"
+#include "./DriverInstance.h"
 #include "../Container/HashMap.h"
 #include "../Container/Hash.h"
 #include "../IO/Log.h"
+#include "../Graphics/ShaderVariation.h"
 
 #include <DiligentCore/Common/interface/RefCntAutoPtr.hpp>
 
@@ -165,6 +167,54 @@ namespace REngine
 
     static Diligent::LayoutElement s_tmp_layout_elements[Diligent::MAX_LAYOUT_ELEMENTS] = {};
     static Diligent::ImmutableSamplerDesc s_tmp_immutable_samplers[Atomic::MAX_IMMUTABLE_SAMPLERS] = {};
+
+    uint32_t PipelineStateInfo::ToHash() const
+    {
+	    uint32_t hash = Atomic::StringHash::Calculate(debug_name.CString());
+
+        Atomic::CombineHash(hash, color_write_enabled ? 1u : 0u);
+        Atomic::CombineHash(hash, static_cast<uint32_t>(blend_mode));
+        Atomic::CombineHash(hash, alpha_to_coverage_enabled ? 1u : 0u);
+
+        Atomic::CombineHash(hash, static_cast<uint32_t>(fill_mode));
+        Atomic::CombineHash(hash, static_cast<uint32_t>(cull_mode));
+        Atomic::CombineHash(hash, static_cast<uint32_t>(constant_depth_bias));
+        Atomic::CombineHash(hash, static_cast<uint32_t>(slope_scaled_depth_bias));
+        Atomic::CombineHash(hash, scissor_test_enabled ? 1u : 0u);
+        Atomic::CombineHash(hash, line_anti_alias ? 1u : 0u);
+
+        Atomic::CombineHash(hash, depth_write_enabled ? 1u : 0u);
+        Atomic::CombineHash(hash, stencil_test_enabled ? 1u : 0u);
+        Atomic::CombineHash(hash, static_cast<uint32_t>(depth_cmp_function));
+        Atomic::CombineHash(hash, static_cast<uint32_t>(stencil_cmp_function));
+        Atomic::CombineHash(hash, static_cast<uint32_t>(stencil_op_on_passed));
+        Atomic::CombineHash(hash, static_cast<uint32_t>(stencil_op_on_stencil_failed));
+        Atomic::CombineHash(hash, static_cast<uint32_t>(stencil_op_depth_failed));
+        Atomic::CombineHash(hash, stencil_cmp_mask);
+        Atomic::CombineHash(hash, stencil_write_mask);
+
+        Atomic::CombineHash(hash, input_layout.ToHash());
+        Atomic::CombineHash(hash, static_cast<uint32_t>(primitive_type));
+        Atomic::CombineHash(hash, output.ToHash());
+
+        Atomic::CombineHash(hash, num_samplers);
+        for(uint8_t i = 0; i < num_samplers; ++i)
+            Atomic::CombineHash(hash, immutable_samplers[i].ToHash());
+
+        if(vs_shader)
+			Atomic::CombineHash(hash, vs_shader->ToHash());
+        if(ps_shader)
+            Atomic::CombineHash(hash, ps_shader->ToHash());
+        if(ds_shader)
+			Atomic::CombineHash(hash, ds_shader->ToHash());
+        if(hs_shader)
+            Atomic::CombineHash(hash, hs_shader->ToHash());
+        if(gs_shader)
+			Atomic::CombineHash(hash, gs_shader->ToHash());
+
+        return hash;
+    }
+
 
     Diligent::RefCntAutoPtr<Diligent::IPipelineState> pipeline_state_builder_acquire(
         DriverInstance* driver, const PipelineStateInfo& info,
@@ -347,50 +397,6 @@ namespace REngine
     {
 	    return s_pipelines.Size();
 	}
-
-    unsigned pipeline_state_builder_build_hash(const PipelineStateInfo& info)
-    {
-        unsigned hash = Atomic::StringHash::Calculate(info.debug_name.CString());
-        // Blend State
-        Atomic::CombineHash(hash, info.color_write_enabled);
-        Atomic::CombineHash(hash, info.blend_mode);
-        Atomic::CombineHash(hash, info.alpha_to_coverage_enabled);
-        // Rasterizer State
-        Atomic::CombineHash(hash, info.fill_mode);
-        Atomic::CombineHash(hash, info.cull_mode);
-        Atomic::CombineHash(hash, static_cast<unsigned>(info.constant_depth_bias));
-        Atomic::CombineHash(hash, static_cast<unsigned>(info.slope_scaled_depth_bias));
-        Atomic::CombineHash(hash, info.line_anti_alias);
-        // Depth Stencil
-        Atomic::CombineHash(hash, info.depth_write_enabled);
-        Atomic::CombineHash(hash, info.stencil_test_enabled);
-        Atomic::CombineHash(hash, info.depth_cmp_function);
-        Atomic::CombineHash(hash, info.stencil_cmp_function);
-        Atomic::CombineHash(hash, info.stencil_op_on_passed);
-        Atomic::CombineHash(hash, info.stencil_op_on_stencil_failed);
-        Atomic::CombineHash(hash, info.stencil_op_depth_failed);
-        Atomic::CombineHash(hash, info.stencil_cmp_mask);
-        Atomic::CombineHash(hash, info.stencil_write_mask);
-        // Input Layout
-        for (unsigned i = 0; i < info.input_layout.num_elements; ++i)
-            Atomic::CombineHash(hash, info.input_layout.elements[i].ToHash());
-        // Primitive Type
-        Atomic::CombineHash(hash, info.primitive_type);
-        // Immutable Samplers
-        for (unsigned i = 0; i < info.num_samplers; ++i)
-            Atomic::CombineHash(hash, info.immutable_samplers[i].ToHash());
-
-        Atomic::CombineHash(hash, info.read_only_depth);
-
-        // Shaders
-        Atomic::CombineHash(hash, Atomic::MakeHash(info.vs_shader.ToHash()));
-        Atomic::CombineHash(hash, Atomic::MakeHash(info.ps_shader.ToHash()));
-        Atomic::CombineHash(hash, Atomic::MakeHash(info.ds_shader.ToHash()));
-        Atomic::CombineHash(hash, Atomic::MakeHash(info.hs_shader.ToHash()));
-        Atomic::CombineHash(hash, Atomic::MakeHash(info.gs_shader.ToHash()));
-
-        return hash;
-    }
 
     Diligent::RefCntAutoPtr<Diligent::IShaderResourceBinding> pipeline_state_builder_get_or_create_srb(const ShaderResourceBindingCreateDesc& desc)
     {

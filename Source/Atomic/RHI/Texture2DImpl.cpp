@@ -7,6 +7,7 @@
 #include "../IO/Log.h"
 #include "../Resource/ResourceCache.h"
 #include "./DiligentUtils.h"
+#include "./RHI/DriverInstance.h"
 
 #include "../DebugNew.h"
 
