@@ -170,6 +170,8 @@ private:
     bool shadowed_;
     /// Discard lock flag. Used by OpenGL only.
     bool discardLock_;
+
+    void* gpu_map_ptr_;
 };
 
 }

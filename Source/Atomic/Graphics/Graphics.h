@@ -36,14 +36,12 @@
 
 struct SDL_Window;
 
-#ifdef RENGINE_DILIGENT
 namespace REngine
 {
     class DriverInstance;
     class ShaderProgram;
     class VertexDeclaration;
 }
-#endif
 
 namespace Atomic
 {
@@ -53,11 +51,6 @@ class File;
 class Image;
 class IndexBuffer;
 class GPUObject;
-#ifndef RENGINE_DILIGENT
-class GraphicsImpl;
-class ShaderProgram;
-class VertexDeclaration;
-#endif
 class RenderSurface;
 class Shader;
 class ShaderPrecache;
@@ -191,7 +184,7 @@ public:
     /// Set shader constant from a variant. Supported variant types: bool, float, vector2, vector3, vector4, color.
     void SetShaderParameter(StringHash param, const Variant& value);
     /// Check whether a shader parameter group needs update. Does not actually check whether parameters exist in the shaders.
-    static bool NeedParameterUpdate(ShaderParameterGroup group, const void* source);
+	bool NeedParameterUpdate(ShaderParameterGroup group, const void* source);
     /// Check whether a shader parameter exists on the currently set shaders.
     bool HasShaderParameter(StringHash param) const;
     /// Check whether the current vertex or pixel shader uses a texture unit.

@@ -1,7 +1,7 @@
 #pragma once
 #include "../Core/Object.h"
 #include "./GraphicsDefs.h"
-#include "./Math/Plane.h"
+#include "../Math/Plane.h"
 
 #include <DiligentCore/Graphics/GraphicsEngine/interface/GraphicsTypes.h>
 
@@ -36,7 +36,6 @@ namespace Atomic
 		u32 vertex_count{ 0 };
 		u32 index_start{ 0 };
 		u32 index_count{ 0 };
-		ValueType index_type{ ValueType::VT_UNDEFINED };
 	};
 	struct DrawCommandInstancedDrawDesc
 	{
@@ -45,7 +44,6 @@ namespace Atomic
 		u32 vertex_count{ 0 };
 		u32 index_start{ 0 };
 		u32 index_count{ 0 };
-		ValueType index_type{ ValueType::VT_UNDEFINED };
 		u32 instance_count{ 0 };
 	};
 	struct DrawCommandShadersDesc
@@ -131,6 +129,12 @@ namespace Atomic
 		virtual void SetShaderParameter(StringHash param, const Variant& value) = 0;
 		/// Test if shader parameter exists on bound shaders.
 		virtual bool HasShaderParameter(StringHash param) = 0;
+		/// Test if shader group needs to be updated.
+		/// Passing a source pointer will compare the source pointer to the current source pointer.
+		///	This usefully if you are calling this function from a function that is updating the shader group.
+		///	So, to prevent unexpected updates, you can pass the source pointer to this function.
+		/// Before call SetShaderParameter.
+		virtual bool NeedShaderGroupUpdate(ShaderParameterGroup group, const void* source) = 0;
 		/// Bound texture by unit.
 		virtual void SetTexture(TextureUnit unit, Texture* texture) =0;
 		/// Bound render target by unit

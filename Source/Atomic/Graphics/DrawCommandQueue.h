@@ -9,6 +9,7 @@ namespace Atomic
 	public:
 		DrawCommandQueue(Context* context);
 		void ClearStoredCommands();
+		void AddCommand(ea::shared_ptr<IDrawCommand> command);
 		ea::shared_ptr<IDrawCommand> CreateImmediateCommand();
 		static void RegisterObject(Context* context);
 	private:

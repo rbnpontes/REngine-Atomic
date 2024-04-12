@@ -35,6 +35,7 @@
 #include "../Engine/EngineDefs.h"
 #include "../Graphics/Graphics.h"
 #include "../Graphics/Renderer.h"
+#include "../Graphics/DrawCommandQueue.h"
 #include "../Input/Input.h"
 #include "../IO/FileSystem.h"
 #include "../IO/Log.h"
@@ -168,6 +169,8 @@ Engine::Engine(Context* context) :
     context_->RegisterSubsystem(new Input(context_));
     context_->RegisterSubsystem(new Audio(context_));
     context_->RegisterSubsystem(new UI(context_));
+    // Draw Command Queue must be registered before Graphics
+    DrawCommandQueue::RegisterObject(context_);
 
     // Register object factories for libraries which are not automatically registered along with subsystem creation
     RegisterSceneLibrary(context_);

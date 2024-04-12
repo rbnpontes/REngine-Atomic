@@ -13,6 +13,11 @@ namespace Atomic
 		commands_.clear();
 	}
 
+	void DrawCommandQueue::AddCommand(ea::shared_ptr<IDrawCommand> command)
+	{
+		commands_.push_back(command);
+	}
+
 	ea::shared_ptr<IDrawCommand> DrawCommandQueue::CreateImmediateCommand()
 	{
 		Graphics* graphics = GetSubsystem<Graphics>();
@@ -23,6 +28,6 @@ namespace Atomic
 
 	void DrawCommandQueue::RegisterObject(Context* context)
 	{
-		context->RegisterFactory<DrawCommandQueue>();
+		context->RegisterSubsystem(new DrawCommandQueue(context));
 	}
 }

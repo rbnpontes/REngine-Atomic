@@ -43,13 +43,15 @@ namespace REngine
 			dirty_flags_(static_cast<u32>(RenderCommandDirtyState::all)),
 			enable_clip_planes_(false),
 			curr_pipeline_hash_(0),
-			curr_vertx_decl_hash(0),
+			curr_vertx_decl_hash_(0),
 			curr_vertex_buffer_hash(0),
 			num_batches_(0),
 			primitive_count_(0),
 			vertex_buffers_({}),
 			vertex_offsets_({}),
-			params_2_update_({})
+			params_2_update_({}),
+			shader_param_sources_({}),
+			frame_count_(0)
 
 		{
 			pipeline_info_ = new PipelineStateInfo();
@@ -62,6 +64,7 @@ namespace REngine
 
 		void Reset() override
 		{
+			++frame_count_;
 			*pipeline_info_ = PipelineStateInfo{};
 			pipeline_info_->output.render_target_formats.fill(Diligent::TEX_FORMAT_UNKNOWN);
 
@@ -75,7 +78,10 @@ namespace REngine
 			index_buffer_ = nullptr;
 			shader_resource_binding_ = nullptr;
 
+			index_type_ = ValueType::VT_UNDEFINED;
+
 			params_2_update_ = {};
+			shader_param_sources_.fill(M_MAX_UNSIGNED);
 
 			render_targets_.fill(nullptr);
 			textures_.fill(ShaderResourceTextureDesc{});
@@ -84,11 +90,13 @@ namespace REngine
 
 			enable_clip_planes_ = false;
 			clip_plane_ = Vector4::ZERO;
-			curr_pipeline_hash_ = curr_vertex_buffer_hash = curr_vertx_decl_hash = 0u;
+			curr_pipeline_hash_ = curr_vertex_buffer_hash = curr_vertx_decl_hash_ = 0u;
 
 			dirty_flags_ = static_cast<u32>(RenderCommandDirtyState::all);
 			num_batches_ = 0;
 			primitive_count_ = 0;
+
+			dirty_flags_ = static_cast<u32>(RenderCommandDirtyState::all);
 		}
 		void Clear(const DrawCommandClearDesc& desc) override
 		{
@@ -111,15 +119,26 @@ namespace REngine
 
 			PrepareDraw();
 
-			context_->DrawIndexed({
-				desc.index_count,
-				desc.index_type,
-				DRAW_FLAG_NONE,
-				1,
-				desc.index_start,
-				desc.base_vertex_index,
-				1
-			});
+			if(index_buffer_)
+			{
+				context_->DrawIndexed({
+					desc.index_count,
+					index_type_,
+					DRAW_FLAG_NONE,
+					1,
+					desc.index_start,
+					desc.base_vertex_index
+				});
+			}
+			else
+			{
+				context_->Draw({
+					desc.vertex_count,
+					DRAW_FLAG_NONE,
+					1,
+					desc.vertex_start
+				});
+			}
 
 			u32 primitive_count;
 			utils_get_primitive_type(desc.vertex_count, pipeline_info_->primitive_type, &primitive_count);
@@ -134,12 +153,11 @@ namespace REngine
 
 			context_->DrawIndexed({
 				desc.index_count,
-				desc.index_type,
+				index_type_,
 				DRAW_FLAG_NONE,
 				desc.instance_count,
 				desc.index_start,
-				desc.base_vertex_index,
-				1
+				desc.base_vertex_index
 			});
 
 			u32 primitive_count;
@@ -149,12 +167,12 @@ namespace REngine
 		}
 		void SetVertexBuffer(VertexBuffer* buffer) override
 		{
-			if(vertex_buffers_[0] != buffer)
+			if(vertex_buffers_[0].get() == buffer)
 				return;
 
 			vertex_offsets_.fill(0);
 			vertex_buffers_.fill(nullptr);
-			vertex_buffers_[0] = buffer;
+			vertex_buffers_[0] = ea::MakeShared(buffer);
 			curr_vertex_buffer_hash = MakeHash(buffer);
 			dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::vertex_buffer);
 		}
@@ -168,9 +186,12 @@ namespace REngine
 		}
 		void SetIndexBuffer(IndexBuffer* buffer) override
 		{
-			if(index_buffer_ == buffer)
+			if(index_buffer_.get() == buffer)
 				return;
-			index_buffer_ = buffer;
+			index_buffer_ = ea::MakeShared(buffer);
+			if(buffer)
+				index_type_ = buffer->GetIndexSize() == sizeof(u32) ? VT_UINT32 : VT_UINT16;
+
 			dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::index_buffer);
 		}
 		void SetShaders(const DrawCommandShadersDesc& desc) override
@@ -229,6 +250,10 @@ namespace REngine
 
 			const auto vs_shader = s_shaders[VS];
 			const auto ps_shader = s_shaders[PS];
+
+			pipeline_info_->vs_shader = vs_shader;
+			pipeline_info_->ps_shader = ps_shader;
+			dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::pipeline);
 			/*auto gs_shader = desc.gs;
 			auto ds_shader = desc.ds;
 			auto hs_shader = desc.hs;*/
@@ -334,6 +359,23 @@ namespace REngine
 			ShaderParameter shader_param;
 			return shader_program_->GetParameter(param, &shader_param);
 		}
+		bool NeedShaderGroupUpdate(ShaderParameterGroup group, const void* source) override
+		{
+			bool result = false;
+			for(u8 i =0; i < MAX_SHADER_TYPES; ++i)
+			{
+				const auto idx = i * static_cast<u8>(MAX_SHADER_PARAMETER_GROUPS) + static_cast<u8>(group);
+				const auto src = shader_param_sources_[idx];
+				const auto target_src = reinterpret_cast<u32>(source);
+				if(src == M_MAX_UNSIGNED || src != target_src)
+				{
+					result = true;
+					shader_param_sources_[idx] = target_src;
+				}
+			}
+
+			return result;
+		}
 		void SetTexture(TextureUnit unit, RenderSurface* surface) override
 		{
 			return SetTexture(unit, surface ? surface->GetParentTexture() : static_cast<Texture*>(nullptr));
@@ -343,13 +385,40 @@ namespace REngine
 			if (unit >= MAX_TEXTURE_UNITS)
 				return;
 
-			if (textures_[unit].owner.get() == texture)
+			if(texture)
+			{
+				if(render_targets_[0] && render_targets_[0]->GetParentTexture() == texture)
+					texture = texture->GetBackupTexture();
+				else
+				{
+					// Resolve multisampled texture
+					if(texture->GetMultiSample() > 1 && texture->GetAutoResolve() && texture->IsResolveDirty())
+					{
+						if (texture->GetType() == Texture2D::GetTypeStatic())
+							ResolveTexture(static_cast<Texture2D*>(texture));
+						if (texture->GetType() == TextureCube::GetTypeStatic())
+							ResolveTexture(static_cast<TextureCube*>(texture));
+					}
+				}
+
+				if (texture->GetLevelsDirty())
+					texture->RegenerateLevels();
+			}
+
+			if(texture && texture->GetParametersDirty())
+			{
+				texture->UpdateParameters();
+				textures_[unit] = {};
+			}
+
+			if (texture == textures_[unit].owner.get())
 				return;
 
 			textures_[unit] = {
 				nullptr,
+				StringHash::ZERO,
 				unit,
-				texture->GetGPUObject().Cast<Diligent::ITextureView>(Diligent::IID_TextureView),
+				texture->GetShaderResourceView(),
 				ea::MakeShared(texture)
 			};
 			dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::textures);
@@ -704,11 +773,11 @@ namespace REngine
 
 		VertexBuffer* GetVertexBuffer(u8 index) override
 		{
-			return vertex_buffers_[index];
+			return vertex_buffers_[index].get();
 		}
 		IndexBuffer* GetIndexBuffer() override
 		{
-			return index_buffer_;
+			return index_buffer_.get();
 		}
 		ShaderVariation* GetShader(ShaderType type) override
 		{
@@ -895,7 +964,7 @@ namespace REngine
 			if (s_num_rts > 0) 
 				return true;
 
-			if (depth_stencil_ || depth_stencil_size != wnd_size)
+			if (depth_stencil_ && depth_stencil_size != wnd_size)
 				return true;
 
 			s_num_rts = 1;
@@ -914,17 +983,17 @@ namespace REngine
 		}
 		bool PrepareDepthStencil()
 		{
-			if (dirty_flags_ & static_cast<u32>(RenderCommandDirtyState::depth_stencil))
+			if (dirty_flags_ & static_cast<u32>(RenderCommandDirtyState::depth_stencil) == 0)
 				return false;
 			dirty_flags_ ^= static_cast<u32>(RenderCommandDirtyState::depth_stencil);
 
-			s_depth_stencil = depth_stencil_ ? 
+			auto depth_stencil = depth_stencil_ ? 
 				depth_stencil_->GetRenderTargetView() :
 				graphics_->GetImpl()->GetSwapChain()->GetDepthBufferDSV();
 			const auto wnd_size = graphics_->GetRenderTargetDimensions();
 
 			if(!pipeline_info_->depth_write_enabled && depth_stencil_ && depth_stencil_->GetReadOnlyView())
-				s_depth_stencil = depth_stencil_->GetReadOnlyView();
+				depth_stencil = depth_stencil_->GetReadOnlyView();
 			else if(render_targets_[0] && !depth_stencil_)
 			{
 				const auto rt_size = IntVector2(
@@ -932,9 +1001,10 @@ namespace REngine
 					render_targets_[0]->GetHeight()
 				);
 				if (rt_size.x_ < wnd_size.x_ || rt_size.y_ < wnd_size.y_)
-					s_depth_stencil = nullptr;
+					depth_stencil = nullptr;
 			}
 
+			s_depth_stencil = depth_stencil;
 			return true;
 		}
 		void PreparePipelineState()
@@ -1013,7 +1083,9 @@ namespace REngine
 				CombineHash(new_vertex_decl_hash, pipeline_info_->vs_shader->GetElementHash());
 			}
 
-			curr_vertx_decl_hash = new_vertex_decl_hash;
+			if(curr_vertx_decl_hash_ != new_vertex_decl_hash)
+				dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::vertex_decl);
+			curr_vertx_decl_hash_ = new_vertex_decl_hash;
 		}
 		void PrepareIndexBuffer()
 		{
@@ -1037,7 +1109,7 @@ namespace REngine
 				return;
 			dirty_flags_ ^= static_cast<u32>(RenderCommandDirtyState::vertex_decl);
 
-			const auto vertex_decl = graphics_state_get_vertex_declaration(curr_vertx_decl_hash);
+			const auto vertex_decl = graphics_state_get_vertex_declaration(curr_vertx_decl_hash_);
 			if(vertex_decl)
 			{
 				if(vertex_decl != vertex_declaration_)
@@ -1051,14 +1123,21 @@ namespace REngine
 
 			VertexDeclarationCreationDesc creation_desc;
 			creation_desc.graphics = graphics_;
-			creation_desc.hash = curr_vertx_decl_hash;
+			creation_desc.hash = curr_vertx_decl_hash_;
 			creation_desc.vertex_buffers = &vertex_buffers_;
 			creation_desc.vertex_shader = pipeline_info_->vs_shader;
 			vertex_declaration_ = new VertexDeclaration(creation_desc);
-			graphics_state_set_vertex_declaration(curr_vertx_decl_hash, vertex_declaration_);
+
+			if(!vertex_declaration_->GetNumInputs())
+			{
+				vertex_declaration_ = nullptr;
+				return;
+			}
+
+			graphics_state_set_vertex_declaration(curr_vertx_decl_hash_, vertex_declaration_);
 
 			dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::pipeline);
-			pipeline_info_->input_layout = vertex_decl->GetInputLayoutDesc();
+			pipeline_info_->input_layout = vertex_declaration_->GetInputLayoutDesc();
 		}
 		void PrepareTextures()
 		{
@@ -1079,12 +1158,24 @@ namespace REngine
 				const auto sampler = shader_program_->GetSampler(desc.unit);
 				if (!sampler)
 					continue;
-				desc.name = sampler->name.CString();
-				const u32 sampler_hash = pipeline_info_->immutable_samplers[next_sampler_idx].sampler.ToHash();
-				desc.owner->GetSamplerDesc(pipeline_info_->immutable_samplers[next_sampler_idx].sampler);
+				if(desc.name_hash != sampler->hash)
+					dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::srb);
 
-				if(sampler_hash != pipeline_info_->immutable_samplers[next_sampler_idx].sampler.ToHash())
+				desc.name = sampler->name.CString();
+				desc.name_hash = sampler->hash;
+				// get some hashes
+				const u32 sampler_hash = pipeline_info_->immutable_samplers[next_sampler_idx].sampler.ToHash();
+				const auto name_hash = pipeline_info_->immutable_samplers[next_sampler_idx].name_hash;
+				// fill immutable sampler sampler
+				desc.owner->GetSamplerDesc(pipeline_info_->immutable_samplers[next_sampler_idx].sampler);
+				// if sampler or immutable sampler name has been changed. we must rebuild pipeline.
+				if(sampler_hash != pipeline_info_->immutable_samplers[next_sampler_idx].sampler.ToHash() 
+					|| sampler->hash != name_hash)
 					dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::pipeline);
+
+				// put the name and hash name inside immutable sampler
+				pipeline_info_->immutable_samplers[next_sampler_idx].name_hash = sampler->hash;
+				pipeline_info_->immutable_samplers[next_sampler_idx].name = desc.name;
 				++next_sampler_idx;
 			}
 
@@ -1109,6 +1200,7 @@ namespace REngine
 				const auto buffer = static_cast<ConstantBuffer*>(parameter.bufferPtr_);
 				if(!buffer)
 					continue;
+
 				render_command_write_param(buffer, parameter.offset_, desc.value);
 			}
 
@@ -1119,14 +1211,16 @@ namespace REngine
 		void PrepareClear()
 		{
 			ATOMIC_PROFILE(IDrawCommand::PrepareClear);
-			const auto changed = PrepareDepthStencil() || PrepareDepthStencil();
+			auto changed = PrepareDepthStencil();
+			changed = PrepareRenderTargets() || changed;
 			if (changed)
 				BoundRenderTargets();
 		}
 		void PrepareDraw()
 		{
 			ATOMIC_PROFILE(IDrawCommand::PrepareDraw);
-			const auto changed_rts = PrepareDepthStencil() || PrepareRenderTargets();
+			auto changed_rts = PrepareDepthStencil();
+			changed_rts = PrepareRenderTargets() || changed_rts;
 
 			PrepareVertexBuffers();
 			PrepareIndexBuffer();
@@ -1188,9 +1282,9 @@ namespace REngine
 			ATOMIC_PROFILE(IDrawCommand::ClearByHardware);
 				
 			auto clear_stencil_flags = Diligent::CLEAR_DEPTH_FLAG_NONE;
-			if(desc.flags & CLEAR_COLOR && render_targets_[0])
+			if(desc.flags & CLEAR_COLOR && s_render_targets[0])
 				context_->ClearRenderTarget(s_render_targets[0], desc.color.Data(), Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
-			if((desc.flags & (CLEAR_DEPTH | CLEAR_STENCIL)) !=0 && depth_stencil_)
+			if((desc.flags & (CLEAR_DEPTH | CLEAR_STENCIL)) !=0 && s_depth_stencil)
 			{
 				if(desc.flags & CLEAR_DEPTH)
 					clear_stencil_flags |= Diligent::CLEAR_DEPTH_FLAG;
@@ -1311,9 +1405,9 @@ namespace REngine
 					const auto has_instance_data = elements.Size() && elements[0].perInstance_;
 					const auto offset = has_instance_data ? instance_offset * buffer->GetVertexSize() : 0;
 
-					if(buffer != vertex_buffers_[i])
+					if(buffer != vertex_buffers_[i].get())
 						dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::vertex_buffer);
-					vertex_buffers_[i] = buffer;
+					vertex_buffers_[i] = ea::MakeShared(buffer);
 					vertex_offsets_[i] = instance_offset;
 					continue;
 				}
@@ -1357,6 +1451,7 @@ namespace REngine
 			return size == sizeof(u16) ? Diligent::VT_UINT16 : Diligent::VT_UINT32;
 		}
 
+		u32 frame_count_;
 		Graphics* graphics_;
 		Diligent::IDeviceContext* context_;
 		PipelineStateInfo* pipeline_info_;
@@ -1369,9 +1464,11 @@ namespace REngine
 		// arrays
 		ea::array<WeakPtr<RenderSurface>, MAX_RENDERTARGETS> render_targets_;
 		ea::array<ShaderResourceTextureDesc, MAX_TEXTURE_UNITS> textures_;
-		ea::array<SharedPtr<VertexBuffer>, MAX_VERTEX_STREAMS> vertex_buffers_;
+		ea::array<ea::shared_ptr<VertexBuffer>, MAX_VERTEX_STREAMS> vertex_buffers_;
 		ea::array<u64, MAX_VERTEX_STREAMS> vertex_offsets_;
-		SharedPtr<IndexBuffer> index_buffer_;
+		ea::array<u32, MAX_SHADER_PARAMETER_GROUPS * MAX_SHADER_TYPES> shader_param_sources_;
+
+		ea::shared_ptr<IndexBuffer> index_buffer_;
 
 		SharedPtr<VertexDeclaration> vertex_declaration_;
 		SharedPtr<ShaderProgram> shader_program_;
@@ -1382,11 +1479,13 @@ namespace REngine
 		IntRect scissor_{};
 		IntRect viewport_{};
 
+		ValueType index_type_{};
+
 		u8 stencil_ref_{};
 
 		u32 dirty_flags_{};
 
-		u32 curr_vertx_decl_hash{};
+		u32 curr_vertx_decl_hash_{};
 		u32 curr_vertex_buffer_hash{};
 		u32 curr_pipeline_hash_{};
 

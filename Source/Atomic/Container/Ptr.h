@@ -665,16 +665,23 @@ namespace eastl
     {
 	    void operator () (T* ptr)
 	    {
-            if(ptr)
+            if (!ptr)
+                return;
+            if(ptr->RefCountPtr())
                 ptr->ReleaseRef();
 	    }
     };
 	template <class T, class ... Args> shared_ptr<T> MakeShared(Args && ... args)
 	{
-		return eastl::shared_ptr<T>(new T(std::forward<Args>(args)...), EngineRefCounterDeleter<T>());
+        T* ptr = new T(std::forward<Args>(args)...);
+        ptr->AddRef();
+		return eastl::shared_ptr<T>(ptr, EngineRefCounterDeleter<T>());
 	}
     template <class T> shared_ptr<T> MakeShared(T* ptr)
 	{
+        if (!ptr)
+            return {};
+        ptr->AddRef();
 		return eastl::shared_ptr<T>(ptr, EngineRefCounterDeleter<T>());
 	}
 }

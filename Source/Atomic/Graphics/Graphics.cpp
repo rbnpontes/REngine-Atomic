@@ -364,8 +364,6 @@ void RegisterGraphicsLibrary(Context* context)
     Text3DText::RegisterObject(context);
     Text3D::RegisterObject(context);
     // ATOMIC END
-
-    DrawCommandQueue::RegisterObject(context);
 }
 
 // ATOMIC BEGIN

@@ -130,6 +130,7 @@ namespace REngine
     struct ShaderResourceTextureDesc
     {
         const char* name{nullptr};
+        Atomic::StringHash name_hash{Atomic::StringHash::ZERO};
         Atomic::TextureUnit unit{ Atomic::MAX_TEXTURE_UNITS };
         Diligent::RefCntAutoPtr<Diligent::ITextureView> texture {};
         ea::shared_ptr<Atomic::Texture> owner{};

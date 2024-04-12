@@ -9,7 +9,7 @@ namespace REngine
 	{
 		Atomic::Graphics* graphics{nullptr};
 		Atomic::ShaderVariation* vertex_shader{nullptr};
-		ea::array<Atomic::SharedPtr<Atomic::VertexBuffer>, Atomic::MAX_VERTEX_STREAMS>* vertex_buffers{nullptr};
+		ea::array<ea::shared_ptr<Atomic::VertexBuffer>, Atomic::MAX_VERTEX_STREAMS>* vertex_buffers{nullptr};
 		u32 hash{ 0 };
 	};
 
@@ -20,6 +20,7 @@ namespace REngine
 		VertexDeclaration(const VertexDeclarationCreationDesc& creation_desc);
 		InputLayoutDesc GetInputLayoutDesc() const { return input_layout_desc_; }
 		u32 ToHash() const { return hash_; }
+		u32 GetNumInputs() const { return input_layout_desc_.num_elements; }
 	private:
 		InputLayoutDesc input_layout_desc_{};
 		u32 hash_{};

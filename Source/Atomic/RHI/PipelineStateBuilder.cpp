@@ -447,6 +447,8 @@ namespace REngine
 
         for(const auto& it : *desc.resources)
         {
+            if(!it.texture || !it.name)
+				continue;
             for(u8 type = 0; type < MAX_SHADER_TYPES; ++type)
             {
                 const auto shader_type = utils_get_shader_type(static_cast<Atomic::ShaderType>(type));

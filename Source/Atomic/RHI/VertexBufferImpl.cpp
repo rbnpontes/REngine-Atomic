@@ -124,7 +124,7 @@ bool VertexBuffer::SetDataRange(const void* data, unsigned start, unsigned count
     }
     
     void* hw_data = MapBuffer(start, count, discard);
-    if(hw_data)
+    if(!hw_data)
         return false;
     
     memcpy(hw_data, data, data_size);
@@ -248,6 +248,12 @@ void* VertexBuffer::MapBuffer(unsigned start, unsigned count, bool discard)
     if(!object_)
         return hw_data;
 
+    if(lockState_ == LOCK_HARDWARE)
+    {
+	    ATOMIC_LOGWARNING("Vertex buffer already locked in hardware mode");
+		return gpu_map_ptr_;
+	}
+
     using namespace Diligent;
     const auto buffer = object_.Cast<IBuffer>(IID_Buffer);
     graphics_->GetImpl()->GetDeviceContext()->MapBuffer(buffer,
@@ -259,7 +265,7 @@ void* VertexBuffer::MapBuffer(unsigned start, unsigned count, bool discard)
     else
         lockState_ = LOCK_HARDWARE;
     
-    return hw_data;
+    return gpu_map_ptr_ = hw_data;
 }
 
 void VertexBuffer::UnmapBuffer()
@@ -272,6 +278,7 @@ void VertexBuffer::UnmapBuffer()
 
     graphics_->GetImpl()->GetDeviceContext()->UnmapBuffer(buffer, MAP_WRITE);
     lockState_ = LOCK_NONE;
+    gpu_map_ptr_ = nullptr;
 }
 
 }

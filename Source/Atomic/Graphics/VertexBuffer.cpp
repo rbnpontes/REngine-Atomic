@@ -44,7 +44,8 @@ VertexBuffer::VertexBuffer(Context* context, bool forceHeadless) :
     lockScratchData_(0),
     shadowed_(false),
     dynamic_(false),
-    discardLock_(false)
+    discardLock_(false),
+    gpu_map_ptr_(nullptr)
 {
     UpdateOffsets();
 

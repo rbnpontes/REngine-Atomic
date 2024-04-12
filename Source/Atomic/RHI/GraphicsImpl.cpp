@@ -112,16 +112,18 @@ namespace Atomic
 
 	Graphics::~Graphics()
 	{
-		{
-			MutexLock lock(gpuObjectMutex_);
-			// Release all GPU objects that still exist
-			for (PODVector<GPUObject*>::Iterator i = gpuObjects_.Begin(); i != gpuObjects_.End(); ++i)
-				(*i)->Release();
-			gpuObjects_.Clear();
-		}
+		//{
+		//	MutexLock lock(gpuObjectMutex_);
+		//	// Release all GPU objects that still exist
+		//	for (PODVector<GPUObject*>::Iterator i = gpuObjects_.Begin(); i != gpuObjects_.End(); ++i)
+		//		(*i)->Release();
+		//	gpuObjects_.Clear();
+		//}
 
 		ResetCachedState();
 		Cleanup(GRAPHICS_CLEAR_ALL);
+
+		GetSubsystem<DrawCommandQueue>()->ClearStoredCommands();
 		impl_->Release();
 		delete impl_;
 		impl_ = nullptr;
@@ -712,7 +714,9 @@ namespace Atomic
 
 	bool Graphics::NeedParameterUpdate(ShaderParameterGroup group, const void* source)
 	{
-		return false;
+		if (!draw_command_)
+			return false;
+		return draw_command_->NeedShaderGroupUpdate(group, source);
 	}
 
 	bool Graphics::HasShaderParameter(StringHash param) const
@@ -1381,7 +1385,8 @@ namespace Atomic
 		CheckFeatureSupport();
 		SetFlushGPU(flushGPU_);
 		multiSample_ = impl_->GetMultiSample();
-		draw_command_ = GetSubsystem<DrawCommandQueue>()->CreateImmediateCommand();
+		draw_command_ = ea::shared_ptr<IDrawCommand>(REngine::graphics_create_command(this));
+		GetSubsystem<DrawCommandQueue>()->AddCommand(draw_command_);
 		return true;
 	}
 
