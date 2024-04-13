@@ -165,7 +165,7 @@ bool UIView::SetRenderToTexture(bool value, const int width, const int height)
     }
     else if (value && renderTexture_.Null())
     {
-        renderTexture_ = new Texture2D(context_);
+        renderTexture_ = new RenderTexture(context_);
         SetAutoFocus(false);
     }
 
@@ -186,7 +186,8 @@ bool UIView::SetSize(int width, int height)
 
     if (renderTexture_.NotNull())
     {
-        renderTexture_->SetSize(width, height, graphics_->GetRGBAFormat(), Atomic::TEXTURE_RENDERTARGET);
+        renderTexture_->SetSize(width, height);
+        renderTexture_->SetFormat(graphics_->GetRGBAFormat());
         renderTexture_->SetFilterMode(FILTER_BILINEAR);
         renderTexture_->SetAddressMode(COORD_U, ADDRESS_CLAMP);
         renderTexture_->SetAddressMode(COORD_V, ADDRESS_CLAMP);
@@ -262,7 +263,7 @@ void UIView::Render(VertexBuffer* buffer, const PODVector<UIBatch>& batches, uns
 
     if (renderTexture_)
     {
-        graphics_->SetRenderTarget(0, renderTexture_->GetRenderSurface());
+        graphics_->SetRenderTarget(0, renderTexture_);
     }
 
     graphics_->SetViewport(rect);

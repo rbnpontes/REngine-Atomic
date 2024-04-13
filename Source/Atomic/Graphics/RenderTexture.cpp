@@ -19,8 +19,6 @@ namespace Atomic
 	{
 		back_buffer_ = ea::MakeShared<Texture2D>(context);
 		depth_stencil_ = ea::MakeShared<Texture2D>(context);
-		render_surface_ = ea::MakeShared<RenderSurface>(back_buffer_->GetRenderSurface());
-		render_surface_->SetLinkedDepthStencil(depth_stencil_->GetRenderSurface());
 	}
 
 	RenderTexture::~RenderTexture()
@@ -165,6 +163,8 @@ namespace Atomic
 	}
 	ea::shared_ptr<RenderSurface> RenderTexture::GetRenderSurface()
 	{
+		if(!render_surface_)
+			dirty_ = true;
 		UpdateBuffers();
 		return render_surface_;
 	}
@@ -221,6 +221,8 @@ namespace Atomic
 			return;
 		back_buffer_->SetSize(size_.x_, size_.y_, format_, TEXTURE_RENDERTARGET, multi_sample_, true);
 		depth_stencil_->SetSize(size_.x_, size_.y_, depth_format_, TEXTURE_DEPTHSTENCIL);
+		render_surface_ = ea::MakeShared<RenderSurface>(back_buffer_->GetRenderSurface());
+		render_surface_->SetLinkedDepthStencil(depth_stencil_->GetRenderSurface());
 		dirty_ = false;
 	}
 }
