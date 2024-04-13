@@ -1,6 +1,0 @@
-[submodule "Submodules/CEF"]
-	path = Submodules/CEF
-	url = https://github.com/rbnpontes/CEF3Binaries
-[submodule "Submodules/REngineExamples"]
-	path = Submodules/REngineExamples
-	url = https://github.com/rbnpontes/REngineExamples
