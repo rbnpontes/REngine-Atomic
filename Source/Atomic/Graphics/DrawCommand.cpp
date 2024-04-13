@@ -10,6 +10,7 @@
 #include "./IndexBuffer.h"
 #include "./ShaderVariation.h"
 #include "./ShaderProgram.h"
+#include "./RenderTexture.h"
 
 #include "../RHI/RenderCommand.h"
 #include "../RHI/PipelineStateBuilder.h"
@@ -436,6 +437,10 @@ namespace REngine
 			};
 			dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::textures);
 		}
+		void SetTexture(TextureUnit unit, RenderTexture* texture) override
+		{
+			SetTexture(unit, texture->GetBackBuffer().get());
+		}
 		bool HasTexture(TextureUnit unit) override
 		{
 			if (unit >= MAX_TEXTURE_UNITS || !shader_program_)
@@ -483,6 +488,11 @@ namespace REngine
 				SetRenderTarget(index, texture->GetRenderSurface());
 			else
 				SetRenderTarget(index, static_cast<RenderSurface*>(nullptr));
+		}
+		void SetRenderTarget(u8 index, RenderTexture* texture) override
+		{
+			SetDepthStencil(texture->GetDepthStencil().get());
+			SetRenderTarget(index, texture->GetBackBuffer().get());
 		}
 		void SetDepthStencil(RenderSurface* surface) override
 		{

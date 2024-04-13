@@ -3068,7 +3068,7 @@ void View::RenderShadowMap(const LightBatchQueue& queue)
     ATOMIC_PROFILE(RenderShadowMap);
 
     Texture2D* shadowMap = queue.shadowMap_;
-    graphics_->SetTexture(TU_SHADOWMAP, 0);
+    graphics_->ResetTexture(TU_SHADOWMAP);
 
     graphics_->SetFillMode(FILL_SOLID);
     graphics_->SetClipPlane(false);

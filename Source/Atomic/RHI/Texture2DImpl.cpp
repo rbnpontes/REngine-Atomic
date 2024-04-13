@@ -30,7 +30,7 @@ namespace Atomic
             for (unsigned i = 0; i < MAX_TEXTURE_UNITS; ++i)
             {
                 if (graphics_->GetTexture(i) == this)
-                    graphics_->SetTexture(i, nullptr);
+                    graphics_->ResetTexture(i);
             }
         }
 

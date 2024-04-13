@@ -17,6 +17,7 @@ namespace Atomic
 	class Texture;
 	class Texture2D;
 	class TextureCube;
+	class RenderTexture;
 	class RenderSurface;
 
 	typedef Diligent::VALUE_TYPE ValueType;
@@ -139,12 +140,16 @@ namespace Atomic
 		virtual void SetTexture(TextureUnit unit, Texture* texture) =0;
 		/// Bound render target by unit
 		virtual void SetTexture(TextureUnit unit, RenderSurface* surface) =0;
+		/// Bound render texture by unit
+		virtual void SetTexture(TextureUnit unit, RenderTexture* texture) =0;
 		/// Test if current shaders have a texture bound to a unit.
 		virtual bool HasTexture(TextureUnit unit) =0;
 		/// Bound render target.
 		virtual void SetRenderTarget(u8 index, RenderSurface* surface) = 0;
 		/// Bound texture as render target. NOTE: texture must be created as render target.
 		virtual void SetRenderTarget(u8 index, Texture2D* texture) = 0;
+		/// Bound render texture as render target.
+		virtual void SetRenderTarget(u8 index, RenderTexture* texture) = 0;
 		/// Bound depth stencil
 		virtual void SetDepthStencil(RenderSurface* surface) = 0;
 		/// Bound texture as depth stencil. NOTE: texture must be created as render target.

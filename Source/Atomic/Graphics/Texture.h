@@ -183,13 +183,9 @@ public:
     static TextureFormat GetSRVFormat(TextureFormat format);
     /// Return the depth-stencil view format corresponding to a texture format. Handles conversion of typeless depth texture formats. Only used on Direct3D11.
     static TextureFormat GetDSVFormat(TextureFormat format);
-#ifndef RENGINE_DILIGENT
-    /// Return the non-internal texture format corresponding to an OpenGL internal format.
-    static unsigned GetExternalFormat(unsigned format);
-    /// Return the data type corresponding to an OpenGL internal format.
-    static unsigned GetDataType(unsigned format);
-#endif
 
+    static const char** GetTextureAddressModeNames();
+    static const char** GetTextureFilterModeNames();
 protected:
     /// Check whether texture memory budget has been exceeded. Free unused materials in that case to release the texture references.
     void CheckTextureBudget(StringHash type);

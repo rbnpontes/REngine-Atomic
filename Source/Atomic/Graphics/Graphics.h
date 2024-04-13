@@ -62,6 +62,7 @@ class TextureCube;
 class Vector3;
 class Vector4;
 class VertexBuffer;
+class RenderTexture;
 
 struct ShaderParameter;
     
@@ -196,7 +197,9 @@ public:
     /// Clear remembered transform shader parameter sources.
     void ClearTransformSources();
     /// Set texture.
-    void SetTexture(unsigned index, Texture* texture) const;
+    void SetTexture(u32 index, Texture* texture) const;
+    /// Set render texture
+    void SetTexture(u32 index, RenderTexture* texture) const;
     /// Bind texture unit 0 for update. Called by Texture. Used only on OpenGL.
     void SetTextureForUpdate(Texture* texture);
     /// Dirty texture parameters of all textures (when global settings change.)
@@ -211,10 +214,14 @@ public:
     void ResetRenderTarget(unsigned index) const;
     /// Reset depth-stencil surface.
     void ResetDepthStencil() const;
+    /// Reset texture
+    void ResetTexture(u32 index) const;
     /// Set rendertarget.
     void SetRenderTarget(unsigned index, RenderSurface* renderTarget) const;
     /// Set rendertarget.
     void SetRenderTarget(unsigned index, Texture2D* texture) const;
+    /// Set rendertarget.
+    void SetRenderTarget(unsigned index, RenderTexture* texture) const;
     /// Set depth-stencil surface.
     void SetDepthStencil(RenderSurface* depthStencil) const;
     /// Set depth-stencil surface.

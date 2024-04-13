@@ -751,6 +751,13 @@ namespace Atomic
 		draw_command_->SetTexture(static_cast<TextureUnit>(index), texture);
 	}
 
+	void Graphics::SetTexture(u32 index, RenderTexture* texture) const
+	{
+		if(!draw_command_)
+			return;
+		draw_command_->SetTexture(static_cast<TextureUnit>(index), texture);
+	}
+
 	void SetTextureForUpdate(Texture* texture)
 	{
 		// No-op on Direct3D11
@@ -810,6 +817,13 @@ namespace Atomic
 		SetDepthStencil(static_cast<RenderSurface*>(nullptr));
 	}
 
+	void Graphics::ResetTexture(u32 slot) const
+	{
+		if (!draw_command_)
+			return;
+		draw_command_->SetTexture(static_cast<TextureUnit>(slot), static_cast<Texture2D*>(nullptr));
+	}
+
 	void Graphics::SetRenderTarget(unsigned index, RenderSurface* renderTarget) const
 	{
 		if(!draw_command_)
@@ -818,6 +832,13 @@ namespace Atomic
 	}
 
 	void Graphics::SetRenderTarget(unsigned index, Texture2D* texture) const
+	{
+		if(!draw_command_)
+			return;
+		draw_command_->SetRenderTarget(index, texture);
+	}
+
+	void Graphics::SetRenderTarget(u32 index, RenderTexture* texture) const
 	{
 		if(!draw_command_)
 			return;

@@ -55,6 +55,16 @@ static const char* filterModeNames[] =
     0
 };
 
+const char** Texture::GetTextureAddressModeNames()
+{
+    return addressModeNames;
+}
+
+const char** Texture::GetTextureFilterModeNames()
+{
+	return filterModeNames;
+}
+
 Texture::Texture(Context* context) :
     ResourceWithMetadata(context),
     GPUObject(GetSubsystem<Graphics>()),
