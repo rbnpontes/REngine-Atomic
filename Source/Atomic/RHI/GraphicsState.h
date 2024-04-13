@@ -71,6 +71,4 @@ namespace REngine
     void graphics_state_set_vertex_declaration(const uint32_t id, const Atomic::SharedPtr<VertexDeclaration>& declaration);
     void graphics_state_release_vertex_declarations();
     uint32_t graphics_state_vertex_declarations_count();
-
-    RenderCommandState* default_render_command_get();
 }

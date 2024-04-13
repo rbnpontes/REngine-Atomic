@@ -13,6 +13,7 @@
 
 #include <DiligentCore/Common/interface/ObjectBase.hpp>
 
+#include "Core/Profiler.h"
 #include "Graphics/Graphics.h"
 
 namespace REngine
@@ -278,9 +279,12 @@ namespace REngine
 
     void DriverInstance::UploadBufferChanges()
     {
-        for (auto buffer : constant_buffers_)
+        for (const auto& buffer : constant_buffers_)
+        {
+            ATOMIC_PROFILE(DriverInstance::UploadBufferChanges);
             if (buffer && buffer->IsDirty())
                 buffer->Apply();
+        }
     }
 
     void DriverInstance::ClearConstantBuffers()

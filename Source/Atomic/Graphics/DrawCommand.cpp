@@ -50,8 +50,7 @@ namespace REngine
 			vertex_buffers_({}),
 			vertex_offsets_({}),
 			params_2_update_({}),
-			shader_param_sources_({}),
-			frame_count_(0)
+			shader_param_sources_({})
 
 		{
 			pipeline_info_ = new PipelineStateInfo();
@@ -64,10 +63,8 @@ namespace REngine
 
 		void Reset() override
 		{
-			++frame_count_;
 			*pipeline_info_ = PipelineStateInfo{};
-			pipeline_info_->output.render_target_formats.fill(Diligent::TEX_FORMAT_UNKNOWN);
-
+			
 			const auto wnd_size = graphics_->GetRenderTargetDimensions();
 			viewport_ = IntRect(0, 0, wnd_size.x_, wnd_size.y_);
 
@@ -177,6 +174,7 @@ namespace REngine
 		}
 		void SetVertexBuffer(VertexBuffer* buffer) override
 		{
+			ATOMIC_PROFILE(IDrawCommand::SetVertexBuffer);
 			if(vertex_buffers_[0].get() == buffer)
 				return;
 
@@ -196,6 +194,7 @@ namespace REngine
 		}
 		void SetIndexBuffer(IndexBuffer* buffer) override
 		{
+			ATOMIC_PROFILE(IDrawCommand::SetIndexBuffer);
 			if(index_buffer_.get() == buffer)
 				return;
 			index_buffer_ = ea::MakeShared(buffer);
@@ -206,6 +205,7 @@ namespace REngine
 		}
 		void SetShaders(const DrawCommandShadersDesc& desc) override
 		{
+			ATOMIC_PROFILE(IDrawCommand::SetShaders);
 			// TODO: add support for other shaders
 			static ShaderVariation* s_shaders[MAX_SHADER_TYPES] = {};
 			s_shaders[VS] = desc.vs;
@@ -943,6 +943,7 @@ namespace REngine
 	private:
 		bool PrepareRenderTargets()
 		{
+			ATOMIC_PROFILE(IDrawCommand::PrepareRenderTargets);
 			if ((dirty_flags_ & static_cast<u32>(RenderCommandDirtyState::render_targets)) == 0)
 				return false;
 			// Remove dirty state
@@ -1002,6 +1003,7 @@ namespace REngine
 		}
 		bool PrepareDepthStencil()
 		{
+			ATOMIC_PROFILE(IDrawCommand::PrepareDepthStencil);
 			if (dirty_flags_ & static_cast<u32>(RenderCommandDirtyState::render_targets) == 0)
 				return false;
 
@@ -1027,6 +1029,7 @@ namespace REngine
 		}
 		void PreparePipelineState()
 		{
+			ATOMIC_PROFILE(IDrawCommand::PreparePipelineState);
 			if ((dirty_flags_ & static_cast<u32>(RenderCommandDirtyState::pipeline)) == 0)
 				return;
 
@@ -1037,7 +1040,8 @@ namespace REngine
 			curr_pipeline_hash_ = hash;
 			dirty_flags_ ^= static_cast<u32>(RenderCommandDirtyState::pipeline);
 			// If pipeline state is changed, we need to update shader resource binding.
-			dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::srb);
+			dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::srb)
+				| static_cast<u32>(RenderCommandDirtyState::commit_pipeline);
 		}
 		void PrepareSRB()
 		{
@@ -1054,6 +1058,7 @@ namespace REngine
 			create_desc.driver = graphics_->GetImpl();
 			shader_resource_binding_ = pipeline_state_builder_get_or_create_srb(create_desc);
 			dirty_flags_ ^= static_cast<u32>(RenderCommandDirtyState::srb);
+			dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::commit_srb);
 		}
 		void PrepareVertexBuffers()
 		{
@@ -1123,6 +1128,7 @@ namespace REngine
 		}
 		void PrepareVertexDeclarations()
 		{
+			ATOMIC_PROFILE(IDrawCommand::PrepareVertexDeclarations);
 			if((dirty_flags_ & static_cast<u32>(RenderCommandDirtyState::vertex_decl)) == 0)
 				return;
 			dirty_flags_ ^= static_cast<u32>(RenderCommandDirtyState::vertex_decl);
@@ -1207,7 +1213,7 @@ namespace REngine
 
 			for(;!params_2_update_.empty(); params_2_update_.pop())
 			{
-				const auto& desc = params_2_update_.front();
+				auto& desc = params_2_update_.front();
 				ShaderParameter parameter;
 				if(!shader_program_->GetParameter(desc.name, &parameter))
 				{
@@ -1219,7 +1225,7 @@ namespace REngine
 				if(!buffer)
 					continue;
 
-				render_command_write_param(buffer, parameter.offset_, desc.value);
+				render_command_write_param(buffer, parameter.offset_, &desc.value);
 			}
 
 			ea::swap(s_empty_params_queue, params_2_update_);
@@ -1286,16 +1292,22 @@ namespace REngine
 			static constexpr float s_blend_factors[] = { .0f, .0f, .0f, .0f };
 			context_->SetBlendFactors(s_blend_factors);
 
-			if(pipeline_state_)
+			if(pipeline_state_ && dirty_flags_ & static_cast<u32>(RenderCommandDirtyState::commit_pipeline))
+			{
+				dirty_flags_ ^= static_cast<u32>(RenderCommandDirtyState::commit_pipeline);
 				context_->SetPipelineState(pipeline_state_);
-			if(shader_resource_binding_)
+			}
+			if(shader_resource_binding_ && dirty_flags_ & static_cast<u32>(RenderCommandDirtyState::commit_srb))
+			{
+				dirty_flags_ ^= static_cast<u32>(RenderCommandDirtyState::commit_srb);
 				context_->CommitShaderResources(shader_resource_binding_, RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
+			}
 		}
 		void BoundRenderTargets() const
 		{
 			context_->SetRenderTargets(s_num_rts, s_render_targets.data(), s_depth_stencil, Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
 		}
-		void ClearByHardware(const DrawCommandClearDesc& desc)
+		void ClearByHardware(const DrawCommandClearDesc& desc) const
 		{
 			ATOMIC_PROFILE(IDrawCommand::ClearByHardware);
 				
@@ -1312,7 +1324,7 @@ namespace REngine
 				context_->ClearDepthStencil(s_depth_stencil, 
 					clear_stencil_flags, 
 					desc.depth, 
-					desc.stencil, 
+					static_cast<u8>(desc.stencil), 
 					Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
 			}
 		}
@@ -1469,7 +1481,6 @@ namespace REngine
 			return size == sizeof(u16) ? Diligent::VT_UINT16 : Diligent::VT_UINT32;
 		}
 
-		u32 frame_count_;
 		Graphics* graphics_;
 		Diligent::IDeviceContext* context_;
 		PipelineStateInfo* pipeline_info_;
