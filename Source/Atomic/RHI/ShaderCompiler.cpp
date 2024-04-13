@@ -485,7 +485,7 @@ namespace REngine
             }
         }
 
-        output.input_elements.Resize(resources.stage_inputs.size());
+        output.input_elements.resize(resources.stage_inputs.size());
         unsigned idx = 0;
         for (const auto& input : resources.stage_inputs)
         {
@@ -601,7 +601,7 @@ namespace REngine
         file_header.parameters_count = desc.reflect_info->parameters.Size();
         file_header.textures_count = desc.reflect_info->samplers.Size();
         file_header.constant_buffers_count = desc.reflect_info->constant_buffers.Size();
-        file_header.input_elements_count = desc.reflect_info->input_elements.Size();
+        file_header.input_elements_count = desc.reflect_info->input_elements.size();
         file_header.input_elements_hash = desc.reflect_info->element_hash;
         constexpr auto header_size = sizeof(ShaderFileHeader);
 
@@ -821,7 +821,7 @@ namespace REngine
                 result.reflect_info.constant_buffer_sizes[buffer_desc.parameter_group] = buffer_desc.size;
         }
 
-        result.reflect_info.input_elements.Resize(file_header->input_elements_count);
+        result.reflect_info.input_elements.resize(file_header->input_elements_count);
         for(uint32_t i =0; i < file_header->input_elements_count; ++i)
         {
             const auto& input_element = input_elements[i];

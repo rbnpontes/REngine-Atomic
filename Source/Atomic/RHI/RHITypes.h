@@ -257,7 +257,7 @@ namespace REngine
         Atomic::HashMap<Atomic::StringHash, Atomic::ShaderParameter> parameters{};
 
         uint64_t element_hash{};
-        Atomic::Vector<ShaderCompilerReflectInputElement> input_elements{};
+        ea::vector<ShaderCompilerReflectInputElement> input_elements{};
     };
 
 	struct ShaderCompilerHlslDesc

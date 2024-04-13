@@ -524,6 +524,7 @@ namespace Atomic
 			return;
 
 		draw_command_->SetPrimitiveType(type);
+		draw_command_->SetIndexBuffer(nullptr);
 		DrawCommandDrawDesc desc = {};
 		desc.vertex_start = vertexStart;
 		desc.vertex_count = vertexCount;

@@ -44,7 +44,7 @@ namespace REngine
 			enable_clip_planes_(false),
 			curr_pipeline_hash_(0),
 			curr_vertx_decl_hash_(0),
-			curr_vertex_buffer_hash(0),
+			curr_vertex_buffer_hash_(0),
 			num_batches_(0),
 			primitive_count_(0),
 			vertex_buffers_({}),
@@ -90,7 +90,7 @@ namespace REngine
 
 			enable_clip_planes_ = false;
 			clip_plane_ = Vector4::ZERO;
-			curr_pipeline_hash_ = curr_vertex_buffer_hash = curr_vertx_decl_hash_ = 0u;
+			curr_pipeline_hash_ = curr_vertex_buffer_hash_ = curr_vertx_decl_hash_ = 0u;
 
 			dirty_flags_ = static_cast<u32>(RenderCommandDirtyState::all);
 			num_batches_ = 0;
@@ -173,7 +173,7 @@ namespace REngine
 			vertex_offsets_.fill(0);
 			vertex_buffers_.fill(nullptr);
 			vertex_buffers_[0] = ea::MakeShared(buffer);
-			curr_vertex_buffer_hash = MakeHash(buffer);
+			curr_vertex_buffer_hash_ = MakeHash(buffer);
 			dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::vertex_buffer);
 		}
 		void SetVertexBuffers(const PODVector<VertexBuffer*> buffers, u32 instance_offset) override
@@ -225,7 +225,7 @@ namespace REngine
 					continue;
 
 				if(i == VS)
-					dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::vertex_decl);
+					dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::vertex_decl) | static_cast<u32>(RenderCommandDirtyState::vertex_buffer);
 				changed = true;
 				break;
 			}
@@ -252,13 +252,13 @@ namespace REngine
 
 			const auto vs_shader = s_shaders[VS];
 			const auto ps_shader = s_shaders[PS];
+			/*auto gs_shader = desc.gs;
+			auto ds_shader = desc.ds;
+			auto hs_shader = desc.hs;*/
 
 			pipeline_info_->vs_shader = vs_shader;
 			pipeline_info_->ps_shader = ps_shader;
 			dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::pipeline);
-			/*auto gs_shader = desc.gs;
-			auto ds_shader = desc.ds;
-			auto hs_shader = desc.hs;*/
 
 			if(vs_shader && ps_shader)
 			{
@@ -1048,10 +1048,10 @@ namespace REngine
 		{
 			ATOMIC_PROFILE(IDrawCommand::PrepareVertexBuffers);
 			// Other Draw Commands can change vertex buffer, so we need to check if it is changed.
-			if(s_vertex_buffer_hash != curr_vertex_buffer_hash)
+			if(s_vertex_buffer_hash != curr_vertex_buffer_hash_)
 			{
 				dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::vertex_buffer);
-				s_vertex_buffer_hash = curr_vertex_buffer_hash;
+				s_vertex_buffer_hash = curr_vertex_buffer_hash_;
 			}
 
 			if((dirty_flags_ & static_cast<u32>(RenderCommandDirtyState::vertex_buffer)) == 0)
@@ -1397,25 +1397,25 @@ namespace REngine
 			if (count > MAX_VERTEX_STREAMS)
 				ATOMIC_LOGWARNING("Too many vertex buffers");
 
-			curr_vertex_buffer_hash = 0;
+			curr_vertex_buffer_hash_ = 0;
 			count = Min(count, MAX_VERTEX_STREAMS);
 			for(u32 i =0; i < MAX_VERTEX_STREAMS; ++i)
 			{
-				bool changed = false;
-				auto buffer = i < count ? buffers[i] : nullptr;
+				const auto buffer = i < count ? buffers[i] : nullptr;
 
 				if(buffer)
 				{
-					CombineHash(curr_vertex_buffer_hash, MakeHash(buffer));
+					CombineHash(curr_vertex_buffer_hash_, MakeHash(buffer));
+					CombineHash(curr_vertex_buffer_hash_, buffer->GetBufferHash(i));
 					const auto& elements = buffer->GetElements();
 					// Check if buffer has per-instance data
 					const auto has_instance_data = elements.Size() && elements[0].perInstance_;
 					const auto offset = has_instance_data ? instance_offset * buffer->GetVertexSize() : 0;
 
-					if(buffer != vertex_buffers_[i].get())
+					if(buffer != vertex_buffers_[i].get() || offset != vertex_offsets_[i])
 						dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::vertex_buffer);
 					vertex_buffers_[i] = ea::MakeShared(buffer);
-					vertex_offsets_[i] = instance_offset;
+					vertex_offsets_[i] = offset;
 					continue;
 				}
 
@@ -1493,7 +1493,7 @@ namespace REngine
 		u32 dirty_flags_{};
 
 		u32 curr_vertx_decl_hash_{};
-		u32 curr_vertex_buffer_hash{};
+		u32 curr_vertex_buffer_hash_{};
 		u32 curr_pipeline_hash_{};
 
 		u32 primitive_count_;
