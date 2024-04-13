@@ -61,5 +61,7 @@ namespace REngine
 			input_element.instance_step_rate = 0;
 			++input_layout_desc_.num_elements;
 		}
+
+		assert(input_layout_desc_.num_elements < Diligent::MAX_LAYOUT_ELEMENTS);
 	}
 }

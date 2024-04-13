@@ -56,7 +56,7 @@ namespace REngine
 		{
 			pipeline_info_ = new PipelineStateInfo();
 		}
-		~DrawCommandImpl()
+		~DrawCommandImpl() override
 		{
 			// TODO: clear static states too
 			delete pipeline_info_;
@@ -197,14 +197,13 @@ namespace REngine
 		void SetShaders(const DrawCommandShadersDesc& desc) override
 		{
 			// TODO: add support for other shaders
-			static ShaderVariation* s_shaders[MAX_SHADER_TYPES] = {
-				desc.vs,
-				desc.ps,
-			};
-			static ShaderVariation* s_pipeline_shaders[MAX_SHADER_TYPES] = {
-				pipeline_info_->vs_shader,
-				pipeline_info_->ps_shader,
-			};
+			static ShaderVariation* s_shaders[MAX_SHADER_TYPES] = {};
+			s_shaders[VS] = desc.vs;
+			s_shaders[PS] = desc.ps;
+
+			static ShaderVariation* s_pipeline_shaders[MAX_SHADER_TYPES] = {};
+			s_pipeline_shaders[VS] = pipeline_info_->vs_shader;
+			s_pipeline_shaders[PS] = pipeline_info_->ps_shader;
 
 			if(enable_clip_planes_)
 			{
@@ -224,6 +223,9 @@ namespace REngine
 			{
 				if(s_shaders[i] == s_pipeline_shaders[i])
 					continue;
+
+				if(i == VS)
+					dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::vertex_decl);
 				changed = true;
 				break;
 			}
@@ -434,10 +436,10 @@ namespace REngine
 			if (index >= MAX_RENDERTARGETS)
 				return;
 
-			if (render_targets_[index] == surface)
+			if (render_targets_[index].get() == surface)
 				return;
 
-			render_targets_[index] = surface;
+			render_targets_[index] = ea::MakeShared(surface);
 			dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::render_targets);
 
 			if (!surface)
@@ -474,15 +476,19 @@ namespace REngine
 		void SetDepthStencil(RenderSurface* surface) override
 		{
 			ATOMIC_PROFILE(IDrawCommand::SetDepthStencil);
-			if(depth_stencil_ == surface)
+			if(depth_stencil_.get() == surface)
 				return;
 
-			depth_stencil_ = surface;
+			depth_stencil_ = ea::MakeShared(surface);
 			dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::depth_stencil);
 
-			if(pipeline_info_->output.depth_stencil_format != surface->GetParentTexture()->GetFormat())
+			auto format = graphics_->GetImpl()->GetSwapChain()->GetDesc().DepthBufferFormat;
+			if(surface)
+				format = surface->GetParentTexture()->GetFormat();
+
+			if(pipeline_info_->output.depth_stencil_format != format)
 				dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::pipeline);
-			pipeline_info_->output.depth_stencil_format = surface->GetParentTexture()->GetFormat();
+			pipeline_info_->output.depth_stencil_format = format;
 		}
 		void SetDepthStencil(Texture2D* texture) override
 		{
@@ -800,11 +806,11 @@ namespace REngine
 		{
 			if(index >= MAX_RENDERTARGETS)
 				return nullptr;
-			return render_targets_[index];
+			return render_targets_[index].get();
 		}
 		RenderSurface* GetDepthStencil() override
 		{
-			return depth_stencil_;
+			return depth_stencil_.get();
 		}
 		PrimitiveType GetPrimitiveType() override
 		{
@@ -952,9 +958,10 @@ namespace REngine
 			}
 
 			const auto wnd_size = graphics_->GetRenderTargetDimensions();
+			const auto depth_stencil = depth_stencil_;
 			const auto depth_stencil_size = IntVector2(
-				depth_stencil_ ? depth_stencil_->GetWidth() : 0, 
-				depth_stencil_ ? depth_stencil_->GetHeight() : 0
+				depth_stencil ? depth_stencil->GetWidth() : 0, 
+				depth_stencil ? depth_stencil->GetHeight() : 0
 			);
 
 			if(pipeline_info_->output.num_rts != s_num_rts)
@@ -964,7 +971,7 @@ namespace REngine
 			if (s_num_rts > 0) 
 				return true;
 
-			if (depth_stencil_ && depth_stencil_size != wnd_size)
+			if (depth_stencil && depth_stencil_size != wnd_size)
 				return true;
 
 			s_num_rts = 1;
@@ -1458,11 +1465,11 @@ namespace REngine
 		Diligent::RefCntAutoPtr<Diligent::IPipelineState> pipeline_state_;
 		Diligent::RefCntAutoPtr<Diligent::IShaderResourceBinding> shader_resource_binding_;
 
-		WeakPtr<RenderSurface> depth_stencil_;
+		ea::shared_ptr<RenderSurface> depth_stencil_;
 		ea::queue<ShaderParameterUpdateDesc> params_2_update_;
 
 		// arrays
-		ea::array<WeakPtr<RenderSurface>, MAX_RENDERTARGETS> render_targets_;
+		ea::array<ea::shared_ptr<RenderSurface>, MAX_RENDERTARGETS> render_targets_;
 		ea::array<ShaderResourceTextureDesc, MAX_TEXTURE_UNITS> textures_;
 		ea::array<ea::shared_ptr<VertexBuffer>, MAX_VERTEX_STREAMS> vertex_buffers_;
 		ea::array<u64, MAX_VERTEX_STREAMS> vertex_offsets_;

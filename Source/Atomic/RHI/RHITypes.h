@@ -8,6 +8,8 @@
 #include <DiligentCore/Graphics/GraphicsEngine/interface/TextureView.h>
 #include <DiligentCore/Common/interface/RefCntAutoPtr.hpp>
 
+#include "InputLayout.h"
+
 namespace Atomic
 {
 	class ShaderVariation;
@@ -42,7 +44,7 @@ namespace REngine
     struct InputLayoutDesc
     {
         unsigned num_elements{};
-        ea::array<InputLayoutElementDesc, Atomic::MAX_VERTEX_STREAMS> elements;
+        ea::array<InputLayoutElementDesc, Diligent::MAX_LAYOUT_ELEMENTS> elements;
 
         InputLayoutDesc()
         {
