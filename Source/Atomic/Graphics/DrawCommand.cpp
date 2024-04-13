@@ -103,14 +103,24 @@ namespace REngine
 			ATOMIC_PROFILE(IDrawCommand::Clear);
 			const auto rt_size = graphics_->GetRenderTargetDimensions();
 
-			PrepareClear();
-
 			if(!viewport_.left_ && !viewport_.top_ && viewport_.right_ == rt_size.x_ && viewport_.bottom_ == rt_size.y_)
 			{
+				const auto old_depth_write = pipeline_info_->depth_write_enabled;
+				const auto old_dirty_flags = dirty_flags_;
+
+				pipeline_info_->depth_write_enabled = true;
+				PrepareClear();
+
+				pipeline_info_->depth_write_enabled = old_depth_write;
+				// if previous dirty flags does not change pipeline. then we must remove pipeline from dirty flags
+				if(old_dirty_flags & static_cast<u32>(RenderCommandDirtyState::pipeline) == 0)
+					dirty_flags_ ^= static_cast<u32>(RenderCommandDirtyState::pipeline);
+
 				ClearByHardware(desc);
 				return;
 			}
 
+			PrepareClear();
 			ClearBySoftware(desc);
 		}
 		void Draw(const DrawCommandDrawDesc& desc) override
@@ -416,11 +426,12 @@ namespace REngine
 			if (texture == textures_[unit].owner.get())
 				return;
 
+			const auto view = texture ? texture->GetShaderResourceView() : RefCntAutoPtr<ITextureView>();
 			textures_[unit] = {
 				nullptr,
 				StringHash::ZERO,
 				unit,
-				texture->GetShaderResourceView(),
+				view,
 				ea::MakeShared(texture)
 			};
 			dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::textures);
@@ -480,7 +491,7 @@ namespace REngine
 				return;
 
 			depth_stencil_ = ea::MakeShared(surface);
-			dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::depth_stencil);
+			dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::render_targets);
 
 			auto format = graphics_->GetImpl()->GetSwapChain()->GetDesc().DepthBufferFormat;
 			if(surface)
@@ -957,7 +968,7 @@ namespace REngine
 				++s_num_rts;
 			}
 
-			const auto wnd_size = graphics_->GetRenderTargetDimensions();
+			const auto wnd_size = graphics_->GetSize();
 			const auto depth_stencil = depth_stencil_;
 			const auto depth_stencil_size = IntVector2(
 				depth_stencil ? depth_stencil->GetWidth() : 0, 
@@ -979,6 +990,7 @@ namespace REngine
 
 			if(s_num_rts != pipeline_info_->output.num_rts)
 				dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::pipeline);
+			pipeline_info_->output.num_rts = s_num_rts;
 
 			if (pipeline_info_->output.render_target_formats[0] == s_render_targets[0]->GetTexture()->GetDesc().Format)
 				return true;
@@ -990,11 +1002,10 @@ namespace REngine
 		}
 		bool PrepareDepthStencil()
 		{
-			if (dirty_flags_ & static_cast<u32>(RenderCommandDirtyState::depth_stencil) == 0)
+			if (dirty_flags_ & static_cast<u32>(RenderCommandDirtyState::render_targets) == 0)
 				return false;
-			dirty_flags_ ^= static_cast<u32>(RenderCommandDirtyState::depth_stencil);
 
-			auto depth_stencil = depth_stencil_ ? 
+			auto depth_stencil = depth_stencil_ && depth_stencil_->GetUsage() == TEXTURE_DEPTHSTENCIL ?
 				depth_stencil_->GetRenderTargetView() :
 				graphics_->GetImpl()->GetSwapChain()->GetDepthBufferDSV();
 			const auto wnd_size = graphics_->GetRenderTargetDimensions();

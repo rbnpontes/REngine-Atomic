@@ -3080,7 +3080,7 @@ void View::RenderShadowMap(const LightBatchQueue& queue)
     // The shadow map is a depth stencil texture
     if (shadowMap->GetUsage() == TEXTURE_DEPTHSTENCIL)
     {
-        ATOMIC_PROFILE(RenderShadowMap_Clear);
+        ATOMIC_PROFILE(RenderShadowMap::Clear);
         graphics_->SetColorWrite(false);
         graphics_->SetDepthStencil(shadowMap);
         graphics_->SetRenderTarget(0, shadowMap->GetRenderSurface()->GetLinkedRenderTarget());
@@ -3092,7 +3092,7 @@ void View::RenderShadowMap(const LightBatchQueue& queue)
     }
     else // if the shadow map is a color rendertarget
     {
-        ATOMIC_PROFILE(RenderShadowMap_Clear);
+        ATOMIC_PROFILE(RenderShadowMap::Clear);
         graphics_->SetColorWrite(true);
         graphics_->SetRenderTarget(0, shadowMap);
         // Disable other render targets
