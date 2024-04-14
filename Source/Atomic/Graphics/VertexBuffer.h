@@ -58,7 +58,9 @@ public:
     bool SetData(const void* data);
     /// Set a data range in the buffer. Optionally discard data outside the range.
     bool SetDataRange(const void* data, unsigned start, unsigned count, bool discard = false);
-    /// Lock the buffer for write-only editing. Return data pointer if successful. Optionally discard data outside the range.
+    /// Set buffer debug name
+    void SetDebugName(const ea::string& name) { debug_name_ = name; }
+	/// Lock the buffer for write-only editing. Return data pointer if successful. Optionally discard data outside the range.
     void* Lock(unsigned start, unsigned count, bool discard = false);
     /// Unlock the buffer and apply changes to the GPU buffer.
     void Unlock();
@@ -71,6 +73,9 @@ public:
 
     /// Return whether is currently locked.
     bool IsLocked() const { return lockState_ != LOCK_NONE; }
+
+    /// Return buffer debug name
+    const ea::string& GetDebugName() const { return debug_name_; }
 
     /// Return number of vertices.
     unsigned GetVertexCount() const { return vertexCount_; }
@@ -172,6 +177,8 @@ private:
     bool discardLock_;
 
     void* gpu_map_ptr_;
+
+    ea::string debug_name_;
 };
 
 }

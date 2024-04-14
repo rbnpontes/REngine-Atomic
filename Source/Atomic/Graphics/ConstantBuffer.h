@@ -59,11 +59,12 @@ public:
 
     /// Return whether has unapplied data.
     bool IsDirty() const { return dirty_; }
-
-#if RENGINE_DILIGENT
+    /// / Mark buffer as dirty.
+    void MakeDirty() { dirty_ = true; }
+    /// Set constant buffer debug name.
     void SetDebugName(const String& name) { dbg_name_ = name; }
+    /// Get constant buffer debug name.
     String GetDebugName() const { return dbg_name_; }
-#endif
 private:
     /// Shadow data.
     SharedArrayPtr<unsigned char> shadowData_;

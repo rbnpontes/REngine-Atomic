@@ -64,6 +64,7 @@ UIView::UIView(Context* context) : UIWidget(context, false),
     widget_->SetSize(rect.w, rect.h);
 
     vertexBuffer_ = new VertexBuffer(context_);
+    vertexBuffer_->SetDebugName("UIView::VertexBuffer");
 
     ui_->AddUIView(this);
 
