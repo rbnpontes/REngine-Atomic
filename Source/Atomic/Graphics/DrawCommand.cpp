@@ -505,14 +505,6 @@ namespace REngine
 
 			depth_stencil_ = ea::MakeShared(surface);
 			dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::render_targets);
-
-			auto format = graphics_->GetImpl()->GetSwapChain()->GetDesc().DepthBufferFormat;
-			if(surface)
-				format = surface->GetParentTexture()->GetFormat();
-
-			if(pipeline_info_->output.depth_stencil_format != format)
-				dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::pipeline);
-			pipeline_info_->output.depth_stencil_format = format;
 		}
 		void SetDepthStencil(Texture2D* texture) override
 		{
@@ -1038,6 +1030,12 @@ namespace REngine
 			}
 
 			s_depth_stencil = depth_stencil;
+			const auto format = depth_stencil->GetDesc().Format;
+			if(format != pipeline_info_->output.depth_stencil_format)
+			{
+				pipeline_info_->output.depth_stencil_format = format;
+				dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::pipeline);
+			}
 			return true;
 		}
 		void PreparePipelineState()
