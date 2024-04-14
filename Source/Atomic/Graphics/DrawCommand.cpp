@@ -127,6 +127,9 @@ namespace REngine
 
 			PrepareDraw();
 
+			if (!pipeline_state_)
+				return;
+
 			if(index_buffer_)
 			{
 				context_->DrawIndexed({
@@ -1141,6 +1144,9 @@ namespace REngine
 			ATOMIC_PROFILE(IDrawCommand::PrepareVertexDeclarations);
 			if((dirty_flags_ & static_cast<u32>(RenderCommandDirtyState::vertex_decl)) == 0)
 				return;
+			if(pipeline_info_->vs_shader == nullptr)
+				return;
+
 			dirty_flags_ ^= static_cast<u32>(RenderCommandDirtyState::vertex_decl);
 
 			const auto vertex_decl = graphics_state_get_vertex_declaration(curr_vertx_decl_hash_);

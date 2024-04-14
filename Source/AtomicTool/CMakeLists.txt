@@ -33,19 +33,6 @@ if (ATOMIC_JAVASCRIPT OR ATOMIC_DOTNET)
                         ARGS -E copy_if_different \"$<TARGET_FILE:AtomicTool>\" \"${ATOMIC_SOURCE_DIR}/Artifacts/Build/AtomicTool/\"
                         COMMENT "Copying AtomicTool to Build Artifacts" )
 
-    if (WIN32 AND NOT RENGINE_DILIGENT)
-
-    # Copy the D3D shader compiler (for pre-Windows 8)
-    add_custom_command( TARGET AtomicTool POST_BUILD
-                        COMMAND ${CMAKE_COMMAND}
-                        ARGS -E copy_if_different \"${D3DCOMPILER_47_DLL}\" \"$<TARGET_FILE_DIR:AtomicTool>/D3DCompiler_47.dll\"
-                        COMMAND "${CMAKE_COMMAND}"
-                        ARGS -E make_directory \"${ATOMIC_SOURCE_DIR}/Artifacts/Build/AtomicTool\"
-                        COMMAND ${CMAKE_COMMAND}
-                        ARGS -E copy_if_different \"${D3DCOMPILER_47_DLL}\" \"${ATOMIC_SOURCE_DIR}/Artifacts/Build/AtomicTool/D3DCompiler_47.dll\"
-                        COMMENT "Copying D3DShader compiler to Build Artifacts" )
-    endif()
-
     add_custom_target ( GenerateScriptBindings
                         WORKING_DIRECTORY "${ATOMIC_SOURCE_DIR}"
                         COMMAND ${RENGINE_GEN_COMMAND} build:genscripts[true];--trace

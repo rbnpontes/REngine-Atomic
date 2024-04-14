@@ -691,15 +691,6 @@ namespace ToolCore
                 atomicNETNativeDLL.SetAttribute("Include", nativePath);
                 atomicNETNativeDLL.CreateChild("Link").SetValue(filename);
                 atomicNETNativeDLL.CreateChild("CopyToOutputDirectory").SetValue("PreserveNewest");
-
-#ifdef ATOMIC_PLATFORM_WINDOWS
-                XMLElement d3dCompilerDLL = itemGroup.CreateChild("None");
-                String d3dCompilerPath = relativeNativePath + configPath + "/Native/" + platform + "/D3DCompiler_47.dll";
-                d3dCompilerDLL.SetAttribute("Include", d3dCompilerPath);
-                d3dCompilerDLL.CreateChild("Link").SetValue("D3DCompiler_47.dll");
-                d3dCompilerDLL.CreateChild("CopyToOutputDirectory").SetValue("PreserveNewest");
-#endif
-
             }
 
         }

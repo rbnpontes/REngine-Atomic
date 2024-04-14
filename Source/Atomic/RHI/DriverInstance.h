@@ -19,7 +19,7 @@ namespace REngine
 {
     struct DriverInstanceInitDesc
     {
-        Atomic::GraphicsBackend backend{Atomic::GraphicsBackend::D3D11};
+        Atomic::GraphicsBackend backend{Atomic::GraphicsBackend::D3D12};
         Diligent::NativeWindow window{};
         Atomic::IntVector2 window_size{Atomic::IntVector2::ZERO};
         uint8_t multisample{0};

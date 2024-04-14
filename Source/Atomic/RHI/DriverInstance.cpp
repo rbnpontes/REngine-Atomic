@@ -124,6 +124,7 @@ namespace REngine
             {
                 const auto factory = GetEngineFactoryD3D12();
                 engine_factory_ = factory;
+                factory->LoadD3D12();
 
                 EngineD3D12CreateInfo ci = {};
 #if ATOMIC_DEBUG
@@ -132,7 +133,6 @@ namespace REngine
                 ci.GraphicsAPIVersion = { 11, 0};
                 fill_create_info(init_desc, FindBestAdapter(init_desc.adapter_id, init_desc.backend), ci);
 
-                factory->LoadD3D12();
                 factory->CreateDeviceAndContextsD3D12(ci, &render_device_, device_contexts);
                 factory->CreateSwapChainD3D12(render_device_, device_contexts[0], swap_chain_desc, {}, init_desc.window, &swap_chain_);
             }
