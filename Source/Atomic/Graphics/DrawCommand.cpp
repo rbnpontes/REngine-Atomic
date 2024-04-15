@@ -38,20 +38,22 @@ namespace REngine
 	{
 	public:
 		DrawCommandImpl(Graphics* graphics, Diligent::IDeviceContext* context) :
-			context_(context),
 			graphics_(graphics),
-			viewport_(IntRect::ZERO),
-			dirty_flags_(static_cast<u32>(RenderCommandDirtyState::all)),
-			enable_clip_planes_(false),
-			curr_pipeline_hash_(0),
-			curr_vertx_decl_hash_(0),
-			curr_vertex_buffer_hash_(0),
-			num_batches_(0),
-			primitive_count_(0),
+			context_(context),
+			params_2_update_({}),
 			vertex_buffers_({}),
 			vertex_offsets_({}),
-			params_2_update_({}),
-			shader_param_sources_({})
+			shader_param_sources_({}),
+			enable_clip_planes_(false),
+			viewport_(IntRect::ZERO),
+			dirty_flags_(static_cast<u32>(RenderCommandDirtyState::all)),
+			curr_assigned_texture_flags_(0),
+			curr_assigned_immutable_sa_flags_(0),
+			curr_vertx_decl_hash_(0),
+			curr_vertex_buffer_hash_(0),
+			curr_pipeline_hash_(0),
+			primitive_count_(0),
+			num_batches_(0)
 
 		{
 			pipeline_info_ = new PipelineStateInfo();
@@ -75,6 +77,7 @@ namespace REngine
 			depth_stencil_ = nullptr;
 			index_buffer_ = nullptr;
 			shader_resource_binding_ = nullptr;
+			curr_assigned_texture_flags_ = curr_assigned_immutable_sa_flags_ = 0;
 
 			index_type_ = ValueType::VT_UNDEFINED;
 
@@ -88,9 +91,10 @@ namespace REngine
 
 			enable_clip_planes_ = false;
 			clip_plane_ = Vector4::ZERO;
-			curr_pipeline_hash_ = curr_vertex_buffer_hash_ = curr_vertx_decl_hash_ = 0u;
+			curr_pipeline_hash_ = curr_vertex_buffer_hash_
+				= curr_vertx_decl_hash_ = 0u;
 
-			dirty_flags_ = static_cast<u32>(RenderCommandDirtyState::all);
+			textures_in_use_ = 0;
 			num_batches_ = 0;
 			primitive_count_ = 0;
 
@@ -427,6 +431,11 @@ namespace REngine
 				textures_[unit] = {};
 			}
 
+			if(texture)
+				curr_assigned_texture_flags_ |= 1 << unit;
+			else
+				curr_assigned_texture_flags_ ^= 1 << unit;
+
 			if (texture == textures_[unit].owner.get())
 				return;
 
@@ -438,6 +447,8 @@ namespace REngine
 				view,
 				ea::MakeShared(texture)
 			};
+
+
 			dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::textures);
 		}
 		void SetTexture(TextureUnit unit, RenderTexture* texture) override
@@ -608,9 +619,9 @@ namespace REngine
 		}
 		void SetLineAntiAlias(bool enable) override
 		{
-			if(pipeline_info_->stencil_test_enabled == enable)
+			if(pipeline_info_->line_anti_alias == enable)
 				return;
-			pipeline_info_->stencil_test_enabled = enable;
+			pipeline_info_->line_anti_alias = enable;
 			dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::pipeline);
 		}
 		void SetScissorTest(bool enable, const IntRect& rect) override
@@ -691,7 +702,7 @@ namespace REngine
 				dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::pipeline);
 			pipeline_info_->stencil_test_enabled = desc.enable;
 
-			if (!desc.enable)
+			if(!desc.enable)
 				return;
 
 			if(desc.mode != pipeline_info_->stencil_cmp_function)
@@ -712,13 +723,15 @@ namespace REngine
 
 			if(desc.compare_mask != pipeline_info_->stencil_cmp_mask)
 				dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::pipeline);
-			pipeline_info_->stencil_cmp_mask = desc.compare_mask;
+			pipeline_info_->stencil_cmp_mask = static_cast<u8>(desc.compare_mask);
 
 			if(desc.write_mask != pipeline_info_->stencil_write_mask)
 				dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::pipeline);
-			pipeline_info_->stencil_write_mask = desc.write_mask;
+			pipeline_info_->stencil_write_mask = static_cast<u8>(desc.write_mask);
 
-			stencil_ref_ = desc.stencil_ref;
+			if(desc.stencil_ref != stencil_ref_)
+				dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::pipeline);
+			stencil_ref_ = static_cast<u8>(desc.stencil_ref);
 		}
 		void SetClipPlane(const DrawCommandClipPlaneDesc& desc) override
 		{
@@ -1183,6 +1196,11 @@ namespace REngine
 
 			if (!shader_program_)
 				return;
+
+			// If current assigned textures is different from last assigned textures, we need to update textures.
+			if(curr_assigned_immutable_sa_flags_ != curr_assigned_texture_flags_)
+				dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::textures);
+
 			if((dirty_flags_ & static_cast<u32>(RenderCommandDirtyState::textures)) == 0)
 				return;
 			dirty_flags_ ^= static_cast<u32>(RenderCommandDirtyState::textures);
@@ -1214,10 +1232,12 @@ namespace REngine
 				// put the name and hash name inside immutable sampler
 				pipeline_info_->immutable_samplers[next_sampler_idx].name_hash = sampler->hash;
 				pipeline_info_->immutable_samplers[next_sampler_idx].name = desc.name;
+
+				//curr_assigned_immutable_sa_flags_ |= 1 << desc.unit;
 				++next_sampler_idx;
 			}
 
-			pipeline_info_->num_samplers = next_sampler_idx;
+			pipeline_info_->num_samplers = static_cast<u8>(next_sampler_idx);
 		}
 		void PrepareParametersToUpload()
 		{
@@ -1303,7 +1323,7 @@ namespace REngine
 
 			context_->SetStencilRef(stencil_ref_);
 
-			static constexpr float s_blend_factors[] = { .0f, .0f, .0f, .0f };
+			static constexpr float s_blend_factors[] = { 1.0f, 1.0f, 1.0f, 1.0f };
 			context_->SetBlendFactors(s_blend_factors);
 
 			if(pipeline_state_ && dirty_flags_ & static_cast<u32>(RenderCommandDirtyState::commit_pipeline))
@@ -1528,9 +1548,14 @@ namespace REngine
 
 		u32 dirty_flags_{};
 
+		u32 curr_assigned_texture_flags_{};
+		u32 curr_assigned_immutable_sa_flags_{};
+
 		u32 curr_vertx_decl_hash_{};
 		u32 curr_vertex_buffer_hash_{};
 		u32 curr_pipeline_hash_{};
+
+		u8 textures_in_use_{};
 
 		u32 primitive_count_;
 		u32 num_batches_;

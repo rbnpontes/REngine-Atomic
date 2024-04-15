@@ -168,18 +168,26 @@ namespace REngine
     static Diligent::LayoutElement s_tmp_layout_elements[Diligent::MAX_LAYOUT_ELEMENTS] = {};
     static Diligent::ImmutableSamplerDesc s_tmp_immutable_samplers[Atomic::MAX_IMMUTABLE_SAMPLERS] = {};
 
+    union number_convert_helper
+    {
+        float f;
+        u32 i;
+    };
+
     uint32_t PipelineStateInfo::ToHash() const
     {
 	    uint32_t hash = Atomic::StringHash::Calculate(debug_name.CString());
-
+        number_convert_helper number_convert;
         Atomic::CombineHash(hash, color_write_enabled ? 1u : 0u);
         Atomic::CombineHash(hash, static_cast<uint32_t>(blend_mode));
         Atomic::CombineHash(hash, alpha_to_coverage_enabled ? 1u : 0u);
 
         Atomic::CombineHash(hash, static_cast<uint32_t>(fill_mode));
         Atomic::CombineHash(hash, static_cast<uint32_t>(cull_mode));
-        Atomic::CombineHash(hash, static_cast<uint32_t>(constant_depth_bias));
-        Atomic::CombineHash(hash, static_cast<uint32_t>(slope_scaled_depth_bias));
+        number_convert.f = constant_depth_bias;
+        Atomic::CombineHash(hash, number_convert.i);
+        number_convert.f = slope_scaled_depth_bias;
+        Atomic::CombineHash(hash, number_convert.i);
         Atomic::CombineHash(hash, scissor_test_enabled ? 1u : 0u);
         Atomic::CombineHash(hash, line_anti_alias ? 1u : 0u);
 
