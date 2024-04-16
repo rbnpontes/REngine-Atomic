@@ -138,6 +138,7 @@ public:
     static void UpdateOffsets(PODVector<VertexElement>& elements);
 
 private:
+    void HandleBeginFrame(StringHash eventType, VariantMap& eventData);
     /// Update offsets of vertex elements.
     void UpdateOffsets();
     /// Create buffer.

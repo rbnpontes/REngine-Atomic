@@ -29,6 +29,8 @@
 #include "../Math/MathDefs.h"
 
 #include "../DebugNew.h"
+#include "Core/CoreEvents.h"
+#include "RHI/DriverInstance.h"
 
 namespace Atomic
 {
@@ -52,6 +54,8 @@ VertexBuffer::VertexBuffer(Context* context, bool forceHeadless) :
     // Force shadowing mode if graphics subsystem does not exist
     if (!graphics_)
         shadowed_ = true;
+
+    SubscribeToEvent(E_BEGINFRAME, ATOMIC_HANDLER(VertexBuffer, HandleBeginFrame));
 }
 
 VertexBuffer::~VertexBuffer()
@@ -212,6 +216,13 @@ void VertexBuffer::UpdateOffsets(PODVector<VertexElement>& elements)
         i->offset_ = elementOffset;
         elementOffset += ELEMENT_TYPESIZES[i->type_];
     }
+}
+
+void VertexBuffer::HandleBeginFrame(StringHash eventType, VariantMap& eventData)
+{
+    const auto backend = graphics_->GetImpl()->GetBackend();
+    if (backend == GraphicsBackend::D3D12 || backend == GraphicsBackend::Vulkan)
+        dataLost_ = true;
 }
 
 }

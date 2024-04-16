@@ -258,14 +258,13 @@ void* VertexBuffer::MapBuffer(unsigned start, unsigned count, bool discard)
     using namespace Diligent;
     const auto buffer = object_.Cast<IBuffer>(IID_Buffer);
     graphics_->GetImpl()->GetDeviceContext()->MapBuffer(buffer,
-        MAP_WRITE,
-        discard ? MAP_FLAG_DISCARD : MAP_FLAG_NONE, hw_data);
+        MAP_WRITE, MAP_FLAG_DISCARD, hw_data);
 
     if(!hw_data)
         ATOMIC_LOGERROR("Failed to map vertex buffer");
     else
         lockState_ = LOCK_HARDWARE;
-    
+
     return gpu_map_ptr_ = hw_data;
 }
 
@@ -279,6 +278,7 @@ void VertexBuffer::UnmapBuffer()
 
     graphics_->GetImpl()->GetDeviceContext()->UnmapBuffer(buffer, MAP_WRITE);
     lockState_ = LOCK_NONE;
+    dataLost_ = false;
     gpu_map_ptr_ = nullptr;
 }
 
