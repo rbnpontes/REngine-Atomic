@@ -780,6 +780,8 @@ namespace REngine
 				copy_attribs.pSrcTexture = source->GetTexture();
 				copy_attribs.pSrcBox = &src_box;
 				copy_attribs.pDstTexture = destination_tex;
+				copy_attribs.DstTextureTransitionMode = RESOURCE_STATE_TRANSITION_MODE_TRANSITION;
+				copy_attribs.SrcTextureTransitionMode = RESOURCE_STATE_TRANSITION_MODE_TRANSITION;
 				context_->CopyTexture(copy_attribs);
 			}
 			else
