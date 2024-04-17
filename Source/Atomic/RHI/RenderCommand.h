@@ -42,7 +42,7 @@ namespace REngine
         srb_build = 1 << 1
     };
 
-    struct ShaderParameterUpdateDesc
+    struct ShaderParameterUpdateData
     {
 		Atomic::StringHash name{Atomic::StringHash::ZERO};
         Atomic::Variant value{Atomic::Variant::EMPTY};

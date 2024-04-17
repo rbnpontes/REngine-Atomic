@@ -19,6 +19,7 @@
 #include "../RHI/GraphicsState.h"
 #include "../RHI/DiligentUtils.h"
 
+#define MAX_SHADER_PARAMETER_UPDATES 100
 namespace REngine
 {
 	using namespace Atomic;
@@ -32,15 +33,14 @@ namespace REngine
 	static u32 s_vertex_buffer_hash = 0;
 	static Diligent::IBuffer* s_index_buffer = nullptr;
 
-	static ea::queue<ShaderParameterUpdateDesc> s_empty_params_queue = {};
-
+	//static ea::queue<ShaderParameterUpdateData> s_empty_params_queue = {};
 	class DrawCommandImpl : public IDrawCommand
 	{
 	public:
 		DrawCommandImpl(Graphics* graphics, Diligent::IDeviceContext* context) :
 			graphics_(graphics),
 			context_(context),
-			params_2_update_({}),
+			params_2_update_({}), next_param_2_update_idx_(0),
 			vertex_buffers_({}),
 			vertex_offsets_({}),
 			shader_param_sources_({}),
@@ -58,10 +58,14 @@ namespace REngine
 		{
 			pipeline_info_ = new PipelineStateInfo();
 		}
+
 		~DrawCommandImpl() override
 		{
 			// TODO: clear static states too
 			delete pipeline_info_;
+
+			for (u32 i = 0; i < MAX_SHADER_PARAMETER_UPDATES; ++i)
+				delete params_2_update_[i];
 		}
 
 		void Reset() override
@@ -94,6 +98,7 @@ namespace REngine
 			curr_pipeline_hash_ = curr_vertex_buffer_hash_
 				= curr_vertx_decl_hash_ = 0u;
 
+			next_param_2_update_idx_ = 0;
 			textures_in_use_ = 0;
 			num_batches_ = 0;
 			primitive_count_ = 0;
@@ -370,13 +375,21 @@ namespace REngine
 		}
 		void SetShaderParameter(StringHash param, const Variant& value) override
 		{
-			params_2_update_.push({ param, value });
+			const auto idx = next_param_2_update_idx_++;
+			assert(next_param_2_update_idx_ < MAX_SHADER_PARAMETER_UPDATES);
+
+			auto param_data = params_2_update_[idx];
+			if(!params_2_update_[idx])
+				params_2_update_[idx] = param_data = new ShaderParameterUpdateData();
+
+			param_data->value = value;
+			param_data->name = param;
 		}
 		bool HasShaderParameter(StringHash param) override
 		{
 			if (!shader_program_)
 				return false;
-			ShaderParameter shader_param;
+			ShaderParameter* shader_param;
 			return shader_program_->GetParameter(param, &shader_param);
 		}
 		bool NeedShaderGroupUpdate(ShaderParameterGroup group, const void* source) override
@@ -1261,27 +1274,32 @@ namespace REngine
 		void PrepareParametersToUpload()
 		{
 			ATOMIC_PROFILE(IDrawCommand::PrepareParametersToUpload);
-			if (params_2_update_.empty() || !shader_program_)
+			if (next_param_2_update_idx_ == 0 || !shader_program_)
 				return;
 
-			for(;!params_2_update_.empty(); params_2_update_.pop())
 			{
-				auto& desc = params_2_update_.front();
-				ShaderParameter parameter;
-				if(!shader_program_->GetParameter(desc.name, &parameter))
+				ATOMIC_PROFILE(IDrawCommand::WritingParameters);
+				const auto params_count = next_param_2_update_idx_;
+				next_param_2_update_idx_ = 0;
+				for(u32 i = 0; i < params_count; ++i)
 				{
-					s_empty_params_queue.push(desc);
-					continue;
+					const auto param_data = params_2_update_[i];
+					ShaderParameter* parameter;
+					// if parameter is not found we will add to
+					// array again by just swapping elements.
+					if(!shader_program_->GetParameter(param_data->name, &parameter))
+					{
+						ea::swap(params_2_update_[i], params_2_update_[next_param_2_update_idx_]);
+						++next_param_2_update_idx_;
+						continue;
+					}
+					const auto buffer = static_cast<ConstantBuffer*>(parameter->bufferPtr_);
+					if (!buffer)
+						continue;
+					render_command_write_param(buffer, parameter->offset_, &param_data->value);
 				}
-
-				const auto buffer = static_cast<ConstantBuffer*>(parameter.bufferPtr_);
-				if(!buffer)
-					continue;
-
-				render_command_write_param(buffer, parameter.offset_, &desc.value);
 			}
 
-			ea::swap(s_empty_params_queue, params_2_update_);
 			graphics_->GetImpl()->UploadBufferChanges();
 		}
 
@@ -1563,12 +1581,12 @@ namespace REngine
 
 		static void WriteShaderParameter(ShaderProgram* program, const StringHash& param, void* data, u32 length)
 		{
-			ShaderParameter shader_param;
+			ShaderParameter* shader_param;
 			if (!program->GetParameter(param, &shader_param))
 				return;
-			if (!shader_param.bufferPtr_)
+			if (!shader_param->bufferPtr_)
 				return;
-			static_cast<ConstantBuffer*>(shader_param.bufferPtr_)->SetParameter(shader_param.offset_, length, data);
+			static_cast<ConstantBuffer*>(shader_param->bufferPtr_)->SetParameter(shader_param->offset_, length, data);
 		}
 		static Diligent::VALUE_TYPE GetIndexSize(u32 size)
 		{
@@ -1582,7 +1600,8 @@ namespace REngine
 		Diligent::RefCntAutoPtr<Diligent::IShaderResourceBinding> shader_resource_binding_;
 
 		ea::shared_ptr<RenderSurface> depth_stencil_;
-		ea::queue<ShaderParameterUpdateDesc> params_2_update_;
+		ea::array<ShaderParameterUpdateData*, MAX_SHADER_PARAMETER_UPDATES> params_2_update_;
+		u32 next_param_2_update_idx_;
 
 		// arrays
 		ea::array<ea::shared_ptr<RenderSurface>, MAX_RENDERTARGETS> render_targets_;

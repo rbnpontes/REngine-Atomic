@@ -20,22 +20,21 @@ namespace REngine
         vs_shader_name_ = creation_desc.vertex_shader->GetName();
         ps_shader_name_ = creation_desc.pixel_shader->GetName();
 #endif
-        /*if (creation_desc.vertex_shader->GetName().Contains("Water"))
-            ::DebugBreak();*/
+
         CollectShaderParameters(creation_desc.vertex_shader);
         CollectShaderParameters(creation_desc.pixel_shader);
         CollectShaderTextures(creation_desc.vertex_shader);
         CollectShaderTextures(creation_desc.pixel_shader);
 
-        parameters_.Rehash(Atomic::NextPowerOfTwo(parameters_.Size()));
-
         hash_ = creation_desc.ToHash();
     }
 
     ShaderProgram::~ShaderProgram()
+    = default;
+
+    bool ShaderProgram::IsInUseTexture(const Atomic::StringHash& texture) const
     {
-        for(const auto& it : used_textures_)
-			delete it.second_;
+    	return used_textures_.find_as(texture.Value()) != used_textures_.end();
     }
 
     void ShaderProgram::CollectShaderParameters(const Atomic::ShaderVariation* shader)
@@ -43,11 +42,12 @@ namespace REngine
         const auto& params = shader->GetParameters();
         for (const auto& it : params)
         {
-            Atomic::ShaderParameter shader_param = it.second_;
-            shader_param.bufferPtr_ = graphics_
+            const auto shader_param = ea::make_shared<Atomic::ShaderParameter>();
+            *shader_param = it.second_;
+            shader_param->bufferPtr_ = graphics_
 				->GetImpl()
 				->GetConstantBuffer(shader->GetShaderType(), static_cast<Atomic::ShaderParameterGroup>(it.second_.buffer_));
-            parameters_[it.first_] = shader_param;
+            parameters_[it.first_.Value()] = shader_param;
         }
     }
 
@@ -57,21 +57,21 @@ namespace REngine
 		for (const auto& it : textures)
 		{
 			const auto tex_unit = utils_get_texture_unit(it);
-			const auto sampler_desc = new ShaderSamplerDesc();
+			const auto sampler_desc = ea::make_shared<ShaderSamplerDesc>();
             sampler_desc->name = it;
             sampler_desc->hash = it;
-			used_textures_[sampler_desc->hash] = sampler_desc;
+			used_textures_[sampler_desc->hash.Value()] = sampler_desc;
             if(tex_unit != Atomic::MAX_TEXTURE_UNITS)
-				used_texture_slot_names_[tex_unit] = sampler_desc;
+				used_texture_slot_names_[tex_unit] = sampler_desc.get();
 		}
 	}
 
-    bool ShaderProgram::GetParameter(const Atomic::StringHash& paramName, Atomic::ShaderParameter* parameter)
+    bool ShaderProgram::GetParameter(const Atomic::StringHash& param_name, Atomic::ShaderParameter** parameter)
     {
-	    const auto it = parameters_.Find(paramName);
-        if(it == parameters_.End())
+	    const auto& it = parameters_.find_as(param_name.Value());
+        if(it == parameters_.end())
 			return false;
-		*parameter = it->second_;
+		*parameter = it->second.get();
 		return true;
     }
 
@@ -85,9 +85,9 @@ namespace REngine
 
     ShaderSamplerDesc* ShaderProgram::GetSampler(const Atomic::StringHash& name) const
     {
-        const auto it = used_textures_.Find(name);
-        if(it == used_textures_.End())
+        const auto it = used_textures_.find_as(name.Value());
+        if(it == used_textures_.end())
             return nullptr;
-        return it->second_;
+        return it->second.get();
     }
 }
