@@ -774,6 +774,7 @@ namespace REngine
 
 			if(!resolve)
 			{
+				context_->SetRenderTargets(0, nullptr, nullptr, RESOURCE_STATE_TRANSITION_MODE_NONE);
 				Diligent::CopyTextureAttribs copy_attribs = {};
 				copy_attribs.pSrcTexture = source->GetTexture();
 				copy_attribs.pSrcBox = &src_box;
@@ -781,6 +782,8 @@ namespace REngine
 				copy_attribs.DstTextureTransitionMode = RESOURCE_STATE_TRANSITION_MODE_TRANSITION;
 				copy_attribs.SrcTextureTransitionMode = RESOURCE_STATE_TRANSITION_MODE_TRANSITION;
 				context_->CopyTexture(copy_attribs);
+
+				context_->SetRenderTargets(s_num_rts, s_render_targets.data(), s_depth_stencil, RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
 			}
 			else
 			{
