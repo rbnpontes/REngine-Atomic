@@ -137,7 +137,7 @@ namespace REngine
 			if(index_buffer_)
 			{
 				context_->DrawIndexed({
-					desc.index_count,
+					Min(desc.index_count, index_buffer_->GetIndexCount()),
 					index_type_,
 					DRAW_FLAG_NONE,
 					1,
@@ -381,20 +381,18 @@ namespace REngine
 		}
 		bool NeedShaderGroupUpdate(ShaderParameterGroup group, const void* source) override
 		{
-			bool result = false;
-			for(u8 i =0; i < MAX_SHADER_TYPES; ++i)
+			const auto src = shader_param_sources_[group];
+			const auto target_src = reinterpret_cast<u32>(source);
+			if(src == M_MAX_UNSIGNED || src != target_src)
 			{
-				const auto idx = i * static_cast<u8>(MAX_SHADER_PARAMETER_GROUPS) + static_cast<u8>(group);
-				const auto src = shader_param_sources_[idx];
-				const auto target_src = reinterpret_cast<u32>(source);
-				if(src == M_MAX_UNSIGNED || src != target_src)
-				{
-					result = true;
-					shader_param_sources_[idx] = target_src;
-				}
+				shader_param_sources_[group] = target_src;
+				return true;
 			}
-
-			return result;
+			return false;
+		}
+		void ClearShaderParameterSource(ShaderParameterGroup group) override
+		{
+			shader_param_sources_[group] = M_MAX_UNSIGNED;
 		}
 		void SetTexture(TextureUnit unit, RenderSurface* surface) override
 		{
@@ -1155,15 +1153,17 @@ namespace REngine
 			ATOMIC_PROFILE(IDrawCommand::PrepareIndexBuffer);
 			if (!index_buffer_)
 				return;
+
+			const auto buffer = index_buffer_->GetGPUObject().Cast<Diligent::IBuffer>(Diligent::IID_Buffer);
+			if(buffer != s_index_buffer)
+				dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::index_buffer);
+
 			if ((dirty_flags_ & static_cast<u32>(RenderCommandDirtyState::index_buffer)) == 0)
 				return;
 
 			dirty_flags_ ^= static_cast<u32>(RenderCommandDirtyState::index_buffer);
 
-			const auto buffer = index_buffer_->GetGPUObject().Cast<Diligent::IBuffer>(Diligent::IID_Buffer);
-
-			if(buffer != s_index_buffer)
-				context_->SetIndexBuffer(buffer, 0, Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
+			context_->SetIndexBuffer(buffer, 0, Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
 			s_index_buffer = buffer;
 		}
 		void PrepareVertexDeclarations()
@@ -1524,8 +1524,9 @@ namespace REngine
 					// Check if buffer has per-instance data
 					const auto has_instance_data = elements.Size() && elements[0].perInstance_;
 					const auto offset = has_instance_data ? instance_offset * buffer->GetVertexSize() : 0;
+					const auto buffer_obj = buffer->GetGPUObject().Cast<Diligent::IBuffer>(Diligent::IID_Buffer);
 
-					if(buffer != vertex_buffers_[i].get() || offset != vertex_offsets_[i])
+					if(buffer != vertex_buffers_[i].get() || offset != vertex_offsets_[i] || buffer_obj != s_vertex_buffers[i])
 						dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::vertex_buffer);
 					vertex_buffers_[i] = ea::MakeShared(buffer);
 					vertex_offsets_[i] = offset;
@@ -1585,7 +1586,7 @@ namespace REngine
 		ea::array<ShaderResourceTextureDesc, MAX_TEXTURE_UNITS> textures_;
 		ea::array<ea::shared_ptr<VertexBuffer>, MAX_VERTEX_STREAMS> vertex_buffers_;
 		ea::array<u64, MAX_VERTEX_STREAMS> vertex_offsets_;
-		ea::array<u32, MAX_SHADER_PARAMETER_GROUPS * MAX_SHADER_TYPES> shader_param_sources_;
+		ea::array<u32, MAX_SHADER_PARAMETER_GROUPS> shader_param_sources_;
 
 		ea::shared_ptr<IndexBuffer> index_buffer_;
 

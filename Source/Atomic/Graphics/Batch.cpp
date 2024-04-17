@@ -683,8 +683,9 @@ void BatchGroup::Draw(View* view, Camera* camera, bool allowDepthWrite) const
 
             for (unsigned i = 0; i < instances_.Size(); ++i)
             {
-                if (graphics->NeedParameterUpdate(SP_OBJECT, instances_[i].worldTransform_))
-                    graphics->SetShaderParameter(VSP_MODEL, *instances_[i].worldTransform_);
+                const auto& instance_data = instances_[i];
+                if (graphics->NeedParameterUpdate(SP_OBJECT, instance_data.worldTransform_))
+                    graphics->SetShaderParameter(VSP_MODEL, *instance_data.worldTransform_);
 
                 graphics->Draw(geometry_->GetPrimitiveType(), geometry_->GetIndexStart(), geometry_->GetIndexCount(),
                     geometry_->GetVertexStart(), geometry_->GetVertexCount());

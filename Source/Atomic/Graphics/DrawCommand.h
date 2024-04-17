@@ -136,6 +136,7 @@ namespace Atomic
 		///	So, to prevent unexpected updates, you can pass the source pointer to this function.
 		/// Before call SetShaderParameter.
 		virtual bool NeedShaderGroupUpdate(ShaderParameterGroup group, const void* source) = 0;
+		virtual void ClearShaderParameterSource(ShaderParameterGroup group) = 0;
 		/// Bound texture by unit.
 		virtual void SetTexture(TextureUnit unit, Texture* texture) =0;
 		/// Bound render target by unit

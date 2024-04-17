@@ -734,14 +734,21 @@ namespace Atomic
 
 	void Graphics::ClearParameterSource(ShaderParameterGroup group)
 	{
+		if(!draw_command_)
+			return;
+		draw_command_->ClearShaderParameterSource(group);
 	}
 
 	void Graphics::ClearParameterSources()
 	{
+		for(u8 i = 0; i < MAX_SHADER_PARAMETER_GROUPS; ++i)
+			ClearParameterSource(static_cast<ShaderParameterGroup>(i));
 	}
 
 	void Graphics::ClearTransformSources()
 	{
+		ClearParameterSource(SP_CAMERA);
+		ClearParameterSource(SP_OBJECT);
 	}
 
 	void Graphics::SetTexture(unsigned index, Texture* texture) const
