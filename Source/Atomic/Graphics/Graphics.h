@@ -269,6 +269,9 @@ public:
 
     /// Return graphics implementation, which holds the actual API-specific resources.
     REngine::DriverInstance* GetImpl() const { return impl_; }
+
+    ea::shared_ptr<IDrawCommand> GetDrawCommand() const { return draw_command_; }
+
     /// Return OS-specific external window handle. Null if not in use.
     void* GetExternalWindow() const { return externalWindow_; }
 

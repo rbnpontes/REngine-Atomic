@@ -1583,13 +1583,15 @@ void View::ExecuteRenderPathCommands()
             case CMD_CLEAR:
                 {
                     ATOMIC_PROFILE(ClearRenderTarget);
-
+                    const auto draw_command = graphics_->GetDrawCommand();
+                    draw_command->BeginDebug("Clear Pass");
                     Color clearColor = command.clearColor_;
                     if (command.useFogColor_)
                         clearColor = actualView->farClipZone_->GetFogColor();
 
                     SetRenderTargets(command);
                     graphics_->Clear(command.clearFlags_, clearColor, command.clearDepth_, command.clearStencil_);
+                    draw_command->EndDebug();
                 }
                 break;
 
@@ -1599,6 +1601,8 @@ void View::ExecuteRenderPathCommands()
                     if (!queue.IsEmpty())
                     {
                         ATOMIC_PROFILE(RenderScenePass);
+                        const auto draw_command = graphics_->GetDrawCommand();
+                        draw_command->BeginDebug("Scene Pass", Color::CYAN);
 
                         SetRenderTargets(command);
                         bool allowDepthWrite = SetTextures(command);
@@ -1616,6 +1620,8 @@ void View::ExecuteRenderPathCommands()
                         queue.Draw(this, camera_, command.markToStencil_, false, allowDepthWrite);
 
                         passCommand_ = 0;
+
+                        draw_command->EndDebug();
                     }
                 }
                 break;
@@ -1623,10 +1629,12 @@ void View::ExecuteRenderPathCommands()
             case CMD_QUAD:
                 {
                     ATOMIC_PROFILE(RenderQuad);
-
+                    const auto draw_command = graphics_->GetDrawCommand();
+                    draw_command->BeginDebug("Quad Pass");
                     SetRenderTargets(command);
                     SetTextures(command);
                     RenderQuad(command);
+                    draw_command->EndDebug();
                 }
                 break;
 
@@ -1635,7 +1643,9 @@ void View::ExecuteRenderPathCommands()
                 if (!actualView->lightQueues_.Empty())
                 {
                     ATOMIC_PROFILE(RenderLights);
+                    const auto draw_command = graphics_->GetDrawCommand();
 
+                    draw_command->BeginDebug("ForwardLights Pass", Color::YELLOW);
                     SetRenderTargets(command);
 // ATOMIC BEGIN
                     graphics_->SetNumPasses(0);
@@ -1680,6 +1690,7 @@ void View::ExecuteRenderPathCommands()
 
                     graphics_->SetScissorTest(false);
                     graphics_->SetStencilTest(false);
+                    draw_command->EndDebug();
                 }
                 break;
 
@@ -1688,6 +1699,8 @@ void View::ExecuteRenderPathCommands()
                 if (!actualView->lightQueues_.Empty())
                 {
                     ATOMIC_PROFILE(RenderLightVolumes);
+                    const auto draw_command = graphics_->GetDrawCommand();
+                    draw_command->BeginDebug("LightVolumes Pass", Color::YELLOW);
 
                     SetRenderTargets(command);
                     for (Vector<LightBatchQueue>::Iterator i = actualView->lightQueues_.Begin(); i != actualView->lightQueues_.End(); ++i)
@@ -1718,6 +1731,7 @@ void View::ExecuteRenderPathCommands()
 
                     graphics_->SetScissorTest(false);
                     graphics_->SetStencilTest(false);
+                    draw_command->EndDebug();
                 }
                 break;
 
@@ -3066,6 +3080,8 @@ bool View::NeedRenderShadowMap(const LightBatchQueue& queue)
 void View::RenderShadowMap(const LightBatchQueue& queue)
 {
     ATOMIC_PROFILE(RenderShadowMap);
+    const auto command = graphics_->GetDrawCommand();
+    command->BeginDebug("ShadowMap Pass", Color::BLACK);
 
     Texture2D* shadowMap = queue.shadowMap_;
     graphics_->ResetTexture(TU_SHADOWMAP);
@@ -3152,6 +3168,8 @@ void View::RenderShadowMap(const LightBatchQueue& queue)
     // reset some parameters
     graphics_->SetColorWrite(true);
     graphics_->SetDepthBias(0.0f, 0.0f);
+
+    command->EndDebug();
 }
 
 RenderSurface* View::GetDepthStencil(RenderSurface* renderTarget)

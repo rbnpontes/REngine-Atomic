@@ -196,6 +196,9 @@ namespace Atomic
 		/// Resolve backbuffer to a texture cube.
 		virtual bool ResolveTexture(TextureCube* dest) = 0;
 
+		virtual void BeginDebug(const char* mark_name, const Color& color = Color::WHITE) = 0;
+		virtual void EndDebug() = 0;
+
 		// Getters
 		/// Get vertex buffer by index. Index must be between 0 <= MAX_VERTEX_STREAMS.
 		virtual VertexBuffer* GetVertexBuffer(u8 index) = 0;

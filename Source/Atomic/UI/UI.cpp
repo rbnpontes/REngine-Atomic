@@ -368,6 +368,8 @@ void UI::SetFocusedView(UIView* uiView)
 
 void UI::Render(bool resetRenderTargets)
 {
+    const auto command = graphics_->GetDrawCommand();
+    command->BeginDebug("UI Pass", Color::BLUE);
     Vector<SharedPtr<UIView>>::Iterator itr = uiViews_.Begin();
 
     while (itr != uiViews_.End())
@@ -376,7 +378,7 @@ void UI::Render(bool resetRenderTargets)
 
         itr++;
     }
-
+    command->EndDebug();
 }
 
 

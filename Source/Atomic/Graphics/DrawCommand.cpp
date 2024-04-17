@@ -328,17 +328,17 @@ namespace REngine
 			const Variant var = value;
 			SetShaderParameter(param, var);
 		}
-		void SetShaderParameter(StringHash param, const Vector2& value) override
+		void SetShaderParameter(StringHash param, const Atomic::Vector2& value) override
 		{
 			const Variant var = value;
 			SetShaderParameter(param, var);
 		}
-		void SetShaderParameter(StringHash param, const Vector3& value) override
+		void SetShaderParameter(StringHash param, const Atomic::Vector3& value) override
 		{
 			const Variant var = value;
 			SetShaderParameter(param, var);
 		}
-		void SetShaderParameter(StringHash param, const Vector4& value) override
+		void SetShaderParameter(StringHash param, const Atomic::Vector4& value) override
 		{
 			const Variant var = value;
 			SetShaderParameter(param, var);
@@ -805,6 +805,20 @@ namespace REngine
 		{
 			throw std::exception("Not implemented");
 		}
+
+		void BeginDebug(const char* mark_name, const Color& color) override
+		{
+#if ATOMIC_DEBUG
+			graphics_->GetImpl()->GetDeviceContext()->BeginDebugGroup(mark_name, color.Data());
+#endif
+		}
+		void EndDebug() override
+		{
+#if ATOMIC_DEBUG
+			graphics_->GetImpl()->GetDeviceContext()->EndDebugGroup();
+#endif
+		}
+
 		u32 GetPrimitiveCount() override { return primitive_count_; }
 		u32 GetNumBatches() override { return num_batches_; }
 
