@@ -220,6 +220,8 @@ void VertexBuffer::UpdateOffsets(PODVector<VertexElement>& elements)
 
 void VertexBuffer::HandleBeginFrame(StringHash eventType, VariantMap& eventData)
 {
+    if(!dynamic_)
+        return;
     const auto backend = graphics_->GetImpl()->GetBackend();
     if (backend == GraphicsBackend::D3D12 || backend == GraphicsBackend::Vulkan)
         dataLost_ = true;
