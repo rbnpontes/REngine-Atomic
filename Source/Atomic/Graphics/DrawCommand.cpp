@@ -206,7 +206,8 @@ namespace REngine
 				bind_vertex_buffers_[0] = buffer->GetGPUObject().Cast<IBuffer>(IID_Buffer);
 
 				num_vertex_buffers_ = 1;
-				curr_vbuffer_checksum_ = MakeHash(bind_vertex_buffers_[0]);
+				curr_vbuffer_checksum_ = MakeHash(buffer);
+				CombineHash(curr_vbuffer_checksum_, MakeHash(bind_vertex_buffers_[0]));
 				curr_vertx_decl_checksum_ = buffer->GetBufferHash(0);
 			}
 
@@ -392,6 +393,16 @@ namespace REngine
 		}
 		void SetShaderParameter(StringHash param, const Variant& value) override
 		{
+			const auto shader_program = shader_program_;
+
+			ShaderParameter* parameter = nullptr;
+			if(shader_program && shader_program->GetParameter(param.Value(), &parameter))
+			{
+				const auto cbuffer = static_cast<ConstantBuffer*>(parameter->bufferPtr_);
+				render_command_write_param(cbuffer, parameter->offset_, &value);
+				return;
+			}
+
 			const auto idx = next_param_2_update_idx_++;
 			assert(next_param_2_update_idx_ < MAX_SHADER_PARAMETER_UPDATES);
 
@@ -1131,6 +1142,10 @@ namespace REngine
 		void PrepareVertexBuffers()
 		{
 			ATOMIC_PROFILE(IDrawCommand::PrepareVertexBuffers);
+
+			if (curr_vbuffer_checksum_ != last_vbuffer_checksum_)
+				dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::vertex_buffer);
+
 			if((dirty_flags_ & static_cast<u32>(RenderCommandDirtyState::vertex_buffer)) == 0)
 				return;
 
@@ -1281,7 +1296,7 @@ namespace REngine
 		void PrepareParametersToUpload()
 		{
 			ATOMIC_PROFILE(IDrawCommand::PrepareParametersToUpload);
-			if (next_param_2_update_idx_ == 0 || !shader_program_)
+			if (!shader_program_)
 				return;
 
 			{
@@ -1417,18 +1432,6 @@ namespace REngine
 				return;
 			}
 
-			// Clear command by software requires to do a lot of things
-			// First we need to get the quad geometry from the renderer. (TODO: this will be used shader procedural triangle)
-			// Second we need to get clear frame-buffer shaders
-			// Third we need to get or create a shader program to get access to constant buffer parameter positions
-			// Fourth we declare the basic setup of our clear pipeline state and create pipeline state and SRB.
-			// Fifth we write our data into constant buffers
-			// Sixth, and finally we set up our device context and send draw command to GPU.
-			const auto geometry = renderer->GetQuadGeometry();
-
-			s_vertex_buffers[0] = geometry->GetVertexBuffer(0)->GetGPUObject().Cast<IBuffer>(IID_Buffer);
-			s_index_buffer = geometry->GetIndexBuffer()->GetGPUObject().Cast<IBuffer>(IID_Buffer);
-
 			auto model_transform = Matrix3x4::IDENTITY;
 			model_transform.m23_ = Clamp(desc.depth, 0.0f, 1.0f);
 			auto proj = Matrix4::IDENTITY;
@@ -1442,54 +1445,67 @@ namespace REngine
 
 			const auto program = GetOrCreateShaderProgram({ vs_shader, ps_shader });
 
-			PipelineStateInfo pipeline_info = {};
-			pipeline_info.debug_name = "Clear";
-			pipeline_info.vs_shader = vs_shader;
-			pipeline_info.ps_shader = ps_shader;
-			if(render_targets_[0])
-				pipeline_info.output.render_target_formats[0] = render_targets_[0]->GetParentTexture()->GetFormat();
-			else
-				pipeline_info.output.render_target_formats[0] = graphics_->GetImpl()->GetSwapChain()->GetDesc().ColorBufferFormat;
-			if(depth_stencil_)
-				pipeline_info.output.depth_stencil_format = depth_stencil_->GetParentTexture()->GetFormat();
-			else
-				pipeline_info.output.depth_stencil_format = graphics_->GetImpl()->GetSwapChain()->GetDesc().DepthBufferFormat;
-			pipeline_info.output.num_rts = 1;
-			pipeline_info.blend_mode = BLEND_REPLACE;
-			pipeline_info.color_write_enabled = desc.flags & CLEAR_COLOR;
-			pipeline_info.alpha_to_coverage_enabled = false;
-			pipeline_info.cull_mode = CULL_NONE;
-			pipeline_info.depth_cmp_function = CMP_ALWAYS;
-			pipeline_info.depth_write_enabled = desc.flags & CLEAR_DEPTH;
-			pipeline_info.fill_mode = FILL_SOLID;
-			pipeline_info.scissor_test_enabled = false;
-			pipeline_info.stencil_test_enabled = desc.flags & CLEAR_STENCIL;
-			pipeline_info.stencil_cmp_function = CMP_ALWAYS;
-			pipeline_info.stencil_op_on_passed = OP_REF;
-			pipeline_info.stencil_op_on_stencil_failed = OP_KEEP;
-			pipeline_info.stencil_op_depth_failed = OP_KEEP;
-			pipeline_info.primitive_type = TRIANGLE_LIST;
-			pipeline_info.input_layout.num_elements = 1;
-			pipeline_info.input_layout.elements[0] = InputLayoutElementDesc {
-				0, 0, sizeof(Vector3), 0, 0, TYPE_VECTOR3
-			};
-			ShaderResourceTextures textures_dummy = {};
-			u32 pipeline_hash = 0;
+			RefCntAutoPtr<IPipelineState> pipeline_state;
+			u32 pipeline_hash;
+			{
+				ATOMIC_PROFILE(IDrawCommand::BuildPipeline);
+				PipelineStateInfo pipeline_info = {};
+				pipeline_info.debug_name = "Clear";
+				pipeline_info.vs_shader = vs_shader;
+				pipeline_info.ps_shader = ps_shader;
+				if (render_targets_[0])
+					pipeline_info.output.render_target_formats[0] = render_targets_[0]->GetParentTexture()->GetFormat();
+				else
+					pipeline_info.output.render_target_formats[0] = graphics_->GetImpl()->GetSwapChain()->GetDesc().ColorBufferFormat;
+				if (depth_stencil_)
+					pipeline_info.output.depth_stencil_format = depth_stencil_->GetParentTexture()->GetFormat();
+				else
+					pipeline_info.output.depth_stencil_format = graphics_->GetImpl()->GetSwapChain()->GetDesc().DepthBufferFormat;
+				pipeline_info.output.num_rts = 1;
+				pipeline_info.blend_mode = BLEND_REPLACE;
+				pipeline_info.color_write_enabled = desc.flags & CLEAR_COLOR;
+				pipeline_info.alpha_to_coverage_enabled = false;
+				pipeline_info.cull_mode = CULL_NONE;
+				pipeline_info.depth_cmp_function = CMP_ALWAYS;
+				pipeline_info.depth_write_enabled = desc.flags & CLEAR_DEPTH;
+				pipeline_info.fill_mode = FILL_SOLID;
+				pipeline_info.scissor_test_enabled = false;
+				pipeline_info.stencil_test_enabled = desc.flags & CLEAR_STENCIL;
+				pipeline_info.stencil_cmp_function = CMP_ALWAYS;
+				pipeline_info.stencil_op_on_passed = OP_REF;
+				pipeline_info.stencil_op_on_stencil_failed = OP_KEEP;
+				pipeline_info.stencil_op_depth_failed = OP_KEEP;
+				pipeline_info.primitive_type = TRIANGLE_STRIP;
+				pipeline_info.input_layout.num_elements = 1;
+				pipeline_info.input_layout.elements[0] = InputLayoutElementDesc{
+					0, 0, sizeof(Vector3), 0, 0, TYPE_VECTOR3
+				};
 
-			auto pipeline = pipeline_state_builder_acquire(graphics_->GetImpl(), pipeline_info, pipeline_hash);
-			auto srb = pipeline_state_builder_get_or_create_srb({
-				graphics_->GetImpl(),
-				pipeline_hash,
-				&textures_dummy
-				});
+				pipeline_state = pipeline_state_builder_acquire(graphics_->GetImpl(), pipeline_info, pipeline_hash);
+			}
 
-			Matrix4 cpy_model_transform = model_transform.ToMatrix4();
-			WriteShaderParameter(program, VSP_MODEL, &cpy_model_transform, sizeof(Matrix4));
-			WriteShaderParameter(program, VSP_VIEWPROJ, &proj, sizeof(Matrix4));
-			WriteShaderParameter(program, PSP_MATDIFFCOLOR, &clear_color, sizeof(Matrix4));
-			graphics_->GetImpl()->GetConstantBuffer(VS, SP_CAMERA)->Apply();
-			graphics_->GetImpl()->GetConstantBuffer(VS, SP_OBJECT)->Apply();
-			graphics_->GetImpl()->GetConstantBuffer(PS, SP_MATERIAL)->Apply();
+			RefCntAutoPtr<IShaderResourceBinding> srb;
+			{
+				ATOMIC_PROFILE(IDrawCommand::BuildSRB);
+				ShaderResourceTextures textures_dummy = {};
+				srb = pipeline_state_builder_get_or_create_srb({
+					graphics_->GetImpl(),
+					pipeline_hash,
+					&textures_dummy
+					});
+			}
+
+			{
+				ATOMIC_PROFILE(IDrawCommand::CpyClearParams);
+				Matrix4 cpy_model_transform = model_transform.ToMatrix4();
+				WriteShaderParameter(program, VSP_MODEL, &cpy_model_transform, sizeof(Matrix4));
+				WriteShaderParameter(program, VSP_VIEWPROJ, &proj, sizeof(Matrix4));
+				WriteShaderParameter(program, PSP_MATDIFFCOLOR, &clear_color, sizeof(Matrix4));
+
+				graphics_->GetImpl()->GetConstantBuffer(VS, SP_CAMERA)->Apply();
+				graphics_->GetImpl()->GetConstantBuffer(VS, SP_OBJECT)->Apply();
+				graphics_->GetImpl()->GetConstantBuffer(PS, SP_MATERIAL)->Apply();
+			}
 
 			if(dirty_flags_ & static_cast<u32>(RenderCommandDirtyState::viewport))
 			{
@@ -1506,32 +1522,19 @@ namespace REngine
 				context_->SetViewports(1, &viewport, rt_size.x_, rt_size.y_);
 			}
 
-			DrawIndexedAttribs draw_attribs = {};
-			draw_attribs.IndexType = GetIndexSize(geometry->GetIndexBuffer()->GetIndexSize());
-			draw_attribs.BaseVertex = 0;
-			draw_attribs.FirstIndexLocation = geometry->GetIndexStart();
-			draw_attribs.NumInstances = 1;
-			draw_attribs.NumIndices = geometry->GetIndexCount();
-			draw_attribs.Flags = DRAW_FLAG_NONE;
+			{
+				ATOMIC_PROFILE(IDrawCommand::ExecuteClear);
+				DrawAttribs draw_attribs = {};
+				draw_attribs.Flags = DRAW_FLAG_NONE;
+				draw_attribs.NumInstances = 1;
+				draw_attribs.StartVertexLocation = 0;
+				draw_attribs.NumVertices = 4;
 
-			// TODO: use procedural shader triangle instead of vertex and index buffer
-			context_->SetVertexBuffers(
-				0,
-				1,
-				s_vertex_buffers.data(),
-				nullptr,
-				RESOURCE_STATE_TRANSITION_MODE_TRANSITION,
-				SET_VERTEX_BUFFERS_FLAG_RESET);
-			context_->SetIndexBuffer(s_index_buffer, 0, RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
-			context_->SetStencilRef(desc.stencil);
-			context_->SetPipelineState(pipeline);
-			context_->CommitShaderResources(srb, RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
-			context_->DrawIndexed(draw_attribs);
-
-			// Clear assigns an own vertex and index buffer, in this case we must
-			// reset internal state.
-			s_vertex_buffer_hash = 0;
-			s_index_buffer = nullptr;
+				context_->SetStencilRef(desc.stencil);
+				context_->SetPipelineState(pipeline_state);
+				context_->CommitShaderResources(srb, RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
+				context_->Draw(draw_attribs);
+			}
 		}
 
 		void SetVertexBuffers(VertexBuffer** buffers, u32 count, u32 instance_offset)
@@ -1560,7 +1563,9 @@ namespace REngine
 					vertex_offsets_[i] = offset;
 					bind_vertex_buffers_[i] = buffer_obj;
 					// Build vertex buffer checksum
+					CombineHash(curr_vbuffer_checksum_, MakeHash(buffer));
 					CombineHash(curr_vbuffer_checksum_, MakeHash(buffer_obj.ConstPtr()));
+					CombineHash(curr_vbuffer_checksum_, offset);
 					// Build base Vertex Declaration Hash
 					CombineHash(curr_vertx_decl_checksum_, buffer->GetBufferHash(i));
 					++num_vertex_buffers_;
@@ -1601,7 +1606,7 @@ namespace REngine
 		static void WriteShaderParameter(ShaderProgram* program, const StringHash& param, void* data, u32 length)
 		{
 			ShaderParameter* shader_param;
-			if (!program->GetParameter(param, &shader_param))
+			if (!program->GetParameter(param.Value(), &shader_param))
 				return;
 			if (!shader_param->bufferPtr_)
 				return;

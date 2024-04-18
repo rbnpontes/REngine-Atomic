@@ -570,12 +570,12 @@ namespace Atomic
 			return;
 
 		draw_command_->SetPrimitiveType(type);
-		DrawCommandInstancedDrawDesc desc = {};
-		desc.index_start = indexStart;
+		DrawCommandInstancedDrawDesc desc;
 		desc.index_count = indexCount;
-		desc.min_vertex = minVertex;
-		desc.vertex_count = vertexCount;
 		desc.instance_count = instanceCount;
+		desc.index_start = indexStart;
+		desc.min_vertex = desc.base_vertex_index = 0;
+		desc.vertex_count = vertexCount;
 		draw_command_->Draw(desc);
 	}
 
