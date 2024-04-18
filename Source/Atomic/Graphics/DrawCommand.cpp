@@ -42,6 +42,7 @@ namespace REngine
 			context_(context),
 			params_2_update_({}), next_param_2_update_idx_(0),
 			vertex_buffers_({}),
+			bind_vertex_buffers_({}),
 			vertex_offsets_({}),
 			shader_param_sources_({}),
 			enable_clip_planes_(false),
@@ -49,14 +50,16 @@ namespace REngine
 			dirty_flags_(static_cast<u32>(RenderCommandDirtyState::all)),
 			curr_assigned_texture_flags_(0),
 			curr_assigned_immutable_sa_flags_(0),
-			curr_vertx_decl_hash_(0),
-			curr_vertex_buffer_hash_(0),
+			curr_vertx_decl_checksum_(0),
+			curr_vbuffer_checksum_(0),
 			curr_pipeline_hash_(0),
 			primitive_count_(0),
 			num_batches_(0)
 
 		{
 			pipeline_info_ = new PipelineStateInfo();
+			for (u32 i = 0; i < MAX_SHADER_PARAMETER_UPDATES; ++i)
+				params_2_update_[i] = new ShaderParameterUpdateData();
 		}
 
 		~DrawCommandImpl() override
@@ -85,7 +88,6 @@ namespace REngine
 
 			index_type_ = ValueType::VT_UNDEFINED;
 
-			params_2_update_ = {};
 			shader_param_sources_.fill(M_MAX_UNSIGNED);
 
 			render_targets_.fill(nullptr);
@@ -95,8 +97,9 @@ namespace REngine
 
 			enable_clip_planes_ = false;
 			clip_plane_ = Vector4::ZERO;
-			curr_pipeline_hash_ = curr_vertex_buffer_hash_
-				= curr_vertx_decl_hash_ = 0u;
+			curr_pipeline_hash_			= 
+			curr_vbuffer_checksum_		= 
+			curr_vertx_decl_checksum_	= 0u;
 
 			next_param_2_update_idx_ = 0;
 			textures_in_use_ = 0;
@@ -191,11 +194,25 @@ namespace REngine
 			if(vertex_buffers_[0].get() == buffer)
 				return;
 
-			vertex_offsets_.fill(0);
-			vertex_buffers_.fill(nullptr);
-			vertex_buffers_[0] = ea::MakeShared(buffer);
-			curr_vertex_buffer_hash_ = MakeHash(buffer);
-			dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::vertex_buffer);
+			vertex_offsets_[0] = 0;
+			if(!buffer)
+			{
+				vertex_buffers_[0] = nullptr;
+				num_vertex_buffers_ = curr_vertx_decl_checksum_ = curr_vertx_decl_checksum_ = 0;
+			}
+			else
+			{
+				vertex_buffers_[0] = ea::MakeShared(buffer);
+				bind_vertex_buffers_[0] = buffer->GetGPUObject().Cast<IBuffer>(IID_Buffer);
+
+				num_vertex_buffers_ = 1;
+				curr_vbuffer_checksum_ = MakeHash(bind_vertex_buffers_[0]);
+				curr_vertx_decl_checksum_ = buffer->GetBufferHash(0);
+			}
+
+			if(curr_vbuffer_checksum_ != last_vbuffer_checksum_)
+				dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::vertex_buffer);
+			last_vbuffer_checksum_ = curr_vbuffer_checksum_;
 		}
 		void SetVertexBuffers(const PODVector<VertexBuffer*> buffers, u32 instance_offset) override
 		{
@@ -256,17 +273,17 @@ namespace REngine
 			if (!changed)
 				return;
 
-			for(u8 i =0; i < MAX_SHADER_TYPES; ++i)
+			for (auto& s_shader : s_shaders)
 			{
 				// TODO: schedule shader creation to run at worker thread
-				if(s_shaders[i] && !s_shaders[i]->GetGPUObject())
+				if(s_shader && !s_shader->GetGPUObject())
 				{
-					if(!s_shaders[i]->GetCompilerOutput().Empty())
-						s_shaders[i] = nullptr;
-					else if(!s_shaders[i]->Create())
+					if(!s_shader->GetCompilerOutput().Empty())
+						s_shader = nullptr;
+					else if(!s_shader->Create())
 					{
-						ATOMIC_LOGERROR("Failed to create shader: " + s_shaders[i]->GetName());
-						s_shaders[i] = nullptr;
+						ATOMIC_LOGERROR("Failed to create shader: " + s_shader->GetName());
+						s_shader = nullptr;
 					}
 				}
 
@@ -378,12 +395,9 @@ namespace REngine
 			const auto idx = next_param_2_update_idx_++;
 			assert(next_param_2_update_idx_ < MAX_SHADER_PARAMETER_UPDATES);
 
-			auto param_data = params_2_update_[idx];
-			if(!params_2_update_[idx])
-				params_2_update_[idx] = param_data = new ShaderParameterUpdateData();
-
+			const auto param_data = params_2_update_[idx];
 			param_data->value = value;
-			param_data->name = param;
+			param_data->hash = param.Value();
 		}
 		bool HasShaderParameter(StringHash param) override
 		{
@@ -1117,52 +1131,31 @@ namespace REngine
 		void PrepareVertexBuffers()
 		{
 			ATOMIC_PROFILE(IDrawCommand::PrepareVertexBuffers);
-			// Other Draw Commands can change vertex buffer, so we need to check if it is changed.
-			if(s_vertex_buffer_hash != curr_vertex_buffer_hash_)
-			{
-				dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::vertex_buffer);
-				s_vertex_buffer_hash = curr_vertex_buffer_hash_;
-			}
-
 			if((dirty_flags_ & static_cast<u32>(RenderCommandDirtyState::vertex_buffer)) == 0)
 				return;
 
 			dirty_flags_ ^= static_cast<u32>(RenderCommandDirtyState::vertex_buffer);
 
-			u32 next_idx = 0;
-			u32 new_vertex_decl_hash = 0;
-			for(const auto& buffer : vertex_buffers_)
-			{
-				if(!buffer)
-					continue;
-				CombineHash(new_vertex_decl_hash, buffer->GetBufferHash(next_idx));
-				s_vertex_buffers[next_idx] = buffer->GetGPUObject().Cast<Diligent::IBuffer>(Diligent::IID_Buffer);
-				++next_idx;
-			}
-
-			if (next_idx == 0)
-				return;
-
 			context_->SetVertexBuffers(
 				0,
-				next_idx,
-				s_vertex_buffers.data(),
+				num_vertex_buffers_,
+				bind_vertex_buffers_.data(),
 				vertex_offsets_.data(),
 				RESOURCE_STATE_TRANSITION_MODE_TRANSITION,
 				SET_VERTEX_BUFFERS_FLAG_NONE);
 
-			if (!new_vertex_decl_hash)
+			if (!curr_vertx_decl_checksum_)
 				return;
 
 			if(pipeline_info_->vs_shader)
 			{
-				CombineHash(new_vertex_decl_hash, pipeline_info_->vs_shader->ToHash());
-				CombineHash(new_vertex_decl_hash, pipeline_info_->vs_shader->GetElementHash());
+				CombineHash(curr_vertx_decl_checksum_, pipeline_info_->vs_shader->ToHash());
+				CombineHash(curr_vertx_decl_checksum_, pipeline_info_->vs_shader->GetElementHash());
 			}
 
-			if(curr_vertx_decl_hash_ != new_vertex_decl_hash)
+			if(curr_vertx_decl_checksum_ != last_vertx_decl_checksum_)
 				dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::vertex_decl);
-			curr_vertx_decl_hash_ = new_vertex_decl_hash;
+			last_vertx_decl_checksum_ = curr_vertx_decl_checksum_;
 		}
 		void PrepareIndexBuffer()
 		{
@@ -1185,6 +1178,20 @@ namespace REngine
 		void PrepareVertexDeclarations()
 		{
 			ATOMIC_PROFILE(IDrawCommand::PrepareVertexDeclarations);
+			// If some reason vertex declaration is 0, then we must recompute
+			if(curr_vertx_decl_checksum_ == 0)
+			{
+				for (u32 i = 0; i < num_vertex_buffers_; ++i)
+				{
+					if(vertex_buffers_[i])
+						CombineHash(curr_vertx_decl_checksum_, vertex_buffers_[i]->GetBufferHash(0));
+				}
+
+				if (curr_vertx_decl_checksum_ != last_vertx_decl_checksum_)
+					dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::vertex_decl);
+				last_vertx_decl_checksum_ = curr_vertx_decl_checksum_;
+			}
+
 			if((dirty_flags_ & static_cast<u32>(RenderCommandDirtyState::vertex_decl)) == 0)
 				return;
 			if(pipeline_info_->vs_shader == nullptr)
@@ -1192,7 +1199,7 @@ namespace REngine
 
 			dirty_flags_ ^= static_cast<u32>(RenderCommandDirtyState::vertex_decl);
 
-			const auto vertex_decl = graphics_state_get_vertex_declaration(curr_vertx_decl_hash_);
+			const auto vertex_decl = graphics_state_get_vertex_declaration(curr_vertx_decl_checksum_);
 			if(vertex_decl)
 			{
 				if(vertex_decl != vertex_declaration_)
@@ -1206,7 +1213,7 @@ namespace REngine
 
 			VertexDeclarationCreationDesc creation_desc;
 			creation_desc.graphics = graphics_;
-			creation_desc.hash = curr_vertx_decl_hash_;
+			creation_desc.hash = curr_vertx_decl_checksum_;
 			creation_desc.vertex_buffers = &vertex_buffers_;
 			creation_desc.vertex_shader = pipeline_info_->vs_shader;
 			vertex_declaration_ = new VertexDeclaration(creation_desc);
@@ -1217,7 +1224,7 @@ namespace REngine
 				return;
 			}
 
-			graphics_state_set_vertex_declaration(curr_vertx_decl_hash_, vertex_declaration_);
+			graphics_state_set_vertex_declaration(curr_vertx_decl_checksum_, vertex_declaration_);
 
 			dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::pipeline);
 			pipeline_info_->input_layout = vertex_declaration_->GetInputLayoutDesc();
@@ -1287,12 +1294,13 @@ namespace REngine
 					ShaderParameter* parameter;
 					// if parameter is not found we will add to
 					// array again by just swapping elements.
-					if(!shader_program_->GetParameter(param_data->name, &parameter))
+					if(!shader_program_->GetParameter(param_data->hash, &parameter))
 					{
 						ea::swap(params_2_update_[i], params_2_update_[next_param_2_update_idx_]);
 						++next_param_2_update_idx_;
 						continue;
 					}
+
 					const auto buffer = static_cast<ConstantBuffer*>(parameter->bufferPtr_);
 					if (!buffer)
 						continue;
@@ -1411,7 +1419,7 @@ namespace REngine
 
 			// Clear command by software requires to do a lot of things
 			// First we need to get the quad geometry from the renderer. (TODO: this will be used shader procedural triangle)
-			// Second we need to get clear framebuffer shaders
+			// Second we need to get clear frame-buffer shaders
 			// Third we need to get or create a shader program to get access to constant buffer parameter positions
 			// Fourth we declare the basic setup of our clear pipeline state and create pipeline state and SRB.
 			// Fifth we write our data into constant buffers
@@ -1531,7 +1539,10 @@ namespace REngine
 			if (count > MAX_VERTEX_STREAMS)
 				ATOMIC_LOGWARNING("Too many vertex buffers");
 
-			curr_vertex_buffer_hash_ = 0;
+			curr_vbuffer_checksum_		= 
+			curr_vertx_decl_checksum_	=
+			num_vertex_buffers_			= 0;
+
 			count = Min(count, MAX_VERTEX_STREAMS);
 			for(u32 i =0; i < MAX_VERTEX_STREAMS; ++i)
 			{
@@ -1539,18 +1550,20 @@ namespace REngine
 
 				if(buffer)
 				{
-					CombineHash(curr_vertex_buffer_hash_, MakeHash(buffer));
-					CombineHash(curr_vertex_buffer_hash_, buffer->GetBufferHash(i));
 					const auto& elements = buffer->GetElements();
 					// Check if buffer has per-instance data
 					const auto has_instance_data = elements.Size() && elements[0].perInstance_;
 					const auto offset = has_instance_data ? instance_offset * buffer->GetVertexSize() : 0;
 					const auto buffer_obj = buffer->GetGPUObject().Cast<Diligent::IBuffer>(Diligent::IID_Buffer);
 
-					if(buffer != vertex_buffers_[i].get() || offset != vertex_offsets_[i] || buffer_obj != s_vertex_buffers[i])
-						dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::vertex_buffer);
 					vertex_buffers_[i] = ea::MakeShared(buffer);
 					vertex_offsets_[i] = offset;
+					bind_vertex_buffers_[i] = buffer_obj;
+					// Build vertex buffer checksum
+					CombineHash(curr_vbuffer_checksum_, MakeHash(buffer_obj.ConstPtr()));
+					// Build base Vertex Declaration Hash
+					CombineHash(curr_vertx_decl_checksum_, buffer->GetBufferHash(i));
+					++num_vertex_buffers_;
 					continue;
 				}
 
@@ -1558,8 +1571,14 @@ namespace REngine
 				{
 					vertex_buffers_[i] = nullptr;
 					vertex_offsets_[i] = 0;
-					dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::vertex_buffer);
+					bind_vertex_buffers_[i] = nullptr;
 				}
+			}
+
+			if(curr_vbuffer_checksum_ != last_vbuffer_checksum_)
+			{
+				last_vbuffer_checksum_ = curr_vbuffer_checksum_;
+				dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::vertex_buffer);
 			}
 		}
 
@@ -1607,6 +1626,7 @@ namespace REngine
 		ea::array<ea::shared_ptr<RenderSurface>, MAX_RENDERTARGETS> render_targets_;
 		ea::array<ShaderResourceTextureDesc, MAX_TEXTURE_UNITS> textures_;
 		ea::array<ea::shared_ptr<VertexBuffer>, MAX_VERTEX_STREAMS> vertex_buffers_;
+		ea::array<Diligent::IBuffer*, MAX_VERTEX_STREAMS> bind_vertex_buffers_;
 		ea::array<u64, MAX_VERTEX_STREAMS> vertex_offsets_;
 		ea::array<u32, MAX_SHADER_PARAMETER_GROUPS> shader_param_sources_;
 
@@ -1629,9 +1649,12 @@ namespace REngine
 
 		u32 curr_assigned_texture_flags_{};
 		u32 curr_assigned_immutable_sa_flags_{};
+		u32 num_vertex_buffers_{};
 
-		u32 curr_vertx_decl_hash_{};
-		u32 curr_vertex_buffer_hash_{};
+		u32 curr_vertx_decl_checksum_{};
+		u32 last_vertx_decl_checksum_{};
+		u32 curr_vbuffer_checksum_{};
+		u32 last_vbuffer_checksum_{};
 		u32 curr_pipeline_hash_{};
 
 		u8 textures_in_use_{};

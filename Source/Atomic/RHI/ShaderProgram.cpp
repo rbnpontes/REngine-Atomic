@@ -66,9 +66,9 @@ namespace REngine
 		}
 	}
 
-    bool ShaderProgram::GetParameter(const Atomic::StringHash& param_name, Atomic::ShaderParameter** parameter)
+    bool ShaderProgram::GetParameter(const u32& param_hash, Atomic::ShaderParameter** parameter)
     {
-	    const auto& it = parameters_.find_as(param_name.Value());
+	    const auto& it = parameters_.find_as(param_hash);
         if(it == parameters_.end())
 			return false;
 		*parameter = it->second.get();

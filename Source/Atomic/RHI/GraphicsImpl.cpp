@@ -598,7 +598,8 @@ namespace Atomic
 
 	void Graphics::SetVertexBuffer(VertexBuffer* buffer) const
 	{
-		draw_command_->SetVertexBuffer(buffer);
+		if(draw_command_)
+			draw_command_->SetVertexBuffer(buffer);
 	}
 
 	bool Graphics::SetVertexBuffers(const PODVector<VertexBuffer*>& buffers, unsigned instanceOffset) const

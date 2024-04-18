@@ -44,7 +44,7 @@ namespace REngine
 
     struct ShaderParameterUpdateData
     {
-		Atomic::StringHash name{Atomic::StringHash::ZERO};
+		u32 hash{0};
         Atomic::Variant value{Atomic::Variant::EMPTY};
 	};
 

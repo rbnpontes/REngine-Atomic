@@ -39,7 +39,7 @@ namespace REngine
     public:
         ShaderProgram(const ShaderProgramCreationDesc& creation_desc);
         ~ShaderProgram() override;
-        bool GetParameter(const Atomic::StringHash& param_name, Atomic::ShaderParameter** parameter);
+        bool GetParameter(const u32& param_hash, Atomic::ShaderParameter** parameter);
         ShaderSamplerDesc* GetSampler(Atomic::TextureUnit unit) const;
         ShaderSamplerDesc* GetSampler(const Atomic::StringHash& name) const;
         unsigned ToHash() const { return hash_; }
