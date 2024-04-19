@@ -39,16 +39,15 @@ namespace REngine
     public:
         ShaderProgram(const ShaderProgramCreationDesc& creation_desc);
         ~ShaderProgram() override;
-        bool GetParameter(const u32& param_hash, Atomic::ShaderParameter** parameter);
         ShaderSamplerDesc* GetSampler(Atomic::TextureUnit unit) const;
         ShaderSamplerDesc* GetSampler(const Atomic::StringHash& name) const;
         unsigned ToHash() const { return hash_; }
         bool IsInUseTexture(const Atomic::StringHash& texture) const;
     private:
-        void CollectShaderParameters(const Atomic::ShaderVariation* shader);
+        void CollectShaderParameters(const Atomic::ShaderVariation* shader) const;
         void CollectShaderTextures(const Atomic::ShaderVariation* shader);
+
         Atomic::Graphics* graphics_;
-    	ea::hash_map<u32, ea::shared_ptr<Atomic::ShaderParameter>> parameters_{};
         ea::hash_map<u32, ea::shared_ptr<ShaderSamplerDesc>> used_textures_{};
         ShaderSamplerDesc* used_texture_slot_names_[Atomic::MAX_TEXTURE_UNITS];
         unsigned hash_{0};

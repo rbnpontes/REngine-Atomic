@@ -2,6 +2,7 @@
 #include "../Graphics/ShaderVariation.h"
 #include "./DriverInstance.h"
 #include "./DiligentUtils.h"
+#include "./ShaderParametersCache.h"
 #include <Windows.h>
 
 namespace REngine
@@ -37,17 +38,16 @@ namespace REngine
     	return used_textures_.find_as(texture.Value()) != used_textures_.end();
     }
 
-    void ShaderProgram::CollectShaderParameters(const Atomic::ShaderVariation* shader)
+    void ShaderProgram::CollectShaderParameters(const Atomic::ShaderVariation* shader) const
     {
         const auto& params = shader->GetParameters();
         for (const auto& it : params)
         {
-            const auto shader_param = ea::make_shared<Atomic::ShaderParameter>();
-            *shader_param = it.second_;
-            shader_param->bufferPtr_ = graphics_
+            auto shader_param = it.second_;
+            shader_param.bufferPtr_ = graphics_
 				->GetImpl()
 				->GetConstantBuffer(shader->GetShaderType(), static_cast<Atomic::ShaderParameterGroup>(it.second_.buffer_));
-            parameters_[it.first_.Value()] = shader_param;
+            REngine::shader_parameters_cache_add(it.first_.Value(), shader_param);
         }
     }
 
@@ -65,15 +65,6 @@ namespace REngine
 				used_texture_slot_names_[tex_unit] = sampler_desc.get();
 		}
 	}
-
-    bool ShaderProgram::GetParameter(const u32& param_hash, Atomic::ShaderParameter** parameter)
-    {
-	    const auto& it = parameters_.find_as(param_hash);
-        if(it == parameters_.end())
-			return false;
-		*parameter = it->second.get();
-		return true;
-    }
 
 
     ShaderSamplerDesc* ShaderProgram::GetSampler(Atomic::TextureUnit unit) const

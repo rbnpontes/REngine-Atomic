@@ -18,6 +18,7 @@
 #include "../IO/Log.h"
 #include "../RHI/GraphicsState.h"
 #include "../RHI/DiligentUtils.h"
+#include "../RHI/ShaderParametersCache.h"
 
 #define MAX_SHADER_PARAMETER_UPDATES 100
 
@@ -326,15 +327,20 @@ namespace REngine
 			const auto shader_program = shader_program_;
 
 			ShaderParameter* parameter = nullptr;
-			if(shader_program && shader_program->GetParameter(param.Value(), &parameter))
+			if(shader_parameters_cache_get(param.Value(), &parameter))
 			{
 				const auto cbuffer = static_cast<ConstantBuffer*>(parameter->bufferPtr_);
 				cbuffer->SetParameter(parameter->offset_, sizeof(float), data);
 				return;
 			}
 
-			const auto idx = next_param_2_update_idx_++;
-			assert(next_param_2_update_idx_ < MAX_SHADER_PARAMETER_UPDATES);
+			const auto idx = Min(next_param_2_update_idx_++, MAX_SHADER_PARAMETER_UPDATES);
+			// If parameters is exceeded we must skip writing
+			if(idx == MAX_SHADER_PARAMETER_UPDATES)
+			{
+				ATOMIC_LOGWARNING("Exceeded number of writing at shader parameters");
+				return;
+			}
 
 			const auto param_data = params_2_update_[idx];
 			param_data->value = FloatVector(data, count);
@@ -347,15 +353,20 @@ namespace REngine
 			const auto shader_program = shader_program_;
 
 			ShaderParameter* parameter = nullptr;
-			if(shader_program && shader_program->GetParameter(param.Value(), &parameter))
+			if(shader_parameters_cache_get(param.Value(), &parameter))
 			{
 				const auto cbuffer = static_cast<ConstantBuffer*>(parameter->bufferPtr_);
 				cbuffer->SetParameter(parameter->offset_, sizeof(float) * value.Size(), value.Buffer());
 				return;
 			}
 
-			const auto idx = next_param_2_update_idx_++;
-			assert(next_param_2_update_idx_ < MAX_SHADER_PARAMETER_UPDATES);
+			const auto idx = Min(next_param_2_update_idx_++, MAX_SHADER_PARAMETER_UPDATES);
+			// If parameters is exceeded we must skip writing
+			if(idx == MAX_SHADER_PARAMETER_UPDATES)
+			{
+				ATOMIC_LOGWARNING("Exceeded number of writing at shader parameters");
+				return;
+			}
 
 			const auto param_data = params_2_update_[idx];
 			param_data->value = value;
@@ -368,15 +379,20 @@ namespace REngine
 			const auto shader_program = shader_program_;
 
 			ShaderParameter* parameter = nullptr;
-			if(shader_program && shader_program->GetParameter(param.Value(), &parameter))
+			if(shader_parameters_cache_get(param.Value(), &parameter))
 			{
 				const auto cbuffer = static_cast<ConstantBuffer*>(parameter->bufferPtr_);
 				cbuffer->SetParameter(parameter->offset_, sizeof(float), &value);
 				return;
 			}
 
-			const auto idx = next_param_2_update_idx_++;
-			assert(next_param_2_update_idx_ < MAX_SHADER_PARAMETER_UPDATES);
+			const auto idx = Min(next_param_2_update_idx_++, MAX_SHADER_PARAMETER_UPDATES);
+			// If parameters is exceeded we must skip writing
+			if(idx == MAX_SHADER_PARAMETER_UPDATES)
+			{
+				ATOMIC_LOGWARNING("Exceeded number of writing at shader parameters");
+				return;
+			}
 
 			const auto param_data = params_2_update_[idx];
 			param_data->value = value;
@@ -389,15 +405,20 @@ namespace REngine
 			const auto shader_program = shader_program_;
 
 			ShaderParameter* parameter = nullptr;
-			if(shader_program && shader_program->GetParameter(param.Value(), &parameter))
+			if(shader_parameters_cache_get(param.Value(), &parameter))
 			{
 				const auto cbuffer = static_cast<ConstantBuffer*>(parameter->bufferPtr_);
 				cbuffer->SetParameter(parameter->offset_, sizeof(int), &value);
 				return;
 			}
 
-			const auto idx = next_param_2_update_idx_++;
-			assert(next_param_2_update_idx_ < MAX_SHADER_PARAMETER_UPDATES);
+			const auto idx = Min(next_param_2_update_idx_++, MAX_SHADER_PARAMETER_UPDATES);
+			// If parameters is exceeded we must skip writing
+			if(idx == MAX_SHADER_PARAMETER_UPDATES)
+			{
+				ATOMIC_LOGWARNING("Exceeded number of writing at shader parameters");
+				return;
+			}
 
 			const auto param_data = params_2_update_[idx];
 			param_data->value = value;
@@ -410,15 +431,20 @@ namespace REngine
 			const auto shader_program = shader_program_;
 
 			ShaderParameter* parameter = nullptr;
-			if(shader_program && shader_program->GetParameter(param.Value(), &parameter))
+			if(shader_parameters_cache_get(param.Value(), &parameter))
 			{
 				const auto cbuffer = static_cast<ConstantBuffer*>(parameter->bufferPtr_);
 				cbuffer->SetParameter(parameter->offset_, sizeof(bool), &value);
 				return;
 			}
 
-			const auto idx = next_param_2_update_idx_++;
-			assert(next_param_2_update_idx_ < MAX_SHADER_PARAMETER_UPDATES);
+			const auto idx = Min(next_param_2_update_idx_++, MAX_SHADER_PARAMETER_UPDATES);
+			// If parameters is exceeded we must skip writing
+			if(idx == MAX_SHADER_PARAMETER_UPDATES)
+			{
+				ATOMIC_LOGWARNING("Exceeded number of writing at shader parameters");
+				return;
+			}
 
 			const auto param_data = params_2_update_[idx];
 			param_data->value = value;
@@ -431,15 +457,20 @@ namespace REngine
 			const auto shader_program = shader_program_;
 
 			ShaderParameter* parameter = nullptr;
-			if(shader_program && shader_program->GetParameter(param.Value(), &parameter))
+			if(shader_parameters_cache_get(param.Value(), &parameter))
 			{
 				const auto cbuffer = static_cast<ConstantBuffer*>(parameter->bufferPtr_);
 				cbuffer->SetParameter(parameter->offset_, sizeof(Color), &value);
 				return;
 			}
 
-			const auto idx = next_param_2_update_idx_++;
-			assert(next_param_2_update_idx_ < MAX_SHADER_PARAMETER_UPDATES);
+			const auto idx = Min(next_param_2_update_idx_++, MAX_SHADER_PARAMETER_UPDATES);
+			// If parameters is exceeded we must skip writing
+			if(idx == MAX_SHADER_PARAMETER_UPDATES)
+			{
+				ATOMIC_LOGWARNING("Exceeded number of writing at shader parameters");
+				return;
+			}
 
 			const auto param_data = params_2_update_[idx];
 			param_data->value = value;
@@ -452,15 +483,20 @@ namespace REngine
 			const auto shader_program = shader_program_;
 
 			ShaderParameter* parameter = nullptr;
-			if(shader_program && shader_program->GetParameter(param.Value(), &parameter))
+			if(shader_parameters_cache_get(param.Value(), &parameter))
 			{
 				const auto cbuffer = static_cast<ConstantBuffer*>(parameter->bufferPtr_);
 				cbuffer->SetParameter(parameter->offset_, sizeof(Vector2), &value);
 				return;
 			}
 
-			const auto idx = next_param_2_update_idx_++;
-			assert(next_param_2_update_idx_ < MAX_SHADER_PARAMETER_UPDATES);
+			const auto idx = Min(next_param_2_update_idx_++, MAX_SHADER_PARAMETER_UPDATES);
+			// If parameters is exceeded we must skip writing
+			if(idx == MAX_SHADER_PARAMETER_UPDATES)
+			{
+				ATOMIC_LOGWARNING("Exceeded number of writing at shader parameters");
+				return;
+			}
 
 			const auto param_data = params_2_update_[idx];
 			param_data->value = value;
@@ -473,15 +509,20 @@ namespace REngine
 			const auto shader_program = shader_program_;
 
 			ShaderParameter* parameter = nullptr;
-			if(shader_program && shader_program->GetParameter(param.Value(), &parameter))
+			if(shader_parameters_cache_get(param.Value(), &parameter))
 			{
 				const auto cbuffer = static_cast<ConstantBuffer*>(parameter->bufferPtr_);
 				cbuffer->SetParameter(parameter->offset_, sizeof(Vector3), &value);
 				return;
 			}
 
-			const auto idx = next_param_2_update_idx_++;
-			assert(next_param_2_update_idx_ < MAX_SHADER_PARAMETER_UPDATES);
+			const auto idx = Min(next_param_2_update_idx_++, MAX_SHADER_PARAMETER_UPDATES);
+			// If parameters is exceeded we must skip writing
+			if(idx == MAX_SHADER_PARAMETER_UPDATES)
+			{
+				ATOMIC_LOGWARNING("Exceeded number of writing at shader parameters");
+				return;
+			}
 
 			const auto param_data = params_2_update_[idx];
 			param_data->value = value;
@@ -494,15 +535,20 @@ namespace REngine
 			const auto shader_program = shader_program_;
 
 			ShaderParameter* parameter = nullptr;
-			if(shader_program && shader_program->GetParameter(param.Value(), &parameter))
+			if(shader_parameters_cache_get(param.Value(), &parameter))
 			{
 				const auto cbuffer = static_cast<ConstantBuffer*>(parameter->bufferPtr_);
 				cbuffer->SetParameter(parameter->offset_, sizeof(Vector4), &value);
 				return;
 			}
 
-			const auto idx = next_param_2_update_idx_++;
-			assert(next_param_2_update_idx_ < MAX_SHADER_PARAMETER_UPDATES);
+			const auto idx = Min(next_param_2_update_idx_++, MAX_SHADER_PARAMETER_UPDATES);
+			// If parameters is exceeded we must skip writing
+			if(idx == MAX_SHADER_PARAMETER_UPDATES)
+			{
+				ATOMIC_LOGWARNING("Exceeded number of writing at shader parameters");
+				return;
+			}
 
 			const auto param_data = params_2_update_[idx];
 			param_data->value = value;
@@ -515,15 +561,20 @@ namespace REngine
 			const auto shader_program = shader_program_;
 
 			ShaderParameter* parameter = nullptr;
-			if(shader_program && shader_program->GetParameter(param.Value(), &parameter))
+			if(shader_parameters_cache_get(param.Value(), &parameter))
 			{
 				const auto cbuffer = static_cast<ConstantBuffer*>(parameter->bufferPtr_);
 				cbuffer->SetParameter(parameter->offset_, sizeof(IntVector2), &value);
 				return;
 			}
 
-			const auto idx = next_param_2_update_idx_++;
-			assert(next_param_2_update_idx_ < MAX_SHADER_PARAMETER_UPDATES);
+			const auto idx = Min(next_param_2_update_idx_++, MAX_SHADER_PARAMETER_UPDATES);
+			// If parameters is exceeded we must skip writing
+			if(idx == MAX_SHADER_PARAMETER_UPDATES)
+			{
+				ATOMIC_LOGWARNING("Exceeded number of writing at shader parameters");
+				return;
+			}
 
 			const auto param_data = params_2_update_[idx];
 			param_data->value = value;
@@ -536,15 +587,20 @@ namespace REngine
 			const auto shader_program = shader_program_;
 
 			ShaderParameter* parameter = nullptr;
-			if(shader_program && shader_program->GetParameter(param.Value(), &parameter))
+			if(shader_parameters_cache_get(param.Value(), &parameter))
 			{
 				const auto cbuffer = static_cast<ConstantBuffer*>(parameter->bufferPtr_);
 				cbuffer->SetParameter(parameter->offset_, sizeof(IntVector3), &value);
 				return;
 			}
 
-			const auto idx = next_param_2_update_idx_++;
-			assert(next_param_2_update_idx_ < MAX_SHADER_PARAMETER_UPDATES);
+			const auto idx = Min(next_param_2_update_idx_++, MAX_SHADER_PARAMETER_UPDATES);
+			// If parameters is exceeded we must skip writing
+			if(idx == MAX_SHADER_PARAMETER_UPDATES)
+			{
+				ATOMIC_LOGWARNING("Exceeded number of writing at shader parameters");
+				return;
+			}
 
 			const auto param_data = params_2_update_[idx];
 			param_data->value = value;
@@ -558,15 +614,20 @@ namespace REngine
 			const auto shader_program = shader_program_;
 
 			ShaderParameter* parameter = nullptr;
-			if(shader_program && shader_program->GetParameter(param.Value(), &parameter))
+			if(shader_parameters_cache_get(param.Value(), &parameter))
 			{
 				const auto cbuffer = static_cast<ConstantBuffer*>(parameter->bufferPtr_);
 				cbuffer->SetParameter(parameter->offset_, sizeof(Matrix3), &value);
 				return;
 			}
 
-			const auto idx = next_param_2_update_idx_++;
-			assert(next_param_2_update_idx_ < MAX_SHADER_PARAMETER_UPDATES);
+			const auto idx = Min(next_param_2_update_idx_++, MAX_SHADER_PARAMETER_UPDATES);
+			// If parameters is exceeded we must skip writing
+			if(idx == MAX_SHADER_PARAMETER_UPDATES)
+			{
+				ATOMIC_LOGWARNING("Exceeded number of writing at shader parameters");
+				return;
+			}
 
 			const auto param_data = params_2_update_[idx];
 			param_data->value = value;
@@ -580,7 +641,7 @@ namespace REngine
 			const auto shader_program = shader_program_;
 
 			ShaderParameter* parameter = nullptr;
-			if(shader_program && shader_program->GetParameter(param.Value(), &parameter))
+			if(shader_parameters_cache_get(param.Value(), &parameter))
 			{
 				static constexpr float s_last_matrix_row[] = {0.0f, 0.0f, 0.0f, 1.0f};
 				const auto cbuffer = static_cast<ConstantBuffer*>(parameter->bufferPtr_);
@@ -592,8 +653,13 @@ namespace REngine
 				return;
 			}
 
-			const auto idx = next_param_2_update_idx_++;
-			assert(next_param_2_update_idx_ < MAX_SHADER_PARAMETER_UPDATES);
+			const auto idx = Min(next_param_2_update_idx_++, MAX_SHADER_PARAMETER_UPDATES);
+			// If parameters is exceeded we must skip writing
+			if(idx == MAX_SHADER_PARAMETER_UPDATES)
+			{
+				ATOMIC_LOGWARNING("Exceeded number of writing at shader parameters");
+				return;
+			}
 
 			const auto param_data = params_2_update_[idx];
 			param_data->value = value;
@@ -606,15 +672,20 @@ namespace REngine
 			const auto shader_program = shader_program_;
 
 			ShaderParameter* parameter = nullptr;
-			if(shader_program && shader_program->GetParameter(param.Value(), &parameter))
+			if(shader_parameters_cache_get(param.Value(), &parameter))
 			{
 				const auto cbuffer = static_cast<ConstantBuffer*>(parameter->bufferPtr_);
 				cbuffer->SetParameter(parameter->offset_, sizeof(Matrix4), &value);
 				return;
 			}
 
-			const auto idx = next_param_2_update_idx_++;
-			assert(next_param_2_update_idx_ < MAX_SHADER_PARAMETER_UPDATES);
+			const auto idx = Min(next_param_2_update_idx_++, MAX_SHADER_PARAMETER_UPDATES);
+			// If parameters is exceeded we must skip writing
+			if(idx == MAX_SHADER_PARAMETER_UPDATES)
+			{
+				ATOMIC_LOGWARNING("Exceeded number of writing at shader parameters");
+				return;
+			}
 
 			const auto param_data = params_2_update_[idx];
 			param_data->value = value;
@@ -627,15 +698,20 @@ namespace REngine
 			const auto shader_program = shader_program_;
 
 			ShaderParameter* parameter = nullptr;
-			if(shader_program && shader_program->GetParameter(param.Value(), &parameter))
+			if(shader_parameters_cache_get(param.Value(), &parameter))
 			{
 				const auto cbuffer = static_cast<ConstantBuffer*>(parameter->bufferPtr_);
 				render_command_write_param(cbuffer, parameter->offset_, &value);
 				return;
 			}
 
-			const auto idx = next_param_2_update_idx_++;
-			assert(next_param_2_update_idx_ < MAX_SHADER_PARAMETER_UPDATES);
+			const auto idx = Min(next_param_2_update_idx_++, MAX_SHADER_PARAMETER_UPDATES);
+			// If parameters is exceeded we must skip writing
+			if(idx == MAX_SHADER_PARAMETER_UPDATES)
+			{
+				ATOMIC_LOGWARNING("Exceeded number of writing at shader parameters");
+				return;
+			}
 
 			const auto param_data = params_2_update_[idx];
 			param_data->value = value;
@@ -643,10 +719,7 @@ namespace REngine
 		}
 		bool HasShaderParameter(StringHash param) override
 		{
-			if (!shader_program_)
-				return false;
-			ShaderParameter* shader_param;
-			return shader_program_->GetParameter(param, &shader_param);
+			return shader_parameters_cache_has(param.Value());
 		}
 		bool NeedShaderGroupUpdate(ShaderParameterGroup group, const void* source) override
 		{
@@ -1573,7 +1646,7 @@ namespace REngine
 					ShaderParameter* parameter;
 					// if parameter is not found we will add to
 					// array again by just swapping elements.
-					if(!shader_program_->GetParameter(param_data->hash, &parameter))
+					if(!shader_parameters_cache_get(param_data->hash, &parameter))
 					{
 						ea::swap(params_2_update_[i], params_2_update_[next_param_2_update_idx_]);
 						++next_param_2_update_idx_;
@@ -1852,7 +1925,7 @@ namespace REngine
 		static void WriteShaderParameter(ShaderProgram* program, const StringHash& param, void* data, u32 length)
 		{
 			ShaderParameter* shader_param;
-			if (!program->GetParameter(param.Value(), &shader_param))
+			if (!shader_parameters_cache_get(param.Value(), &shader_param))
 				return;
 			if (!shader_param->bufferPtr_)
 				return;
