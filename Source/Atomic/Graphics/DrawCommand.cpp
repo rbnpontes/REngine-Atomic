@@ -744,7 +744,6 @@ namespace REngine
 			{
 				surface->AddRef();
 				render_targets_[index].reset(surface, ea::EngineRefCounterDeleter<RenderSurface>());
-				bind_rts_[index] = surface->GetRenderTargetView();
 			}
 			else
 			{
@@ -772,11 +771,6 @@ namespace REngine
 
 			if (parent_texture->GetLevels() > 1)
 				parent_texture->SetLevelsDirty();
-
-			const auto format = surface->GetParentTexture()->GetFormat();
-			if(pipeline_info_->output.render_target_formats[index] != format)
-				dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::pipeline);
-			pipeline_info_->output.render_target_formats[index] = format;
 		}
 		void SetRenderTarget(u8 index, Texture2D* texture) override
 		{
@@ -1303,8 +1297,14 @@ namespace REngine
 			for(u8 i =0; i < MAX_RENDERTARGETS; ++i)
 			{
 				if (!render_targets_[i])
-					break;
-				++num_rts_;
+					continue;
+
+				const auto format = render_targets_[i]->GetParentTexture()->GetFormat();
+				if(pipeline_info_->output.render_target_formats[num_rts_] != format)
+					dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::pipeline);
+				pipeline_info_->output.render_target_formats[num_rts_] = format;
+
+				bind_rts_[num_rts_++] = render_targets_[i]->GetRenderTargetView();
 			}
 
 			const auto wnd_size = graphics_->GetSize();
@@ -1314,7 +1314,7 @@ namespace REngine
 				depth_stencil ? depth_stencil->GetHeight() : 0
 			);
 
-			if(pipeline_info_->output.num_rts != s_num_rts)
+			if(pipeline_info_->output.num_rts != num_rts_)
 				dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::pipeline);
 
 			pipeline_info_->output.num_rts = num_rts_;
