@@ -91,7 +91,8 @@ namespace REngine
 			shader_param_sources_.fill(M_MAX_UNSIGNED);
 
 			render_targets_.fill(nullptr);
-			textures_.fill(ShaderResourceTextureDesc{});
+			for (u8 i = 0; i < MAX_TEXTURE_UNITS; ++i)
+				ResetTexture(static_cast<TextureUnit>(i));
 			vertex_buffers_.fill(nullptr);
 			vertex_offsets_.fill(0);
 
@@ -163,10 +164,12 @@ namespace REngine
 				});
 			}
 
+#if ATOMIC_DEBUG
 			u32 primitive_count;
 			utils_get_primitive_type(desc.vertex_count, pipeline_info_->primitive_type, &primitive_count);
 			primitive_count_ += primitive_count;
 			++num_batches_;
+#endif
 		}
 		void Draw(const DrawCommandInstancedDrawDesc& desc) override
 		{
@@ -183,10 +186,12 @@ namespace REngine
 				desc.base_vertex_index
 			});
 
+#if ATOMIC_DEBUG
 			u32 primitive_count;
 			utils_get_primitive_type(desc.vertex_count, pipeline_info_->primitive_type, &primitive_count);
 			primitive_count_ += primitive_count * desc.instance_count;
 			++num_batches_;
+#endif
 		}
 		void SetVertexBuffer(VertexBuffer* buffer) override
 		{
@@ -246,50 +251,44 @@ namespace REngine
 			s_pipeline_shaders[VS] = pipeline_info_->vs_shader;
 			s_pipeline_shaders[PS] = pipeline_info_->ps_shader;
 
-			if(enable_clip_planes_)
-			{
-				for(u8 i = 0; i < MAX_SHADER_TYPES; ++i)
-				{
-					if(!s_shaders[i])
-						continue;
-					s_shaders[i] = s_shaders[i]->GetOwner()->GetVariation(
-						static_cast<ShaderType>(i),
-						s_shaders[i]->GetDefinesClipPlane()
-					);
-				}
-			}
-
 			bool changed = false;
 			for(u8 i = 0; i < MAX_SHADER_TYPES; ++i)
 			{
 				if(s_shaders[i] == s_pipeline_shaders[i])
 					continue;
 
+				if(enable_clip_planes_)
+				{
+					s_shaders[i] = s_shaders[i]->GetOwner()->GetVariation(
+						static_cast<ShaderType>(i),
+						s_shaders[i]->GetDefinesClipPlane()
+					);
+				}
+
+				if (s_shaders[i] == s_pipeline_shaders[i])
+					continue;
+
 				if(i == VS)
 					dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::vertex_decl) | static_cast<u32>(RenderCommandDirtyState::vertex_buffer);
-				changed = true;
-				break;
-			}
 
-			if (!changed)
-				return;
-
-			for (auto& s_shader : s_shaders)
-			{
-				// TODO: schedule shader creation to run at worker thread
-				if(s_shader && !s_shader->GetGPUObject())
+				// Build shader if is necessary
+				if(s_shaders[i] && !s_shaders[i]->GetGPUObject())
 				{
-					if(!s_shader->GetCompilerOutput().Empty())
-						s_shader = nullptr;
-					else if(!s_shader->Create())
+					if (!s_shaders[i]->GetCompilerOutput().Empty())
+						s_shaders[i] = nullptr;
+					else if(!s_shaders[i]->Create())
 					{
-						ATOMIC_LOGERROR("Failed to create shader: " + s_shader->GetName());
-						s_shader = nullptr;
+						ATOMIC_LOGERROR("Failed to create shader: " + s_shaders[i]->GetName());
+						s_shaders[i] = nullptr;
 					}
 				}
 
 				dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::pipeline);
+				changed = true;
 			}
+
+			if (!changed)
+				return;
 
 			const auto vs_shader = s_shaders[VS];
 			const auto ps_shader = s_shaders[PS];
@@ -322,77 +321,305 @@ namespace REngine
 		}
 		void SetShaderParameter(StringHash param, const float* data, u32 count) override
 		{
-			const FloatVector vec(data, count);
-			const Variant var = vec;
-			SetShaderParameter(param, var);
+			ATOMIC_PROFILE(IDrawCommand::SetShaderParameter);
+			ATOMIC_PROFILE_MSG("FloatVector");
+			const auto shader_program = shader_program_;
+
+			ShaderParameter* parameter = nullptr;
+			if(shader_program && shader_program->GetParameter(param.Value(), &parameter))
+			{
+				const auto cbuffer = static_cast<ConstantBuffer*>(parameter->bufferPtr_);
+				cbuffer->SetParameter(parameter->offset_, sizeof(float), data);
+				return;
+			}
+
+			const auto idx = next_param_2_update_idx_++;
+			assert(next_param_2_update_idx_ < MAX_SHADER_PARAMETER_UPDATES);
+
+			const auto param_data = params_2_update_[idx];
+			param_data->value = FloatVector(data, count);
+			param_data->hash = param.Value();
 		}
 		void SetShaderParameter(StringHash param, const FloatVector& value) override
 		{
-			const Variant var = value;
-			SetShaderParameter(param, var);
+			ATOMIC_PROFILE(IDrawCommand::SetShaderParameter);
+			ATOMIC_PROFILE_MSG("FloatVector");
+			const auto shader_program = shader_program_;
+
+			ShaderParameter* parameter = nullptr;
+			if(shader_program && shader_program->GetParameter(param.Value(), &parameter))
+			{
+				const auto cbuffer = static_cast<ConstantBuffer*>(parameter->bufferPtr_);
+				cbuffer->SetParameter(parameter->offset_, sizeof(float) * value.Size(), value.Buffer());
+				return;
+			}
+
+			const auto idx = next_param_2_update_idx_++;
+			assert(next_param_2_update_idx_ < MAX_SHADER_PARAMETER_UPDATES);
+
+			const auto param_data = params_2_update_[idx];
+			param_data->value = value;
+			param_data->hash = param.Value();
 		}
 		void SetShaderParameter(StringHash param, float value) override
 		{
-			const Variant var = value;
-			SetShaderParameter(param, var);
+			ATOMIC_PROFILE(IDrawCommand::SetShaderParameter);
+			ATOMIC_PROFILE_MSG("float");
+			const auto shader_program = shader_program_;
+
+			ShaderParameter* parameter = nullptr;
+			if(shader_program && shader_program->GetParameter(param.Value(), &parameter))
+			{
+				const auto cbuffer = static_cast<ConstantBuffer*>(parameter->bufferPtr_);
+				cbuffer->SetParameter(parameter->offset_, sizeof(float), &value);
+				return;
+			}
+
+			const auto idx = next_param_2_update_idx_++;
+			assert(next_param_2_update_idx_ < MAX_SHADER_PARAMETER_UPDATES);
+
+			const auto param_data = params_2_update_[idx];
+			param_data->value = value;
+			param_data->hash = param.Value();
 		}
 		void SetShaderParameter(StringHash param, int value) override
 		{
-			const Variant var = value;
-			SetShaderParameter(param, var);
+			ATOMIC_PROFILE(IDrawCommand::SetShaderParameter);
+			ATOMIC_PROFILE_MSG("int");
+			const auto shader_program = shader_program_;
+
+			ShaderParameter* parameter = nullptr;
+			if(shader_program && shader_program->GetParameter(param.Value(), &parameter))
+			{
+				const auto cbuffer = static_cast<ConstantBuffer*>(parameter->bufferPtr_);
+				cbuffer->SetParameter(parameter->offset_, sizeof(int), &value);
+				return;
+			}
+
+			const auto idx = next_param_2_update_idx_++;
+			assert(next_param_2_update_idx_ < MAX_SHADER_PARAMETER_UPDATES);
+
+			const auto param_data = params_2_update_[idx];
+			param_data->value = value;
+			param_data->hash = param.Value();
 		}
 		void SetShaderParameter(StringHash param, bool value) override
 		{
-			const Variant var = value;
-			SetShaderParameter(param, var);
+			ATOMIC_PROFILE(IDrawCommand::SetShaderParameter);
+			ATOMIC_PROFILE_MSG("bool");
+			const auto shader_program = shader_program_;
+
+			ShaderParameter* parameter = nullptr;
+			if(shader_program && shader_program->GetParameter(param.Value(), &parameter))
+			{
+				const auto cbuffer = static_cast<ConstantBuffer*>(parameter->bufferPtr_);
+				cbuffer->SetParameter(parameter->offset_, sizeof(bool), &value);
+				return;
+			}
+
+			const auto idx = next_param_2_update_idx_++;
+			assert(next_param_2_update_idx_ < MAX_SHADER_PARAMETER_UPDATES);
+
+			const auto param_data = params_2_update_[idx];
+			param_data->value = value;
+			param_data->hash = param.Value();
 		}
 		void SetShaderParameter(StringHash param, const Color& value) override
 		{
-			const Variant var = value;
-			SetShaderParameter(param, var);
+			ATOMIC_PROFILE(IDrawCommand::SetShaderParameter);
+			ATOMIC_PROFILE_MSG("Color");
+			const auto shader_program = shader_program_;
+
+			ShaderParameter* parameter = nullptr;
+			if(shader_program && shader_program->GetParameter(param.Value(), &parameter))
+			{
+				const auto cbuffer = static_cast<ConstantBuffer*>(parameter->bufferPtr_);
+				cbuffer->SetParameter(parameter->offset_, sizeof(Color), &value);
+				return;
+			}
+
+			const auto idx = next_param_2_update_idx_++;
+			assert(next_param_2_update_idx_ < MAX_SHADER_PARAMETER_UPDATES);
+
+			const auto param_data = params_2_update_[idx];
+			param_data->value = value;
+			param_data->hash = param.Value();
 		}
 		void SetShaderParameter(StringHash param, const Atomic::Vector2& value) override
 		{
-			const Variant var = value;
-			SetShaderParameter(param, var);
+			ATOMIC_PROFILE(IDrawCommand::SetShaderParameter);
+			ATOMIC_PROFILE_MSG("Vector2");
+			const auto shader_program = shader_program_;
+
+			ShaderParameter* parameter = nullptr;
+			if(shader_program && shader_program->GetParameter(param.Value(), &parameter))
+			{
+				const auto cbuffer = static_cast<ConstantBuffer*>(parameter->bufferPtr_);
+				cbuffer->SetParameter(parameter->offset_, sizeof(Vector2), &value);
+				return;
+			}
+
+			const auto idx = next_param_2_update_idx_++;
+			assert(next_param_2_update_idx_ < MAX_SHADER_PARAMETER_UPDATES);
+
+			const auto param_data = params_2_update_[idx];
+			param_data->value = value;
+			param_data->hash = param.Value();
 		}
 		void SetShaderParameter(StringHash param, const Atomic::Vector3& value) override
 		{
-			const Variant var = value;
-			SetShaderParameter(param, var);
+			ATOMIC_PROFILE(IDrawCommand::SetShaderParameter);
+			ATOMIC_PROFILE_MSG("Vector3");
+			const auto shader_program = shader_program_;
+
+			ShaderParameter* parameter = nullptr;
+			if(shader_program && shader_program->GetParameter(param.Value(), &parameter))
+			{
+				const auto cbuffer = static_cast<ConstantBuffer*>(parameter->bufferPtr_);
+				cbuffer->SetParameter(parameter->offset_, sizeof(Vector3), &value);
+				return;
+			}
+
+			const auto idx = next_param_2_update_idx_++;
+			assert(next_param_2_update_idx_ < MAX_SHADER_PARAMETER_UPDATES);
+
+			const auto param_data = params_2_update_[idx];
+			param_data->value = value;
+			param_data->hash = param.Value();
 		}
 		void SetShaderParameter(StringHash param, const Atomic::Vector4& value) override
 		{
-			const Variant var = value;
-			SetShaderParameter(param, var);
+			ATOMIC_PROFILE(IDrawCommand::SetShaderParameter);
+			ATOMIC_PROFILE_MSG("Vector4");
+			const auto shader_program = shader_program_;
+
+			ShaderParameter* parameter = nullptr;
+			if(shader_program && shader_program->GetParameter(param.Value(), &parameter))
+			{
+				const auto cbuffer = static_cast<ConstantBuffer*>(parameter->bufferPtr_);
+				cbuffer->SetParameter(parameter->offset_, sizeof(Vector4), &value);
+				return;
+			}
+
+			const auto idx = next_param_2_update_idx_++;
+			assert(next_param_2_update_idx_ < MAX_SHADER_PARAMETER_UPDATES);
+
+			const auto param_data = params_2_update_[idx];
+			param_data->value = value;
+			param_data->hash = param.Value();
 		}
 		void SetShaderParameter(StringHash param, const IntVector2& value) override
 		{
-			const Variant var = value;
-			SetShaderParameter(param, var);
+			ATOMIC_PROFILE(IDrawCommand::SetShaderParameter);
+			ATOMIC_PROFILE_MSG("IntVector2");
+			const auto shader_program = shader_program_;
+
+			ShaderParameter* parameter = nullptr;
+			if(shader_program && shader_program->GetParameter(param.Value(), &parameter))
+			{
+				const auto cbuffer = static_cast<ConstantBuffer*>(parameter->bufferPtr_);
+				cbuffer->SetParameter(parameter->offset_, sizeof(IntVector2), &value);
+				return;
+			}
+
+			const auto idx = next_param_2_update_idx_++;
+			assert(next_param_2_update_idx_ < MAX_SHADER_PARAMETER_UPDATES);
+
+			const auto param_data = params_2_update_[idx];
+			param_data->value = value;
+			param_data->hash = param.Value();
 		}
 		void SetShaderParameter(StringHash param, const IntVector3& value) override
 		{
-			const Variant var = value;
-			SetShaderParameter(param, var);
+			ATOMIC_PROFILE(IDrawCommand::SetShaderParameter);
+			ATOMIC_PROFILE_MSG("IntVector3");
+			const auto shader_program = shader_program_;
+
+			ShaderParameter* parameter = nullptr;
+			if(shader_program && shader_program->GetParameter(param.Value(), &parameter))
+			{
+				const auto cbuffer = static_cast<ConstantBuffer*>(parameter->bufferPtr_);
+				cbuffer->SetParameter(parameter->offset_, sizeof(IntVector3), &value);
+				return;
+			}
+
+			const auto idx = next_param_2_update_idx_++;
+			assert(next_param_2_update_idx_ < MAX_SHADER_PARAMETER_UPDATES);
+
+			const auto param_data = params_2_update_[idx];
+			param_data->value = value;
+			param_data->hash = param.Value();
 		}
 		void SetShaderParameter(StringHash param, const Matrix3& value) override
 		{
-			const Variant var = value;
-			SetShaderParameter(param, var);
+			ATOMIC_PROFILE(IDrawCommand::SetShaderParameter);
+			ATOMIC_PROFILE_MSG("Matrix3");
+
+			const auto shader_program = shader_program_;
+
+			ShaderParameter* parameter = nullptr;
+			if(shader_program && shader_program->GetParameter(param.Value(), &parameter))
+			{
+				const auto cbuffer = static_cast<ConstantBuffer*>(parameter->bufferPtr_);
+				cbuffer->SetParameter(parameter->offset_, sizeof(Matrix3), &value);
+				return;
+			}
+
+			const auto idx = next_param_2_update_idx_++;
+			assert(next_param_2_update_idx_ < MAX_SHADER_PARAMETER_UPDATES);
+
+			const auto param_data = params_2_update_[idx];
+			param_data->value = value;
+			param_data->hash = param.Value();
 		}
 		void SetShaderParameter(StringHash param, const Matrix3x4& value) override
 		{
-			const Variant var = value;
-			SetShaderParameter(param, var);
+			ATOMIC_PROFILE(IDrawCommand::SetShaderParameter);
+			ATOMIC_PROFILE_MSG("Matrix3x4");
+
+			const auto shader_program = shader_program_;
+
+			ShaderParameter* parameter = nullptr;
+			if(shader_program && shader_program->GetParameter(param.Value(), &parameter))
+			{
+				const auto matrix = value.ToMatrix4();
+				const auto cbuffer = static_cast<ConstantBuffer*>(parameter->bufferPtr_);
+				cbuffer->SetParameter(parameter->offset_, sizeof(Matrix4), &matrix);
+				return;
+			}
+
+			const auto idx = next_param_2_update_idx_++;
+			assert(next_param_2_update_idx_ < MAX_SHADER_PARAMETER_UPDATES);
+
+			const auto param_data = params_2_update_[idx];
+			param_data->value = value;
+			param_data->hash = param.Value();
 		}
 		void SetShaderParameter(StringHash param, const Matrix4& value) override
 		{
-			const Variant var = value;
-			SetShaderParameter(param, var);
+			ATOMIC_PROFILE(IDrawCommand::SetShaderParameter);
+			ATOMIC_PROFILE_MSG("Matrix4");
+			const auto shader_program = shader_program_;
+
+			ShaderParameter* parameter = nullptr;
+			if(shader_program && shader_program->GetParameter(param.Value(), &parameter))
+			{
+				const auto cbuffer = static_cast<ConstantBuffer*>(parameter->bufferPtr_);
+				cbuffer->SetParameter(parameter->offset_, sizeof(Matrix4), &value);
+				return;
+			}
+
+			const auto idx = next_param_2_update_idx_++;
+			assert(next_param_2_update_idx_ < MAX_SHADER_PARAMETER_UPDATES);
+
+			const auto param_data = params_2_update_[idx];
+			param_data->value = value;
+			param_data->hash = param.Value();
 		}
 		void SetShaderParameter(StringHash param, const Variant& value) override
 		{
+			ATOMIC_PROFILE(IDrawCommand::SetShaderParameter);
+			ATOMIC_PROFILE_MSG("Variant");
 			const auto shader_program = shader_program_;
 
 			ShaderParameter* parameter = nullptr;
@@ -438,6 +665,7 @@ namespace REngine
 		}
 		void SetTexture(TextureUnit unit, Texture* texture) override
 		{
+			ATOMIC_PROFILE(IDrawCommand::SetTexture);
 			if (unit >= MAX_TEXTURE_UNITS)
 				return;
 
@@ -499,13 +727,21 @@ namespace REngine
 		}
 		void SetRenderTarget(u8 index, RenderSurface* surface) override
 		{
+			ATOMIC_PROFILE(IDrawCommand::SetRenderTarget);
 			if (index >= MAX_RENDERTARGETS)
 				return;
 
 			if (render_targets_[index].get() == surface)
 				return;
 
-			render_targets_[index] = ea::MakeShared(surface);
+			if(surface)
+			{
+				surface->AddRef();
+				render_targets_[index].reset(surface, ea::EngineRefCounterDeleter<RenderSurface>());
+			}
+			else
+				render_targets_[index].reset();
+
 			dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::render_targets);
 
 			if (!surface)
@@ -550,7 +786,13 @@ namespace REngine
 			if(depth_stencil_.get() == surface)
 				return;
 
-			depth_stencil_ = ea::MakeShared(surface);
+			if(surface)
+			{
+				surface->AddRef();
+				depth_stencil_.reset(surface, ea::EngineRefCounterDeleter<RenderSurface>());
+			}
+			else
+				depth_stencil_.reset();
 			dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::render_targets);
 		}
 		void SetDepthStencil(Texture2D* texture) override
@@ -573,14 +815,29 @@ namespace REngine
 		{
 			SetDepthStencil(static_cast<RenderSurface*>(nullptr));
 		}
+		void ResetTexture(TextureUnit unit)
+		{
+			if (unit >= MAX_TEXTURE_UNITS)
+				return;
+
+			if (textures_[unit].unit == MAX_TEXTURE_UNITS)
+				return;
+
+			textures_[unit].unit = MAX_TEXTURE_UNITS;
+			textures_[unit].texture = nullptr;
+			textures_[unit].owner.reset();
+			dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::textures);
+		}
 		void SetPrimitiveType(PrimitiveType type) override
 		{
+			ATOMIC_PROFILE(IDrawCommand::SetPrimitiveType);
 			if(pipeline_info_->primitive_type != type)
 				dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::pipeline);
 			pipeline_info_->primitive_type = type;
 		}
 		void SetViewport(const IntRect& viewport) override
 		{
+			ATOMIC_PROFILE(IDrawCommand::SetViewport);
 			const IntVector2 size = graphics_->GetRenderTargetDimensions();
 			IntRect rect_cpy = viewport;
 
@@ -603,6 +860,7 @@ namespace REngine
 		}
 		void SetBlendMode(BlendMode mode, bool alpha_to_coverage) override
 		{
+			ATOMIC_PROFILE(IDrawCommand::SetBlendMode);
 			if(pipeline_info_->blend_mode != mode)
 				dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::pipeline);
 			if(pipeline_info_->alpha_to_coverage_enabled != alpha_to_coverage)
@@ -612,6 +870,7 @@ namespace REngine
 		}
 		void SetColorWrite(bool enable) override
 		{
+			ATOMIC_PROFILE(IDrawCommand::SetColorWrite);
 			if(pipeline_info_->color_write_enabled == enable)
 				return;
 			pipeline_info_->color_write_enabled = enable;
@@ -619,6 +878,7 @@ namespace REngine
 		}
 		void SetCullMode(CullMode mode) override
 		{
+			ATOMIC_PROFILE(IDrawCommand::SetCullMode);
 			if(pipeline_info_->cull_mode == mode)
 				return;
 			pipeline_info_->cull_mode = mode;
@@ -626,6 +886,7 @@ namespace REngine
 		}
 		void SetDepthBias(float constant_bias, float slope_scaled_bias) override
 		{
+			ATOMIC_PROFILE(IDrawCommand::SetDepthBias);
 			if(pipeline_info_->constant_depth_bias == constant_bias && pipeline_info_->slope_scaled_depth_bias == slope_scaled_bias)
 				return;
 			pipeline_info_->constant_depth_bias = constant_bias;
@@ -634,6 +895,7 @@ namespace REngine
 		}
 		void SetDepthTest(CompareMode mode) override
 		{
+			ATOMIC_PROFILE(IDrawCommand::SetDepthTest);
 			if(pipeline_info_->depth_cmp_function == mode)
 				return;
 			pipeline_info_->depth_cmp_function = mode;
@@ -641,6 +903,7 @@ namespace REngine
 		}
 		void SetDepthWrite(bool enable) override
 		{
+			ATOMIC_PROFILE(IDrawCommand::SetDepthWrite);
 			if(pipeline_info_->depth_write_enabled == enable)
 				return;
 			pipeline_info_->depth_write_enabled = enable;
@@ -648,6 +911,7 @@ namespace REngine
 		}
 		void SetFillMode(FillMode mode) override
 		{
+			ATOMIC_PROFILE(IDrawCommand::SetFillMode);
 			if(pipeline_info_->fill_mode == mode)
 				return;
 			pipeline_info_->fill_mode = mode;
@@ -655,6 +919,7 @@ namespace REngine
 		}
 		void SetLineAntiAlias(bool enable) override
 		{
+			ATOMIC_PROFILE(IDrawCommand::SetLineAntiAlias);
 			if(pipeline_info_->line_anti_alias == enable)
 				return;
 			pipeline_info_->line_anti_alias = enable;
@@ -662,6 +927,7 @@ namespace REngine
 		}
 		void SetScissorTest(bool enable, const IntRect& rect) override
 		{
+			ATOMIC_PROFILE(IDrawCommand::SetScissorTest);
 			const IntVector2 rt_size = graphics_->GetRenderTargetDimensions();
 			const IntVector2 view_pos(viewport_.left_, viewport_.top_);
 
@@ -694,6 +960,7 @@ namespace REngine
 		}
 		void SetScissorTest(bool enable, const Atomic::Rect& rect = Atomic::Rect::FULL, bool border_inclusive = true) override
 		{
+			ATOMIC_PROFILE(IDrawCommand::SetScissorTest);
 			// During some light rendering loops, a full rect is toggled on/off repeatedly.
 			// Disable scissor in that case to reduce state changes
 			if(rect.min_.x_ <= 0.0f && rect.min_.y_ <= 0.0f && rect.max_.x_ >= 1.0f && rect.max_.y_ >= 1.0f)
@@ -734,6 +1001,7 @@ namespace REngine
 		}
 		void SetStencilTest(const DrawCommandStencilTestDesc& desc) override
 		{
+			ATOMIC_PROFILE(IDrawCommand::SetStencilTest);
 			if(desc.enable != pipeline_info_->stencil_test_enabled)
 				dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::pipeline);
 			pipeline_info_->stencil_test_enabled = desc.enable;
@@ -785,10 +1053,9 @@ namespace REngine
 		}
 		bool ResolveTexture(Texture2D* dest, const IntRect& viewport) override
 		{
+			ATOMIC_PROFILE(IDrawCommand::ResolveTexture);
 			if(!dest || !dest->GetRenderSurface())
 				return false;
-			ATOMIC_PROFILE(IDrawCommand::ResolveTexture);
-
 			const auto rt_size = graphics_->GetRenderTargetDimensions();
 			IntRect vp_copy = viewport;
 			if (vp_copy.right_ <= vp_copy.left_)
@@ -1445,58 +1712,49 @@ namespace REngine
 
 			const auto program = GetOrCreateShaderProgram({ vs_shader, ps_shader });
 
-			RefCntAutoPtr<IPipelineState> pipeline_state;
+			PipelineStateInfo pipeline_info = {};
+			pipeline_info.debug_name = "Clear";
+			pipeline_info.vs_shader = vs_shader;
+			pipeline_info.ps_shader = ps_shader;
+			if (render_targets_[0])
+				pipeline_info.output.render_target_formats[0] = render_targets_[0]->GetParentTexture()->GetFormat();
+			else
+				pipeline_info.output.render_target_formats[0] = graphics_->GetImpl()->GetSwapChain()->GetDesc().ColorBufferFormat;
+			if (depth_stencil_)
+				pipeline_info.output.depth_stencil_format = depth_stencil_->GetParentTexture()->GetFormat();
+			else
+				pipeline_info.output.depth_stencil_format = graphics_->GetImpl()->GetSwapChain()->GetDesc().DepthBufferFormat;
+			pipeline_info.output.num_rts = 1;
+			pipeline_info.blend_mode = BLEND_REPLACE;
+			pipeline_info.color_write_enabled = desc.flags & CLEAR_COLOR;
+			pipeline_info.alpha_to_coverage_enabled = false;
+			pipeline_info.cull_mode = CULL_NONE;
+			pipeline_info.depth_cmp_function = CMP_ALWAYS;
+			pipeline_info.depth_write_enabled = desc.flags & CLEAR_DEPTH;
+			pipeline_info.fill_mode = FILL_SOLID;
+			pipeline_info.scissor_test_enabled = false;
+			pipeline_info.stencil_test_enabled = desc.flags & CLEAR_STENCIL;
+			pipeline_info.stencil_cmp_function = CMP_ALWAYS;
+			pipeline_info.stencil_op_on_passed = OP_REF;
+			pipeline_info.stencil_op_on_stencil_failed = OP_KEEP;
+			pipeline_info.stencil_op_depth_failed = OP_KEEP;
+			pipeline_info.primitive_type = TRIANGLE_STRIP;
+			pipeline_info.input_layout.num_elements = 1;
+			pipeline_info.input_layout.elements[0] = InputLayoutElementDesc{
+				0, 0, sizeof(Vector3), 0, 0, TYPE_VECTOR3
+			};
+
 			u32 pipeline_hash;
-			{
-				ATOMIC_PROFILE(IDrawCommand::BuildPipeline);
-				PipelineStateInfo pipeline_info = {};
-				pipeline_info.debug_name = "Clear";
-				pipeline_info.vs_shader = vs_shader;
-				pipeline_info.ps_shader = ps_shader;
-				if (render_targets_[0])
-					pipeline_info.output.render_target_formats[0] = render_targets_[0]->GetParentTexture()->GetFormat();
-				else
-					pipeline_info.output.render_target_formats[0] = graphics_->GetImpl()->GetSwapChain()->GetDesc().ColorBufferFormat;
-				if (depth_stencil_)
-					pipeline_info.output.depth_stencil_format = depth_stencil_->GetParentTexture()->GetFormat();
-				else
-					pipeline_info.output.depth_stencil_format = graphics_->GetImpl()->GetSwapChain()->GetDesc().DepthBufferFormat;
-				pipeline_info.output.num_rts = 1;
-				pipeline_info.blend_mode = BLEND_REPLACE;
-				pipeline_info.color_write_enabled = desc.flags & CLEAR_COLOR;
-				pipeline_info.alpha_to_coverage_enabled = false;
-				pipeline_info.cull_mode = CULL_NONE;
-				pipeline_info.depth_cmp_function = CMP_ALWAYS;
-				pipeline_info.depth_write_enabled = desc.flags & CLEAR_DEPTH;
-				pipeline_info.fill_mode = FILL_SOLID;
-				pipeline_info.scissor_test_enabled = false;
-				pipeline_info.stencil_test_enabled = desc.flags & CLEAR_STENCIL;
-				pipeline_info.stencil_cmp_function = CMP_ALWAYS;
-				pipeline_info.stencil_op_on_passed = OP_REF;
-				pipeline_info.stencil_op_on_stencil_failed = OP_KEEP;
-				pipeline_info.stencil_op_depth_failed = OP_KEEP;
-				pipeline_info.primitive_type = TRIANGLE_STRIP;
-				pipeline_info.input_layout.num_elements = 1;
-				pipeline_info.input_layout.elements[0] = InputLayoutElementDesc{
-					0, 0, sizeof(Vector3), 0, 0, TYPE_VECTOR3
-				};
+			RefCntAutoPtr<IPipelineState> pipeline_state = pipeline_state_builder_acquire(graphics_->GetImpl(), pipeline_info, pipeline_hash);
 
-				pipeline_state = pipeline_state_builder_acquire(graphics_->GetImpl(), pipeline_info, pipeline_hash);
-			}
-
-			RefCntAutoPtr<IShaderResourceBinding> srb;
-			{
-				ATOMIC_PROFILE(IDrawCommand::BuildSRB);
-				ShaderResourceTextures textures_dummy = {};
-				srb = pipeline_state_builder_get_or_create_srb({
-					graphics_->GetImpl(),
-					pipeline_hash,
-					&textures_dummy
-					});
-			}
+			ShaderResourceTextures textures_dummy = {};
+			RefCntAutoPtr<IShaderResourceBinding> srb = pipeline_state_builder_get_or_create_srb({
+				graphics_->GetImpl(),
+				pipeline_hash,
+				&textures_dummy
+				});
 
 			{
-				ATOMIC_PROFILE(IDrawCommand::CpyClearParams);
 				Matrix4 cpy_model_transform = model_transform.ToMatrix4();
 				WriteShaderParameter(program, VSP_MODEL, &cpy_model_transform, sizeof(Matrix4));
 				WriteShaderParameter(program, VSP_VIEWPROJ, &proj, sizeof(Matrix4));
@@ -1522,23 +1780,21 @@ namespace REngine
 				context_->SetViewports(1, &viewport, rt_size.x_, rt_size.y_);
 			}
 
-			{
-				ATOMIC_PROFILE(IDrawCommand::ExecuteClear);
-				DrawAttribs draw_attribs = {};
-				draw_attribs.Flags = DRAW_FLAG_NONE;
-				draw_attribs.NumInstances = 1;
-				draw_attribs.StartVertexLocation = 0;
-				draw_attribs.NumVertices = 4;
+			DrawAttribs draw_attribs = {};
+			draw_attribs.Flags = DRAW_FLAG_NONE;
+			draw_attribs.NumInstances = 1;
+			draw_attribs.StartVertexLocation = 0;
+			draw_attribs.NumVertices = 4;
 
-				context_->SetStencilRef(desc.stencil);
-				context_->SetPipelineState(pipeline_state);
-				context_->CommitShaderResources(srb, RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
-				context_->Draw(draw_attribs);
-			}
+			context_->SetStencilRef(desc.stencil);
+			context_->SetPipelineState(pipeline_state);
+			context_->CommitShaderResources(srb, RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
+			context_->Draw(draw_attribs);
 		}
 
 		void SetVertexBuffers(VertexBuffer** buffers, u32 count, u32 instance_offset)
 		{
+			ATOMIC_PROFILE(IDrawCommand::SetVertexBuffers);
 			if (count > MAX_VERTEX_STREAMS)
 				ATOMIC_LOGWARNING("Too many vertex buffers");
 

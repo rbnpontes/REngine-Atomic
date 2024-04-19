@@ -132,6 +132,7 @@ private:
 #   define ATOMIC_PROFILE_NONSCOPED(name, ...)
 #   define ATOMIC_PROFILE_END(...)
 #   define ATOMIC_PROFILE_THREAD(name)
+#   define ATOMIC_PROFILE_MSG(message) TracyMessageL(message)
 #endif
 
 #else
@@ -141,6 +142,7 @@ private:
 #   define ATOMIC_PROFILE_SCOPED(name, ...)
 #   define ATOMIC_PROFILE_END(...)
 #   define ATOMIC_PROFILE_THREAD(name)
+#   define ATOMIC_PROFILE_MSG(message)
 #endif
 
 }
