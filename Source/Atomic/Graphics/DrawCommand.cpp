@@ -20,6 +20,7 @@
 #include "../RHI/DiligentUtils.h"
 
 #define MAX_SHADER_PARAMETER_UPDATES 100
+
 namespace REngine
 {
 	using namespace Atomic;
@@ -33,6 +34,8 @@ namespace REngine
 	static u32 s_vertex_buffer_hash = 0;
 	static Diligent::IBuffer* s_index_buffer = nullptr;
 
+	static u32 s_texture_2d_type = Texture2D::GetTypeStatic();
+	static u32 s_texture_cube_type = TextureCube::GetTypeStatic();
 	//static ea::queue<ShaderParameterUpdateData> s_empty_params_queue = {};
 	class DrawCommandImpl : public IDrawCommand
 	{
@@ -78,15 +81,15 @@ namespace REngine
 			const auto wnd_size = graphics_->GetRenderTargetDimensions();
 			viewport_ = IntRect(0, 0, wnd_size.x_, wnd_size.y_);
 
-			pipeline_state_ = nullptr;
-			vertex_declaration_ = nullptr;
-			shader_program_ = nullptr;
-			depth_stencil_ = nullptr;
-			index_buffer_ = nullptr;
-			shader_resource_binding_ = nullptr;
+			pipeline_state_				= nullptr;
+			vertex_declaration_			= nullptr;
+			shader_program_				= nullptr;
+			depth_stencil_				= nullptr;
+			index_buffer_				= nullptr;
+			shader_resource_binding_	= nullptr;
 			curr_assigned_texture_flags_ = curr_assigned_immutable_sa_flags_ = 0;
 
-			index_type_ = ValueType::VT_UNDEFINED;
+			index_type_ = VT_UNDEFINED;
 
 			shader_param_sources_.fill(M_MAX_UNSIGNED);
 
@@ -207,12 +210,12 @@ namespace REngine
 			}
 			else
 			{
-				vertex_buffers_[0] = ea::MakeShared(buffer);
+				buffer->AddRef();
+				vertex_buffers_[0].reset(buffer, ea::EngineRefCounterDeleter<VertexBuffer>());
 				bind_vertex_buffers_[0] = buffer->GetGPUObject().Cast<IBuffer>(IID_Buffer);
 
 				num_vertex_buffers_ = 1;
-				curr_vbuffer_checksum_ = MakeHash(buffer);
-				CombineHash(curr_vbuffer_checksum_, MakeHash(bind_vertex_buffers_[0]));
+				curr_vbuffer_checksum_ = reinterpret_cast<u32>(bind_vertex_buffers_[0]);
 				curr_vertx_decl_checksum_ = buffer->GetBufferHash(0);
 			}
 
@@ -233,9 +236,15 @@ namespace REngine
 			ATOMIC_PROFILE(IDrawCommand::SetIndexBuffer);
 			if(index_buffer_.get() == buffer)
 				return;
-			index_buffer_ = ea::MakeShared(buffer);
+
 			if(buffer)
+			{
+				buffer->AddRef();
+				index_buffer_.reset(buffer, ea::EngineRefCounterDeleter<IndexBuffer>());
 				index_type_ = buffer->GetIndexSize() == sizeof(u32) ? VT_UINT32 : VT_UINT16;
+			}
+			else
+				index_buffer_.reset();
 
 			dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::index_buffer);
 		}
@@ -671,34 +680,37 @@ namespace REngine
 
 			if(texture)
 			{
-				if(render_targets_[0] && render_targets_[0]->GetParentTexture() == texture)
+				const auto parent_texture = render_targets_[0] ? render_targets_[0]->GetParentTexture() : nullptr;
+				const auto multi_sample = texture->GetMultiSample();
+				const auto auto_resolve = texture->GetAutoResolve();
+				const auto is_resolved_dirty = texture->IsResolveDirty();
+				const auto levels_dirty = texture->GetLevelsDirty();
+				const auto params_dirty = texture->GetParametersDirty();
+
+				if (parent_texture == texture)
 					texture = texture->GetBackupTexture();
-				else
+				else if(multi_sample > 1 && auto_resolve && is_resolved_dirty)
 				{
-					// Resolve multisampled texture
-					if(texture->GetMultiSample() > 1 && texture->GetAutoResolve() && texture->IsResolveDirty())
-					{
-						if (texture->GetType() == Texture2D::GetTypeStatic())
-							ResolveTexture(static_cast<Texture2D*>(texture));
-						if (texture->GetType() == TextureCube::GetTypeStatic())
-							ResolveTexture(static_cast<TextureCube*>(texture));
-					}
+					const auto texture_type = texture->GetType().Value();
+					if(s_texture_2d_type == texture_type)
+						ResolveTexture(static_cast<Texture2D*>(texture));
+					else if(s_texture_cube_type == texture_type)
+						ResolveTexture(static_cast<TextureCube*>(texture));
 				}
 
 				if (texture->GetLevelsDirty())
 					texture->RegenerateLevels();
-			}
+				if(params_dirty)
+				{
+					texture->UpdateParameters();
+					textures_[unit].texture = {};
+				}
 
-			if(texture && texture->GetParametersDirty())
-			{
-				texture->UpdateParameters();
-				textures_[unit] = {};
-			}
-
-			if(texture)
 				curr_assigned_texture_flags_ |= 1 << unit;
+			}
 			else
 				curr_assigned_texture_flags_ ^= 1 << unit;
+
 
 			if (texture == textures_[unit].owner.get())
 				return;
@@ -711,7 +723,6 @@ namespace REngine
 				view,
 				ea::MakeShared(texture)
 			};
-
 
 			dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::textures);
 		}
@@ -815,7 +826,7 @@ namespace REngine
 		{
 			SetDepthStencil(static_cast<RenderSurface*>(nullptr));
 		}
-		void ResetTexture(TextureUnit unit)
+		void ResetTexture(TextureUnit unit) override
 		{
 			if (unit >= MAX_TEXTURE_UNITS)
 				return;
@@ -1799,41 +1810,30 @@ namespace REngine
 				ATOMIC_LOGWARNING("Too many vertex buffers");
 
 			curr_vbuffer_checksum_		= 
-			curr_vertx_decl_checksum_	=
-			num_vertex_buffers_			= 0;
+			curr_vertx_decl_checksum_	= 0;
 
-			count = Min(count, MAX_VERTEX_STREAMS);
-			for(u32 i =0; i < MAX_VERTEX_STREAMS; ++i)
+			num_vertex_buffers_ = count = Min(count, MAX_VERTEX_STREAMS);
+			for (u32 i = 0; i < count; ++i)
 			{
-				const auto buffer = i < count ? buffers[i] : nullptr;
+				const auto buffer = buffers[i];
+				const auto& elements = buffer->GetElements();
+				// Check if buffer has per-instance data
+				const auto has_instance_data = elements.Size() && elements[0].perInstance_;
+				const auto offset = has_instance_data ? instance_offset * buffer->GetVertexSize() : 0;
+				const auto buffer_obj = buffer->GetGPUObject().Cast<Diligent::IBuffer>(Diligent::IID_Buffer);
 
-				if(buffer)
-				{
-					const auto& elements = buffer->GetElements();
-					// Check if buffer has per-instance data
-					const auto has_instance_data = elements.Size() && elements[0].perInstance_;
-					const auto offset = has_instance_data ? instance_offset * buffer->GetVertexSize() : 0;
-					const auto buffer_obj = buffer->GetGPUObject().Cast<Diligent::IBuffer>(Diligent::IID_Buffer);
-
-					vertex_buffers_[i] = ea::MakeShared(buffer);
-					vertex_offsets_[i] = offset;
-					bind_vertex_buffers_[i] = buffer_obj;
-					// Build vertex buffer checksum
-					CombineHash(curr_vbuffer_checksum_, MakeHash(buffer));
-					CombineHash(curr_vbuffer_checksum_, MakeHash(buffer_obj.ConstPtr()));
-					CombineHash(curr_vbuffer_checksum_, offset);
-					// Build base Vertex Declaration Hash
-					CombineHash(curr_vertx_decl_checksum_, buffer->GetBufferHash(i));
-					++num_vertex_buffers_;
-					continue;
-				}
-
-				if(vertex_buffers_[i])
-				{
-					vertex_buffers_[i] = nullptr;
-					vertex_offsets_[i] = 0;
-					bind_vertex_buffers_[i] = nullptr;
-				}
+				buffer->AddRef();
+				vertex_buffers_[i].reset(buffer, ea::EngineRefCounterDeleter<VertexBuffer>());
+				vertex_offsets_[i] = offset;
+				bind_vertex_buffers_[i] = buffer_obj;
+				// Build vertex buffer checksum
+				curr_vbuffer_checksum_ ^= reinterpret_cast<u32>(buffer_obj.ConstPtr());
+				curr_vbuffer_checksum_ ^= offset;
+				//CombineHash(curr_vbuffer_checksum_, MakeHash(buffer_obj.ConstPtr()));
+				//CombineHash(curr_vbuffer_checksum_, offset);
+				// Build base Vertex Declaration Hash
+				curr_vertx_decl_checksum_ ^= buffer->GetBufferHash(i);
+				//CombineHash(curr_vertx_decl_checksum_, buffer->GetBufferHash(i));
 			}
 
 			if(curr_vbuffer_checksum_ != last_vbuffer_checksum_)

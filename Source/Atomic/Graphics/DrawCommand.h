@@ -161,6 +161,8 @@ namespace Atomic
 		virtual void ResetRenderTarget(u8 index) = 0;
 		/// Unbound depth stencil.
 		virtual void ResetDepthStencil() = 0;
+		/// Unbound reset texture.
+		virtual void ResetTexture(TextureUnit unit) = 0;
 		/// Set primitive type.
 		virtual void SetPrimitiveType(PrimitiveType type) = 0;
 		/// Set viewport

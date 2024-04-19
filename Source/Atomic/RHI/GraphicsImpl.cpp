@@ -809,27 +809,32 @@ namespace Atomic
 
 	void Graphics::ResetRenderTargets()
 	{
-		for (unsigned i = 0; i < MAX_RENDERTARGETS; ++i)
-			SetRenderTarget(i, static_cast<RenderSurface*>(nullptr));
-		SetDepthStencil(static_cast<RenderSurface*>(nullptr));
-		SetViewport(IntRect(0, 0, width_, height_));
+		if(!draw_command_)
+			return;
+		draw_command_->ResetRenderTargets();
+		draw_command_->ResetDepthStencil();
+		draw_command_->SetViewport(IntRect(0, 0, width_, height_));
 	}
 
 	void Graphics::ResetRenderTarget(unsigned index) const
 	{
-		SetRenderTarget(index, static_cast<RenderSurface*>(nullptr));
+		if(!draw_command_)
+			return;
+		draw_command_->ResetRenderTarget(index);
 	}
 
 	void Graphics::ResetDepthStencil() const
 	{
-		SetDepthStencil(static_cast<RenderSurface*>(nullptr));
+		if (!draw_command_)
+			return;
+		draw_command_->ResetDepthStencil();
 	}
 
 	void Graphics::ResetTexture(u32 slot) const
 	{
 		if (!draw_command_)
 			return;
-		draw_command_->SetTexture(static_cast<TextureUnit>(slot), static_cast<Texture2D*>(nullptr));
+		draw_command_->ResetTexture(static_cast<TextureUnit>(slot));
 	}
 
 	void Graphics::SetRenderTarget(unsigned index, RenderSurface* renderTarget) const
