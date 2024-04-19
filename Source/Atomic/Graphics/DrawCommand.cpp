@@ -25,13 +25,8 @@ namespace REngine
 {
 	using namespace Atomic;
 
-	static ea::array<Diligent::ITextureView*, MAX_RENDERTARGETS> s_render_targets = {};
-
-	static Diligent::ITextureView* s_depth_stencil = nullptr;
 	static u8 s_num_rts = 0;
 
-	static ea::array<Diligent::IBuffer*, MAX_VERTEX_STREAMS> s_vertex_buffers = {};
-	static u32 s_vertex_buffer_hash = 0;
 	static Diligent::IBuffer* s_index_buffer = nullptr;
 
 	static u32 s_texture_2d_type = Texture2D::GetTypeStatic();
@@ -587,9 +582,13 @@ namespace REngine
 			ShaderParameter* parameter = nullptr;
 			if(shader_program && shader_program->GetParameter(param.Value(), &parameter))
 			{
-				const auto matrix = value.ToMatrix4();
+				static constexpr float s_last_matrix_row[] = {0.0f, 0.0f, 0.0f, 1.0f};
 				const auto cbuffer = static_cast<ConstantBuffer*>(parameter->bufferPtr_);
-				cbuffer->SetParameter(parameter->offset_, sizeof(Matrix4), &matrix);
+				// Constant Buffer on shader expect a Matrix4x4
+				// Convert an Matrix3x4 to Matrix4 can be expensive, in this case
+				// We will copy last row to buffer instead of create a Matrix4x4
+				cbuffer->SetParameter(parameter->offset_, sizeof(Matrix3x4), &value);
+				cbuffer->SetParameter(parameter->offset_ + sizeof(Matrix3x4), sizeof(float) * _countof(s_last_matrix_row), s_last_matrix_row);
 				return;
 			}
 
@@ -745,9 +744,13 @@ namespace REngine
 			{
 				surface->AddRef();
 				render_targets_[index].reset(surface, ea::EngineRefCounterDeleter<RenderSurface>());
+				bind_rts_[index] = surface->GetRenderTargetView();
 			}
 			else
+			{
 				render_targets_[index].reset();
+				bind_rts_[index] = nullptr;
+			}
 
 			dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::render_targets);
 
@@ -1095,7 +1098,7 @@ namespace REngine
 				copy_attribs.SrcTextureTransitionMode = RESOURCE_STATE_TRANSITION_MODE_TRANSITION;
 				context_->CopyTexture(copy_attribs);
 
-				context_->SetRenderTargets(s_num_rts, s_render_targets.data(), s_depth_stencil, RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
+				context_->SetRenderTargets(num_rts_,bind_rts_.data(), bind_depth_stencil_, RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
 			}
 			else
 			{
@@ -1296,24 +1299,12 @@ namespace REngine
 			// Remove dirty state
 			dirty_flags_ ^= static_cast<u32>(RenderCommandDirtyState::render_targets);
 
-			// render target must be set in order.
-			s_num_rts = 0;
-
+			num_rts_ = 0;
 			for(u8 i =0; i < MAX_RENDERTARGETS; ++i)
 			{
-				// Skip if slot is empty.
 				if (!render_targets_[i])
-					continue;
-				const auto rt = render_targets_[i]->GetRenderTargetView();
-				s_render_targets[s_num_rts]= rt;
-
-				if(pipeline_info_->output.render_target_formats[s_num_rts] != rt->GetTexture()->GetDesc().Format)
-				{
-					pipeline_info_->output.render_target_formats[s_num_rts] = rt->GetTexture()->GetDesc().Format;
-					dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::pipeline);
-				}
-
-				++s_num_rts;
+					break;
+				++num_rts_;
 			}
 
 			const auto wnd_size = graphics_->GetSize();
@@ -1326,24 +1317,24 @@ namespace REngine
 			if(pipeline_info_->output.num_rts != s_num_rts)
 				dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::pipeline);
 
-			pipeline_info_->output.num_rts = s_num_rts;
-			if (s_num_rts > 0) 
+			pipeline_info_->output.num_rts = num_rts_;
+			if (num_rts_ > 0) 
 				return true;
 
 			if (depth_stencil && depth_stencil_size != wnd_size)
 				return true;
 
-			s_num_rts = 1;
-			s_render_targets[0] = graphics_->GetImpl()->GetSwapChain()->GetCurrentBackBufferRTV();
+			num_rts_ = 1;
+			bind_rts_[0] = graphics_->GetImpl()->GetSwapChain()->GetCurrentBackBufferRTV();
 
-			if(s_num_rts != pipeline_info_->output.num_rts)
+			if(num_rts_ != pipeline_info_->output.num_rts)
 				dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::pipeline);
-			pipeline_info_->output.num_rts = s_num_rts;
+			pipeline_info_->output.num_rts = num_rts_;
 
-			if (pipeline_info_->output.render_target_formats[0] == s_render_targets[0]->GetTexture()->GetDesc().Format)
+			if (pipeline_info_->output.render_target_formats[0] == bind_rts_[0]->GetTexture()->GetDesc().Format)
 				return true;
 
-			pipeline_info_->output.render_target_formats[0] = s_render_targets[0]->GetTexture()->GetDesc().Format;
+			pipeline_info_->output.render_target_formats[0] = bind_rts_[0]->GetTexture()->GetDesc().Format;
 			dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::pipeline);
 
 			return true;
@@ -1371,13 +1362,12 @@ namespace REngine
 					depth_stencil = nullptr;
 			}
 
-			s_depth_stencil = depth_stencil;
+			bind_depth_stencil_ = depth_stencil;
+
 			const auto format = depth_stencil->GetDesc().Format;
 			if(format != pipeline_info_->output.depth_stencil_format)
-			{
-				pipeline_info_->output.depth_stencil_format = format;
 				dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::pipeline);
-			}
+			pipeline_info_->output.depth_stencil_format = format;
 			return true;
 		}
 		void PreparePipelineState()
@@ -1673,23 +1663,27 @@ namespace REngine
 		}
 		void BoundRenderTargets() const
 		{
-			context_->SetRenderTargets(s_num_rts, s_render_targets.data(), s_depth_stencil, Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
+			context_->SetRenderTargets(
+				num_rts_, 
+				const_cast<ITextureView**>(bind_rts_.data()), 
+				bind_depth_stencil_, 
+				Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
 		}
 		void ClearByHardware(const DrawCommandClearDesc& desc) const
 		{
 			ATOMIC_PROFILE(IDrawCommand::ClearByHardware);
 				
 			auto clear_stencil_flags = Diligent::CLEAR_DEPTH_FLAG_NONE;
-			if(desc.flags & CLEAR_COLOR && s_render_targets[0])
-				context_->ClearRenderTarget(s_render_targets[0], desc.color.Data(), Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
-			if((desc.flags & (CLEAR_DEPTH | CLEAR_STENCIL)) !=0 && s_depth_stencil)
+			if(desc.flags & CLEAR_COLOR && bind_rts_[0])
+				context_->ClearRenderTarget(bind_rts_[0], desc.color.Data(), Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
+			if((desc.flags & (CLEAR_DEPTH | CLEAR_STENCIL)) !=0 && bind_depth_stencil_)
 			{
 				if(desc.flags & CLEAR_DEPTH)
 					clear_stencil_flags |= Diligent::CLEAR_DEPTH_FLAG;
 				if(desc.flags & CLEAR_STENCIL)
 					clear_stencil_flags |= Diligent::CLEAR_STENCIL_FLAG;
 
-				context_->ClearDepthStencil(s_depth_stencil, 
+				context_->ClearDepthStencil(bind_depth_stencil_, 
 					clear_stencil_flags, 
 					desc.depth, 
 					static_cast<u8>(desc.stencil), 
@@ -1876,11 +1870,13 @@ namespace REngine
 		Diligent::RefCntAutoPtr<Diligent::IShaderResourceBinding> shader_resource_binding_;
 
 		ea::shared_ptr<RenderSurface> depth_stencil_;
+		ITextureView* bind_depth_stencil_;
 		ea::array<ShaderParameterUpdateData*, MAX_SHADER_PARAMETER_UPDATES> params_2_update_;
 		u32 next_param_2_update_idx_;
 
 		// arrays
 		ea::array<ea::shared_ptr<RenderSurface>, MAX_RENDERTARGETS> render_targets_;
+		ea::array<ITextureView*, MAX_RENDERTARGETS> bind_rts_;
 		ea::array<ShaderResourceTextureDesc, MAX_TEXTURE_UNITS> textures_;
 		ea::array<ea::shared_ptr<VertexBuffer>, MAX_VERTEX_STREAMS> vertex_buffers_;
 		ea::array<Diligent::IBuffer*, MAX_VERTEX_STREAMS> bind_vertex_buffers_;
@@ -1906,6 +1902,8 @@ namespace REngine
 
 		u32 curr_assigned_texture_flags_{};
 		u32 curr_assigned_immutable_sa_flags_{};
+
+		u32 num_rts_{};
 		u32 num_vertex_buffers_{};
 
 		u32 curr_vertx_decl_checksum_{};
