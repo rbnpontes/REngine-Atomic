@@ -631,6 +631,9 @@ void Engine::RunFrame()
         fpsFramesSinceUpdate_ = 0;
         fpsTimeSinceUpdate_ = 0;
     }
+
+    ATOMIC_PROFILE_PLOT("FPS", static_cast<i64>(fps_));
+
     Render();
     ATOMIC_PROFILE_END();
     ApplyFrameLimit();

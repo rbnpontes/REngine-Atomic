@@ -133,6 +133,7 @@ private:
 #   define ATOMIC_PROFILE_END(...)
 #   define ATOMIC_PROFILE_THREAD(name)
 #   define ATOMIC_PROFILE_MSG(message) TracyMessageL(message)
+#   define ATOMIC_PROFILE_PLOT(name, value) TracyPlot(name, value)
 #endif
 
 #else
@@ -143,6 +144,7 @@ private:
 #   define ATOMIC_PROFILE_END(...)
 #   define ATOMIC_PROFILE_THREAD(name)
 #   define ATOMIC_PROFILE_MSG(message)
+#   define ATOMIC_PROFILE_PLOT(name, value)
 #endif
 
 }
