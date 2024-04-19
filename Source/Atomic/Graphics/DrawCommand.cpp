@@ -263,57 +263,53 @@ namespace REngine
 			bool changed = false;
 			for(u8 i = 0; i < MAX_SHADER_TYPES; ++i)
 			{
-				if(s_shaders[i] == s_pipeline_shaders[i])
+				auto shader = s_shaders[i];
+				const auto pipeline_shader = s_pipeline_shaders[i];
+				if(shader == pipeline_shader)
 					continue;
 
 				if(enable_clip_planes_)
 				{
-					s_shaders[i] = s_shaders[i]->GetOwner()->GetVariation(
+					shader = shader->GetOwner()->GetVariation(
 						static_cast<ShaderType>(i),
-						s_shaders[i]->GetDefinesClipPlane()
+						shader->GetDefinesClipPlane()
 					);
 				}
 
-				if (s_shaders[i] == s_pipeline_shaders[i])
+				if (shader == pipeline_shader)
 					continue;
 
 				if(i == VS)
 					dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::vertex_decl) | static_cast<u32>(RenderCommandDirtyState::vertex_buffer);
 
 				// Build shader if is necessary
-				if(s_shaders[i] && !s_shaders[i]->GetGPUObject())
+				if(shader && !shader->GetGPUObject())
 				{
-					if (!s_shaders[i]->GetCompilerOutput().Empty())
-						s_shaders[i] = nullptr;
-					else if(!s_shaders[i]->Create())
+					if (!shader->GetCompilerOutput().Empty())
+						shader = nullptr;
+					else if(!shader->Create())
 					{
-						ATOMIC_LOGERROR("Failed to create shader: " + s_shaders[i]->GetName());
-						s_shaders[i] = nullptr;
+						ATOMIC_LOGERROR("Failed to create shader: " + shader->GetName());
+						shader = nullptr;
 					}
 				}
 
-				dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::pipeline);
+				s_shaders[i] = shader;
 				changed = true;
 			}
 
 			if (!changed)
 				return;
 
-			const auto vs_shader = s_shaders[VS];
-			const auto ps_shader = s_shaders[PS];
-			/*auto gs_shader = desc.gs;
-			auto ds_shader = desc.ds;
-			auto hs_shader = desc.hs;*/
-
-			pipeline_info_->vs_shader = vs_shader;
-			pipeline_info_->ps_shader = ps_shader;
+			pipeline_info_->vs_shader = s_shaders[VS];
+			pipeline_info_->ps_shader = s_shaders[PS];
 			dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::pipeline);
 
-			if(vs_shader && ps_shader)
+			if(s_shaders[VS] && s_shaders[PS])
 			{
 				const ShaderProgramQuery query{
-					vs_shader,
-					ps_shader
+					s_shaders[VS],
+					s_shaders[PS]
 				};
 				shader_program_ = GetOrCreateShaderProgram(query);
 
