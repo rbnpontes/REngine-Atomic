@@ -96,6 +96,10 @@ else ()
     target_compile_definitions (Atomic PRIVATE -DATOMIC_EXPORTS=1)
 endif ()
 
+if(ATOMIC_SSE OR RENGINE_SSE)
+    target_compile_definitions(Atomic PUBLIC -DATOMIC_SSE=1 -DRENGINE_SSE=1)
+endif ()
+
 include_directories (${CMAKE_CURRENT_SOURCE_DIR})
 target_include_directories(Atomic PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../)
 

@@ -49,6 +49,8 @@ public:
     bool SetSize(unsigned size);
     /// Set a generic parameter and mark buffer dirty.
     void SetParameter(unsigned offset, unsigned size, const void* data);
+    /// Get Write Buffer. The caller is responsible to dirty buffer.
+    void* GetWriteBuffer(u32 offset) const;
     /// Set a Vector3 array parameter and mark buffer dirty.
     void SetVector3ArrayParameter(unsigned offset, unsigned rows, const void* data);
     /// Apply to GPU.

@@ -49,12 +49,8 @@
     layout(std140) uniform ObjectVS
     {
         mat4 cModel;
-        #ifdef BILLBOARD
-            mat3 cBillboardRot;
-        #endif // BILLBOARD
-        #ifdef SKINNED
-            vec4 cSkinMatrices[MAXBONES*3];
-        #endif // SKINNED
+        mat3 cBillboardRot;
+        vec4 cSkinMatrices[MAXBONES*3];
     };
 
 #endif // COMPILEVS

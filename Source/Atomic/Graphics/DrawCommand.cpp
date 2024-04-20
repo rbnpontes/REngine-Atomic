@@ -20,6 +20,10 @@
 #include "../RHI/DiligentUtils.h"
 #include "../RHI/ShaderParametersCache.h"
 
+#if RENGINE_SSE
+#include <emmintrin.h>
+#endif
+
 #define MAX_SHADER_PARAMETER_UPDATES 100
 
 namespace REngine
@@ -617,7 +621,41 @@ namespace REngine
 			if(shader_parameters_cache_get(param.Value(), &parameter))
 			{
 				const auto cbuffer = static_cast<ConstantBuffer*>(parameter->bufferPtr_);
-				cbuffer->SetParameter(parameter->offset_, sizeof(Matrix3), &value);
+				if(graphics_->GetImpl()->GetBackend() == GraphicsBackend::Vulkan)
+				{
+#if RENGINE_SSE
+					float* data = static_cast<float*>(cbuffer->GetWriteBuffer(parameter->offset_));
+					// I just need to copy matrix in a faster way
+					__m128 row = _mm_set_ps(0.0f, value.m02_, value.m01_, value.m00_);
+					_mm_store_ps(data, row);
+
+					data += 4;
+
+					row = _mm_set_ps(0.0f, value.m12_, value.m11_, value.m10_);
+					_mm_store_ps(data, row);
+
+					data += 4;
+
+					row = _mm_set_ps(0.0f, value.m22_, value.m21_, value.m20_);
+					_mm_store_ps(data, row);
+#else
+					const auto data = static_cast<const float*>(static_cast<const void*>(&value));
+					size_t offset = 0;
+					size_t matrix_offset = 0;
+					for(u32 j =0; j < 3; ++j)
+					{
+						for(u32 i =0; i < 3; ++i)
+						{
+							cbuffer->SetParameter(parameter->offset_ + offset, sizeof(float), data + matrix_offset);
+							offset += sizeof(float);
+							++matrix_offset;
+						}
+						offset += sizeof(float);
+					}
+#endif
+				}
+				else
+					cbuffer->SetParameter(parameter->offset_, sizeof(Matrix3), &value);
 				return;
 			}
 

@@ -53,6 +53,11 @@ void ConstantBuffer::SetParameter(unsigned offset, unsigned size, const void* da
     dirty_ = true;
 }
 
+void* ConstantBuffer::GetWriteBuffer(u32 offset) const
+{
+    return shadowData_ + offset;
+}
+
 void ConstantBuffer::SetVector3ArrayParameter(unsigned offset, unsigned rows, const void* data)
 {
     if (offset + rows * 4 * sizeof(float) > size_)
