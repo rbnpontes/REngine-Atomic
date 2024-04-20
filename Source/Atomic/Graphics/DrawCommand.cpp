@@ -625,6 +625,7 @@ namespace REngine
 				{
 #if RENGINE_SSE
 					float* data = static_cast<float*>(cbuffer->GetWriteBuffer(parameter->offset_));
+					cbuffer->MakeDirty();
 					// I just need to copy matrix in a faster way
 					__m128 row = _mm_set_ps(0.0f, value.m02_, value.m01_, value.m00_);
 					_mm_store_ps(data, row);

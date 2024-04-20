@@ -223,22 +223,26 @@ namespace Atomic
 
         String source_code = owner_->GetSourceCode(type_);
         String entrypoint;
-        Vector<String> defines = defines_.Split(' ');
+
+        ea::vector<ea::string> defines;
+        for (const auto& part : defines_.Split(' '))
+            defines.push_back(part.CString());
+
         const auto backend = graphics_->GetImpl()->GetBackend();
 
         switch (backend)
         {
         case GraphicsBackend::D3D11:
-            defines.Push("D3D11");
+            defines.push_back("D3D11");
             break;
         case GraphicsBackend::D3D12:
-            defines.Push("D3D12");
+            defines.push_back("D3D12");
             break;
         case GraphicsBackend::Vulkan:
-            defines.Push("VULKAN");
+            defines.push_back("VULKAN");
             break;
         case GraphicsBackend::OpenGL:
-            defines.Push("OPENGL");
+            defines.push_back("OPENGL");
             break;
         }
 
@@ -247,13 +251,13 @@ namespace Atomic
         case VS:
             {
                 entrypoint = "VS();";
-                defines.Push("COMPILEVS");
+                defines.push_back("COMPILEVS");
             }
             break;
         case PS:
             {
                 entrypoint = "PS();";
-                defines.Push("COMPILEPS");
+                defines.push_back("COMPILEPS");
             }
             break;
         case MAX_SHADER_TYPES:
@@ -262,50 +266,49 @@ namespace Atomic
             return false;
         }
 
-        defines.Push(String("MAXBONES=").AppendWithFormat("%d", Graphics::GetMaxBones()));
+        defines.push_back(String("MAXBONES=").AppendWithFormat("%d", Graphics::GetMaxBones()).CString());
 
         // Collect defines into macros
-        Vector<String> define_values;
-        for (unsigned i = 0; i < defines.Size(); ++i)
+        /*ea::vector<ea::string> define_values;
+        for (unsigned i = 0; i < defines.size(); ++i)
         {
-            unsigned equalsPos = defines[i].Find('=');
+            unsigned equalsPos = defines[i].find('=');
             if (equalsPos != String::NPOS)
             {
-                define_values.Push(defines[i].Substring(equalsPos + 1));
-                defines[i].Resize(equalsPos);
+                define_values.push_back(defines[i].substr(equalsPos + 1));
+                defines[i].resize(equalsPos);
             }
             else
-                define_values.Push("1");
-        }
+                define_values.push_back("1");
+        }*/
 
-        String macros_header;
-        for (unsigned i = 0; i < defines.Size(); ++i)
+        ea::string macros_header;
+        for (const auto& define : defines)
         {
-            macros_header.Append("#define ");
-            auto define = defines[i];
-            const auto equal_pos = define.Find('=');
-            if (equal_pos != String::NPOS)
+            macros_header +="#define ";
+            const auto equal_pos = define.find('=');
+            if (equal_pos != ea::string::npos)
             {
-                macros_header.Append(define.Substring(equal_pos + 1));
-                macros_header.Append(' ');
-                macros_header.Append(define.Substring(equal_pos + 1, define.Length()));
+                macros_header += define.substr(0, equal_pos);
+                macros_header += ' ';
+                macros_header += define.substr(equal_pos + 1, define.length());
             }
             else
             {
-                macros_header.Append(define);
-                macros_header.Append(" 1");
+                macros_header += define;
+                macros_header += " 1";
             }
-            macros_header.Append('\n');
+            macros_header += '\n';
 
             // In debug mode, check that all defines are referenced by the shader code
-#ifdef _DEBUG
-            if (source_code.Find(defines[i]) == String::NPOS)
-                ATOMIC_LOGWARNING("Shader " + GetFullName() + " does not use the define " + defines[i]);
+#ifdef ATOMIC_DEBUG
+            if (source_code.Find(define.c_str()) == String::NPOS)
+                ATOMIC_LOGWARNING("Shader " + GetFullName() + " does not use the define " + String(define.c_str()));
 #endif
         }
 
-        source_code = String("#version 450\n") + macros_header + source_code;
-        source_code.Append("void main()\n{");
+        source_code = String("#version 450\n") + String(macros_header.c_str()) + source_code;
+        source_code.Append("void main()\n{\n");
         source_code.AppendWithFormat("\t%s\n", entrypoint.CString());
         source_code.Append("}");
 
