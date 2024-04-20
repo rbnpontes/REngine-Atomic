@@ -334,7 +334,7 @@ namespace REngine
 			if(shader_parameters_cache_get(param.Value(), &parameter))
 			{
 				const auto cbuffer = static_cast<ConstantBuffer*>(parameter->bufferPtr_);
-				cbuffer->SetParameter(parameter->offset_, sizeof(float), data);
+				cbuffer->SetParameter(parameter->offset_, sizeof(float) * count, data);
 				return;
 			}
 
