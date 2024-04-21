@@ -173,7 +173,7 @@ namespace Atomic
         ci.Desc.Name =full_name.CString();
         ci.Desc.UseCombinedTextureSamplers = true;
         ci.EntryPoint = "main";
-        ci.SourceLanguage = Diligent::SHADER_SOURCE_LANGUAGE_GLSL;
+        ci.SourceLanguage = Diligent::SHADER_SOURCE_LANGUAGE_GLSL_VERBATIM;
         
         switch (type_)
         {
@@ -218,7 +218,7 @@ namespace Atomic
         Diligent::ShaderCreateInfo shader_ci = {};
         shader_ci.Desc.Name = full_name.CString();
         shader_ci.Desc.UseCombinedTextureSamplers = true;
-        shader_ci.SourceLanguage = Diligent::SHADER_SOURCE_LANGUAGE_GLSL;
+        shader_ci.SourceLanguage = Diligent::SHADER_SOURCE_LANGUAGE_GLSL_VERBATIM;
         shader_ci.Desc.ShaderType = REngine::utils_get_shader_type(type_);
 
         String source_code = owner_->GetSourceCode(type_);
@@ -375,6 +375,9 @@ namespace Atomic
                     byte_code,
                     byte_code + pre_process_result.source_code.Length()
                 );
+                source_code = pre_process_result.source_code;
+                shader_ci.Source = source_code.CString();
+                shader_ci.SourceLength = source_code.Length();
                 shader_ci.EntryPoint = "main";
             }
         }
