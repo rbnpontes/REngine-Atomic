@@ -48,10 +48,6 @@ GPUObject::~GPUObject()
 
 void GPUObject::OnDeviceLost()
 {
-#ifdef ATOMIC_OPENGL
-    // On OpenGL the object has already been lost at this point; reset object name
-    object_.name_ = 0;
-#endif
 }
 
 void GPUObject::OnDeviceReset()

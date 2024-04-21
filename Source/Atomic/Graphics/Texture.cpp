@@ -324,7 +324,6 @@ void Texture::CheckTextureBudget(StringHash type)
         cache->ReleaseResources(Material::GetTypeStatic());
 }
 
-#if RENGINE_DILIGENT
 void Texture::GetSamplerDesc(REngine::SamplerDesc& desc) const
 {
     desc.filter_mode = filterMode_;
@@ -340,6 +339,5 @@ void Texture::GetSamplerDesc(REngine::SamplerDesc& desc) const
     desc.address_v = addressMode_[COORD_V];
     desc.address_w = addressMode_[COORD_W];
 }
-#endif
     
 }

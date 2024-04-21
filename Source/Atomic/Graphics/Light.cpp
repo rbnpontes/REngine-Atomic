@@ -111,7 +111,8 @@ Light::Light(Context* context) :
     shadowNearFarRatio_(DEFAULT_SHADOWNEARFARRATIO),
     shadowMaxExtrusion_(DEFAULT_SHADOWMAXEXTRUSION),
     perVertex_(false),
-    usePhysicalValues_(false)
+    usePhysicalValues_(false),
+    graphics_(GetSubsystem<Graphics>())
 {
 }
 
