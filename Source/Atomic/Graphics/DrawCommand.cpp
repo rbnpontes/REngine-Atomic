@@ -621,7 +621,8 @@ namespace REngine
 			if(shader_parameters_cache_get(param.Value(), &parameter))
 			{
 				const auto cbuffer = static_cast<ConstantBuffer*>(parameter->bufferPtr_);
-				if(graphics_->GetImpl()->GetBackend() == GraphicsBackend::Vulkan)
+				const auto backend = graphics_->GetImpl()->GetBackend();
+				if(backend == GraphicsBackend::Vulkan || backend == GraphicsBackend::OpenGL)
 				{
 #if RENGINE_SSE
 					float* data = static_cast<float*>(cbuffer->GetWriteBuffer(parameter->offset_));
@@ -1677,7 +1678,7 @@ namespace REngine
 
 			{
 				ATOMIC_PROFILE(IDrawCommand::WritingParameters);
-				const auto params_count = next_param_2_update_idx_;
+				const auto params_count = Min(next_param_2_update_idx_, MAX_SHADER_PARAMETER_UPDATES);
 				next_param_2_update_idx_ = 0;
 				for(u32 i = 0; i < params_count; ++i)
 				{

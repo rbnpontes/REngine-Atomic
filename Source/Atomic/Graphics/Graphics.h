@@ -272,6 +272,8 @@ public:
 
     ea::shared_ptr<IDrawCommand> GetDrawCommand() const { return draw_command_; }
 
+    GraphicsBackend GetBackend() const;
+
     /// Return OS-specific external window handle. Null if not in use.
     void* GetExternalWindow() const { return externalWindow_; }
 

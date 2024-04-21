@@ -61,10 +61,6 @@ static SharedPtr<Image> GetTileImage(Image* src, int tileX, int tileY, int tileW
 TextureCube::TextureCube(Context* context) :
     Texture(context)
 {
-#ifdef ATOMIC_OPENGL
-    target_ = GL_TEXTURE_CUBE_MAP;
-#endif
-
     // Default to clamp mode addressing
     addressMode_[COORD_U] = ADDRESS_CLAMP;
     addressMode_[COORD_V] = ADDRESS_CLAMP;

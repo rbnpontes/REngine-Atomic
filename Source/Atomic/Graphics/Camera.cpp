@@ -24,6 +24,8 @@
 
 #include "../Core/Context.h"
 #include "../Graphics/Camera.h"
+
+#include "Graphics.h"
 #include "../Graphics/DebugRenderer.h"
 #include "../Graphics/Drawable.h"
 #include "../Scene/Node.h"
@@ -76,6 +78,7 @@ Camera::Camera(Context* context) :
     customProjection_(false)
 {
     reflectionMatrix_ = reflectionPlane_.ReflectionMatrix();
+    graphics_ = GetSubsystem<Graphics>();
 }
 
 Camera::~Camera()
@@ -449,9 +452,8 @@ Matrix4 Camera::GetProjection() const
 
 Matrix4 Camera::GetGPUProjection() const
 {
-#ifndef ATOMIC_OPENGL
-    return GetProjection(); // Already matches API-specific format
-#else
+    if(graphics_->GetBackend() != GraphicsBackend::OpenGL)
+        return GetProjection(); // Already matches API-specific format
     // See formulation for depth range conversion at http://www.ogre3d.org/forums/viewtopic.php?f=4&t=13357
     Matrix4 ret = GetProjection();
 
@@ -461,7 +463,6 @@ Matrix4 Camera::GetGPUProjection() const
     ret.m23_ = 2.0f * ret.m23_ - ret.m33_;
 
     return ret;
-#endif
 }
 
 void Camera::GetFrustumSize(Vector3& near, Vector3& far) const

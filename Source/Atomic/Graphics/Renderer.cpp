@@ -982,16 +982,10 @@ Texture2D* Renderer::GetShadowMap(Light* light, Camera* camera, unsigned viewWid
         }
         else
         {
-#ifndef GL_ES_VERSION_2_0
-            // OpenGL (desktop) and D3D11: shadow compare mode needs to be specifically enabled for the shadow map
-            newShadowMap->SetFilterMode(FILTER_BILINEAR);
-            newShadowMap->SetShadowCompare(shadowMapUsage == TEXTURE_DEPTHSTENCIL);
-#endif
-#ifndef ATOMIC_OPENGL
             // Direct3D9: when shadow compare must be done manually, use nearest filtering so that the filtering of point lights
             // and other shadowed lights matches
-            newShadowMap->SetFilterMode(graphics_->GetHardwareShadowSupport() ? FILTER_BILINEAR : FILTER_NEAREST);
-#endif
+            if(graphics_->GetBackend() != GraphicsBackend::OpenGL)
+                newShadowMap->SetFilterMode(graphics_->GetHardwareShadowSupport() ? FILTER_BILINEAR : FILTER_NEAREST);
             // Create dummy color texture for the shadow map if necessary: Direct3D9, or OpenGL when working around an OS X +
             // Intel driver bug
             if (shadowMapUsage == TEXTURE_DEPTHSTENCIL && dummyColorFormat)
@@ -1841,8 +1835,7 @@ void Renderer::CreateGeometries()
     pointLightGeometry_->SetIndexBuffer(plib);
     pointLightGeometry_->SetDrawRange(TRIANGLE_LIST, 0, plib->GetIndexCount());
 
-#if !defined(ATOMIC_OPENGL) || !defined(GL_ES_VERSION_2_0)
-    if (graphics_->GetShadowMapFormat())
+    if (graphics_->GetShadowMapFormat() && graphics_->GetBackend() != GraphicsBackend::OpenGL)
     {
         faceSelectCubeMap_ = new TextureCube(context_);
         faceSelectCubeMap_->SetNumLevels(1);
@@ -1859,7 +1852,6 @@ void Renderer::CreateGeometries()
 
         SetIndirectionTextureData();
     }
-#endif
 }
 
 void Renderer::SetIndirectionTextureData()
@@ -1876,6 +1868,7 @@ void Renderer::SetIndirectionTextureData()
         faceSelectCubeMap_->SetData((CubeMapFace)i, 0, 0, 0, 1, 1, data);
     }
 
+    const bool isOpenGl = graphics_->GetBackend() == GraphicsBackend::OpenGL;
     for (unsigned i = 0; i < MAX_CUBEMAP_FACES; ++i)
     {
         unsigned char faceX = (unsigned char)((i & 1) * 255);
@@ -1885,17 +1878,20 @@ void Renderer::SetIndirectionTextureData()
         {
             for (unsigned x = 0; x < 256; ++x)
             {
-#ifdef ATOMIC_OPENGL
-                dest[0] = (unsigned char)x;
-                dest[1] = (unsigned char)(255 - y);
-                dest[2] = faceX;
-                dest[3] = (unsigned char)(255 * 2 / 3 - faceY);
-#else
-                dest[0] = (unsigned char)x;
-                dest[1] = (unsigned char)y;
-                dest[2] = faceX;
-                dest[3] = faceY;
-#endif
+                if(isOpenGl)
+                {
+                    dest[0] = (unsigned char)x;
+                    dest[1] = (unsigned char)(255 - y);
+                    dest[2] = faceX;
+                    dest[3] = (unsigned char)(255 * 2 / 3 - faceY);
+                }
+            	else
+                {
+                    dest[0] = (unsigned char)x;
+                    dest[1] = (unsigned char)y;
+                    dest[2] = faceX;
+                    dest[3] = faceY;
+                }
                 dest += 4;
             }
         }
@@ -1942,28 +1938,31 @@ void Renderer::ResetBuffers()
 
 String Renderer::GetShadowVariations() const
 {
+    const auto is_opengl = graphics_->GetBackend() == GraphicsBackend::OpenGL;
     switch (shadowQuality_)
     {
         case SHADOWQUALITY_SIMPLE_16BIT:
-        #ifdef ATOMIC_OPENGL
-            return "SIMPLE_SHADOW ";
-        #else
-            if (graphics_->GetHardwareShadowSupport())
+            if(is_opengl)
                 return "SIMPLE_SHADOW ";
             else
-                return "SIMPLE_SHADOW SHADOWCMP ";
-        #endif
+            {
+                if (graphics_->GetHardwareShadowSupport())
+                    return "SIMPLE_SHADOW ";
+                else
+                    return "SIMPLE_SHADOW SHADOWCMP ";
+            }
         case SHADOWQUALITY_SIMPLE_24BIT:
             return "SIMPLE_SHADOW ";
         case SHADOWQUALITY_PCF_16BIT:
-        #ifdef ATOMIC_OPENGL
-            return "PCF_SHADOW ";
-        #else
-            if (graphics_->GetHardwareShadowSupport())
+            if(is_opengl)
                 return "PCF_SHADOW ";
             else
-                return "PCF_SHADOW SHADOWCMP ";
-        #endif
+            {
+                if (graphics_->GetHardwareShadowSupport())
+                    return "PCF_SHADOW ";
+                else
+                    return "PCF_SHADOW SHADOWCMP ";
+            }
         case SHADOWQUALITY_PCF_24BIT:
             return "PCF_SHADOW ";
         case SHADOWQUALITY_VSM:

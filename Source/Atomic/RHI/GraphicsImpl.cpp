@@ -985,6 +985,11 @@ namespace Atomic
 		return window_ != nullptr && impl_->IsInitialized();
 	}
 
+	GraphicsBackend Graphics::GetBackend() const
+	{
+		return impl_->GetBackend();
+	}
+
 	PODVector<int> Graphics::GetMultiSampleLevels() const
 	{
 		if (!impl_->IsInitialized())

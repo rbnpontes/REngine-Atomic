@@ -32,198 +32,208 @@
 
 namespace Atomic
 {
+	static float GetPositionAdjust(GraphicsBackend backend)
+	{
+		return backend == GraphicsBackend::OpenGL ? 0.0f : 0.5f;
+	}
+	static Vector3 GetPositionAdjustVector3(GraphicsBackend backend)
+	{
+		const auto adjust = GetPositionAdjust(backend);
+		return Vector3(adjust, adjust, 0.0f);
+	}
 
-#ifdef ATOMIC_OPENGL
-static const float posAdjust = 0.0f;
-#else
-static const float posAdjust = 0.5f;
-#endif
+	UIBatch::UIBatch(GraphicsBackend backend) :
+		blendMode_(BLEND_REPLACE),
+		texture_(0),
+		invTextureSize_(Vector2::ONE),
+		vertexData_(0),
+		vertexStart_(0),
+		vertexEnd_(0),
+		backend_(backend)
+	{
+		SetDefaultColor();
+	}
 
-static const Vector3 posAdjustVec(posAdjust, posAdjust, 0.0f);
+	UIBatch::UIBatch(
+		GraphicsBackend backend,
+		BlendMode blendMode, 
+		const IntRect& scissor, 
+		Texture* texture, 
+		PODVector<float>* vertexData) :
+		blendMode_(blendMode),
+		scissor_(scissor),
+		texture_(texture),
+		invTextureSize_(texture ? Vector2(1.0f / (float)texture->GetWidth(), 1.0f / (float)texture->GetHeight()) : Vector2::ONE),
+		vertexData_(vertexData),
+		vertexStart_(vertexData->Size()),
+		vertexEnd_(vertexData->Size()),
+		backend_(backend)
+	{
+		SetDefaultColor();
+	}
 
-UIBatch::UIBatch() :
-    blendMode_(BLEND_REPLACE),
-    texture_(0),
-    invTextureSize_(Vector2::ONE),
-    vertexData_(0),
-    vertexStart_(0),
-    vertexEnd_(0)
-{
-    SetDefaultColor();
-}
+	void UIBatch::SetColor(const Color& color, bool overrideAlpha)
+	{
+		useGradient_ = false;
+		color_ = color.ToUInt();
+	}
 
-UIBatch::UIBatch(BlendMode blendMode, const IntRect& scissor, Texture* texture, PODVector<float>* vertexData) :
-    blendMode_(blendMode),
-    scissor_(scissor),
-    texture_(texture),
-    invTextureSize_(texture ? Vector2(1.0f / (float)texture->GetWidth(), 1.0f / (float)texture->GetHeight()) : Vector2::ONE),
-    vertexData_(vertexData),
-    vertexStart_(vertexData->Size()),
-    vertexEnd_(vertexData->Size())
-{
-    SetDefaultColor();
-}
+	void UIBatch::SetDefaultColor()
+	{
+		color_ = 0xffffffff;
+		useGradient_ = false;
+	}
 
-void UIBatch::SetColor(const Color& color, bool overrideAlpha)
-{
-    useGradient_ = false;
-    color_ = color.ToUInt();
-}
+	void UIBatch::AddQuad(int x, int y, int width, int height, int texOffsetX, int texOffsetY, int texWidth, int texHeight)
+	{
+		// If alpha is 0, nothing will be rendered, so do not add the quad
+		if (!(color_ & 0xff000000))
+			return;
 
-void UIBatch::SetDefaultColor()
-{
-    color_ = 0xffffffff;
-    useGradient_ = false;
-}
+		//const IntVector2& screenPos = element_->GetScreenPosition();
+		IntVector2 screenPos(0, 0);
 
-void UIBatch::AddQuad(int x, int y, int width, int height, int texOffsetX, int texOffsetY, int texWidth, int texHeight)
-{
-    // If alpha is 0, nothing will be rendered, so do not add the quad
-    if (!(color_ & 0xff000000))
-        return;
+		const auto pos_adjust = GetPositionAdjust(backend_);
+		float left = (float)(x + screenPos.x_) - pos_adjust;
+		float right = left + (float)width;
+		float top = (float)(y + screenPos.y_) - pos_adjust;
+		float bottom = top + (float)height;
 
-    //const IntVector2& screenPos = element_->GetScreenPosition();
-   IntVector2 screenPos(0, 0);
+		float leftUV = texOffsetX * invTextureSize_.x_;
+		float topUV = texOffsetY * invTextureSize_.y_;
+		float rightUV = (texOffsetX + (texWidth ? texWidth : width)) * invTextureSize_.x_;
+		float bottomUV = (texOffsetY + (texHeight ? texHeight : height)) * invTextureSize_.y_;
 
-    float left = (float)(x + screenPos.x_) - posAdjust;
-    float right = left + (float)width;
-    float top = (float)(y + screenPos.y_) - posAdjust;
-    float bottom = top + (float)height;
+		unsigned begin = vertexData_->Size();
+		vertexData_->Resize(begin + 6 * UI_VERTEX_SIZE);
+		float* dest = &(vertexData_->At(begin));
+		vertexEnd_ = vertexData_->Size();
 
-    float leftUV = texOffsetX * invTextureSize_.x_;
-    float topUV = texOffsetY * invTextureSize_.y_;
-    float rightUV = (texOffsetX + (texWidth ? texWidth : width)) * invTextureSize_.x_;
-    float bottomUV = (texOffsetY + (texHeight ? texHeight : height)) * invTextureSize_.y_;
+		dest[0] = left; dest[1] = top; dest[2] = 0.0f;
+		((unsigned&)dest[3]) = color_;
+		dest[4] = leftUV; dest[5] = topUV;
 
-    unsigned begin = vertexData_->Size();
-    vertexData_->Resize(begin + 6 * UI_VERTEX_SIZE);
-    float* dest = &(vertexData_->At(begin));
-    vertexEnd_ = vertexData_->Size();
+		dest[6] = right; dest[7] = top; dest[8] = 0.0f;
+		((unsigned&)dest[9]) = color_;
+		dest[10] = rightUV; dest[11] = topUV;
 
-    dest[0] = left; dest[1] = top; dest[2] = 0.0f;
-    ((unsigned&)dest[3]) = color_;
-    dest[4] = leftUV; dest[5] = topUV;
+		dest[12] = left; dest[13] = bottom; dest[14] = 0.0f;
+		((unsigned&)dest[15]) = color_;
+		dest[16] = leftUV; dest[17] = bottomUV;
 
-    dest[6] = right; dest[7] = top; dest[8] = 0.0f;
-    ((unsigned&)dest[9]) = color_;
-    dest[10] = rightUV; dest[11] = topUV;
+		dest[18] = right; dest[19] = top; dest[20] = 0.0f;
+		((unsigned&)dest[21]) = color_;
+		dest[22] = rightUV; dest[23] = topUV;
 
-    dest[12] = left; dest[13] = bottom; dest[14] = 0.0f;
-    ((unsigned&)dest[15]) = color_;
-    dest[16] = leftUV; dest[17] = bottomUV;
+		dest[24] = right; dest[25] = bottom; dest[26] = 0.0f;
+		((unsigned&)dest[27]) = color_;
+		dest[28] = rightUV; dest[29] = bottomUV;
 
-    dest[18] = right; dest[19] = top; dest[20] = 0.0f;
-    ((unsigned&)dest[21]) = color_;
-    dest[22] = rightUV; dest[23] = topUV;
+		dest[30] = left; dest[31] = bottom; dest[32] = 0.0f;
+		((unsigned&)dest[33]) = color_;
+		dest[34] = leftUV; dest[35] = bottomUV;
 
-    dest[24] = right; dest[25] = bottom; dest[26] = 0.0f;
-    ((unsigned&)dest[27]) = color_;
-    dest[28] = rightUV; dest[29] = bottomUV;
+		dest += 36;
+	}
 
-    dest[30] = left; dest[31] = bottom; dest[32] = 0.0f;
-    ((unsigned&)dest[33]) = color_;
-    dest[34] = leftUV; dest[35] = bottomUV;
+	void UIBatch::AddQuad(const Matrix3x4& transform, int x, int y, int width, int height, int texOffsetX, int texOffsetY,
+		int texWidth, int texHeight)
+	{
+		const auto pos_adjust_vec = GetPositionAdjustVector3(backend_);
+		Vector3 v1 = (transform * Vector3((float)x, (float)y, 0.0f)) - pos_adjust_vec;
+		Vector3 v2 = (transform * Vector3((float)x + (float)width, (float)y, 0.0f)) - pos_adjust_vec;
+		Vector3 v3 = (transform * Vector3((float)x, (float)y + (float)height, 0.0f)) - pos_adjust_vec;
+		Vector3 v4 = (transform * Vector3((float)x + (float)width, (float)y + (float)height, 0.0f)) - pos_adjust_vec;
 
-    dest += 36;
-}
+		float leftUV = ((float)texOffsetX) * invTextureSize_.x_;
+		float topUV = ((float)texOffsetY) * invTextureSize_.y_;
+		float rightUV = ((float)(texOffsetX + (texWidth ? texWidth : width))) * invTextureSize_.x_;
+		float bottomUV = ((float)(texOffsetY + (texHeight ? texHeight : height))) * invTextureSize_.y_;
 
-void UIBatch::AddQuad(const Matrix3x4& transform, int x, int y, int width, int height, int texOffsetX, int texOffsetY,
-    int texWidth, int texHeight)
-{
-    Vector3 v1 = (transform * Vector3((float)x, (float)y, 0.0f)) - posAdjustVec;
-    Vector3 v2 = (transform * Vector3((float)x + (float)width, (float)y, 0.0f)) - posAdjustVec;
-    Vector3 v3 = (transform * Vector3((float)x, (float)y + (float)height, 0.0f)) - posAdjustVec;
-    Vector3 v4 = (transform * Vector3((float)x + (float)width, (float)y + (float)height, 0.0f)) - posAdjustVec;
+		unsigned begin = vertexData_->Size();
+		vertexData_->Resize(begin + 6 * UI_VERTEX_SIZE);
+		float* dest = &(vertexData_->At(begin));
+		vertexEnd_ = vertexData_->Size();
 
-    float leftUV = ((float)texOffsetX) * invTextureSize_.x_;
-    float topUV = ((float)texOffsetY) * invTextureSize_.y_;
-    float rightUV = ((float)(texOffsetX + (texWidth ? texWidth : width))) * invTextureSize_.x_;
-    float bottomUV = ((float)(texOffsetY + (texHeight ? texHeight : height))) * invTextureSize_.y_;
+		dest[0] = v1.x_; dest[1] = v1.y_; dest[2] = 0.0f;
+		((unsigned&)dest[3]) = color_;
+		dest[4] = leftUV; dest[5] = topUV;
 
-    unsigned begin = vertexData_->Size();
-    vertexData_->Resize(begin + 6 * UI_VERTEX_SIZE);
-    float* dest = &(vertexData_->At(begin));
-    vertexEnd_ = vertexData_->Size();
+		dest[6] = v2.x_; dest[7] = v2.y_; dest[8] = 0.0f;
+		((unsigned&)dest[9]) = color_;
+		dest[10] = rightUV; dest[11] = topUV;
 
-    dest[0] = v1.x_; dest[1] = v1.y_; dest[2] = 0.0f;
-    ((unsigned&)dest[3]) = color_;
-    dest[4] = leftUV; dest[5] = topUV;
+		dest[12] = v3.x_; dest[13] = v3.y_; dest[14] = 0.0f;
+		((unsigned&)dest[15]) = color_;
+		dest[16] = leftUV; dest[17] = bottomUV;
 
-    dest[6] = v2.x_; dest[7] = v2.y_; dest[8] = 0.0f;
-    ((unsigned&)dest[9]) = color_;
-    dest[10] = rightUV; dest[11] = topUV;
+		dest[18] = v2.x_; dest[19] = v2.y_; dest[20] = 0.0f;
+		((unsigned&)dest[21]) = color_;
+		dest[22] = rightUV; dest[23] = topUV;
 
-    dest[12] = v3.x_; dest[13] = v3.y_; dest[14] = 0.0f;
-    ((unsigned&)dest[15]) = color_;
-    dest[16] = leftUV; dest[17] = bottomUV;
+		dest[24] = v4.x_; dest[25] = v4.y_; dest[26] = 0.0f;
+		((unsigned&)dest[27]) = color_;
+		dest[28] = rightUV; dest[29] = bottomUV;
 
-    dest[18] = v2.x_; dest[19] = v2.y_; dest[20] = 0.0f;
-    ((unsigned&)dest[21]) = color_;
-    dest[22] = rightUV; dest[23] = topUV;
+		dest[30] = v3.x_; dest[31] = v3.y_; dest[32] = 0.0f;
+		((unsigned&)dest[33]) = color_;
+		dest[34] = leftUV; dest[35] = bottomUV;
+	}
 
-    dest[24] = v4.x_; dest[25] = v4.y_; dest[26] = 0.0f;
-    ((unsigned&)dest[27]) = color_;
-    dest[28] = rightUV; dest[29] = bottomUV;
+	void UIBatch::AddQuad(int x, int y, int width, int height, int texOffsetX, int texOffsetY, int texWidth, int texHeight, bool tiled)
+	{
 
-    dest[30] = v3.x_; dest[31] = v3.y_; dest[32] = 0.0f;
-    ((unsigned&)dest[33]) = color_;
-    dest[34] = leftUV; dest[35] = bottomUV;
-}
+		if (!tiled)
+		{
+			AddQuad(x, y, width, height, texOffsetX, texOffsetY, texWidth, texHeight);
+			return;
+		}
 
-void UIBatch::AddQuad(int x, int y, int width, int height, int texOffsetX, int texOffsetY, int texWidth, int texHeight, bool tiled)
-{
+		int tileX = 0;
+		int tileY = 0;
+		int tileW = 0;
+		int tileH = 0;
 
-    if (!tiled)
-    {
-        AddQuad(x, y, width, height, texOffsetX, texOffsetY, texWidth, texHeight);
-        return;
-    }
+		while (tileY < height)
+		{
+			tileX = 0;
+			tileH = Min(height - tileY, texHeight);
 
-    int tileX = 0;
-    int tileY = 0;
-    int tileW = 0;
-    int tileH = 0;
+			while (tileX < width)
+			{
+				tileW = Min(width - tileX, texWidth);
 
-    while (tileY < height)
-    {
-        tileX = 0;
-        tileH = Min(height - tileY, texHeight);
+				AddQuad(x + tileX, y + tileY, tileW, tileH, texOffsetX, texOffsetY, tileW, tileH);
 
-        while (tileX < width)
-        {
-            tileW = Min(width - tileX, texWidth);
+				tileX += tileW;
+			}
 
-            AddQuad(x + tileX, y + tileY, tileW, tileH, texOffsetX, texOffsetY, tileW, tileH);
+			tileY += tileH;
+		}
+	}
 
-            tileX += tileW;
-        }
+	bool UIBatch::Merge(const UIBatch& batch)
+	{
+		if (batch.blendMode_ != blendMode_ ||
+			batch.scissor_ != scissor_ ||
+			batch.texture_ != texture_ ||
+			batch.vertexData_ != vertexData_ ||
+			batch.vertexStart_ != vertexEnd_)
+			return false;
 
-        tileY += tileH;
-    }
-}
+		vertexEnd_ = batch.vertexEnd_;
+		return true;
+	}
 
-bool UIBatch::Merge(const UIBatch& batch)
-{
-    if (batch.blendMode_ != blendMode_ ||
-        batch.scissor_ != scissor_ ||
-        batch.texture_ != texture_ ||
-        batch.vertexData_ != vertexData_ ||
-        batch.vertexStart_ != vertexEnd_)
-        return false;
+	void UIBatch::AddOrMerge(const UIBatch& batch, PODVector<UIBatch>& batches)
+	{
+		if (batch.vertexEnd_ == batch.vertexStart_)
+			return;
 
-    vertexEnd_ = batch.vertexEnd_;
-    return true;
-}
+		if (!batches.Empty() && batches.Back().Merge(batch))
+			return;
 
-void UIBatch::AddOrMerge(const UIBatch& batch, PODVector<UIBatch>& batches)
-{
-    if (batch.vertexEnd_ == batch.vertexStart_)
-        return;
-
-    if (!batches.Empty() && batches.Back().Merge(batch))
-        return;
-
-    batches.Push(batch);
-}
+		batches.Push(batch);
+	}
 
 }

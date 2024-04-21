@@ -377,7 +377,7 @@ void UIView::GetBatches(PODVector<UIBatch>& batches, PODVector<float>& vertexDat
 
 void UIView::SubmitBatchVertexData(Texture* texture, const PODVector<float>& vertexData)
 {
-    UIBatch b(BLEND_ALPHA , renderer_->currentScissor_, texture, &vertexData_);
+    UIBatch b(graphics_->GetBackend(), BLEND_ALPHA , renderer_->currentScissor_, texture, &vertexData_);
 
     unsigned begin = b.vertexData_->Size();
     b.vertexData_->Resize(begin + vertexData.Size());
