@@ -109,6 +109,8 @@ private:
     bool Compile(ea::shared_array<u8>& shader_file_data, u32* shader_file_size);
     /// Save bytecode to a file.
     void SaveByteCode(const String& binaryShaderName, const ea::shared_array<u8>& byte_code, const u32 byte_code_len) const;
+    /// Fix input elements using compiled shader. This method works only on OpenGL
+    void FixInputElements();
 
     /// Shader this variation belongs to.
     WeakPtr<Shader> owner_;

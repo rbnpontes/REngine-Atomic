@@ -1,20 +1,22 @@
 #include "../Precompiled.h"
 
+#include "./DiligentUtils.h"
+#include "./DriverInstance.h"
+#include "./ShaderCompiler.h"
 #include "../Graphics/Graphics.h"
 #include "../Graphics/Shader.h"
-#include "../Graphics/VertexBuffer.h"
 #include "../Graphics/ShaderVariation.h"
+#include "../Graphics/VertexBuffer.h"
 #include "../IO/File.h"
 #include "../IO/FileSystem.h"
 #include "../IO/Log.h"
 #include "../Resource/ResourceCache.h"
-#include "./DriverInstance.h"
-#include "./ShaderCompiler.h"
-#include "./DiligentUtils.h"
 
 #include "../DebugNew.h"
 
+#include <GLEW/glew.h>
 #include <DiligentCore/Graphics/GraphicsEngine/interface/Shader.h>
+#include <DiligentCore/Graphics/GraphicsEngineOpenGL/interface/ShaderGL.h>
 #include <DiligentCore/Graphics/GraphicsTools/interface/ShaderMacroHelper.hpp>
 
 namespace Atomic
@@ -209,6 +211,10 @@ namespace Atomic
         }
 
         object_ = shader;
+
+        if (type_ == VS)
+            FixInputElements();
+
         return true;
     }
 
@@ -268,20 +274,7 @@ namespace Atomic
 
         defines.push_back(String("MAXBONES=").AppendWithFormat("%d", Graphics::GetMaxBones()).CString());
 
-        // Collect defines into macros
-        /*ea::vector<ea::string> define_values;
-        for (unsigned i = 0; i < defines.size(); ++i)
-        {
-            unsigned equalsPos = defines[i].find('=');
-            if (equalsPos != String::NPOS)
-            {
-                define_values.push_back(defines[i].substr(equalsPos + 1));
-                defines[i].resize(equalsPos);
-            }
-            else
-                define_values.push_back("1");
-        }*/
-
+        // Generate shader macros
         ea::string macros_header;
         for (const auto& define : defines)
         {
@@ -398,10 +391,15 @@ namespace Atomic
             return false;
         }
 
+        object_ = shader;
+
         switch (type_)
         {
         case VS:
-            ATOMIC_LOGDEBUG("Compiled vertex shader " + GetFullName());
+	        {
+                FixInputElements();
+                ATOMIC_LOGDEBUG("Compiled vertex shader " + GetFullName());
+	        }
             break;
         case PS:
             ATOMIC_LOGDEBUG("Compiled pixel shader " + GetFullName());
@@ -444,9 +442,57 @@ namespace Atomic
 
         shader_file_data = bin_data;
         *shader_file_size = bin_length;
-
-        object_ = shader;
         return true;
+    }
+
+    void ShaderVariation::FixInputElements()
+    {
+        if (graphics_->GetImpl()->GetBackend() != GraphicsBackend::OpenGL)
+            return;
+
+        const Diligent::IShaderGL* shader = object_.Cast<Diligent::IShaderGL>(Diligent::IID_ShaderGL);
+        if (!shader)
+            return;
+
+        const auto shader_handle = shader->GetGLShaderHandle();
+        const auto tmp_program = glCreateProgram();
+        glAttachShader(tmp_program, shader_handle);
+        glLinkProgram(tmp_program);
+
+        // Reflection does list all vertex attributes for us
+        // But order is not guaranteed, in this case
+        // we will remap all location based on compiled GL shader.
+        ea::hash_map<u32, REngine::ShaderCompilerReflectInputElement*> elements;
+        // move to hash map for fast lookup
+    	for (auto& it : input_elements_)
+            elements[StringHash(it.name).Value()] = &it;
+
+        GLint num_attrs;
+        GLint max_attr_length;
+        glGetProgramiv(tmp_program, GL_ACTIVE_ATTRIBUTES, &num_attrs);
+        glGetProgramiv(tmp_program, GL_ACTIVE_ATTRIBUTE_MAX_LENGTH, &max_attr_length);
+
+        ea::vector<char> buffer(max_attr_length);
+
+        // Loop for each active attribute
+        // And update current input layout list.
+        for(GLint i =0; i < num_attrs; ++i)
+        {
+            GLsizei length;
+            GLint size;
+            GLenum type;
+            glGetActiveAttrib(tmp_program, i, static_cast<GLsizei>(buffer.size()), &length, &size, &type, buffer.data());
+            GLint location = glGetAttribLocation(tmp_program, buffer.data());
+            StringHash name_hash = String(buffer.data(), length);
+
+            const auto it = elements.find_as(name_hash.Value());
+            if (it == elements.end())
+                continue;
+
+            it->second->index = static_cast<u8>(location);
+        }
+
+        glDeleteProgram(tmp_program);
     }
 
     void ShaderVariation::SaveByteCode(const String& binaryShaderName, const ea::shared_array<u8>& byte_code,
