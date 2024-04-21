@@ -1,4 +1,4 @@
-#extension GL_EXT_clip_cull_distance: enable
+// #extension GL_EXT_clip_cull_distance: enable
 #extension GL_OES_standard_derivatives : enable
 
 #define highp

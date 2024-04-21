@@ -369,8 +369,11 @@ namespace REngine
         ci.GraphicsPipeline.RasterizerDesc.CullMode = s_cull_mode_tbl[info.cull_mode];
     	ci.GraphicsPipeline.RasterizerDesc.FrontCounterClockwise = false;
         ci.GraphicsPipeline.RasterizerDesc.DepthBias = scaled_depth_bias;
-        ci.GraphicsPipeline.RasterizerDesc.DepthBiasClamp = M_INFINITY;
-        ci.GraphicsPipeline.RasterizerDesc.SlopeScaledDepthBias = info.slope_scaled_depth_bias;
+        if(is_not_opengl)
+            ci.GraphicsPipeline.RasterizerDesc.DepthBiasClamp = M_INFINITY;
+        else
+            ci.GraphicsPipeline.RasterizerDesc.DepthBiasClamp = 0;
+    	ci.GraphicsPipeline.RasterizerDesc.SlopeScaledDepthBias = info.slope_scaled_depth_bias;
         ci.GraphicsPipeline.RasterizerDesc.DepthClipEnable = true;
         ci.GraphicsPipeline.RasterizerDesc.ScissorEnable = info.scissor_test_enabled;
         //ci.GraphicsPipeline.RasterizerDesc.ScissorEnable = false;

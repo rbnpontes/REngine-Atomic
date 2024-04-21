@@ -31,6 +31,7 @@
 #include "UI.h"
 #include "UIView.h"
 #include "UIRenderer.h"
+#include "RHI/DriverInstance.h"
 
 using namespace tb;
 
@@ -231,8 +232,7 @@ void UIView::Render(VertexBuffer* buffer, const PODVector<UIBatch>& batches, uns
 
     // On OpenGL, flip the projection if rendering to a texture so that the texture can be addressed in the same way
     // as a render texture produced on Direct3D
-#ifdef ATOMIC_OPENGL
-    if (renderTexture_)
+    if (graphics_->GetImpl()->GetBackend() == GraphicsBackend::OpenGL && renderTexture_)
     {
         // ATOMIC ISSUE: https://github.com/AtomicGameEngine/AtomicGameEngine/issues/1581
         // this needs to be fixed, scissors can't be disabled
@@ -241,7 +241,6 @@ void UIView::Render(VertexBuffer* buffer, const PODVector<UIBatch>& batches, uns
         offset.y_ = -offset.y_;
         scale.y_  = -scale.y_;
     }
-#endif
 
     Matrix4 projection(Matrix4::IDENTITY);
     projection.m00_ = scale.x_;
