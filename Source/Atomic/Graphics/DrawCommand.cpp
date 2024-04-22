@@ -203,11 +203,11 @@ namespace REngine
 		void SetVertexBuffer(VertexBuffer* buffer) override
 		{
 			ATOMIC_PROFILE(IDrawCommand::SetVertexBuffer);
-			if(vertex_buffers_[0].get() == buffer)
+			if (vertex_buffers_[0].get() == buffer)
 				return;
 
 			vertex_offsets_[0] = 0;
-			if(!buffer)
+			if (!buffer)
 			{
 				vertex_buffers_[0] = nullptr;
 				num_vertex_buffers_ = curr_vertx_decl_checksum_ = curr_vertx_decl_checksum_ = 0;
@@ -219,7 +219,8 @@ namespace REngine
 				bind_vertex_buffers_[0] = buffer->GetGPUObject().Cast<IBuffer>(IID_Buffer);
 
 				num_vertex_buffers_ = 1;
-				curr_vbuffer_checksum_ = reinterpret_cast<u32>(bind_vertex_buffers_[0]);
+				curr_vbuffer_checksum_ = 16777619;
+				curr_vbuffer_checksum_ ^= reinterpret_cast<u32>(bind_vertex_buffers_[0]) * 16777619;
 				curr_vertx_decl_checksum_ = buffer->GetBufferHash(0);
 			}
 
@@ -1941,8 +1942,9 @@ namespace REngine
 				vertex_offsets_[i] = offset;
 				bind_vertex_buffers_[i] = buffer_obj;
 				// Build vertex buffer checksum
-				curr_vbuffer_checksum_ ^= reinterpret_cast<u32>(buffer_obj.ConstPtr());
-				curr_vbuffer_checksum_ ^= offset;
+				curr_vbuffer_checksum_ = 16777619;
+				curr_vbuffer_checksum_ ^= reinterpret_cast<u32>(buffer_obj.ConstPtr()) * 16777619;
+				curr_vbuffer_checksum_ ^= offset * 16777619;
 				//CombineHash(curr_vbuffer_checksum_, MakeHash(buffer_obj.ConstPtr()));
 				//CombineHash(curr_vbuffer_checksum_, offset);
 				// Build base Vertex Declaration Hash
