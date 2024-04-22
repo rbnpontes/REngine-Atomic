@@ -20,6 +20,7 @@
 #include "../RHI/DiligentUtils.h"
 #include "../RHI/ShaderParametersCache.h"
 
+#include <GLEW/glew.h>
 #if RENGINE_SSE
 #include <emmintrin.h>
 #endif
@@ -100,6 +101,9 @@ namespace REngine
 			vertex_offsets_.fill(0);
 
 			enable_clip_planes_ = false;
+			if (graphics_->GetBackend() == GraphicsBackend::OpenGL)
+				glDisable(GL_CLIP_PLANE0);
+
 			clip_plane_ = Vector4::ZERO;
 			curr_pipeline_hash_			= 
 			curr_vbuffer_checksum_		= 
@@ -1156,6 +1160,14 @@ namespace REngine
 		}
 		void SetClipPlane(const DrawCommandClipPlaneDesc& desc) override
 		{
+			if(desc.enable != enable_clip_planes_ && graphics_->GetBackend() == GraphicsBackend::OpenGL)
+			{
+				if (desc.enable)
+					glEnable(GL_CLIP_PLANE0);
+				else
+					glDisable(GL_CLIP_PLANE0);
+			}
+
 			enable_clip_planes_ = desc.enable;
 			if(!enable_clip_planes_)
 				return;
@@ -1173,6 +1185,7 @@ namespace REngine
 			ATOMIC_PROFILE(IDrawCommand::ResolveTexture);
 			if(!dest || !dest->GetRenderSurface())
 				return false;
+
 			const auto rt_size = graphics_->GetRenderTargetDimensions();
 			IntRect vp_copy = viewport;
 			if (vp_copy.right_ <= vp_copy.left_)
@@ -1204,7 +1217,6 @@ namespace REngine
 				copy_attribs.DstTextureTransitionMode = RESOURCE_STATE_TRANSITION_MODE_TRANSITION;
 				copy_attribs.SrcTextureTransitionMode = RESOURCE_STATE_TRANSITION_MODE_TRANSITION;
 				context_->CopyTexture(copy_attribs);
-
 				context_->SetRenderTargets(num_rts_,bind_rts_.data(), bind_depth_stencil_, RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
 			}
 			else
@@ -1905,7 +1917,6 @@ namespace REngine
 			context_->CommitShaderResources(srb, RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
 			context_->Draw(draw_attribs);
 		}
-
 		void SetVertexBuffers(VertexBuffer** buffers, u32 count, u32 instance_offset)
 		{
 			ATOMIC_PROFILE(IDrawCommand::SetVertexBuffers);
@@ -1945,7 +1956,6 @@ namespace REngine
 				dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::vertex_buffer);
 			}
 		}
-
 		SharedPtr<ShaderProgram> GetOrCreateShaderProgram(const ShaderProgramQuery& query) const
 		{
 			auto result = graphics_state_get_shader_program(query);
