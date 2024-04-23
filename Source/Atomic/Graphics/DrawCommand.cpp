@@ -78,7 +78,7 @@ namespace REngine
 		void Reset() override
 		{
 			*pipeline_info_ = PipelineStateInfo{};
-			pipeline_info_->num_samplers = graphics_->GetMultiSample();
+			pipeline_info_->output.multi_sample = graphics_->GetMultiSample();
 			
 			const auto wnd_size = graphics_->GetRenderTargetDimensions();
 			viewport_ = IntRect(0, 0, wnd_size.x_, wnd_size.y_);
