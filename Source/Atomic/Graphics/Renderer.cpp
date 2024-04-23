@@ -982,15 +982,8 @@ Texture2D* Renderer::GetShadowMap(Light* light, Camera* camera, unsigned viewWid
         }
         else
         {
-            // Direct3D9: when shadow compare must be done manually, use nearest filtering so that the filtering of point lights
-            // and other shadowed lights matches
-            if(graphics_->GetBackend() != GraphicsBackend::OpenGL)
-                newShadowMap->SetFilterMode(graphics_->GetHardwareShadowSupport() ? FILTER_BILINEAR : FILTER_NEAREST);
-            else
-            {
-	            newShadowMap->SetFilterMode(FILTER_BILINEAR);
-                newShadowMap->SetShadowCompare(shadowMapUsage == TEXTURE_DEPTHSTENCIL);
-            }
+	        newShadowMap->SetFilterMode(FILTER_BILINEAR);
+            newShadowMap->SetShadowCompare(shadowMapUsage == TEXTURE_DEPTHSTENCIL);
             // Create dummy color texture for the shadow map if necessary: Direct3D9, or OpenGL when working around an OS X +
             // Intel driver bug
             if (shadowMapUsage == TEXTURE_DEPTHSTENCIL && dummyColorFormat)
