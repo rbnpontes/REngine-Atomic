@@ -994,8 +994,16 @@ namespace Atomic
 	{
 		if (!impl_->IsInitialized())
 			return {};
-		return impl_->GetMultiSampleLevels(impl_->GetSwapChain()->GetDesc().ColorBufferFormat,
-			impl_->GetSwapChain()->GetDesc().DepthBufferFormat);
+		static u32 s_possible_levels[] = { 2, 4, 8, 16 };
+		PODVector<int> levels;
+		const auto color_fmt = impl_->GetSwapChain()->GetDesc().ColorBufferFormat;
+		for(const auto& level : s_possible_levels)
+		{
+			if (level == impl_->GetSupportedMultiSample(color_fmt, level))
+				levels.Push(level);
+		}
+
+		return levels;
 	}
 
 	TextureFormat Graphics::GetFormat(CompressedFormat format) const

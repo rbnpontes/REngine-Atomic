@@ -19,7 +19,7 @@ namespace REngine
 {
     struct DriverInstanceInitDesc
     {
-        Atomic::GraphicsBackend backend{Atomic::GraphicsBackend::OpenGL};
+        Atomic::GraphicsBackend backend{Atomic::GraphicsBackend::D3D11};
         Diligent::NativeWindow window{};
         Atomic::IntVector2 window_size{Atomic::IntVector2::ZERO};
         uint8_t multisample{0};
@@ -43,9 +43,8 @@ namespace REngine
         Diligent::IDeviceContext* GetDeviceContext() const { return device_contexts_.At(0); }
         Diligent::ISwapChain* GetSwapChain() const { return swap_chain_; }
 
-        Atomic::PODVector<int> GetMultiSampleLevels(Diligent::TEXTURE_FORMAT color_fmt, Diligent::TEXTURE_FORMAT depth_fmt) const;
-        bool CheckMultiSampleSupport(unsigned multisample, Diligent::TEXTURE_FORMAT color_fmt, Diligent::TEXTURE_FORMAT depth_fmt) const;
-        uint8_t GetMultiSample() const { return multisample_; }
+        u8 GetSupportedMultiSample(Atomic::TextureFormat format, int multi_sample) const;
+    	u8 GetMultiSample() const { return multisample_; }
 
         uint32_t GetConstantBufferSize(Atomic::ShaderType type, Atomic::ShaderParameterGroup group) const
         {
@@ -76,7 +75,7 @@ namespace REngine
             const char* file,
             int line);
         unsigned FindBestAdapter(unsigned adapter_id, Atomic::GraphicsBackend backend) const;
-        static uint8_t GetConstantBufferIndex(Atomic::ShaderType type, Atomic::ShaderParameterGroup group)
+    	static uint8_t GetConstantBufferIndex(Atomic::ShaderType type, Atomic::ShaderParameterGroup group)
         {
 	        return static_cast<uint8_t>(type) * static_cast<uint8_t>(Atomic::MAX_SHADER_PARAMETER_GROUPS) + static_cast<uint8_t>(group);
 		}

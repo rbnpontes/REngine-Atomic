@@ -382,11 +382,9 @@ namespace Atomic
         texture_desc.Type = Diligent::RESOURCE_DIM_TEX_2D;
         
         // Disable multisampling if not supported
-        if (multiSample_ > 1 && !graphics_->GetImpl()->CheckMultiSampleSupport(multiSample_, texture_desc.Format, TextureFormat::TEX_FORMAT_UNKNOWN))
-        {
-            multiSample_ = 1;
+        multiSample_ = graphics_->GetImpl()->GetSupportedMultiSample(texture_desc.Format, multiSample_);
+        if (multiSample_ == 1)
             autoResolve_ = false;
-        }
         
         // Set mipmapping
         if (usage_ == TEXTURE_DEPTHSTENCIL)

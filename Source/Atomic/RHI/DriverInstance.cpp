@@ -3,6 +3,9 @@
 #include "./PipelineStateBuilder.h"
 #include "../IO/Log.h"
 #include "../Graphics/ConstantBuffer.h"
+#include "../Core/Profiler.h"
+#include "../Graphics/Graphics.h"
+#include "./SwapChain.h"
 
 #if WIN32
 #include <DiligentCore/Graphics/GraphicsEngineD3D11/interface/EngineFactoryD3D11.h>
@@ -13,8 +16,6 @@
 
 #include <DiligentCore/Common/interface/ObjectBase.hpp>
 
-#include "Core/Profiler.h"
-#include "Graphics/Graphics.h"
 
 namespace REngine
 {
@@ -89,7 +90,7 @@ namespace REngine
         swap_chain_desc.Width = init_desc.window_size.x_;
         swap_chain_desc.Height = init_desc.window_size.y_;
         swap_chain_desc.ColorBufferFormat = init_desc.color_buffer_format;
-        swap_chain_desc.DepthBufferFormat = init_desc.depth_buffer_format;
+        swap_chain_desc.DepthBufferFormat = Diligent::TEX_FORMAT_UNKNOWN;
 
         auto num_deferred_contexts = init_desc.num_deferred_contexts;
         if(init_desc.backend == GraphicsBackend::OpenGL)
@@ -117,7 +118,7 @@ namespace REngine
                 fill_create_info(init_desc, FindBestAdapter(ci.AdapterId, init_desc.backend), ci);
 
                 factory->CreateDeviceAndContextsD3D11(ci, &render_device_, device_contexts);
-                factory->CreateSwapChainD3D11(render_device_, device_contexts[0], swap_chain_desc, {}, init_desc.window, &swap_chain_);
+        		factory->CreateSwapChainD3D11(render_device_, device_contexts[0], swap_chain_desc, {}, init_desc.window, &swap_chain_);
             }
             break;
         case GraphicsBackend::D3D12:
@@ -187,6 +188,15 @@ namespace REngine
         delete[] device_contexts;
         backend_ = init_desc.backend;
 
+        // Try init MSAA
+        u8 multi_sample = GetSupportedMultiSample(swap_chain_->GetDesc().ColorBufferFormat, init_desc.multisample);
+        Diligent::ISwapChain* default_swapchain = swap_chain_;
+        if (multi_sample == 1)
+            swapchain_create_wrapper(this, init_desc.depth_buffer_format, &default_swapchain);
+        else
+            swapchain_create_msaa(this, init_desc.depth_buffer_format, multi_sample, &default_swapchain);
+        swap_chain_ = default_swapchain;
+        multisample_ = multi_sample;
         InitDefaultConstantBuffers();
         return true;
     }
@@ -227,34 +237,14 @@ namespace REngine
         return adapter_id;
     }
 
-    PODVector<int> DriverInstance::GetMultiSampleLevels(Diligent::TEXTURE_FORMAT color_fmt, Diligent::TEXTURE_FORMAT depth_fmt) const
+    u8 DriverInstance::GetSupportedMultiSample(Atomic::TextureFormat format, int multi_sample) const
     {
-        PODVector<int> levels;
-        const auto& color_fmt_info = render_device_->GetTextureFormatInfoExt(color_fmt);
-        const auto& depth_fmt_info = render_device_->GetTextureFormatInfoExt(depth_fmt);
+        multi_sample = NextPowerOfTwo(Clamp(multi_sample, 1, 16));
 
-        const auto sample_counts = color_fmt_info.SampleCounts & depth_fmt_info.SampleCounts;
-        if(sample_counts & Diligent::SAMPLE_COUNT_64)
-            levels.Push(64);
-        if(sample_counts & Diligent::SAMPLE_COUNT_32)
-            levels.Push(32);
-        if(sample_counts & Diligent::SAMPLE_COUNT_16)
-            levels.Push(16);
-        if(sample_counts & Diligent::SAMPLE_COUNT_8)
-            levels.Push(8);
-        if(sample_counts & Diligent::SAMPLE_COUNT_4)
-            levels.Push(4);
-        if(sample_counts & Diligent::SAMPLE_COUNT_2)
-            levels.Push(2);
-        if(sample_counts & Diligent::SAMPLE_COUNT_1)
-            levels.Push(1);
-        return levels;
-    }
-
-    bool DriverInstance::CheckMultiSampleSupport(unsigned multisample, Diligent::TEXTURE_FORMAT color_fmt, Diligent::TEXTURE_FORMAT depth_fmt) const
-    {
-        const auto& values = GetMultiSampleLevels(color_fmt, depth_fmt);
-        return values.Contains(multisample);
+        const auto& format_info = render_device_->GetTextureFormatInfoExt(format);
+        while (multi_sample > 1 && ((format_info.SampleCounts & multi_sample) == 0))
+            multi_sample >>= 1;
+        return Max(1, multi_sample);
     }
 
     Atomic::SharedPtr<Atomic::ConstantBuffer> DriverInstance::GetConstantBuffer(const ShaderType type, const ShaderParameterGroup group)
