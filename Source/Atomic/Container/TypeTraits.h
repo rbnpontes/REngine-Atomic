@@ -8,6 +8,7 @@
 #include <eastl/shared_ptr.h>
 #include <eastl/shared_array.h>
 #include <eastl/queue.h>
+#include <eastl/functional.h>
 #include <stdint.h>
 
 namespace ea = eastl;

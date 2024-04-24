@@ -3,7 +3,6 @@
 #include "./DriverInstance.h"
 #include "./DiligentUtils.h"
 #include "./ShaderParametersCache.h"
-#include <Windows.h>
 
 namespace REngine
 {
@@ -13,9 +12,6 @@ namespace REngine
     ShaderProgram::ShaderProgram(const ShaderProgramCreationDesc& creation_desc) :
 	    graphics_(creation_desc.graphics)
     {
-        assert(creation_desc.vertex_shader && creation_desc.vertex_shader,
-               "Vertex Shader and Pixel Shader is Required");
-
         memset(used_texture_slot_names_, 0, sizeof(void*) * Atomic::MAX_TEXTURE_UNITS);
 #if ATOMIC_DEBUG
         vs_shader_name_ = creation_desc.vertex_shader->GetName();

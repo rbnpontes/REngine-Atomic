@@ -116,7 +116,7 @@ LICENSE
 #define INCLUDE_STB_IMAGE_WRITE_H
 
 // ATOMIC BEGIN
-#include "../../Atomic/Container/Str.h"
+// #include "../../Atomic/Container/Str.h"
 // ATOMIC END
 
 #ifdef __cplusplus

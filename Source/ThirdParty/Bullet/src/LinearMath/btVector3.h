@@ -33,6 +33,9 @@ subject to the following restrictions:
 
 #if defined BT_USE_SSE
 
+#ifdef __APPLE__
+    #error Bullet SSE is not supported on Apple
+#endif
 //typedef  uint32_t __m128i __attribute__ ((vector_size(16)));
 
 #ifdef _MSC_VER

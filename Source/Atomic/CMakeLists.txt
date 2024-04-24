@@ -256,7 +256,7 @@ if (MSVC)
 endif ()
 
 if (UNIX OR MINGW)
-    target_compile_options(Atomic PUBLIC $<$<COMPILE_LANGUAGE:CXX>:-std=gnu++11>)
+    target_compile_options(Atomic PUBLIC $<$<COMPILE_LANGUAGE:CXX>:-std=c++20>)
 endif ()
 
 target_link_libraries(Atomic 

@@ -221,8 +221,8 @@ namespace REngine
 
 				num_vertex_buffers_ = 1;
 				curr_vbuffer_checksum_ = 16777619;
-				curr_vbuffer_checksum_ ^= reinterpret_cast<u32>(bind_vertex_buffers_[0]) * 16777619;
-				curr_vertx_decl_checksum_ = buffer->GetBufferHash(0);
+				curr_vbuffer_checksum_ ^= (u32)reinterpret_cast<u64>(bind_vertex_buffers_[0]) * 16777619;
+				curr_vertx_decl_checksum_ = (u32)buffer->GetBufferHash(0);
 			}
 
 			if(curr_vbuffer_checksum_ != last_vbuffer_checksum_)
@@ -770,7 +770,7 @@ namespace REngine
 		bool NeedShaderGroupUpdate(ShaderParameterGroup group, const void* source) override
 		{
 			const auto src = shader_param_sources_[group];
-			const auto target_src = reinterpret_cast<u32>(source);
+			const auto target_src = (u32)reinterpret_cast<u64>(source);
 			if(src == M_MAX_UNSIGNED || src != target_src)
 			{
 				shader_param_sources_[group] = target_src;
@@ -1180,7 +1180,7 @@ namespace REngine
 		}
 		bool ResolveTexture(Texture2D* dest) override
 		{
-			throw std::exception("Not implemented");
+			throw std::runtime_error("Not implemented");
 		}
 		bool ResolveTexture(Texture2D* dest, const IntRect& viewport) override
 		{
@@ -1232,7 +1232,7 @@ namespace REngine
 				}
 				else
 				{
-					throw std::exception("Not implemented. You must implement MSAA first");
+					throw std::runtime_error("Not implemented. You must implement MSAA first");
 				}
 			}
 
@@ -1240,7 +1240,7 @@ namespace REngine
 		}
 		bool ResolveTexture(TextureCube* dest) override
 		{
-			throw std::exception("Not implemented");
+			throw std::runtime_error("Not implemented");
 		}
 
 		void BeginDebug(const char* mark_name, const Color& color) override
@@ -1944,7 +1944,7 @@ namespace REngine
 				bind_vertex_buffers_[i] = buffer_obj;
 				// Build vertex buffer checksum
 				curr_vbuffer_checksum_ = 16777619;
-				curr_vbuffer_checksum_ ^= reinterpret_cast<u32>(buffer_obj.ConstPtr()) * 16777619;
+				curr_vbuffer_checksum_ ^= (u32)reinterpret_cast<u64>(buffer_obj.ConstPtr()) * 16777619;
 				curr_vbuffer_checksum_ ^= offset * 16777619;
 				//CombineHash(curr_vbuffer_checksum_, MakeHash(buffer_obj.ConstPtr()));
 				//CombineHash(curr_vbuffer_checksum_, offset);

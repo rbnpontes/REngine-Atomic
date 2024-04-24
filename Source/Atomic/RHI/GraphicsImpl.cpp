@@ -44,14 +44,16 @@
 #pragma warning(disable:4355)
 #endif
 
+#if WIN32
 // Prefer the high-performance GPU on switchable GPU systems
 extern "C" {
 	__declspec(dllexport) DWORD NvOptimusEnablement = 1;
 	__declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
 }
-
+#endif
 namespace Atomic
 {
+#if WIN32
 	static HWND GetWindowHandle(SDL_Window* window)
 	{
 		SDL_SysWMinfo sysInfo;
@@ -60,6 +62,7 @@ namespace Atomic
 		SDL_GetWindowWMInfo(window, &sysInfo);
 		return sysInfo.info.win.window;
 	}
+#endif
 
 	const Vector2 Graphics::pixelUVOffset(0.0f, 0.0f);
 
@@ -324,7 +327,7 @@ namespace Atomic
 
 	bool Graphics::TakeScreenShot(Image* destImage_)
 	{
-		throw std::exception("Not implemented");
+		throw std::runtime_error("Not implemented");
 		//     ATOMIC_PROFILE(TakeScreenShot);
 		//
 		//     if (!impl_->device_)
@@ -1414,7 +1417,7 @@ namespace Atomic
 #if WIN32
 		desc.window = Diligent::NativeWindow(GetWindowHandle(window_));
 #else
-		throw std::exception("Not implemented window acquire");
+		throw std::runtime_error("Not implemented window acquire");
 #endif
 		desc.window_size = IntVector2(width, height);
 		desc.multisample = static_cast<uint8_t>(multiSample);
@@ -1478,7 +1481,7 @@ namespace Atomic
 
 	void Graphics::CreateResolveTexture()
 	{
-		throw new std::exception("Not implemented");
+		throw new std::runtime_error("Not implemented");
 		// if (impl_->resolveTexture_)
 		//     return;
 		//
