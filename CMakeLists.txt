@@ -73,8 +73,3 @@ if (ATOMIC_DESKTOP AND ATOMIC_DEV_BUILD)
         endif ()
     endif ()
 endif ()
-
-if(APPLE)
-    set (CMAKE_XCODE_GENERATE_SCHEME TRUE)
-endif()
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-invalid-command-line-argument -Wno-unused-command-line-argument")

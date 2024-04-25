@@ -259,6 +259,24 @@ if (UNIX OR MINGW)
     target_compile_options(Atomic PUBLIC $<$<COMPILE_LANGUAGE:CXX>:-std=c++20>)
 endif ()
 
+if (APPLE)
+    if (IOS)
+    else ()
+        list(APPEND PRIVATE_THIRD_PARTY_DEPS 
+            "-framework AudioToolbox" 
+            "-framework Carbon"
+            "-framework Cocoa"
+            "-framework CoreAudio" 
+            "-framework CoreVideo"
+            "-framework ForceFeedback" 
+            "-framework IOKit"
+            "-framework OpenGL" 
+            "-framework CoreServices"
+            "-framework Security"
+            "-framework SystemConfiguration")
+    endif()
+endif ()
+
 target_link_libraries(Atomic 
     PUBLIC ${PUBLIC_THIRD_PARTY_DEPS}
     PRIVATE ${PRIVATE_THIRD_PARTY_DEPS})
