@@ -290,6 +290,53 @@ int SDL_LoadDollarTemplates(SDL_TouchID touchId, SDL_RWops *src)
     return loaded;
 }
 
+// Urho3D: added function
+static void SDL_RemoveDollarTemplate_one(SDL_GestureTouch* inTouch, int index)
+{
+    if (index < inTouch->numDollarTemplates - 1) {
+        SDL_memmove(&inTouch->dollarTemplate[index], &inTouch->dollarTemplate[index + 1],
+            (inTouch->numDollarTemplates - 1 - index) * sizeof(SDL_DollarTemplate));
+    }
+    if (inTouch->numDollarTemplates > 1) {
+        inTouch->dollarTemplate = SDL_realloc(inTouch->dollarTemplate,
+            (inTouch->numDollarTemplates - 1) * sizeof(SDL_DollarTemplate));
+    }
+    else {
+        SDL_free(inTouch->dollarTemplate);
+        inTouch->dollarTemplate = NULL;
+    }
+    --inTouch->numDollarTemplates;
+}
+
+// Urho3D: added function
+int SDL_RemoveDollarTemplate(SDL_GestureID gestureId)
+{
+    int i,j,ret = 0;
+    for (i = 0; i < SDL_numGestureTouches; i++) {
+        SDL_GestureTouch* touch = &SDL_gestureTouch[i];
+        for (j = 0; j < touch->numDollarTemplates; j++) {
+            // Urho3D: gesture IDs are stored as 32bit, so check the low bits only
+            if ((touch->dollarTemplate[j].hash & 0xffffffff) == (gestureId & 0xffffffff)) {
+                SDL_RemoveDollarTemplate_one(touch, j);
+                ret = 1;
+            }
+        }
+    }
+    return ret;
+}
+
+// Urho3D: added function
+void SDL_RemoveAllDollarTemplates(void)
+{
+    int i;
+    for (i = 0; i < SDL_numGestureTouches; i++) {
+        SDL_GestureTouch* touch = &SDL_gestureTouch[i];
+        SDL_free(touch->dollarTemplate);
+        touch->dollarTemplate = NULL;
+        touch->numDollarTemplates = 0;
+    }
+}
+
 #if defined(ENABLE_DOLLAR)
 static float dollarDifference(SDL_FloatPoint *points, SDL_FloatPoint *templ, float ang)
 {

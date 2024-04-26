@@ -929,12 +929,7 @@ Texture2D* Renderer::GetShadowMap(Light* light, Camera* camera, unsigned viewWid
     }
 
     // Find format and usage of the shadow map
-    TextureFormat shadowMapFormat;
-#if RENGINE_DILIGENT
-    shadowMapFormat = TextureFormat::TEX_FORMAT_UNKNOWN;
-#else
-    shadowMapFormat = 0;
-#endif
+    TextureFormat shadowMapFormat = TextureFormat::TEX_FORMAT_UNKNOWN;
     
     TextureUsage shadowMapUsage = TEXTURE_DEPTHSTENCIL;
     int multiSample = 1;

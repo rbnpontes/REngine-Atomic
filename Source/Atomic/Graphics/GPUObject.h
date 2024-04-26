@@ -24,10 +24,8 @@
 
 #include "../Container/Ptr.h"
 
-#if RENGINE_DILIGENT
 #include <DiligentCore/Common/interface/RefCntAutoPtr.hpp>
 #include <DiligentCore/Graphics/GraphicsEngine/interface/DeviceObject.h>
-#endif
 
 namespace Atomic
 {
@@ -66,14 +64,8 @@ public:
 
     /// Return the graphics subsystem associated with this GPU object.
     Graphics* GetGraphics() const;
-#if RENGINE_DILIGENT
-    Diligent::RefCntAutoPtr<Diligent::IDeviceObject> GetGPUObject() const { return object_; }
-#else
     /// Return the object pointer. Applicable only on Direct3D.
-    void* GetGPUObject() const { return object_.ptr_; }
-    /// Return the object name. Applicable only on OpenGL.
-    unsigned GetGPUObjectName() const { return object_.name_; }
-#endif
+    Diligent::RefCntAutoPtr<Diligent::IDeviceObject> GetGPUObject() const { return object_; }
     
     /// Return whether data is lost due to context loss.
     bool IsDataLost() const { return dataLost_; }
@@ -83,12 +75,8 @@ public:
 protected:
     /// Graphics subsystem.
     WeakPtr<Graphics> graphics_;
-#if RENGINE_DILIGENT
+    /// Object pointer.
     Diligent::RefCntAutoPtr<Diligent::IDeviceObject> object_;
-#else
-    /// Object pointer or name.
-    GPUObjectHandle object_;
-#endif
     /// Data lost flag.
     bool dataLost_;
     /// Data pending flag.

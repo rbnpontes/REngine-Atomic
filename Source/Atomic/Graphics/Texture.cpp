@@ -68,16 +68,9 @@ const char** Texture::GetTextureFilterModeNames()
 Texture::Texture(Context* context) :
     ResourceWithMetadata(context),
     GPUObject(GetSubsystem<Graphics>()),
-#ifdef RENGINE_DILIGENT
     view_({}),
     resolve_texture_({}),
     format_(Diligent::TEX_FORMAT_UNKNOWN),
-#else
-    shaderResourceView_(0),
-    sampler_(0),
-    resolveTexture_(0),
-    format_(0),
-#endif
     usage_(TEXTURE_STATIC),
     levels_(0),
     requestedLevels_(0),

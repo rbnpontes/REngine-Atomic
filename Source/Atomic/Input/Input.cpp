@@ -40,7 +40,7 @@
 // #include "../UI/Text.h"
 #include "../UI/UI.h"
 #include "../UI/UIWidget.h"
-#include <SDL/include/SDL.h>
+#include <SDL2/SDL.h>
 
 // ATOMIC END
 
@@ -1332,7 +1332,6 @@ unsigned Input::LoadGestures(Deserializer& source)
     RWOpsWrapper<Deserializer> wrapper(source);
     return (unsigned)SDL_LoadDollarTemplates(-1, wrapper.GetRWOps());
 }
-
 
 bool Input::RemoveGesture(unsigned gestureID)
 {

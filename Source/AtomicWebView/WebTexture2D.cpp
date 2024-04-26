@@ -113,110 +113,9 @@ public:
         return true;
     }
 
-#ifdef ATOMIC_OPENGL
-
-    void OnPaint(CefRefPtr<CefBrowser> browser, PaintElementType type, const RectList &dirtyRects,
-                 const void *buffer, int width, int height) OVERRIDE
+    // Diligent blitting
+    void OnBlit(const IntRect& dstRect, unsigned char* src, unsigned srcStride)
     {
-        glEnable(GL_TEXTURE_2D);
-
-        if (type == PET_VIEW)
-        {
-            glBindTexture(GL_TEXTURE_2D, (GLuint) webTexture2D_->GetTexture2D()->GetGPUObjectName());
-
-            glPixelStorei(GL_UNPACK_ROW_LENGTH, width);
-
-            if (dirtyRects.size() == 1 &&
-                    dirtyRects[0] == CefRect(0, 0, webTexture2D_->GetWidth(), webTexture2D_->GetHeight()))
-            {
-                glPixelStorei(GL_UNPACK_SKIP_PIXELS, 0);
-                glPixelStorei(GL_UNPACK_SKIP_ROWS, 0);
-                glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, buffer);
-            }
-            else
-            {
-                // Update just the dirty rectangles.
-                CefRenderHandler::RectList::const_iterator i = dirtyRects.begin();
-
-                for (; i != dirtyRects.end(); ++i)
-                {
-                    const CefRect& rect = *i;
-
-                    glPixelStorei(GL_UNPACK_SKIP_PIXELS, rect.x);
-                    glPixelStorei(GL_UNPACK_SKIP_ROWS, rect.y);
-                    glTexSubImage2D(GL_TEXTURE_2D, 0, rect.x, rect.y, rect.width,
-                                    rect.height, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV,
-                                    buffer);
-
-                }
-
-            }
-
-            glPixelStorei(GL_UNPACK_SKIP_PIXELS, 0);
-            glPixelStorei(GL_UNPACK_SKIP_ROWS, 0);
-            glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
-
-            glBindTexture(GL_TEXTURE_2D, 0);
-        }
-        else if (type == PET_POPUP && popupRect_.width > 0 && popupRect_.height > 0)
-        {
-            int skip_pixels = 0, x = popupRect_.x;
-            int skip_rows = 0, y = popupRect_.y;
-            int w = width;
-            int h = height;
-            int viewwidth = webTexture2D_->GetWidth();
-            int viewheight = webTexture2D_->GetHeight();
-
-            // Adjust the popup to fit inside the view.
-            if (x < 0)
-            {
-                skip_pixels = -x;
-                x = 0;
-            }
-            if (y < 0)
-            {
-                skip_rows = -y;
-                y = 0;
-            }
-            if (x + w > viewwidth)
-            {
-                w -= x + w - viewwidth;
-            }
-            if (y + h > viewheight)
-            {
-                h -= y + h - viewheight;
-            }
-
-            glBindTexture(GL_TEXTURE_2D, (GLuint) webTexture2D_->GetTexture2D()->GetGPUObjectName());
-
-            // Update the popup rectangle.
-            glPixelStorei(GL_UNPACK_ROW_LENGTH, width);
-            glPixelStorei(GL_UNPACK_SKIP_PIXELS, skip_pixels);
-            glPixelStorei(GL_UNPACK_SKIP_ROWS, skip_rows);
-
-            glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, w, h, GL_BGRA,
-                            GL_UNSIGNED_INT_8_8_8_8_REV, buffer);
-
-            glBindTexture(GL_TEXTURE_2D, 0);
-
-            glPixelStorei(GL_UNPACK_SKIP_PIXELS, 0);
-            glPixelStorei(GL_UNPACK_SKIP_ROWS, 0);
-        }
-
-        glDisable(GL_TEXTURE_2D);
-
-    }
-#else
-
-#ifndef ATOMIC_OPENGL
-
-    // Windows D3D blitting
-
-    void D3DBlit(const IntRect& dstRect, unsigned char* src, unsigned srcStride, bool discard = false)
-    {
-
-#ifdef ATOMIC_D3D11
-
         if (!webTexture2D_ || !webTexture2D_->GetWidth() || !webTexture2D_->GetHeight() || !dstRect.Width() || !dstRect.Height())
         {
             return;
@@ -224,63 +123,40 @@ public:
 
         if ((dstRect.left_ + dstRect.Width() > webTexture2D_->GetWidth()) || (dstRect.top_ + dstRect.Height() > webTexture2D_->GetHeight()))
             return;
-                
-        D3D11_BOX box;
-        box.left = dstRect.left_;
-        box.right = dstRect.right_;
-        box.top = dstRect.top_;
-        box.bottom = dstRect.bottom_;
-        box.front = 0;
-        box.back = 1;
 
-        graphics_->GetImpl()->GetDeviceContext()->UpdateSubresource((ID3D11Resource*)webTexture2D_->GetTexture2D()->GetGPUObject(), 0, &box, src, srcStride, 0);
-#elif RENGINE_DILIGENT
-        throw std::exception("Not implemented");
-#else
-        RECT d3dRect;
+        // Call blit directly
+        const auto device = graphics_->GetImpl();
+        const auto context = device->GetDeviceContext();
 
-        d3dRect.left = dstRect.left_;
-        d3dRect.top = dstRect.top_;
-        d3dRect.right = dstRect.right_;
-        d3dRect.bottom = dstRect.bottom_;
+        Diligent::Box box;
+        box.MinX = dstRect.left_;
+        box.MaxX = dstRect.right_;
+        box.MinY = dstRect.top_;
+        box.MaxY = dstRect.bottom_;
+        box.MinZ = 0;
+        box.MaxZ = 1;
 
-        int level = 0;
-        DWORD flags = discard ? D3DLOCK_DISCARD : 0;
-
-        D3DLOCKED_RECT d3dLockedRect;
-        IDirect3DTexture9* object = (IDirect3DTexture9*) webTexture2D_->GetTexture2D()->GetGPUObject();
-
-        if (!object || FAILED(object->LockRect(level, &d3dLockedRect, (flags & D3DLOCK_DISCARD) ? 0 : &d3dRect, flags)))
-        {
-            ATOMIC_LOGERROR("WebTexture2D - Could not lock texture");
-            return;
-        }
-
-        int width = dstRect.Width();
-        int height = dstRect.Height();
-
-        for (int j = 0; j < height; ++j)
-        {
-            unsigned char* dst = (unsigned char*) d3dLockedRect.pBits + j * d3dLockedRect.Pitch;
-            memcpy(dst, src, width * 4);
-            src += srcStride;
-        }
-
-        object->UnlockRect(level);
-#endif
-
+        Diligent::TextureSubResData data = {};
+        data.Stride = srcStride;
+        data.pData = src;
+        context->UpdateTexture(
+            webTexture2D_->GetTexture2D()->GetGPUObject().Cast<Diligent::ITexture>(Diligent::IID_Texture),
+            0, 0, box,
+            data,
+            Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION,
+            Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION
+        );
     }
 
     void OnPaint(CefRefPtr<CefBrowser> browser, PaintElementType type, const RectList &dirtyRects,
         const void *buffer, int width, int height) OVERRIDE
     {
-
         if (type == PET_VIEW)
         {
             if (dirtyRects.size() == 1 &&
                 dirtyRects[0] == CefRect(0, 0, webTexture2D_->GetWidth(), webTexture2D_->GetHeight()))
             {
-                D3DBlit(IntRect(0, 0, width, height), (unsigned char*)buffer, width * 4, true);
+                OnBlit(IntRect(0, 0, width, height), (unsigned char*)buffer, width * 4);
                 return;
             }
 
@@ -292,7 +168,7 @@ public:
                 const CefRect& rect = *i;
                 unsigned char* src = (unsigned char*)buffer;
                 src += rect.y * (width * 4) + (rect.x * 4);
-                D3DBlit(IntRect(rect.x, rect.y, rect.x + rect.width, rect.y + rect.height), src, width * 4, false);
+                OnBlit(IntRect(rect.x, rect.y, rect.x + rect.width, rect.y + rect.height), src, width * 4);
             }
 
         }
@@ -324,13 +200,9 @@ public:
             }
 
             unsigned char* src = (unsigned char*)buffer;
-            D3DBlit(IntRect(x, y, x + w, y + h), src, width * 4, false);
-
+            OnBlit(IntRect(x, y, x + w, y + h), src, width * 4);
         }
-
-#endif
     }
-#endif
 
 private:
 
@@ -380,17 +252,8 @@ void WebTexture2D::SetSize(int width, int height)
 
     // initialize to white (color should probably be an option)
 
-    TextureUsage textureUsage = TEXTURE_DYNAMIC;
-    unsigned format = Graphics::GetRGBAFormat();
-
-    // TODO: fix this
-#ifdef ATOMIC_D3D11
-
-    // D3D11 uses a static texture (in BGRA format), required for subresource update with rectangle
-    textureUsage = TEXTURE_STATIC;
-    format = DXGI_FORMAT_B8G8R8A8_UNORM;
-
-#endif
+    TextureUsage textureUsage = TEXTURE_STATIC;
+    unsigned format = TextureFormat::TEX_FORMAT_BGRA8_UNORM;
 
     if (!texture_->SetSize(width, height, static_cast<TextureFormat>(format), textureUsage))
     {

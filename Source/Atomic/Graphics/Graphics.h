@@ -670,9 +670,7 @@ public:
     void CleanupShaderPrograms(ShaderVariation* variation);
     /// Clean up a render surface from all FBOs. Used only on OpenGL.
     void CleanupRenderSurface(RenderSurface* surface);
-#if RENGINE_DILIGENT
     void Cleanup(GraphicsClearFlags flags);
-#endif
     /// Get or create a constant buffer. Will be shared between shaders if possible.
     ConstantBuffer* GetOrCreateConstantBuffer(ShaderType type, unsigned index, unsigned size) const;
     /// Mark the FBO needing an update. Used only on OpenGL.
