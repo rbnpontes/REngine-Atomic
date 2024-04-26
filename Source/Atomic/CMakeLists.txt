@@ -112,7 +112,7 @@ set (PUBLIC_THIRD_PARTY_DEPS
     LZ4 
     PugiXml
     STB 
-    SDL 
+    SDL2::SDL2
     ASIO 
     rapidjson 
     WebSocketPP 
