@@ -397,7 +397,7 @@ foreach(_SUB ${SDL_SUBSYSTEMS})
 endforeach()
 
 # Allow some projects to be built conditionally.
-set_option(SDL2_DISABLE_SDL2MAIN   "Disable building/installation of SDL2main" OFF)
+set(SDL2_DISABLE_SDL2MAIN ON)
 set_option(SDL2_DISABLE_INSTALL    "Disable installation of SDL2" ${SDL2_SUBPROJECT})
 set_option(SDL2_DISABLE_UNINSTALL  "Disable uninstallation of SDL2" OFF)
 
@@ -494,11 +494,9 @@ option(SDL_WERROR "Enable -Werror" OFF)
 
 option(SDL_SHARED "Build a shared version of the library" ${SDL_SHARED_ENABLED_BY_DEFAULT})
 option(SDL_STATIC "Build a static version of the library" ${SDL_STATIC_ENABLED_BY_DEFAULT})
-option(SDL_TEST   "Build the SDL2_test library" ${SDL_TEST_ENABLED_BY_DEFAULT})
+set(SDL_TEST OFF)
 
 dep_option(SDL_STATIC_PIC      "Static version of the library should be built with Position Independent Code" "${CMAKE_POSITION_INDEPENDENT_CODE}" "SDL_STATIC" OFF)
-dep_option(SDL_TESTS           "Build the test directory" OFF SDL_TEST OFF)
-set_option(SDL_INSTALL_TESTS   "Install test-cases" OFF)
 
 set(HAVE_STATIC_PIC "${SDL_STATIC_PIC}")
 
@@ -3282,10 +3280,6 @@ else()
   set(HAVE_CCACHE OFF)
 endif()
 
-if(SDL_TESTS)
-  set(HAVE_TESTS ON)
-endif()
-
 # Create target that collects all all generated include files.
 add_custom_target(sdl_headers_copy
     DEPENDS ${SDL_GENERATED_HEADERS})
@@ -3716,14 +3710,6 @@ if(NOT SDL2_DISABLE_UNINSTALL)
     add_custom_target(uninstall
         COMMAND ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake)
   endif()
-endif()
-
-##### Tests subproject (must appear after the install/uninstall targets) #####
-
-if(SDL_TESTS)
-  set(HAVE_TESTS ON)
-  enable_testing()
-  add_subdirectory(test)
 endif()
 
 ##### Fix Objective C builds #####

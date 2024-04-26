@@ -26,10 +26,7 @@
 #include "../Container/RefCounted.h"
 #include "../Graphics/GPUObject.h"
 #include "../Graphics/GraphicsDefs.h"
-
-#if RENGINE_DILIGENT
 #include "../RHI/RHITypes.h"
-#endif
 namespace Atomic
 {
 

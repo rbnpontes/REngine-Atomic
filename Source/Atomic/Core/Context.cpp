@@ -29,11 +29,11 @@
 #include "../IO/Log.h"
 
 #ifndef MINI_URHO
-#include <SDL/SDL.h>
-#ifdef ATOMIC_IK
-#include <ik/log.h>
-#include <ik/memory.h>
-#endif
+    #include <SDL2/SDL.h>
+    #ifdef ATOMIC_IK
+    #include <ik/log.h>
+    #include <ik/memory.h>
+    #endif
 #endif
 
 #include "../DebugNew.h"

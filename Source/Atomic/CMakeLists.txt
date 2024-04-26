@@ -112,7 +112,7 @@ set (PUBLIC_THIRD_PARTY_DEPS
     LZ4 
     PugiXml
     STB 
-    SDL2::SDL2
+    SDL2::SDL2-static
     ASIO 
     rapidjson 
     WebSocketPP 
@@ -144,25 +144,21 @@ elseif (WEB)
     target_compile_definitions(Atomic PUBLIC -DATOMIC_PLATFORM_WEB=1 -DNO_POPEN=1)
 endif ()
 
-if (ATOMIC_OPENGL)
-    target_compile_definitions(Atomic PUBLIC -DATOMIC_OPENGL=1)
-endif ()
-
-if(RENGINE_DILIGENT)
-    target_compile_definitions(Atomic PUBLIC -DRENGINE_DILIGENT=1)
-    list(APPEND PUBLIC_THIRD_PARTY_DEPS Diligent-GraphicsEngineOpenGL-static Diligent-GraphicsEngineVk-static)
-    list(APPEND PRIVATE_THIRD_PARTY_DEPS glslang
-        SPIRV
-        spirv-cross-core
-        spirv-cross-glsl
-        spirv-cross-hlsl
-        spirv-cross-reflect
-        SPIRV-Tools
-        SPIRV-Tools-opt
-    )
-    if (WIN32)
-        list(APPEND PUBLIC_THIRD_PARTY_DEPS Diligent-GraphicsEngineD3D11-static Diligent-GraphicsEngineD3D12-static)
-    endif ()
+# Diligent Dependencies
+list(APPEND PUBLIC_THIRD_PARTY_DEPS 
+    Diligent-GraphicsEngineOpenGL-static 
+    Diligent-GraphicsEngineVk-static)
+list(APPEND PRIVATE_THIRD_PARTY_DEPS glslang
+    SPIRV
+    spirv-cross-core
+    spirv-cross-glsl
+    spirv-cross-hlsl
+    spirv-cross-reflect
+    SPIRV-Tools
+    SPIRV-Tools-opt
+)
+if (WIN32)
+    list(APPEND PUBLIC_THIRD_PARTY_DEPS Diligent-GraphicsEngineD3D11-static Diligent-GraphicsEngineD3D12-static)
 endif ()
 
 if (ATOMIC_DESKTOP)
