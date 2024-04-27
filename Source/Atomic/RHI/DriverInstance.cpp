@@ -172,6 +172,14 @@ namespace REngine
                 ci.Window = init_desc.window;
                 fill_create_info(init_desc, FindBestAdapter(init_desc.adapter_id, init_desc.backend), ci);
 
+                // On OpenGL we must check multisample first before create swapchain
+                // Because we need to use the default OpenGL depth buffer
+                // otherwise engine will crash when try to bind a depth buffer
+                // as default.
+                u8 multi_sample = GetSupportedMultiSample(init_desc.color_buffer_format, init_desc.multisample);
+                // set depth format if multisample isn't enabled.
+                if (multi_sample == 1u)
+                    swap_chain_desc.DepthBufferFormat = init_desc.depth_buffer_format;
                 IDeviceContext* device_context = nullptr;
                 factory->CreateDeviceAndSwapChainGL(ci, &render_device_, &device_context, swap_chain_desc, &swap_chain_);
                 device_contexts[0] = device_context;
@@ -192,7 +200,10 @@ namespace REngine
         u8 multi_sample = GetSupportedMultiSample(swap_chain_->GetDesc().ColorBufferFormat, init_desc.multisample);
         Diligent::ISwapChain* default_swapchain = swap_chain_;
         if (multi_sample == 1)
-            swapchain_create_wrapper(this, init_desc.depth_buffer_format, &default_swapchain);
+        {
+	        if(!swap_chain_->GetDepthBufferDSV())
+                swapchain_create_wrapper(this, init_desc.depth_buffer_format, &default_swapchain);
+        }
         else
             swapchain_create_msaa(this, init_desc.depth_buffer_format, multi_sample, &default_swapchain);
         swap_chain_ = default_swapchain;
