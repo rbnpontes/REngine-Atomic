@@ -129,10 +129,11 @@ if (ANDROID)
     list(APPEND PRIVATE_THIRD_PARTY_DEPS dl log android GLESv1_CM GLESv2)
     target_compile_definitions(Atomic PUBLIC -DATOMIC_PLATFORM_ANDROID=1 -DGLEW_NO_GLU=1)
 elseif (APPLE)
+    target_compile_definitions(Atomic PUBLIC -DRENGINE_PLATFORM_APPLE=1)
     if (IOS)
-        target_compile_definitions(Atomic PUBLIC -DATOMIC_PLATFORM_IOS=1 -DIOS=1)
+        target_compile_definitions(Atomic PUBLIC -DATOMIC_PLATFORM_IOS=1 -DIOS=1 -DRENGINE_PLATFORM_IOS=1)
     else () # MacOS
-        target_compile_definitions(Atomic PUBLIC -DATOMIC_PLATFORM_OSX=1 -DRENGINE_PLATFORM_MAC=1)
+        target_compile_definitions(Atomic PUBLIC -DATOMIC_PLATFORM_OSX=1 -DRENGINE_PLATFORM_MACOS=1)
         list(APPEND PRIVATE_THIRD_PARTY_DEPS 
             "-framework AudioToolbox" 
             "-framework Carbon"

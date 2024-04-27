@@ -32,10 +32,11 @@
 #include <DiligentCore/Common/interface/RefCntAutoPtr.hpp>
 
 // ATOMIC BEGIN
-#include <SDL/include/SDL.h>
-#include <SDL/include/SDL_syswm.h>
-// ATOMIC END
-
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_syswm.h>
+#if RENGINE_PLATFORM_APPLE
+    #include <SDL2/SDL_metal.h>
+#endif
 
 #include "../DebugNew.h"
 #include "Graphics/DrawCommandQueue.h"
@@ -64,7 +65,111 @@ namespace Atomic
 	}
 #endif
 
-	const Vector2 Graphics::pixelUVOffset(0.0f, 0.0f);
+    struct SDLWindowCreateDesc {
+        GraphicsBackend backend{};
+        String& title{};
+        void* external_window{};
+        bool resizable{};
+        bool borderless{};
+        bool fullscreen{};
+        u32 x{};
+        u32 y{};
+        u32 width{};
+        u32 height{};
+        u8 monitor{};
+    }
+    struct SDLWindowResult {
+        /// Returns GL Context if Backend used was OpenGL
+        ea::shared_ptr<void*> gl_context{};
+        /// Returns SDL window
+        ea::shared_ptr<SDL_Window> window{};
+        /// Returns Metal View if Backend used was Vulkan and Environment is Apple
+        ea::shared_ptr<SDL_MetalView> metal_view{};
+        /// Returns Diligent Native Window
+        Diligent::NativeWindow native_window{};
+    }
+
+    static void sdl_create_default_window(const SDLWindowCreateDesc* ci, SDLWindowResult* result) {
+        u32 flags = SDL_WINDOW_ALLOW_HIGHDPI;
+        if(!ci->external_window) {
+            if(ci->resizable)
+                flags |= SDL_WINDOW_RESIZABLE;
+            if(ci->borderless)
+                flags |= SDL_WINDOW_BORDERLESS;
+#if RENGINE_PLATFORM_APPLE
+            if(ci->backend == GraphicsBackend::Vulkan){
+                flags |= SDL_WINDOW_METAL;
+                SDL_SetHint(SDL_HINT_RENDER_DRIVER, "metal");
+            }
+#endif
+        }
+        
+        const auto x = SDL_WINDOWPOS_UNDEFINED(ci->x);
+        const auto y = SDL_WINDOWPOS_UNDEFINED(ci->y);
+        const auto width = ci->width;
+        const auto height = ci->height;
+        
+        /// Assume to SDL that Diligent will control video context
+        SDL_SetHint(SDL_HINT_VIDEO_EXTERNAL_CONTEXT, "1");
+        
+        const auto window = ci->external_window
+            ? SDL_CreateWindowFrom(ci->external_window)
+            : SDL_CreateWindow(ci->title.CString(), x, y, width, height, flags);
+        
+        if(!window) {
+            ATOMIC_LOGERRORF("Failed to create Engine Window. %s", SDL_GetError());
+            return;
+        }
+        
+#if RENGINE_PLATFORM_APPLE
+        SDL_MetalView* view = SDL_Metal_CreateView(window);
+        if(!view) {
+            SDL_DestroyWindow(window);
+            ATOMIC_LOGERRORF("Failed to create Engine View Window. %s", SDL_GetError());
+            return;
+        }
+        
+        result->metal_view = ea::shared_ptr<SDL_MetalView>(view, SDL_Metal_DestroyView);
+#endif
+        
+        if(ci->fullscreen)
+            SDL_SetWindowFullscreen(window, 0);
+        
+        result->window = ea::shared_ptr<SDL_Window>(window, SDL_DestroyWindow);
+    }
+    static void sdl_create_gl_window(SDLWindowCreateDesc* ci, SDLWindowResult* result) {
+        
+    }
+    static void sdl_create_window(const SDLWindowCreateDesc* ci, SDLWindowResult* result) {
+        // OpenGL backend requires a custom instantiation
+        if(ci->backend == GraphicsBackend::OpenGL)
+            sdl_create_gl_window(ci, result);
+        else
+            sdl_create_default_window(ci, result);
+        
+        if(!result->window)
+            return;
+        
+        SDL_SysWMinfo sys_info;
+        SDL_VERSION(&sys_info.version);
+        SDL_GetWindowWMInfo(result->window, &sys_info);
+        
+#if RENGINE_PLATFORM_WINDOWS
+        throw std::runtime_error("Not implemented Win32 Window");
+#elif RENGINE_PLATFORM_LINUX
+        throw std::runtime_error("Not implemented Linux Window");
+#elif RENGINE_PLATFORM_MACOS
+        result->native_window.pNSView = result->metal_view.get();
+#elif RENGINE_PLATFORM_IOS
+        result->native_window.pCALayer = sys_info.info.uikit.window;
+#elif RENGINE_PLATFORM_ANDROID
+        result->native_window.pAWindow = sys_info.info.android.window;
+#elif RENGINE_PLATFORM_WEB
+        throw std::runtime_error("Not implemented Web Window");
+#endif
+    }
+
+    const Vector2 Graphics::pixelUVOffset(0.0f, 0.0f);
 
 	Graphics::Graphics(Context* context) :
 		Object(context),

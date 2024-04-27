@@ -35,6 +35,7 @@
 #include "./DrawCommand.h"
 
 struct SDL_Window;
+struct SDL_MetalView;
 
 namespace REngine
 {
@@ -806,8 +807,10 @@ private:
     Mutex gpuObjectMutex_;
     /// Implementation.
     REngine::DriverInstance* impl_;
+    /// SDL Metal View. Only available on Apple Enviroments with Vulkan Backends
+    ea::shared_ptr<SDL_MetalView> metal_view_;
     /// SDL window.
-    SDL_Window* window_;
+    ea::shared_ptr<SDL_Window> window_;
     /// Window title.
     String windowTitle_;
     /// Window icon image.
