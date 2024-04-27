@@ -1,3 +1,6 @@
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 file (GLOB CONTAINER_SOURCE Container/*.cpp Container/*.h)
 file (GLOB CORE_SOURCE Core/*.cpp Core/*.h)
 file (GLOB MATH_SOURCE Math/*.cpp Math/*.h)
@@ -132,7 +135,19 @@ elseif (APPLE)
     if (IOS)
         target_compile_definitions(Atomic PUBLIC -DATOMIC_PLATFORM_IOS=1 -DIOS=1)
     else () # MacOS
-        target_compile_definitions(Atomic PUBLIC -DATOMIC_PLATFORM_OSX=1)
+        target_compile_definitions(Atomic PUBLIC -DATOMIC_PLATFORM_OSX=1 -DRENGINE_PLATFORM_MAC=1)
+        list(APPEND PRIVATE_THIRD_PARTY_DEPS 
+            "-framework AudioToolbox" 
+            "-framework Carbon"
+            "-framework Cocoa"
+            "-framework CoreAudio" 
+            "-framework CoreVideo"
+            "-framework ForceFeedback" 
+            "-framework IOKit"
+            "-framework OpenGL" 
+            "-framework CoreServices"
+            "-framework Security"
+            "-framework SystemConfiguration")
     endif ()
 elseif (LINUX)
     list(APPEND PUBLIC_THIRD_PARTY_DEPS pthread dl)
@@ -249,28 +264,6 @@ endif ()
 
 if (MSVC)
     target_compile_options(Atomic PUBLIC $<$<CONFIG:Debug>:${ATOMIC_MSVC_RUNTIME}d> $<$<NOT:$<CONFIG:Debug>>:${ATOMIC_MSVC_RUNTIME}>)
-endif ()
-
-if (UNIX OR MINGW)
-    target_compile_options(Atomic PUBLIC $<$<COMPILE_LANGUAGE:CXX>:-std=c++20>)
-endif ()
-
-if (APPLE)
-    if (IOS)
-    else ()
-        list(APPEND PRIVATE_THIRD_PARTY_DEPS 
-            "-framework AudioToolbox" 
-            "-framework Carbon"
-            "-framework Cocoa"
-            "-framework CoreAudio" 
-            "-framework CoreVideo"
-            "-framework ForceFeedback" 
-            "-framework IOKit"
-            "-framework OpenGL" 
-            "-framework CoreServices"
-            "-framework Security"
-            "-framework SystemConfiguration")
-    endif()
 endif ()
 
 target_link_libraries(Atomic 
