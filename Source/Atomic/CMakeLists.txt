@@ -1,6 +1,3 @@
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
 file (GLOB CONTAINER_SOURCE Container/*.cpp Container/*.h)
 file (GLOB CORE_SOURCE Core/*.cpp Core/*.h)
 file (GLOB MATH_SOURCE Math/*.cpp Math/*.h)
@@ -269,3 +266,7 @@ endif ()
 target_link_libraries(Atomic 
     PUBLIC ${PUBLIC_THIRD_PARTY_DEPS}
     PRIVATE ${PRIVATE_THIRD_PARTY_DEPS})
+
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set_target_properties(Atomic PROPERTIES CXX_STANDARD 20 CXX_STANDARD_REQUIRED ON)
