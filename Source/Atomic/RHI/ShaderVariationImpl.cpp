@@ -300,7 +300,11 @@ namespace Atomic
 #endif
         }
 
-        source_code = String("#version 450\n") + String(macros_header.c_str()) + source_code;
+        String glsl_version = "#version 450\n";
+#if RENGINE_PLATFORM_APPLE
+        glsl_version = "#version 330\n";
+#endif
+        source_code = glsl_version + String(macros_header.c_str()) + source_code;
         source_code.Append("void main()\n{\n");
         source_code.AppendWithFormat("\t%s\n", entrypoint.CString());
         source_code.Append("}");

@@ -57,13 +57,13 @@
 
 #ifdef COMPILEPS
     // Pixel shader uniforms
-    layout(binding=0) uniform FramePS
+    layout(std140) uniform FramePS
     {
         float cDeltaTimePS;
         float cElapsedTimePS;
     };
     
-    layout(binding=1) uniform CameraPS
+    layout(std140) uniform CameraPS
     {
         vec3 cCameraPosPS;
         vec4 cDepthReconstruct;
@@ -72,7 +72,7 @@
         float cFarClipPS;
     };
     
-    layout(binding=2) uniform ZonePS
+    layout(std140) uniform ZonePS
     {
         vec4 cAmbientColor;
         vec4 cFogParams;
@@ -81,7 +81,7 @@
         vec3 cZoneMax;
     };
     
-    layout(binding=3) uniform LightPS
+    layout(std140) uniform LightPS
     {
         vec4 cLightColor;
         vec4 cLightPosPS;
@@ -103,7 +103,7 @@
     };
     
     #ifndef CUSTOM_MATERIAL_CBUFFER
-        layout(binding=4) uniform MaterialPS
+        layout(std140) uniform MaterialPS
         {
             vec4 cMatDiffColor;
             vec3 cMatEmissiveColor;
