@@ -158,7 +158,8 @@ elseif (WEB)
 endif ()
 
 # Diligent Dependencies
-list(APPEND PUBLIC_THIRD_PARTY_DEPS 
+list(APPEND PUBLIC_THIRD_PARTY_DEPS
+    Diligent-Common
     Diligent-GraphicsEngineOpenGL-static 
     Diligent-GraphicsEngineVk-static)
 list(APPEND PRIVATE_THIRD_PARTY_DEPS glslang

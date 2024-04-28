@@ -1,13 +1,12 @@
 #include "./SwapChain.h"
 #include "../IO/Log.h"
+#include "./DriverInstance.h"
 
-#include <DiligentCore/Common/interface/ObjectBase.hpp>
-#include <DiligentCore/Graphics/GraphicsEngine/interface/RenderDevice.h>
-#include <DiligentCore/Graphics/GraphicsEngine/interface/DeviceContext.h>
 #include <DiligentCore/Common/interface/DefaultRawMemoryAllocator.hpp>
+#include <DiligentCore/Graphics/GraphicsEngineOpenGL/interface/RenderDeviceGL.h>
+#include <DiligentCore/Graphics/GraphicsEngine/include/SwapChainBase.hpp>
 
-#include "DriverInstance.h"
-
+#include <SDL2/SDL.h>
 
 namespace REngine
 {
@@ -110,6 +109,7 @@ namespace REngine
 			swap_chain_desc_ = owner_->GetDesc();
 			swap_chain_desc_.DepthBufferFormat = depth_fmt_;
 		}
+        
 		Diligent::IRenderDevice* device_;
 		Diligent::IDeviceContext* context_;
 		Diligent::RefCntAutoPtr<Diligent::ISwapChain> owner_;
@@ -188,6 +188,148 @@ namespace REngine
 
 	};
 
+    class SwapChainOpenGl : public Diligent::SwapChainBase<Diligent::ISwapChainGL> {
+    public:
+        using Base = Diligent::SwapChainBase<Diligent::ISwapChainGL>;
+        SwapChainOpenGl(
+                        Diligent::IReferenceCounters* ref_counters,
+                        const Diligent::SwapChainDesc& swap_chain_desc,
+                        Diligent::IRenderDevice* render_device,
+                        Diligent::IDeviceContext* device_context,
+                        SDL_Window* window)
+        : Base(ref_counters, render_device, device_context, swap_chain_desc),
+            window_(window)
+        {
+            InitializeParameters();
+            CreateDummyBuffers();
+        }
+        
+        void DILIGENT_CALL_TYPE Present(u32 sync_interval) override {
+            SDL_GL_SwapWindow(window_);
+        }
+        
+        void DILIGENT_CALL_TYPE SetFullscreenMode(const Diligent::DisplayModeAttribs& display_mode) override
+        {
+        }
+        void DILIGENT_CALL_TYPE SetWindowedMode() override
+        {
+        }
+        void DILIGENT_CALL_TYPE Resize(u32 new_width, u32 new_height, Diligent::SURFACE_TRANSFORM new_pre_transform) override 
+        {
+            if(new_pre_transform == Diligent::SURFACE_TRANSFORM_OPTIMAL)
+                new_pre_transform = Diligent::SURFACE_TRANSFORM_IDENTITY;
+            
+            if(new_pre_transform != Diligent::SURFACE_TRANSFORM_IDENTITY)
+                throw std::runtime_error("Surface Transform != Identity is not supported on OpenGL.");
+            
+            if(Base::Resize(new_width, new_height, new_pre_transform))
+                CreateDummyBuffers();
+        }
+        
+        GLuint DILIGENT_CALL_TYPE GetDefaultFBO() const override {
+            return default_framebuffer_;
+        }
+        
+        Diligent::ITextureView* DILIGENT_CALL_TYPE GetCurrentBackBufferRTV() override {
+            return render_target_view_;
+        }
+        Diligent::ITextureView* DILIGENT_CALL_TYPE GetDepthBufferDSV() override {
+            return depth_stencil_view_;
+        }
+    private:
+        bool IsSrgb() const {
+            int effective_srgb{};
+            if(SDL_GL_GetAttribute(SDL_GL_FRAMEBUFFER_SRGB_CAPABLE, &effective_srgb) != 0)
+                return false;
+            return effective_srgb != 0;
+        }
+        Diligent::TEXTURE_FORMAT GetDepthStencilFormat() const {
+            static const Diligent::TEXTURE_FORMAT default_format = Diligent::TEX_FORMAT_D24_UNORM_S8_UINT;
+            
+            int effective_depth_bits{};
+            if(SDL_GL_GetAttribute(SDL_GL_DEPTH_SIZE, &effective_depth_bits))
+                return default_format;
+            
+            int effective_stencil_bits{};
+            if(SDL_GL_GetAttribute(SDL_GL_STENCIL_SIZE, &effective_stencil_bits))
+                return default_format;
+            
+            if(effective_depth_bits == 16 && effective_stencil_bits == 0)
+                return Diligent::TEX_FORMAT_D16_UNORM;
+            else if(effective_depth_bits == 24 && effective_stencil_bits == 0)
+                return Diligent::TEX_FORMAT_D24_UNORM_S8_UINT;
+            else if(effective_depth_bits == 24 && effective_stencil_bits == 8)
+                return Diligent::TEX_FORMAT_D24_UNORM_S8_UINT;
+            else if(effective_depth_bits == 32 && effective_stencil_bits == 0)
+                return Diligent::TEX_FORMAT_D32_FLOAT;
+            else if(effective_depth_bits == 32 && effective_stencil_bits == 8)
+                return Diligent::TEX_FORMAT_D32_FLOAT_S8X24_UINT;
+            return default_format;
+        };
+        
+        void InitializeParameters() {
+            Diligent::SwapChainDesc& swap_chain_desc = m_SwapChainDesc;
+            
+            if(swap_chain_desc.PreTransform == Diligent::SURFACE_TRANSFORM_OPTIMAL)
+                swap_chain_desc.PreTransform = Diligent::SURFACE_TRANSFORM_IDENTITY;
+            
+#if RENGINE_PLATFORM_IOS
+            glGetIntegerv(GL_FRAMEBUFFER_BINDING, reinterpret_cast<GLint*>(&default_framebuffer_));
+#endif
+            int width{};
+            int height{};
+            
+            SDL_GL_GetDrawableSize(window_, &width, &height);
+            swap_chain_desc.Width = static_cast<u32>(width);
+            swap_chain_desc.Height = static_cast<u32>(height);
+            swap_chain_desc.ColorBufferFormat = IsSrgb() 
+                ? Diligent::TEX_FORMAT_RGBA8_UNORM_SRGB
+                : Diligent::TEX_FORMAT_RGBA8_UNORM;
+            swap_chain_desc.DepthBufferFormat = GetDepthStencilFormat();
+        }
+        
+        void CreateDummyBuffers() {
+            if (m_SwapChainDesc.Width == 0 || m_SwapChainDesc.Height == 0)
+                return;
+            
+            Diligent::RefCntAutoPtr<Diligent::IRenderDeviceGL> device_gl(m_pRenderDevice, Diligent::IID_RenderDeviceGL);
+            
+            const Diligent::SwapChainDesc& swap_chain_desc = m_SwapChainDesc;
+            
+            Diligent::TextureDesc dummy_tex_desc;
+            dummy_tex_desc.Name = "Main Back buffer";
+            dummy_tex_desc.Type = Diligent::RESOURCE_DIM_TEX_2D;
+            dummy_tex_desc.Format = swap_chain_desc.ColorBufferFormat;
+            dummy_tex_desc.Width = swap_chain_desc.Width;
+            dummy_tex_desc.Height = swap_chain_desc.Height;
+            dummy_tex_desc.BindFlags = Diligent::BIND_RENDER_TARGET;
+            
+            Diligent::RefCntAutoPtr<Diligent::ITexture> dummy_rt;
+            device_gl->CreateDummyTexture(dummy_tex_desc,
+                                          Diligent::RESOURCE_STATE_RENDER_TARGET,
+                                          &dummy_rt);
+            render_target_view_ = dummy_rt->GetDefaultView(Diligent::TEXTURE_VIEW_RENDER_TARGET);
+            
+            
+            dummy_tex_desc.Name = "Main Depth buffer";
+            dummy_tex_desc.Format = swap_chain_desc.DepthBufferFormat;
+            dummy_tex_desc.BindFlags = Diligent::BIND_DEPTH_STENCIL;
+            
+            Diligent::RefCntAutoPtr<Diligent::ITexture> dummy_depth;
+            device_gl->CreateDummyTexture(dummy_tex_desc,
+                                          Diligent::RESOURCE_STATE_DEPTH_WRITE,
+                                          &dummy_depth);
+            depth_stencil_view_ = dummy_depth->GetDefaultView(Diligent::TEXTURE_VIEW_DEPTH_STENCIL);
+        }
+        
+        SDL_Window* window_;
+        
+        Diligent::RefCntAutoPtr<Diligent::ITextureView> render_target_view_;
+        Diligent::RefCntAutoPtr<Diligent::ITextureView> depth_stencil_view_;
+        
+        GLuint default_framebuffer_;
+    };
+
 	void swapchain_create_msaa(const DriverInstance* driver, Diligent::TEXTURE_FORMAT depth_fmt, u32 multi_sample, Diligent::ISwapChain** swapchain)
 	{
 		if(multi_sample <= 1)
@@ -258,4 +400,33 @@ namespace REngine
 		*swapchain = wrapper;
 	}
 
+    Diligent::ISwapChainGL* swapchain_create_opengl(const SwapChainOpenGlCreateDesc& create_desc)
+    {
+        if(!create_desc.window) 
+        {
+            ATOMIC_LOGERROR("Can't create SwapChain. Window must not be null");
+            return;
+        }
+        
+        if(!create_desc.device)
+        {
+            ATOMIC_LOGERROR("Can't create SwapChain. RenderDevice must not be null");
+            return;
+        }
+        
+        if(!create_desc.device_context){
+            ATOMIC_LOGERROR("Can't create SwapChain. Device Context must not be null");
+            return;
+        }
+        
+        auto& allocator = Diligent::DefaultRawMemoryAllocator::GetAllocator();
+        SwapChainOpenGl* gl_swapchain = NEW_RC_OBJ(allocator, "SwapChainOpenGl instance", SwapChainOpenGl)(
+           *create_desc.swap_chain_desc,
+           create_desc.device,
+           create_desc.device_context,
+           create_desc.window
+        );
+        gl_swapchain->AddRef();
+        return gl_swapchain;
+    }
 }

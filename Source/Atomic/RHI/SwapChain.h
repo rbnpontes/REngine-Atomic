@@ -1,7 +1,14 @@
 #pragma once
 #include "./RHITypes.h"
-#include <DiligentCore/Graphics/GraphicsEngine/interface/SwapChain.h>
 
+#include <GLEW/glew.h>
+
+#include <DiligentCore/Graphics/GraphicsEngine/interface/SwapChain.h>
+#include <DiligentCore/Graphics/GraphicsEngine/interface/RenderDevice.h>
+#include <DiligentCore/Graphics/GraphicsEngine/interface/DeviceContext.h>
+#include <DiligentCore/Graphics/GraphicsEngineOpenGL/interface/SwapChainGL.h>
+
+struct SDL_Window;
 namespace REngine
 {
 	class DriverInstance;
@@ -19,4 +26,12 @@ namespace REngine
 	/// \param depth_fmt 
 	/// \param swapchain 
 	void swapchain_create_wrapper(const DriverInstance* driver, Diligent::TEXTURE_FORMAT depth_fmt, Diligent::ISwapChain** swapchain);
+    
+    struct SwapChainOpenGlCreateDesc {
+        Diligent::SwapChainDesc* swap_chain_desc{nullptr};
+        Diligent::IRenderDevice* device{nullptr};
+        Diligent::IDeviceContext* device_context{nullptr};
+        SDL_Window* window{nullptr};
+    };
+    Diligent::ISwapChainGL* swapchain_create_opengl(const SwapChainOpenGlCreateDesc& create_desc);
 }

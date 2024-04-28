@@ -35,13 +35,13 @@
 #include "./DrawCommand.h"
 
 struct SDL_Window;
-struct SDL_MetalView;
 
 namespace REngine
 {
     class DriverInstance;
     class ShaderProgram;
     class VertexDeclaration;
+    class DriverInstanceInitDesc;
 }
 
 namespace Atomic
@@ -265,6 +265,9 @@ public:
     /// Set shader cache directory, Direct3D only. This can either be an absolute path or a path within the resource system.
     void SetShaderCacheDir(const String& path);
 
+    ///  Set graphics backend. Cannot be changed after graphics initialization.
+    void SetBackend(GraphicsBackend backend);
+    
     /// Return whether rendering initialized.
     bool IsInitialized() const;
 
@@ -279,7 +282,7 @@ public:
     void* GetExternalWindow() const { return externalWindow_; }
 
     /// Return SDL window.
-    SDL_Window* GetWindow() const { return window_; }
+    SDL_Window* GetWindow() const { return window_.get(); }
 
     /// Return window title.
     const String& GetWindowTitle() const { return windowTitle_; }
@@ -646,7 +649,7 @@ public:
 
     /// Return current rendertarget width and height.
     IntVector2 GetRenderTargetDimensions() const;
-
+    
     /// Window was resized through user interaction. Called by Input subsystem.
     void OnWindowResized();
     /// Window was moved through user interaction. Called by Input subsystem.
@@ -727,7 +730,7 @@ public:
     // ATOMIC BEGIN
 
     /// Get the SDL_Window as a void* to avoid having to include the graphics implementation
-    void* GetSDLWindow() { return window_; }
+    SDL_Window* GetSDLWindow() { return window_.get(); }
 
     int GetCurrentMonitor();
     int GetNumMonitors();
@@ -748,8 +751,6 @@ public:
     // ATOMIC END
 
 private:
-    /// Create the application window.
-    bool OpenWindow(int width, int height, bool resizable, bool borderless);
     /// Create the application window icon.
     void CreateWindowIcon();
     /// Adjust the window for new resolution and fullscreen mode.
@@ -808,9 +809,12 @@ private:
     /// Implementation.
     REngine::DriverInstance* impl_;
     /// SDL Metal View. Only available on Apple Enviroments with Vulkan Backends
-    ea::shared_ptr<SDL_MetalView> metal_view_;
+    ea::shared_ptr<void> metal_view_;
     /// SDL window.
     ea::shared_ptr<SDL_Window> window_;
+    /// Driver instance initialization desc
+    ea::shared_ptr<REngine::DriverInstanceInitDesc> driver_desc_;
+    
     /// Window title.
     String windowTitle_;
     /// Window icon image.

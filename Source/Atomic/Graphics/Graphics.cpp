@@ -59,8 +59,8 @@
 #include "Text3D/Text3DText.h"
 #include "Text3D/Text3D.h"
 
-#include <SDL/include/SDL.h>
-#include <SDL/include/SDL_syswm.h>
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_syswm.h>
 // ATOMIC END
 
 #include "../DebugNew.h"
@@ -85,7 +85,7 @@ void Graphics::SetWindowTitle(const String& windowTitle)
 {
     windowTitle_ = windowTitle;
     if (window_)
-        SDL_SetWindowTitle(window_, windowTitle_.CString());
+        SDL_SetWindowTitle(window_.get(), windowTitle.CString());
 }
 
 void Graphics::SetWindowIcon(Image* windowIcon)
@@ -98,7 +98,7 @@ void Graphics::SetWindowIcon(Image* windowIcon)
 void Graphics::SetWindowPosition(const IntVector2& position)
 {
     if (window_)
-        SDL_SetWindowPosition(window_, position.x_, position.y_);
+        SDL_SetWindowPosition(window_.get(), position.x_, position.y_);
     else
         position_ = position; // Sets as initial position for OpenWindow()
 }
@@ -189,7 +189,7 @@ void Graphics::Maximize()
     if (!window_)
         return;
 
-    SDL_MaximizeWindow(window_);
+    SDL_MaximizeWindow(window_.get());
 }
 
 void Graphics::Minimize()
@@ -197,7 +197,7 @@ void Graphics::Minimize()
     if (!window_)
         return;
 
-    SDL_MinimizeWindow(window_);
+    SDL_MinimizeWindow(window_.get());
 }
 
 void Graphics::BeginDumpShaders(const String& fileName)
@@ -322,7 +322,7 @@ void Graphics::CreateWindowIcon()
         SDL_Surface* surface = windowIcon_->GetSDLSurface();
         if (surface)
         {
-            SDL_SetWindowIcon(window_, surface);
+            SDL_SetWindowIcon(window_.get(), surface);
             SDL_FreeSurface(surface);
         }
     }
@@ -381,7 +381,7 @@ bool Graphics::GetMaximized()
     if (!window_)
         return false;
 
-    return SDL_GetWindowFlags(window_) & SDL_WINDOW_MAXIMIZED;
+    return SDL_GetWindowFlags(window_.get()) & SDL_WINDOW_MAXIMIZED;
 }
 IntVector2 Graphics::GetMonitorResolution(int monitorId) const
 {
@@ -393,7 +393,7 @@ IntVector2 Graphics::GetMonitorResolution(int monitorId) const
 void Graphics::RaiseWindow()
 {
     if (window_)
-        SDL_RaiseWindow(window_);
+        SDL_RaiseWindow(window_.get());
 }
 
 

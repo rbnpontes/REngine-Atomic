@@ -7,12 +7,15 @@
 #include "../Graphics/Graphics.h"
 #include "./SwapChain.h"
 
+#include <GLEW/glew.h>
 #if WIN32
 #include <DiligentCore/Graphics/GraphicsEngineD3D11/interface/EngineFactoryD3D11.h>
 #include <DiligentCore/Graphics/GraphicsEngineD3D12/interface/EngineFactoryD3D12.h>
 #endif
 #include <DiligentCore/Graphics/GraphicsEngineVulkan/interface/EngineFactoryVk.h>
 #include <DiligentCore/Graphics/GraphicsEngineOpenGL/interface/EngineFactoryOpenGL.h>
+#include <DiligentCore/Graphics/GraphicsEngineOpenGL/interface/DeviceContextGL.h>
+#include <DiligentCore/Graphics/GraphicsEngineOpenGL/interface/SwapChainGL.h>
 
 #include <DiligentCore/Common/interface/ObjectBase.hpp>
 
@@ -85,13 +88,27 @@ namespace REngine
         using namespace Diligent;
         if (IsInitialized())
             return true;
+        
+        if(init_desc.backend == GraphicsBackend::OpenGL && !init_desc.gl_context) {
+            throw std::runtime_error("OpenGL backend requires GL Context!");
+            return false;
+        }
 
         SwapChainDesc swap_chain_desc;
         swap_chain_desc.Width = init_desc.window_size.x_;
         swap_chain_desc.Height = init_desc.window_size.y_;
+        swap_chain_desc.BufferCount = init_desc.triple_buffer ? 3 : 2;
+#if RENGINE_PLATFORM_APPLE
+        // Apple Environments requires triple buffer
+        swap_chain_desc.BufferCount = 3;
+#endif
         swap_chain_desc.ColorBufferFormat = init_desc.color_buffer_format;
         swap_chain_desc.DepthBufferFormat = Diligent::TEX_FORMAT_UNKNOWN;
 
+        FullScreenModeDesc fullscreen_mode_desc;
+        fullscreen_mode_desc.RefreshRateDenominator = 1;
+        fullscreen_mode_desc.RefreshRateNumerator = init_desc.refresh_rate;
+        
         auto num_deferred_contexts = init_desc.num_deferred_contexts;
         if(init_desc.backend == GraphicsBackend::OpenGL)
             num_deferred_contexts = 0;
@@ -118,7 +135,7 @@ namespace REngine
                 fill_create_info(init_desc, FindBestAdapter(ci.AdapterId, init_desc.backend), ci);
 
                 factory->CreateDeviceAndContextsD3D11(ci, &render_device_, device_contexts);
-        		factory->CreateSwapChainD3D11(render_device_, device_contexts[0], swap_chain_desc, {}, init_desc.window, &swap_chain_);
+        		factory->CreateSwapChainD3D11(render_device_, device_contexts[0], swap_chain_desc, fullscreen_mode_desc, init_desc.window, &swap_chain_);
             }
             break;
         case GraphicsBackend::D3D12:
@@ -135,7 +152,7 @@ namespace REngine
                 fill_create_info(init_desc, FindBestAdapter(init_desc.adapter_id, init_desc.backend), ci);
 
                 factory->CreateDeviceAndContextsD3D12(ci, &render_device_, device_contexts);
-                factory->CreateSwapChainD3D12(render_device_, device_contexts[0], swap_chain_desc, {}, init_desc.window, &swap_chain_);
+                factory->CreateSwapChainD3D12(render_device_, device_contexts[0], swap_chain_desc, fullscreen_mode_desc, init_desc.window, &swap_chain_);
             }
             break;
 #endif
@@ -169,20 +186,24 @@ namespace REngine
 #if ATOMIC_DEBUG
                 factory->SetMessageCallback(OnDebugMessage);
 #endif
-                ci.Window = init_desc.window;
                 fill_create_info(init_desc, FindBestAdapter(init_desc.adapter_id, init_desc.backend), ci);
 
-                // On OpenGL we must check multisample first before create swapchain
-                // Because we need to use the default OpenGL depth buffer
-                // otherwise engine will crash when try to bind a depth buffer
-                // as default.
-                u8 multi_sample = GetSupportedMultiSample(init_desc.color_buffer_format, init_desc.multisample);
-                // set depth format if multisample isn't enabled.
-                if (multi_sample == 1u)
-                    swap_chain_desc.DepthBufferFormat = init_desc.depth_buffer_format;
-                IDeviceContext* device_context = nullptr;
-                factory->CreateDeviceAndSwapChainGL(ci, &render_device_, &device_context, swap_chain_desc, &swap_chain_);
+                Diligent::IDeviceContext* device_context = nullptr;
+                factory->AttachToActiveGLContext(ci, &render_device_, &device_context);
                 device_contexts[0] = device_context;
+                
+                SwapChainOpenGlCreateDesc create_desc;
+                create_desc.swap_chain_desc = &swap_chain_desc;
+                create_desc.device = render_device_;
+                create_desc.device_context = device_context;
+                create_desc.window = graphics_->GetSDLWindow();
+                
+                Diligent::ISwapChainGL* swapchain_gl;
+                swapchain_gl = REngine::swapchain_create_opengl(create_desc);
+                Diligent::RefCntAutoPtr<Diligent::IDeviceContextGL>(device_context, Diligent::IID_DeviceContextGL)
+                    ->SetSwapChain(swapchain_gl);
+                
+                swap_chain_ = swapchain_gl;
             }
             break;
         default:
@@ -199,13 +220,15 @@ namespace REngine
         // Try init MSAA
         u8 multi_sample = GetSupportedMultiSample(swap_chain_->GetDesc().ColorBufferFormat, init_desc.multisample);
         Diligent::ISwapChain* default_swapchain = swap_chain_;
-        if (multi_sample == 1)
+        
+        if(!swap_chain_->GetDepthBufferDSV())
         {
-	        if(!swap_chain_->GetDepthBufferDSV())
+            if (multi_sample == 1)
                 swapchain_create_wrapper(this, init_desc.depth_buffer_format, &default_swapchain);
+            else
+                swapchain_create_msaa(this, init_desc.depth_buffer_format, multi_sample, &default_swapchain);
         }
-        else
-            swapchain_create_msaa(this, init_desc.depth_buffer_format, multi_sample, &default_swapchain);
+        
         swap_chain_ = default_swapchain;
         multisample_ = multi_sample;
         InitDefaultConstantBuffers();
