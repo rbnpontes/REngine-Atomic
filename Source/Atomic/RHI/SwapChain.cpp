@@ -198,7 +198,8 @@ namespace REngine
                         Diligent::IDeviceContext* device_context,
                         SDL_Window* window)
         : Base(ref_counters, render_device, device_context, swap_chain_desc),
-            window_(window)
+            window_(window),
+			default_framebuffer_(0)
         {
             InitializeParameters();
             CreateDummyBuffers();
@@ -405,18 +406,18 @@ namespace REngine
         if(!create_desc.window) 
         {
             ATOMIC_LOGERROR("Can't create SwapChain. Window must not be null");
-            return;
+            return nullptr;
         }
         
         if(!create_desc.device)
         {
             ATOMIC_LOGERROR("Can't create SwapChain. RenderDevice must not be null");
-            return;
+            return nullptr;
         }
         
         if(!create_desc.device_context){
             ATOMIC_LOGERROR("Can't create SwapChain. Device Context must not be null");
-            return;
+            return nullptr;
         }
         
         auto& allocator = Diligent::DefaultRawMemoryAllocator::GetAllocator();

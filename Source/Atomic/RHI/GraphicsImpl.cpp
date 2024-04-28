@@ -407,7 +407,7 @@ namespace Atomic
             sdl_create_window(&create_desc, &result);
             
             if(!result.window)
-                return;
+                return false;
             
             if(driver_desc_->backend == GraphicsBackend::OpenGL)
             {
