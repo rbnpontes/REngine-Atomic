@@ -340,9 +340,7 @@ namespace Atomic
 		int multiSample, int monitor, int refreshRate)
 	{
 		ATOMIC_PROFILE(SetScreenMode);
-
-		highDPI = false; // SDL does not support High DPI mode on Windows platform yet, so always disable it for now
-
+        
 		bool maximize = false;
 
 		// Make sure monitor index is not bigger than the currently detected monitors
@@ -368,7 +366,7 @@ namespace Atomic
 			{
 				maximize = resizable;
 				width = 1024;
-				height = 768;
+				height = 500;
 			}
 		}
 
@@ -463,6 +461,9 @@ namespace Atomic
 			SDL_GetWindowSize(window_.get(), &width, &height);
 		}
 
+        width_ = width;
+        height_ = height;
+        
 		if (!impl_->GetDevice() || multiSample_ != multiSample)
 			CreateDevice(width, height, multiSample);
 		UpdateSwapChain(width, height);
@@ -1619,9 +1620,22 @@ namespace Atomic
 		}
 	}
 
+    Vector2 Graphics::GetScale() const {
+        if(!window_)
+            return Vector2::ONE;
+        
+        int total_pixels_w{};
+        int total_pixels_h{};
+        
+        SDL_GetWindowSizeInPixels(window_.get(), &total_pixels_w, &total_pixels_h);
+        return Vector2((float)total_pixels_w / (float)width_, (float)total_pixels_h / (float)height_);
+    }
+
 	bool Graphics::CreateDevice(int width, int height, int multiSample)
 	{
-		driver_desc_->window_size = IntVector2(width, height);
+        Vector2 size(static_cast<float>(width), static_cast<float>(height));
+        size *= GetScale();
+		driver_desc_->window_size = IntVector2(static_cast<int>(size.x_), static_cast<int>(size.y_));
         driver_desc_->multisample = static_cast<uint8_t>(multiSample);
         driver_desc_->refresh_rate = refreshRate_;
         driver_desc_->triple_buffer = tripleBuffer_;
