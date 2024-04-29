@@ -228,9 +228,8 @@ void UI::Initialize(const String& languageFile)
 
     rootWidget_ = new TBWidget();
 
-    int width = graphics_->GetWidth();
-    int height = graphics_->GetHeight();
-    rootWidget_->SetSize(width, height);
+    const auto size = graphics_->GetRenderSize();
+    rootWidget_->SetSize(size.x_, size.y_);
     rootWidget_->SetVisibilility(tb::WIDGET_VISIBILITY_VISIBLE);
 
     SubscribeToEvent(E_UPDATE, ATOMIC_HANDLER(UI, HandleUpdate));

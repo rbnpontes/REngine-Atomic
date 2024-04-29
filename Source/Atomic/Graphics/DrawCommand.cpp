@@ -1868,10 +1868,6 @@ namespace REngine
 			pipeline_info.stencil_op_on_stencil_failed = OP_KEEP;
 			pipeline_info.stencil_op_depth_failed = OP_KEEP;
 			pipeline_info.primitive_type = TRIANGLE_STRIP;
-			pipeline_info.input_layout.num_elements = 1;
-			pipeline_info.input_layout.elements[0] = InputLayoutElementDesc{
-				0, 0, sizeof(Vector3), 0, 0, TYPE_VECTOR3
-			};
 
 			u32 pipeline_hash;
 			RefCntAutoPtr<IPipelineState> pipeline_state = pipeline_state_builder_acquire(graphics_->GetImpl(), pipeline_info, pipeline_hash);

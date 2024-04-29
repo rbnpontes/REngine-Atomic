@@ -1046,7 +1046,9 @@ namespace Atomic
 			return;
 		draw_command_->ResetRenderTargets();
 		draw_command_->ResetDepthStencil();
-		draw_command_->SetViewport(IntRect(0, 0, width_, height_));
+        
+        const auto real_size = GetRenderSize();
+		draw_command_->SetViewport(IntRect(0, 0, real_size.x_, real_size.y_));
 	}
 
 	void Graphics::ResetRenderTarget(unsigned index) const
@@ -1655,6 +1657,7 @@ namespace Atomic
 		SetFlushGPU(flushGPU_);
 		multiSample_ = impl_->GetMultiSample();
 		draw_command_ = ea::shared_ptr<IDrawCommand>(REngine::graphics_create_command(this));
+        draw_command_->Reset();
 		GetSubsystem<DrawCommandQueue>()->AddCommand(draw_command_);
 		return true;
 	}
@@ -1664,7 +1667,10 @@ namespace Atomic
 		if (impl_->GetSwapChain() == nullptr)
 			return CreateDevice(width, height, multiSample_);
 
-		impl_->GetSwapChain()->Resize(width, height);
+        const auto scale = GetScale();
+        const auto real_width = width * scale.x_;
+        const auto real_height = height * scale.y_;
+		impl_->GetSwapChain()->Resize(real_width, real_height);
 
 		width_ = width;
 		height_ = height;

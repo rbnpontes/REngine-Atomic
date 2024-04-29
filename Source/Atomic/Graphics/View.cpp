@@ -326,8 +326,9 @@ bool View::Define(RenderSurface* renderTarget, Viewport* viewport)
     drawDebug_ = viewport->GetDrawDebug();
 
     // Validate the rect and calculate size. If zero rect, use whole rendertarget size
-    int rtWidth = renderTarget ? renderTarget->GetWidth() : graphics_->GetWidth();
-    int rtHeight = renderTarget ? renderTarget->GetHeight() : graphics_->GetHeight();
+    const auto render_size = graphics_->GetRenderSize();
+    int rtWidth = renderTarget ? renderTarget->GetWidth() : render_size.x_;
+    int rtHeight = renderTarget ? renderTarget->GetHeight() : render_size.y_;
     const IntRect& rect = viewport->GetRect();
 
     if (rect != IntRect::ZERO)
