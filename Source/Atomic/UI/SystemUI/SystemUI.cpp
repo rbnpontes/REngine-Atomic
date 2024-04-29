@@ -76,8 +76,12 @@ SystemUI::SystemUI(Atomic::Context* context)
     { return SDL_GetClipboardText(); };
 
     io.UserData = this;
-
+    
     io.Fonts->AddFontDefault();
+    
+    const auto scale = GetSubsystem<Graphics>()->GetScale();
+    uiScale_ = (scale.x_ + scale.y_) / 2.0f;
+    
     ReallocateFontTexture();
     UpdateProjectionMatrix();
 
