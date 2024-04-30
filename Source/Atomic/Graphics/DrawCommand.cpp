@@ -120,9 +120,9 @@ namespace REngine
 		void Clear(const DrawCommandClearDesc& desc) override
 		{
 			ATOMIC_PROFILE(IDrawCommand::Clear);
-			const auto rt_size = GetRenderTargetDimensions();
+			const auto render_size = graphics_->GetRenderSize();
 
-			if(!viewport_.left_ && !viewport_.top_ && viewport_.right_ == rt_size.x_ && viewport_.bottom_ == rt_size.y_)
+			if(!viewport_.left_ && !viewport_.top_ && viewport_.right_ == render_size.x_ && viewport_.bottom_ == render_size.y_)
 			{
 				const auto old_depth_write = pipeline_info_->depth_write_enabled;
 				const auto old_dirty_flags = dirty_flags_;
@@ -1435,7 +1435,7 @@ namespace REngine
 				bind_rts_[num_rts_++] = render_targets_[i]->GetRenderTargetView();
 			}
 
-			const auto wnd_size = GetRenderTargetDimensions();
+			const auto wnd_size = graphics_->GetRenderSize();
 			const auto depth_stencil = depth_stencil_;
 			const auto depth_stencil_size = IntVector2(
 				depth_stencil ? depth_stencil->GetWidth() : 0, 
