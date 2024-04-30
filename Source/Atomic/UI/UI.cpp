@@ -470,7 +470,9 @@ bool UI::LoadResourceFile(TBWidget* widget, const String& filename)
 void UI::HandleScreenMode(StringHash eventType, VariantMap& eventData)
 {
     using namespace ScreenMode;
-    rootWidget_->SetSize(eventData[P_WIDTH].GetInt(), eventData[P_HEIGHT].GetInt());
+    const auto width = eventData[P_RENDER_WIDTH].GetInt();
+    const auto height = eventData[P_RENDER_HEIGHT].GetInt();
+    rootWidget_->SetSize(width, height);
 }
 
 void UI::HandleUpdate(StringHash eventType, VariantMap& eventData)

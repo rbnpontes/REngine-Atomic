@@ -420,6 +420,7 @@ namespace Atomic
                 SDL_GL_SetSwapInterval(vsync ? 1 : 0);
             }
             
+            SDL_GetWindowSize(result.window.get(), &width, &height);
             window_ = result.window;
             metal_view_ = result.metal_view;
             driver_desc_->gl_context = result.gl_context;
@@ -1344,9 +1345,12 @@ namespace Atomic
 
 		using namespace ScreenMode;
 
+        const auto scale = GetScale();
 		VariantMap& eventData = GetEventDataMap();
 		eventData[P_WIDTH] = width_;
 		eventData[P_HEIGHT] = height_;
+        eventData[P_RENDER_WIDTH] = static_cast<int>((float)width_ * scale.x_);
+        eventData[P_RENDER_HEIGHT] = static_cast<int>((float)height_ * scale.y_);
 		eventData[P_FULLSCREEN] = fullscreen_;
 		eventData[P_RESIZABLE] = resizable_;
 		eventData[P_BORDERLESS] = borderless_;
