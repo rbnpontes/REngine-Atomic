@@ -76,8 +76,12 @@ SystemUI::SystemUI(Atomic::Context* context)
     { return SDL_GetClipboardText(); };
 
     io.UserData = this;
-
+    
     io.Fonts->AddFontDefault();
+    
+    const auto scale = GetSubsystem<Graphics>()->GetScale();
+    uiScale_ = (scale.x_ + scale.y_) / 2.0f;
+    
     ReallocateFontTexture();
     UpdateProjectionMatrix();
 
@@ -99,7 +103,8 @@ void SystemUI::UpdateProjectionMatrix()
 {
     // Update screen size
     auto graphics = GetSubsystem<Graphics>();
-    ImGui::GetIO().DisplaySize = ImVec2((float)graphics->GetWidth(), (float)graphics->GetHeight());
+    const auto size = graphics->GetRenderSize();
+    ImGui::GetIO().DisplaySize = ImVec2((float)size.x_, (float)size.y_);
 
     // Update projection matrix
     IntVector2 viewSize = graphics->GetViewport().Size();
@@ -147,8 +152,13 @@ void SystemUI::OnRawEvent(VariantMap& args)
     case SDL_MOUSEBUTTONDOWN:
         io.MouseDown[evt->button.button - 1] = evt->type == SDL_MOUSEBUTTONDOWN;
     case SDL_MOUSEMOTION:
-        io.MousePos.x = evt->motion.x / uiScale_;
-        io.MousePos.y = evt->motion.y / uiScale_;
+        {
+            const auto scale = GetSubsystem<Graphics>()->GetScale();
+            io.MousePos.x = evt->motion.x / uiScale_;
+            io.MousePos.y = evt->motion.y / uiScale_;
+            io.MousePos.x *= scale.x_;
+            io.MousePos.y *= scale.y_;
+        }
         break;
     case SDL_FINGERUP:
         io.MouseDown[0] = false;

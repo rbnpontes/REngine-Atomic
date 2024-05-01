@@ -32,10 +32,11 @@
 #include <DiligentCore/Common/interface/RefCntAutoPtr.hpp>
 
 // ATOMIC BEGIN
-#include <SDL/include/SDL.h>
-#include <SDL/include/SDL_syswm.h>
-// ATOMIC END
-
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_syswm.h>
+#if RENGINE_PLATFORM_APPLE
+    #include <SDL2/SDL_metal.h>
+#endif
 
 #include "../DebugNew.h"
 #include "Graphics/DrawCommandQueue.h"
@@ -53,18 +54,204 @@ extern "C" {
 #endif
 namespace Atomic
 {
-#if WIN32
-	static HWND GetWindowHandle(SDL_Window* window)
-	{
-		SDL_SysWMinfo sysInfo;
+    struct SDLWindowCreateDesc {
+        /// Graphics Backend
+        GraphicsBackend backend{};
+        /// Window title
+        String& title;
+        /// Extermal Window
+        void* external_window{};
+        bool resizable{};
+        /// Enable Borderless
+        bool borderless{};
+        /// Enable FullScreen
+        bool fullscreen{};
+        /// Requires on OpenGL backend
+        u8 multisample{};
+        /// Window position x
+        u32 x{};
+        /// Window position y
+        u32 y{};
+        /// Window width
+        u32 width{};
+        /// Window height
+        u32 height{};
+        /// Monitor index
+        u8 monitor{};
+    };
+    struct SDLWindowResult {
+        /// Returns GL Context if Backend used was OpenGL
+        ea::shared_ptr<void> gl_context{};
+        /// Returns SDL window
+        ea::shared_ptr<SDL_Window> window{};
+        /// Returns Metal View if Backend used was Vulkan and Environment is Apple
+        ea::shared_ptr<void> metal_view{};
+        /// Returns Diligent Native Window
+        Diligent::NativeWindow native_window{};
+    };
 
-		SDL_VERSION(&sysInfo.version);
-		SDL_GetWindowWMInfo(window, &sysInfo);
-		return sysInfo.info.win.window;
-	}
+    static void sdl_create_default_window(SDLWindowCreateDesc* ci, SDLWindowResult* result) {
+        u32 flags = SDL_WINDOW_ALLOW_HIGHDPI;
+        if(!ci->external_window) {
+            if(ci->resizable)
+                flags |= SDL_WINDOW_RESIZABLE;
+            if(ci->borderless)
+                flags |= SDL_WINDOW_BORDERLESS;
+#if RENGINE_PLATFORM_APPLE
+            if(ci->backend == GraphicsBackend::Vulkan){
+                flags |= SDL_WINDOW_METAL;
+                SDL_SetHint(SDL_HINT_RENDER_DRIVER, "metal");
+            }
 #endif
+        }
+        
+        const auto x = SDL_WINDOWPOS_UNDEFINED_DISPLAY(ci->x);
+        const auto y = SDL_WINDOWPOS_UNDEFINED_DISPLAY(ci->y);
+        const auto width = ci->width;
+        const auto height = ci->height;
+        
+        /// Assume to SDL that Diligent will control video context
+        SDL_SetHint(SDL_HINT_VIDEO_EXTERNAL_CONTEXT, "1");
+        
+        SDL_Window* window = ci->external_window
+            ? SDL_CreateWindowFrom(ci->external_window)
+            : SDL_CreateWindow(ci->title.CString(), x, y, width, height, flags);
+        
+        if(!window) {
+            ATOMIC_LOGERRORF("Failed to create Engine Window. %s", SDL_GetError());
+            return;
+        }
+        
+#if RENGINE_PLATFORM_APPLE
+        SDL_MetalView view = SDL_Metal_CreateView(window);
+        if(!view) {
+            SDL_DestroyWindow(window);
+            ATOMIC_LOGERRORF("Failed to create Engine View Window. %s", SDL_GetError());
+            return;
+        }
+        
+        result->metal_view = ea::shared_ptr<void>(view, SDL_Metal_DestroyView);
+#endif
+        
+        if(ci->fullscreen)
+            SDL_SetWindowFullscreen(window, 0);
+        
+        result->window = ea::shared_ptr<SDL_Window>(window, SDL_DestroyWindow);
+    }
 
-	const Vector2 Graphics::pixelUVOffset(0.0f, 0.0f);
+    static void sdl_create_gl_window(SDLWindowCreateDesc* ci, SDLWindowResult* result) {
+        u32 flags = SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI;
+        if(!ci->external_window) {
+            flags |= SDL_WINDOW_SHOWN;
+            
+            if(ci->resizable)
+                flags |= SDL_WINDOW_RESIZABLE;
+            if(ci->borderless)
+                flags |= SDL_WINDOW_BORDERLESS;
+        }
+        
+        const auto x = SDL_WINDOWPOS_UNDEFINED_DISPLAY(ci->x);
+        const auto y = SDL_WINDOWPOS_UNDEFINED_DISPLAY(ci->y);
+        const auto width = ci->width;
+        const auto height = ci->height;
+        
+        SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+        
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+        
+        constexpr static int s_color_bits[] = { 8, 1 };
+        constexpr static int s_depth_bits[] = { 24, 16};
+        constexpr static int s_stencil_bits[] = { 8, 0 };
+        constexpr static bool s_srgb[] = { true, false };
+        
+        // We need to test some settings when we creating OpenGL windows
+        // Thanks Eugene to made this on rbfx.
+        for(const auto color_bits : s_color_bits) {
+            SDL_GL_SetAttribute(SDL_GL_RED_SIZE,    color_bits);
+            SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE,  color_bits);
+            SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE,   color_bits);
+            SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE,  ci->external_window ? 8 : 0);
+            
+            for(const auto depth_bits : s_depth_bits)
+            {
+                SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, depth_bits);
+                for(const auto stencil_bits : s_stencil_bits) {
+                    SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, stencil_bits);
+                    
+                    for(const auto srgb : s_srgb) {
+                        SDL_GL_SetAttribute(SDL_GL_FRAMEBUFFER_SRGB_CAPABLE, srgb);
+                        for(auto multisample = ci->multisample; multisample > 0; multisample /= 2) {
+                            if(multisample > 1) {
+                                SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
+                                SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, multisample);
+                            }
+                            else
+                            {
+                                SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 0);
+                                SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0);
+                            }
+                            
+                            SDL_Window* window = ci->external_window
+                            ? SDL_CreateWindowFrom(ci->external_window)
+                            : SDL_CreateWindow(ci->title.CString(), x, y, width, height, flags);
+                            
+                            if(!window)
+                                continue;
+                            
+                            if(ci->fullscreen)
+                                SDL_SetWindowFullscreen(window, 0);
+                            
+                            SDL_GLContext gl_context = SDL_GL_CreateContext(window);
+                            if(!gl_context) {
+                                ATOMIC_LOGERRORF("Failed to create GL Context. %s", SDL_GetError());
+                                SDL_DestroyWindow(window);
+                                return;
+                            }
+                            
+                            result->window = ea::shared_ptr<SDL_Window>(window, SDL_DestroyWindow);
+                            result->gl_context = ea::shared_ptr<void>(gl_context, SDL_GL_DeleteContext);
+                            return;
+                        }
+                    }
+                }
+            }
+        }
+        
+        ATOMIC_LOGERRORF("Failed to create Engine Window. %s", SDL_GetError());
+    }
+
+    static void sdl_create_window(SDLWindowCreateDesc* ci, SDLWindowResult* result) {
+        // OpenGL backend requires a custom instantiation
+        if(ci->backend == GraphicsBackend::OpenGL)
+            sdl_create_gl_window(ci, result);
+        else
+            sdl_create_default_window(ci, result);
+        
+        if(!result->window)
+            return;
+        
+        SDL_SysWMinfo sys_info;
+        SDL_VERSION(&sys_info.version);
+        SDL_GetWindowWMInfo(result->window.get(), &sys_info);
+        
+#if RENGINE_PLATFORM_WINDOWS
+        result->HWND = sysInfo.info.win.window;
+#elif RENGINE_PLATFORM_LINUX
+        throw std::runtime_error("Not implemented Linux Window");
+#elif RENGINE_PLATFORM_MACOS
+        result->native_window.pNSView = result->metal_view.get();
+#elif RENGINE_PLATFORM_IOS
+        result->native_window.pCALayer = sys_info.info.uikit.window;
+#elif RENGINE_PLATFORM_ANDROID
+        result->native_window.pAWindow = sys_info.info.android.window;
+#elif RENGINE_PLATFORM_WEB
+        throw std::runtime_error("Not implemented Web Window");
+#endif
+    }
+
+    const Vector2 Graphics::pixelUVOffset(0.0f, 0.0f);
 
 	Graphics::Graphics(Context* context) :
 		Object(context),
@@ -109,20 +296,13 @@ namespace Atomic
 
 		context_->RequireSDL(SDL_INIT_VIDEO);
 
+        driver_desc_ = ea::make_shared<REngine::DriverInstanceInitDesc>();
 		// Register Graphics library object factories
 		RegisterGraphicsLibrary(context_);
 	}
 
 	Graphics::~Graphics()
 	{
-		//{
-		//	MutexLock lock(gpuObjectMutex_);
-		//	// Release all GPU objects that still exist
-		//	for (PODVector<GPUObject*>::Iterator i = gpuObjects_.Begin(); i != gpuObjects_.End(); ++i)
-		//		(*i)->Release();
-		//	gpuObjects_.Clear();
-		//}
-
 		ResetCachedState();
 		Cleanup(GRAPHICS_CLEAR_ALL);
 
@@ -134,21 +314,33 @@ namespace Atomic
 		if (window_)
 		{
 			SDL_ShowCursor(SDL_TRUE);
-			SDL_DestroyWindow(window_);
+            metal_view_ = nullptr;
 			window_ = nullptr;
 		}
 
 		context_->ReleaseSDL();
 	}
 
+    void Graphics::SetBackend(GraphicsBackend backend)
+    {
+        if(IsInitialized()) {
+            ATOMIC_LOGWARNING("Is not possible to update Graphics Backend after Graphics initialization.");
+            return;
+        }
+        
+        driver_desc_->backend = backend;
+    }
+
+    GraphicsBackend Graphics::GetBackend() const {
+        return driver_desc_->backend;
+    }
+
 	bool Graphics::SetMode(int width, int height, bool fullscreen, bool borderless, bool resizable, bool highDPI,
 		bool vsync, bool tripleBuffer,
 		int multiSample, int monitor, int refreshRate)
 	{
 		ATOMIC_PROFILE(SetScreenMode);
-
-		highDPI = false; // SDL does not support High DPI mode on Windows platform yet, so always disable it for now
-
+        
 		bool maximize = false;
 
 		// Make sure monitor index is not bigger than the currently detected monitors
@@ -174,7 +366,7 @@ namespace Atomic
 			{
 				maximize = resizable;
 				width = 1024;
-				height = 768;
+				height = 500;
 			}
 		}
 
@@ -195,8 +387,44 @@ namespace Atomic
 
 		if (!window_)
 		{
-			if (!OpenWindow(width, height, resizable, borderless))
-				return false;
+            SDLWindowCreateDesc create_desc = {
+                driver_desc_->backend,
+                windowTitle_,
+                externalWindow_,
+                resizable,
+                borderless,
+                fullscreen,
+                static_cast<u8>(multiSample),
+                0,
+                0,
+                static_cast<u32>(width),
+                static_cast<u32>(height),
+                static_cast<u8>(monitor)
+            };
+            SDLWindowResult result = {};
+            sdl_create_window(&create_desc, &result);
+            
+            if(!result.window)
+                return false;
+            
+            if(driver_desc_->backend == GraphicsBackend::OpenGL)
+            {
+                int effective_multisample{};
+                if (SDL_GL_GetAttribute(SDL_GL_MULTISAMPLESAMPLES, &effective_multisample) == 0)
+                    multiSample = Max(1, effective_multisample);
+                
+                int effective_srgb{};
+                if (SDL_GL_GetAttribute(SDL_GL_FRAMEBUFFER_SRGB_CAPABLE, &effective_srgb) == 0)
+                    sRGB_ = effective_srgb != 0;
+                
+                SDL_GL_SetSwapInterval(vsync ? 1 : 0);
+            }
+            
+            SDL_GetWindowSize(result.window.get(), &width, &height);
+            window_ = result.window;
+            metal_view_ = result.metal_view;
+            driver_desc_->gl_context = result.gl_context;
+            driver_desc_->window = result.native_window;
 		}
 
 		// Check fullscreen mode validity. Use a closest match if not found
@@ -231,9 +459,12 @@ namespace Atomic
 		if (maximize)
 		{
 			Maximize();
-			SDL_GetWindowSize(window_, &width, &height);
+			SDL_GetWindowSize(window_.get(), &width, &height);
 		}
 
+        width_ = width;
+        height_ = height;
+        
 		if (!impl_->GetDevice() || multiSample_ != multiSample)
 			CreateDevice(width, height, multiSample);
 		UpdateSwapChain(width, height);
@@ -321,7 +552,7 @@ namespace Atomic
 		if (!window_)
 			return;
 		SDL_ShowCursor(SDL_TRUE);
-		SDL_DestroyWindow(window_);
+        metal_view_ = nullptr;
 		window_ = nullptr;
 	}
 
@@ -422,7 +653,7 @@ namespace Atomic
 		{
 			int width, height;
 
-			SDL_GetWindowSize(window_, &width, &height);
+			SDL_GetWindowSize(window_.get(), &width, &height);
 			if (width != width_ || height != height_)
 				SetMode(width, height);
 		}
@@ -430,7 +661,7 @@ namespace Atomic
 		{
 			// To prevent a loop of endless device loss and flicker, do not attempt to render when in fullscreen
 			// and the window is minimized
-			if (fullscreen_ && (SDL_GetWindowFlags(window_) & SDL_WINDOW_MINIMIZED))
+			if (fullscreen_ && (SDL_GetWindowFlags(window_.get()) & SDL_WINDOW_MINIMIZED))
 				return false;
 		}
 
@@ -816,7 +1047,9 @@ namespace Atomic
 			return;
 		draw_command_->ResetRenderTargets();
 		draw_command_->ResetDepthStencil();
-		draw_command_->SetViewport(IntRect(0, 0, width_, height_));
+        
+        const auto real_size = GetRenderSize();
+		draw_command_->SetViewport(IntRect(0, 0, real_size.x_, real_size.y_));
 	}
 
 	void Graphics::ResetRenderTarget(unsigned index) const
@@ -988,11 +1221,6 @@ namespace Atomic
 		return window_ != nullptr && impl_->IsInitialized();
 	}
 
-	GraphicsBackend Graphics::GetBackend() const
-	{
-		return impl_->GetBackend();
-	}
-
 	PODVector<int> Graphics::GetMultiSampleLevels() const
 	{
 		if (!impl_->IsInitialized())
@@ -1104,7 +1332,7 @@ namespace Atomic
 
 		int newWidth, newHeight;
 
-		SDL_GetWindowSize(window_, &newWidth, &newHeight);
+		SDL_GetWindowSize(window_.get(), &newWidth, &newHeight);
 		if (newWidth == width_ && newHeight == height_)
 			return;
 
@@ -1117,9 +1345,12 @@ namespace Atomic
 
 		using namespace ScreenMode;
 
+        const auto scale = GetScale();
 		VariantMap& eventData = GetEventDataMap();
 		eventData[P_WIDTH] = width_;
 		eventData[P_HEIGHT] = height_;
+        eventData[P_RENDER_WIDTH] = static_cast<int>((float)width_ * scale.x_);
+        eventData[P_RENDER_HEIGHT] = static_cast<int>((float)height_ * scale.y_);
 		eventData[P_FULLSCREEN] = fullscreen_;
 		eventData[P_RESIZABLE] = resizable_;
 		eventData[P_BORDERLESS] = borderless_;
@@ -1134,7 +1365,7 @@ namespace Atomic
 
 		int newX, newY;
 
-		SDL_GetWindowPosition(window_, &newX, &newY);
+		SDL_GetWindowPosition(window_.get(), &newX, &newY);
 		if (newX == position_.x_ && newY == position_.y_)
 			return;
 
@@ -1346,33 +1577,17 @@ namespace Atomic
 		return false;
 	}
 
-	bool Graphics::OpenWindow(int width, int height, bool resizable, bool borderless)
+	/*bool Graphics::OpenWindow(int width, int height, bool resizable, bool borderless)
 	{
-		if (!externalWindow_)
-		{
-			unsigned flags = 0;
-			if (resizable)
-				flags |= SDL_WINDOW_RESIZABLE;
-			if (borderless)
-				flags |= SDL_WINDOW_BORDERLESS;
-
-			window_ = SDL_CreateWindow(windowTitle_.CString(), position_.x_, position_.y_, width, height, flags);
-		}
-		else
-			window_ = SDL_CreateWindowFrom(externalWindow_, 0);
-
-		if (!window_)
-		{
-			ATOMIC_LOGERRORF("Could not create window, root cause: '%s'", SDL_GetError());
-			return false;
-		}
+        SDLWindowCreateDesc create_desc = {};
+        create_desc.backend = GetBackend();
 
 		SDL_GetWindowPosition(window_, &position_.x_, &position_.y_);
 
 		CreateWindowIcon();
 
 		return true;
-	}
+	}*/
 
 	void Graphics::AdjustWindow(int& newWidth, int& newHeight, bool& newFullscreen, bool& newBorderless, int& monitor)
 	{
@@ -1380,8 +1595,8 @@ namespace Atomic
 		{
 			if (!newWidth || !newHeight)
 			{
-				SDL_MaximizeWindow(window_);
-				SDL_GetWindowSize(window_, &newWidth, &newHeight);
+				SDL_MaximizeWindow(window_.get());
+				SDL_GetWindowSize(window_.get(), &newWidth, &newHeight);
 			}
 			else
 			{
@@ -1391,43 +1606,52 @@ namespace Atomic
 				if (newFullscreen || (newBorderless && newWidth >= display_rect.w && newHeight >= display_rect.h))
 				{
 					// Reposition the window on the specified monitor if it's supposed to cover the entire monitor
-					SDL_SetWindowPosition(window_, display_rect.x, display_rect.y);
+					SDL_SetWindowPosition(window_.get(), display_rect.x, display_rect.y);
 				}
 
-				SDL_SetWindowSize(window_, newWidth, newHeight);
+				SDL_SetWindowSize(window_.get(), newWidth, newHeight);
 			}
 
 			// Hack fix: on SDL 2.0.4 a fullscreen->windowed transition results in a maximized window when the D3D device is reset, so hide before
-			SDL_HideWindow(window_);
-			SDL_SetWindowFullscreen(window_, newFullscreen ? SDL_WINDOW_FULLSCREEN : 0);
-			SDL_SetWindowBordered(window_, newBorderless ? SDL_FALSE : SDL_TRUE);
-			SDL_ShowWindow(window_);
+			SDL_HideWindow(window_.get());
+			SDL_SetWindowFullscreen(window_.get(), newFullscreen ? SDL_WINDOW_FULLSCREEN : 0);
+			SDL_SetWindowBordered(window_.get(), newBorderless ? SDL_FALSE : SDL_TRUE);
+			SDL_ShowWindow(window_.get());
 		}
 		else
 		{
 			// If external window, must ask its dimensions instead of trying to set them
-			SDL_GetWindowSize(window_, &newWidth, &newHeight);
+			SDL_GetWindowSize(window_.get(), &newWidth, &newHeight);
 			newFullscreen = false;
 		}
 	}
 
+    Vector2 Graphics::GetScale() const {
+        if(!window_)
+            return Vector2::ONE;
+        
+        int total_pixels_w{};
+        int total_pixels_h{};
+        
+        SDL_GetWindowSizeInPixels(window_.get(), &total_pixels_w, &total_pixels_h);
+        return Vector2((float)total_pixels_w / (float)width_, (float)total_pixels_h / (float)height_);
+    }
+
 	bool Graphics::CreateDevice(int width, int height, int multiSample)
 	{
-		REngine::DriverInstanceInitDesc desc;
-#if WIN32
-		desc.window = Diligent::NativeWindow(GetWindowHandle(window_));
-#else
-		throw std::runtime_error("Not implemented window acquire");
-#endif
-		desc.window_size = IntVector2(width, height);
-		desc.multisample = static_cast<uint8_t>(multiSample);
-		desc.color_buffer_format = sRGB_ ? Diligent::TEX_FORMAT_RGBA8_UNORM_SRGB : Diligent::TEX_FORMAT_RGBA8_UNORM;
-		desc.depth_buffer_format = Diligent::TEX_FORMAT_D24_UNORM_S8_UINT;
+        Vector2 size(static_cast<float>(width), static_cast<float>(height));
+        size *= GetScale();
+		driver_desc_->window_size = IntVector2(static_cast<int>(size.x_), static_cast<int>(size.y_));
+        driver_desc_->multisample = static_cast<uint8_t>(multiSample);
+        driver_desc_->refresh_rate = refreshRate_;
+        driver_desc_->triple_buffer = tripleBuffer_;
+        driver_desc_->color_buffer_format = sRGB_ ? Diligent::TEX_FORMAT_RGBA8_UNORM_SRGB : Diligent::TEX_FORMAT_RGBA8_UNORM;
+        driver_desc_->depth_buffer_format = Diligent::TEX_FORMAT_D24_UNORM_S8_UINT;
 
 		if (impl_->IsInitialized())
 			impl_->Release();
 
-		if (!impl_->InitDevice(desc))
+		if (!impl_->InitDevice(*driver_desc_))
 		{
 			ATOMIC_LOGERROR("Failed to initialize graphics driver.");
 			return false;
@@ -1437,6 +1661,7 @@ namespace Atomic
 		SetFlushGPU(flushGPU_);
 		multiSample_ = impl_->GetMultiSample();
 		draw_command_ = ea::shared_ptr<IDrawCommand>(REngine::graphics_create_command(this));
+        draw_command_->Reset();
 		GetSubsystem<DrawCommandQueue>()->AddCommand(draw_command_);
 		return true;
 	}
@@ -1446,7 +1671,10 @@ namespace Atomic
 		if (impl_->GetSwapChain() == nullptr)
 			return CreateDevice(width, height, multiSample_);
 
-		impl_->GetSwapChain()->Resize(width, height);
+        const auto scale = GetScale();
+        const auto real_width = width * scale.x_;
+        const auto real_height = height * scale.y_;
+		impl_->GetSwapChain()->Resize(real_width, real_height);
 
 		width_ = width;
 		height_ = height;

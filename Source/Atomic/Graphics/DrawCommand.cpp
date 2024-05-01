@@ -80,7 +80,7 @@ namespace REngine
 			*pipeline_info_ = PipelineStateInfo{};
 			pipeline_info_->output.multi_sample = graphics_->GetMultiSample();
 			
-			const auto wnd_size = graphics_->GetRenderTargetDimensions();
+			const auto wnd_size = graphics_->GetRenderSize();
 			viewport_ = IntRect(0, 0, wnd_size.x_, wnd_size.y_);
 
 			pipeline_state_				= nullptr;
@@ -120,9 +120,9 @@ namespace REngine
 		void Clear(const DrawCommandClearDesc& desc) override
 		{
 			ATOMIC_PROFILE(IDrawCommand::Clear);
-			const auto rt_size = graphics_->GetRenderTargetDimensions();
+			const auto render_size = graphics_->GetRenderSize();
 
-			if(!viewport_.left_ && !viewport_.top_ && viewport_.right_ == rt_size.x_ && viewport_.bottom_ == rt_size.y_)
+			if(!viewport_.left_ && !viewport_.top_ && viewport_.right_ == render_size.x_ && viewport_.bottom_ == render_size.y_)
 			{
 				const auto old_depth_write = pipeline_info_->depth_write_enabled;
 				const auto old_dirty_flags = dirty_flags_;
@@ -961,7 +961,7 @@ namespace REngine
 		void SetViewport(const IntRect& viewport) override
 		{
 			ATOMIC_PROFILE(IDrawCommand::SetViewport);
-			const IntVector2 size = graphics_->GetRenderTargetDimensions();
+			const IntVector2 size = GetRenderTargetDimensions();
 			IntRect rect_cpy = viewport;
 
 			if (rect_cpy.right_ <= rect_cpy.left_)
@@ -1051,7 +1051,7 @@ namespace REngine
 		void SetScissorTest(bool enable, const IntRect& rect) override
 		{
 			ATOMIC_PROFILE(IDrawCommand::SetScissorTest);
-			const IntVector2 rt_size = graphics_->GetRenderTargetDimensions();
+			const IntVector2 rt_size = GetRenderTargetDimensions();
 			const IntVector2 view_pos(viewport_.left_, viewport_.top_);
 
 			if(enable)
@@ -1091,7 +1091,7 @@ namespace REngine
 
 			if(enable)
 			{
-				const IntVector2 rt_size = graphics_->GetRenderTargetDimensions();
+				const IntVector2 rt_size = GetRenderTargetDimensions();
 				const IntVector2 view_size(viewport_.Size());
 				const IntVector2 view_pos(viewport_.left_, viewport_.top_);
 				const int expand = border_inclusive ? 1 : 0;
@@ -1188,7 +1188,7 @@ namespace REngine
 			if(!dest || !dest->GetRenderSurface())
 				return false;
 
-			const auto rt_size = graphics_->GetRenderTargetDimensions();
+			const auto rt_size = GetRenderTargetDimensions();
 			IntRect vp_copy = viewport;
 			if (vp_copy.right_ <= vp_copy.left_)
 				vp_copy.right_ = vp_copy.left_ + 1;
@@ -1405,8 +1405,9 @@ namespace REngine
 			}
 			else
 			{
-				width = graphics_->GetWidth();
-				height = graphics_->GetHeight();
+                const auto size = graphics_->GetRenderSize();
+				width = size.x_;
+				height = size.y_;
 			}
 
 			return IntVector2(width, height);
@@ -1434,7 +1435,7 @@ namespace REngine
 				bind_rts_[num_rts_++] = render_targets_[i]->GetRenderTargetView();
 			}
 
-			const auto wnd_size = graphics_->GetSize();
+			const auto wnd_size = graphics_->GetRenderSize();
 			const auto depth_stencil = depth_stencil_;
 			const auto depth_stencil_size = IntVector2(
 				depth_stencil ? depth_stencil->GetWidth() : 0, 
@@ -1475,7 +1476,7 @@ namespace REngine
 			auto depth_stencil = depth_stencil_ && depth_stencil_->GetUsage() == TEXTURE_DEPTHSTENCIL ?
 				depth_stencil_->GetRenderTargetView() :
 				graphics_->GetImpl()->GetSwapChain()->GetDepthBufferDSV();
-			const auto wnd_size = graphics_->GetRenderTargetDimensions();
+			const auto wnd_size = graphics_->GetRenderSize();
 
 			if(!pipeline_info_->depth_write_enabled && depth_stencil_ && depth_stencil_->GetReadOnlyView())
 				depth_stencil = depth_stencil_->GetReadOnlyView();
@@ -1742,7 +1743,7 @@ namespace REngine
 			if(changed_rts)
 				BoundRenderTargets();
 
-			const auto rt_size = graphics_->GetRenderTargetDimensions();
+			const auto rt_size = GetRenderTargetDimensions();
 			if(dirty_flags_ & static_cast<u32>(RenderCommandDirtyState::viewport))
 			{
 				dirty_flags_ ^= static_cast<u32>(RenderCommandDirtyState::viewport);
@@ -1867,10 +1868,6 @@ namespace REngine
 			pipeline_info.stencil_op_on_stencil_failed = OP_KEEP;
 			pipeline_info.stencil_op_depth_failed = OP_KEEP;
 			pipeline_info.primitive_type = TRIANGLE_STRIP;
-			pipeline_info.input_layout.num_elements = 1;
-			pipeline_info.input_layout.elements[0] = InputLayoutElementDesc{
-				0, 0, sizeof(Vector3), 0, 0, TYPE_VECTOR3
-			};
 
 			u32 pipeline_hash;
 			RefCntAutoPtr<IPipelineState> pipeline_state = pipeline_state_builder_acquire(graphics_->GetImpl(), pipeline_info, pipeline_hash);

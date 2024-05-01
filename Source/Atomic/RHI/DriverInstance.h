@@ -19,14 +19,27 @@ namespace REngine
 {
     struct DriverInstanceInitDesc
     {
+        /// Specify Driver Backend. Default is OpenGL
         Atomic::GraphicsBackend backend{Atomic::GraphicsBackend::OpenGL};
+        /// Specify OpenGL context. Required when Backend is OpenGL
+        ea::shared_ptr<void> gl_context{};
+        /// Default Window
         Diligent::NativeWindow window{};
+        /// Default Window Size
         Atomic::IntVector2 window_size{Atomic::IntVector2::ZERO};
-        uint8_t multisample{0};
-        uint8_t num_deferred_contexts{0};
+        /// Multi-Sample Level. Less than 1 is disabled
+        u8 multisample{1};
+        /// Number of Deferred Contexts that will be created. OpenGL backend ignores this value
+        u8 num_deferred_contexts{0};
+        /// Refresh Rate
+        u8 refresh_rate{0};
+        /// Enable SwapChain triple buffer
+        bool triple_buffer{false};
+        /// Graphics Card Adapter Id
         unsigned adapter_id{Atomic::M_MAX_UNSIGNED};
-
+        /// SwapChain Color Buffer Format
         Diligent::TEXTURE_FORMAT color_buffer_format{};
+        /// SwapChain Depth Buffer Format
         Diligent::TEXTURE_FORMAT depth_buffer_format{};
     };
 

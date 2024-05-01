@@ -54,7 +54,6 @@ namespace REngine
         {"sSpecMap"},                      // TU_SPECULAR
         {"sEmissiveMap"},                  // TU_EMISSIVE
         {"sEnvMap", "sEnvCubeMap"},     // TU_ENVIRONMENT
-#ifdef DESKTOP_GRAPHICS
         {"sVolumeMap"},                    // TU_VOLUMEMAP
         {"sCustom", "sCustom1"},        // TU_CUSTOM1
         {"sCustom", "sCustom1"},        // TU_CUSTOM2
@@ -63,16 +62,11 @@ namespace REngine
         {"sShadowMap"},                     // TU_SHADOWMAP
         {"sFaceSelectCubeMap"},             // TU_FACESELECT
         {"sIndirectionCubeMap"},            // TU_INDIRECTION
-        { "sDepthBuffer"},                  // TU_DEPTHBUFFER
+        {"sDepthBuffer"},                  // TU_DEPTHBUFFER
         {"sLightBuffer"},   	              // TU_LIGHTBUFFER
         {"sZoneCubeMap", "sZoneVolumeMap"} ,// TU_ZONE
         {"sAlbedoBuffer"}, // TU_ALBEDOBUFFER
         {"sNormalBuffer"} // TU_NORMALBUFFER
-#else
-        {"sLightRampMap"} // TU_LIGHTRAMP
-        {"sLightSpotMap", "sLightCubeMap"}, // TU_LIGHTSHAPE
-        {"sShadowMap"},                     // TU_SHADOWMAP
-#endif
     };
 
 

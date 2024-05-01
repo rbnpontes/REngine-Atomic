@@ -77,6 +77,5 @@
         return textureProj(sShadowMap, shadowPos);
     }
 
-    #define SampleShadowOffset(shadowPos, offset) \
-        textureProjOffset(sShadowMap, (shadowPos), (offset))
+    #define SampleShadowOffset(shadowPos, offset) textureProjOffset(sShadowMap, (shadowPos), (offset))
 #endif

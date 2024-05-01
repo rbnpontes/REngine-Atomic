@@ -220,8 +220,7 @@ void UIView::Render(VertexBuffer* buffer, const PODVector<UIBatch>& batches, uns
     }
     else
     {
-        size.x_ = graphics_->GetWidth();
-        size.y_ = graphics_->GetHeight();
+        size = graphics_->GetRenderSize();
     }
 
     bool scissorEnabled = true;

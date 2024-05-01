@@ -1,3 +1,4 @@
+set(CMAKE_OSX_DEPLOYMENT_TARGET "10.13" CACHE STRING "Minimum OS X deployment version")
 
 project(Atomic)
 
@@ -27,6 +28,12 @@ ENDIF ()
 if (ATOMIC_DEV_BUILD)
     add_definitions("-DATOMIC_DEV_BUILD=1")
 endif ()
+
+if(NOT DEFINED ENV{VULKAN_SDK})
+    message(FATAL_ERROR "VULKAN_SDK environment variable is required to build REngine.")
+endif()
+
+set(VULKAN_SDK $ENV{VULKAN_SDK})
 
 include(AtomicPlatform)
 
@@ -62,7 +69,7 @@ endif ()
 
 add_subdirectory(Source)
 
-if (ATOMIC_DESKTOP AND ATOMIC_DEV_BUILD)
+if (ATOMIC_DEV_BUILD)
     if (NOT DEFINED ATOMIC_CPLUSPLUS_EXAMPLES)
         set(ATOMIC_CPLUSPLUS_EXAMPLES 1)
     endif ()

@@ -228,9 +228,8 @@ void UI::Initialize(const String& languageFile)
 
     rootWidget_ = new TBWidget();
 
-    int width = graphics_->GetWidth();
-    int height = graphics_->GetHeight();
-    rootWidget_->SetSize(width, height);
+    const auto size = graphics_->GetRenderSize();
+    rootWidget_->SetSize(size.x_, size.y_);
     rootWidget_->SetVisibilility(tb::WIDGET_VISIBILITY_VISIBLE);
 
     SubscribeToEvent(E_UPDATE, ATOMIC_HANDLER(UI, HandleUpdate));
@@ -471,7 +470,9 @@ bool UI::LoadResourceFile(TBWidget* widget, const String& filename)
 void UI::HandleScreenMode(StringHash eventType, VariantMap& eventData)
 {
     using namespace ScreenMode;
-    rootWidget_->SetSize(eventData[P_WIDTH].GetInt(), eventData[P_HEIGHT].GetInt());
+    const auto width = eventData[P_RENDER_WIDTH].GetInt();
+    const auto height = eventData[P_RENDER_HEIGHT].GetInt();
+    rootWidget_->SetSize(width, height);
 }
 
 void UI::HandleUpdate(StringHash eventType, VariantMap& eventData)

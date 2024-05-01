@@ -929,12 +929,7 @@ Texture2D* Renderer::GetShadowMap(Light* light, Camera* camera, unsigned viewWid
     }
 
     // Find format and usage of the shadow map
-    TextureFormat shadowMapFormat;
-#if RENGINE_DILIGENT
-    shadowMapFormat = TextureFormat::TEX_FORMAT_UNKNOWN;
-#else
-    shadowMapFormat = 0;
-#endif
+    TextureFormat shadowMapFormat = TextureFormat::TEX_FORMAT_UNKNOWN;
     
     TextureUsage shadowMapUsage = TEXTURE_DEPTHSTENCIL;
     int multiSample = 1;
@@ -1526,10 +1521,11 @@ void Renderer::UpdateQueuedViewport(unsigned index)
     // However, if the same scene is viewed from multiple cameras, update the octree only once
     if (!updatedOctrees_.Contains(octree))
     {
+        const auto size = graphics_->GetSize();
         frame_.camera_ = viewport->GetCamera();
         frame_.viewSize_ = viewRect.Size();
         if (frame_.viewSize_ == IntVector2::ZERO)
-            frame_.viewSize_ = IntVector2(graphics_->GetWidth(), graphics_->GetHeight());
+            frame_.viewSize_ = IntVector2(size.x_, size.y_);
         octree->Update(frame_);
         updatedOctrees_.Insert(octree);
 

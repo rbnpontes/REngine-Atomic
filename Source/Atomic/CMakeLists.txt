@@ -112,7 +112,7 @@ set (PUBLIC_THIRD_PARTY_DEPS
     LZ4 
     PugiXml
     STB 
-    SDL 
+    SDL2::SDL2-static
     ASIO 
     rapidjson 
     WebSocketPP 
@@ -129,10 +129,24 @@ if (ANDROID)
     list(APPEND PRIVATE_THIRD_PARTY_DEPS dl log android GLESv1_CM GLESv2)
     target_compile_definitions(Atomic PUBLIC -DATOMIC_PLATFORM_ANDROID=1 -DGLEW_NO_GLU=1)
 elseif (APPLE)
+    target_compile_definitions(Atomic PUBLIC -DRENGINE_PLATFORM_APPLE=1)
+    list(APPEND PRIVATE_THIRD_PARTY_DEPSs
+            "-framework AudioToolbox"
+            "-framework CoreAudio" 
+            "-framework CoreVideo" 
+            "-framework IOKit" 
+            "-framework CoreServices"
+            "-framework Security"
+            "-framework SystemConfiguration")
     if (IOS)
-        target_compile_definitions(Atomic PUBLIC -DATOMIC_PLATFORM_IOS=1 -DIOS=1)
+        target_compile_definitions(Atomic PUBLIC -DATOMIC_PLATFORM_IOS=1 -DIOS=1 -DRENGINE_PLATFORM_IOS=1)
     else () # MacOS
-        target_compile_definitions(Atomic PUBLIC -DATOMIC_PLATFORM_OSX=1)
+        list(APPEND PRIVATE_THIRD_PARTY_DEPS 
+            "-framework Cocoa"
+            "-framework Carbon"
+            "-framework ForceFeedback"
+            "-framework OpenGL")
+        target_compile_definitions(Atomic PUBLIC -DATOMIC_PLATFORM_OSX=1 -DRENGINE_PLATFORM_MACOS=1)
     endif ()
 elseif (LINUX)
     list(APPEND PUBLIC_THIRD_PARTY_DEPS pthread dl)
@@ -144,25 +158,22 @@ elseif (WEB)
     target_compile_definitions(Atomic PUBLIC -DATOMIC_PLATFORM_WEB=1 -DNO_POPEN=1)
 endif ()
 
-if (ATOMIC_OPENGL)
-    target_compile_definitions(Atomic PUBLIC -DATOMIC_OPENGL=1)
-endif ()
-
-if(RENGINE_DILIGENT)
-    target_compile_definitions(Atomic PUBLIC -DRENGINE_DILIGENT=1)
-    list(APPEND PUBLIC_THIRD_PARTY_DEPS Diligent-GraphicsEngineOpenGL-static Diligent-GraphicsEngineVk-static)
-    list(APPEND PRIVATE_THIRD_PARTY_DEPS glslang
-        SPIRV
-        spirv-cross-core
-        spirv-cross-glsl
-        spirv-cross-hlsl
-        spirv-cross-reflect
-        SPIRV-Tools
-        SPIRV-Tools-opt
-    )
-    if (WIN32)
-        list(APPEND PUBLIC_THIRD_PARTY_DEPS Diligent-GraphicsEngineD3D11-static Diligent-GraphicsEngineD3D12-static)
-    endif ()
+# Diligent Dependencies
+list(APPEND PUBLIC_THIRD_PARTY_DEPS
+    Diligent-Common
+    Diligent-GraphicsEngineOpenGL-static 
+    Diligent-GraphicsEngineVk-static)
+list(APPEND PRIVATE_THIRD_PARTY_DEPS glslang
+    SPIRV
+    spirv-cross-core
+    spirv-cross-glsl
+    spirv-cross-hlsl
+    spirv-cross-reflect
+    SPIRV-Tools
+    SPIRV-Tools-opt
+)
+if (WIN32)
+    list(APPEND PUBLIC_THIRD_PARTY_DEPS Diligent-GraphicsEngineD3D11-static Diligent-GraphicsEngineD3D12-static)
 endif ()
 
 if (ATOMIC_DESKTOP)
@@ -183,14 +194,8 @@ if (NOT WEB)
 endif()
 
 if (ATOMIC_PROFILING)
-    target_compile_definitions (Atomic PUBLIC -DATOMIC_PROFILING=1)
-    if (RENGINE_PROFILER STREQUAL "easy profiler")
-        target_compile_definitions(Atomic PUBLIC -DRENGINE_PROFILER_EASYPROFILER=1)
-        list(APPEND PUBLIC_THIRD_PARTY_DEPS easy_profiler)
-    else ()
-        target_compile_definitions(Atomic PUBLIC -DRENGINE_PROFILER_TRACY=1)
-        list(APPEND PUBLIC_THIRD_PARTY_DEPS TracyClient)
-    endif()
+    target_compile_definitions(Atomic PUBLIC -DATOMIC_PROFILING=1 -DRENGINE_PROFILER_TRACY=1)
+    list(APPEND PUBLIC_THIRD_PARTY_DEPS TracyClient)
 endif ()
 
 option (ATOMIC_LOGGING "Enable logging" ON)
@@ -255,28 +260,10 @@ if (MSVC)
     target_compile_options(Atomic PUBLIC $<$<CONFIG:Debug>:${ATOMIC_MSVC_RUNTIME}d> $<$<NOT:$<CONFIG:Debug>>:${ATOMIC_MSVC_RUNTIME}>)
 endif ()
 
-if (UNIX OR MINGW)
-    target_compile_options(Atomic PUBLIC $<$<COMPILE_LANGUAGE:CXX>:-std=c++20>)
-endif ()
-
-if (APPLE)
-    if (IOS)
-    else ()
-        list(APPEND PRIVATE_THIRD_PARTY_DEPS 
-            "-framework AudioToolbox" 
-            "-framework Carbon"
-            "-framework Cocoa"
-            "-framework CoreAudio" 
-            "-framework CoreVideo"
-            "-framework ForceFeedback" 
-            "-framework IOKit"
-            "-framework OpenGL" 
-            "-framework CoreServices"
-            "-framework Security"
-            "-framework SystemConfiguration")
-    endif()
-endif ()
-
 target_link_libraries(Atomic 
     PUBLIC ${PUBLIC_THIRD_PARTY_DEPS}
     PRIVATE ${PRIVATE_THIRD_PARTY_DEPS})
+
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set_target_properties(Atomic PROPERTIES CXX_STANDARD 20 CXX_STANDARD_REQUIRED ON)

@@ -326,8 +326,9 @@ bool View::Define(RenderSurface* renderTarget, Viewport* viewport)
     drawDebug_ = viewport->GetDrawDebug();
 
     // Validate the rect and calculate size. If zero rect, use whole rendertarget size
-    int rtWidth = renderTarget ? renderTarget->GetWidth() : graphics_->GetWidth();
-    int rtHeight = renderTarget ? renderTarget->GetHeight() : graphics_->GetHeight();
+    const auto render_size = graphics_->GetRenderSize();
+    int rtWidth = renderTarget ? renderTarget->GetWidth() : render_size.x_;
+    int rtHeight = renderTarget ? renderTarget->GetHeight() : render_size.y_;
     const IntRect& rect = viewport->GetRect();
 
     if (rect != IntRect::ZERO)
@@ -2136,8 +2137,9 @@ void View::BlitFramebuffer(Texture* source, RenderSurface* destination, bool dep
     // If blitting to the destination rendertarget, use the actual viewport. Intermediate textures on the other hand
     // are always viewport-sized
     IntVector2 srcSize(source->GetWidth(), source->GetHeight());
+    const auto size = graphics_->GetRenderSize();
     IntVector2 destSize = destination ? IntVector2(destination->GetWidth(), destination->GetHeight()) : IntVector2(
-        graphics_->GetWidth(), graphics_->GetHeight());
+        size.x_, size.y_);
 
     IntRect srcRect = (GetRenderSurfaceFromTexture(source) == renderTarget_) ? viewRect_ : IntRect(0, 0, srcSize.x_, srcSize.y_);
     IntRect destRect = (destination == renderTarget_) ? viewRect_ : IntRect(0, 0, destSize.x_, destSize.y_);

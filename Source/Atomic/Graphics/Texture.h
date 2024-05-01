@@ -162,11 +162,7 @@ public:
     /// Return Texture Sampler Description. Can be used on Pipeline State creation
     void GetSamplerDesc(REngine::SamplerDesc& sample_desc) const;
 
-#if RENGINE_DILIGENT
     static TextureFormat GetSRGBFormat(TextureFormat format);
-#else
-    TextureFormat GetSRGBFormat(TextureFormat format);
-#endif
     /// Set or clear the need resolve flag. Called internally by Graphics.
     void SetResolveDirty(bool enable) { resolveDirty_ = enable; }
 
@@ -192,22 +188,8 @@ protected:
     /// Create the GPU texture. Implemented in subclasses.
     virtual bool Create() { return true; }
 
-#if RENGINE_DILIGENT
     Diligent::RefCntAutoPtr<Diligent::ITextureView> view_;
     Diligent::RefCntAutoPtr<Diligent::ITexture> resolve_texture_;
-#else
-    union
-    {
-        /// Direct3D11 shader resource view.
-        void* shaderResourceView_;
-        /// OpenGL target.
-        unsigned target_;
-    };
-    /// Direct3D11 sampler state object.
-    void* sampler_;
-    /// Direct3D11 resolve texture object when multisample with autoresolve is used.
-    void* resolveTexture_;
-#endif
     /// Texture format.
     TextureFormat format_;
 

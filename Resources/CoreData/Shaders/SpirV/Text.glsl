@@ -6,7 +6,7 @@ varying vec2 vTexCoord;
 varying vec4 vColor;
 
 #if defined(TEXT_EFFECT_SHADOW) || defined(TEXT_EFFECT_STROKE)
-    layout(binding=6) uniform CustomPS 
+    layout(std140) uniform CustomPS 
     {
     #ifdef TEXT_EFFECT_SHADOW
         vec2 cShadowOffset;

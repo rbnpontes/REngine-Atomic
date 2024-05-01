@@ -41,6 +41,7 @@ namespace REngine
     class DriverInstance;
     class ShaderProgram;
     class VertexDeclaration;
+    class DriverInstanceInitDesc;
 }
 
 namespace Atomic
@@ -87,13 +88,13 @@ struct ScratchBuffer
 class ATOMIC_API Graphics : public Object
 {
     ATOMIC_OBJECT(Graphics, Object);
-
+    
 public:
     /// Construct.
     Graphics(Context* context);
     /// Destruct. Release the Direct3D11 device and close the window.
     virtual ~Graphics();
-
+    
     /// Set external window handle. Only effective before setting the initial screen mode.
     void SetExternalWindow(void* window);
     /// Set window title.
@@ -106,8 +107,8 @@ public:
     void SetWindowPosition(int x, int y);
     /// Set screen mode. Return true if successful.
     bool SetMode
-        (int width, int height, bool fullscreen, bool borderless, bool resizable, bool highDPI, bool vsync, bool tripleBuffer,
-            int multiSample, int monitor, int refreshRate);
+    (int width, int height, bool fullscreen, bool borderless, bool resizable, bool highDPI, bool vsync, bool tripleBuffer,
+     int multiSample, int monitor, int refreshRate);
     /// Set screen resolution only. Return true if successful.
     bool SetMode(int width, int height);
     /// Set whether the main window uses sRGB conversion on write.
@@ -146,10 +147,10 @@ public:
     void Draw(PrimitiveType type, unsigned indexStart, unsigned indexCount, unsigned baseVertexIndex, unsigned minVertex, unsigned vertexCount) const;
     /// Draw indexed, instanced geometry. An instancing vertex buffer must be set.
     void DrawInstanced(PrimitiveType type, unsigned indexStart, unsigned indexCount, unsigned minVertex, unsigned vertexCount,
-        unsigned instanceCount) const;
+                       unsigned instanceCount) const;
     /// Draw indexed, instanced geometry with vertex index offset.
     void DrawInstanced(PrimitiveType type, unsigned indexStart, unsigned indexCount, unsigned baseVertexIndex, unsigned minVertex,
-        unsigned vertexCount, unsigned instanceCount) const;
+                       unsigned vertexCount, unsigned instanceCount) const;
     /// Set vertex buffer.
     void SetVertexBuffer(VertexBuffer* buffer) const;
     /// Set multiple vertex buffers.
@@ -185,7 +186,7 @@ public:
     /// Set shader constant from a variant. Supported variant types: bool, float, vector2, vector3, vector4, color.
     void SetShaderParameter(StringHash param, const Variant& value);
     /// Check whether a shader parameter group needs update. Does not actually check whether parameters exist in the shaders.
-	bool NeedParameterUpdate(ShaderParameterGroup group, const void* source);
+    bool NeedParameterUpdate(ShaderParameterGroup group, const void* source);
     /// Check whether a shader parameter exists on the currently set shaders.
     bool HasShaderParameter(StringHash param) const;
     /// Check whether the current vertex or pixel shader uses a texture unit.
@@ -250,11 +251,11 @@ public:
     void SetScissorTest(bool enable, const IntRect& rect) const;
     /// Set stencil test.
     void SetStencilTest
-        (bool enable, CompareMode mode = CMP_ALWAYS, StencilOp pass = OP_KEEP, StencilOp fail = OP_KEEP, StencilOp zFail = OP_KEEP,
-            unsigned stencilRef = 0, unsigned compareMask = M_MAX_UNSIGNED, unsigned writeMask = M_MAX_UNSIGNED) const;
+    (bool enable, CompareMode mode = CMP_ALWAYS, StencilOp pass = OP_KEEP, StencilOp fail = OP_KEEP, StencilOp zFail = OP_KEEP,
+     unsigned stencilRef = 0, unsigned compareMask = M_MAX_UNSIGNED, unsigned writeMask = M_MAX_UNSIGNED) const;
     /// Set a custom clipping plane. The plane is specified in world space, but is dependent on the view and projection matrices.
     void SetClipPlane(bool enable, const Plane& clipPlane = Plane::UP, const Matrix3x4& view = Matrix3x4::IDENTITY,
-        const Matrix4& projection = Matrix4::IDENTITY) const;
+                      const Matrix4& projection = Matrix4::IDENTITY) const;
     /// Begin dumping shader variation names to an XML file for precaching.
     void BeginDumpShaders(const String& fileName);
     /// End dumping shader variations names.
@@ -263,43 +264,55 @@ public:
     void PrecacheShaders(Deserializer& source);
     /// Set shader cache directory, Direct3D only. This can either be an absolute path or a path within the resource system.
     void SetShaderCacheDir(const String& path);
-
+    
+    ///  Set graphics backend. Cannot be changed after graphics initialization.
+    void SetBackend(GraphicsBackend backend);
+    
     /// Return whether rendering initialized.
     bool IsInitialized() const;
-
+    
     /// Return graphics implementation, which holds the actual API-specific resources.
     REngine::DriverInstance* GetImpl() const { return impl_; }
-
+    
     ea::shared_ptr<IDrawCommand> GetDrawCommand() const { return draw_command_; }
-
+    
     GraphicsBackend GetBackend() const;
-
+    
     /// Return OS-specific external window handle. Null if not in use.
     void* GetExternalWindow() const { return externalWindow_; }
-
+    
     /// Return SDL window.
-    SDL_Window* GetWindow() const { return window_; }
-
+    SDL_Window* GetWindow() const { return window_.get(); }
+    
     /// Return window title.
     const String& GetWindowTitle() const { return windowTitle_; }
-
+    
     /// Return graphics API name.
     const String& GetApiName() const { return apiName_; }
-
+    
     /// Return window position.
     IntVector2 GetWindowPosition() const;
-
+    
     /// Return window width in pixels.
     int GetWidth() const { return width_; }
-
+    
     /// Return window height in pixels.
     int GetHeight() const { return height_; }
-
+    
     /// Return multisample mode (1 = no multisampling.)
     int GetMultiSample() const { return multiSample_; }
-
+    
     /// Return window size in pixels.
     IntVector2 GetSize() const { return IntVector2(width_, height_); }
+    
+    Vector2 GetScale() const;
+    
+    IntVector2 GetRenderSize() const {
+        const auto size = GetSize();
+        const auto scale = GetScale();
+        return IntVector2(static_cast<float>(size.x_) * scale.x_,
+                          static_cast<float>(size.y_) * scale.y_);
+    }
 
     /// Return whether window is fullscreen.
     bool GetFullscreen() const { return fullscreen_; }
@@ -312,7 +325,7 @@ public:
 
     /// Return whether window is high DPI.
     bool GetHighDPI() const { return highDPI_; }
-
+    
     /// Return whether vertical sync is on.
     bool GetVSync() const { return vsync_; }
 
@@ -645,7 +658,7 @@ public:
 
     /// Return current rendertarget width and height.
     IntVector2 GetRenderTargetDimensions() const;
-
+    
     /// Window was resized through user interaction. Called by Input subsystem.
     void OnWindowResized();
     /// Window was moved through user interaction. Called by Input subsystem.
@@ -670,9 +683,7 @@ public:
     void CleanupShaderPrograms(ShaderVariation* variation);
     /// Clean up a render surface from all FBOs. Used only on OpenGL.
     void CleanupRenderSurface(RenderSurface* surface);
-#if RENGINE_DILIGENT
     void Cleanup(GraphicsClearFlags flags);
-#endif
     /// Get or create a constant buffer. Will be shared between shaders if possible.
     ConstantBuffer* GetOrCreateConstantBuffer(ShaderType type, unsigned index, unsigned size) const;
     /// Mark the FBO needing an update. Used only on OpenGL.
@@ -728,7 +739,7 @@ public:
     // ATOMIC BEGIN
 
     /// Get the SDL_Window as a void* to avoid having to include the graphics implementation
-    void* GetSDLWindow() { return window_; }
+    SDL_Window* GetSDLWindow() { return window_.get(); }
 
     int GetCurrentMonitor();
     int GetNumMonitors();
@@ -749,8 +760,6 @@ public:
     // ATOMIC END
 
 private:
-    /// Create the application window.
-    bool OpenWindow(int width, int height, bool resizable, bool borderless);
     /// Create the application window icon.
     void CreateWindowIcon();
     /// Adjust the window for new resolution and fullscreen mode.
@@ -808,8 +817,13 @@ private:
     Mutex gpuObjectMutex_;
     /// Implementation.
     REngine::DriverInstance* impl_;
+    /// SDL Metal View. Only available on Apple Enviroments with Vulkan Backends
+    ea::shared_ptr<void> metal_view_;
     /// SDL window.
-    SDL_Window* window_;
+    ea::shared_ptr<SDL_Window> window_;
+    /// Driver instance initialization desc
+    ea::shared_ptr<REngine::DriverInstanceInitDesc> driver_desc_;
+    
     /// Window title.
     String windowTitle_;
     /// Window icon image.

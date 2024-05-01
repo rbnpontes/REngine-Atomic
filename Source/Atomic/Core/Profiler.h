@@ -118,6 +118,8 @@ private:
 #   define ATOMIC_PROFILE_NONSCOPED(name, ...) EASY_NONSCOPED_BLOCK(name, __VA_ARGS__)
 #   define ATOMIC_PROFILE_END(...) EASY_END_BLOCK
 #   define ATOMIC_PROFILE_THREAD(name) EASY_THREAD(name)
+#   define ATOMIC_PROFILE_MSG(message)
+#   define ATOMIC_PROFILE_PLOT(name, value)
 #elif RENGINE_PROFILER_TRACY
 #   define ATOMIC_PROFILE_FRAME() FrameMark
 //#   define ATOMIC_PROFILE_FIXED_ZONE(varname, name) ZoneNamedN(TracyConcat(__tracy_scoped_zone, TracyLine), #name, true)
