@@ -350,7 +350,6 @@ enum TextureUnit
     TU_SPECULAR,
     TU_EMISSIVE,
     TU_ENVIRONMENT,
-#ifdef DESKTOP_GRAPHICS
     TU_VOLUMEMAP,
     TU_CUSTOM1,
     TU_CUSTOM2,
@@ -364,19 +363,10 @@ enum TextureUnit
     TU_ZONE,
     TU_ALBEDOBUFFER,
     TU_NORMALBUFFER,
-#else
-    TU_LIGHTRAMP,
-    TU_LIGHTSHAPE,
-    TU_SHADOWMAP,
-#endif
     MAX_TEXTURE_UNITS,
 };
 
-#ifdef DESKTOP_GRAPHICS
-    #define MAX_MATERIAL_TEXTURE_UNITS 8
-#else
-    #define MAX_MATERIAL_TEXTURE_UNITS 5
-#endif
+#define MAX_MATERIAL_TEXTURE_UNITS 8
 
 /// Billboard camera facing modes.
 enum FaceCameraMode

@@ -130,22 +130,23 @@ if (ANDROID)
     target_compile_definitions(Atomic PUBLIC -DATOMIC_PLATFORM_ANDROID=1 -DGLEW_NO_GLU=1)
 elseif (APPLE)
     target_compile_definitions(Atomic PUBLIC -DRENGINE_PLATFORM_APPLE=1)
-    if (IOS)
-        target_compile_definitions(Atomic PUBLIC -DATOMIC_PLATFORM_IOS=1 -DIOS=1 -DRENGINE_PLATFORM_IOS=1)
-    else () # MacOS
-        target_compile_definitions(Atomic PUBLIC -DATOMIC_PLATFORM_OSX=1 -DRENGINE_PLATFORM_MACOS=1)
-        list(APPEND PRIVATE_THIRD_PARTY_DEPS 
-            "-framework AudioToolbox" 
-            "-framework Carbon"
-            "-framework Cocoa"
+    list(APPEND PRIVATE_THIRD_PARTY_DEPSs
+            "-framework AudioToolbox"
             "-framework CoreAudio" 
-            "-framework CoreVideo"
-            "-framework ForceFeedback" 
-            "-framework IOKit"
-            "-framework OpenGL" 
+            "-framework CoreVideo" 
+            "-framework IOKit" 
             "-framework CoreServices"
             "-framework Security"
             "-framework SystemConfiguration")
+    if (IOS)
+        target_compile_definitions(Atomic PUBLIC -DATOMIC_PLATFORM_IOS=1 -DIOS=1 -DRENGINE_PLATFORM_IOS=1)
+    else () # MacOS
+        list(APPEND PRIVATE_THIRD_PARTY_DEPS 
+            "-framework Cocoa"
+            "-framework Carbon"
+            "-framework ForceFeedback"
+            "-framework OpenGL")
+        target_compile_definitions(Atomic PUBLIC -DATOMIC_PLATFORM_OSX=1 -DRENGINE_PLATFORM_MACOS=1)
     endif ()
 elseif (LINUX)
     list(APPEND PUBLIC_THIRD_PARTY_DEPS pthread dl)
@@ -193,14 +194,8 @@ if (NOT WEB)
 endif()
 
 if (ATOMIC_PROFILING)
-    target_compile_definitions (Atomic PUBLIC -DATOMIC_PROFILING=1)
-    if (RENGINE_PROFILER STREQUAL "easy profiler")
-        target_compile_definitions(Atomic PUBLIC -DRENGINE_PROFILER_EASYPROFILER=1)
-        list(APPEND PUBLIC_THIRD_PARTY_DEPS easy_profiler)
-    else ()
-        target_compile_definitions(Atomic PUBLIC -DRENGINE_PROFILER_TRACY=1)
-        list(APPEND PUBLIC_THIRD_PARTY_DEPS TracyClient)
-    endif()
+    target_compile_definitions(Atomic PUBLIC -DATOMIC_PROFILING=1 -DRENGINE_PROFILER_TRACY=1)
+    list(APPEND PUBLIC_THIRD_PARTY_DEPS TracyClient)
 endif ()
 
 option (ATOMIC_LOGGING "Enable logging" ON)

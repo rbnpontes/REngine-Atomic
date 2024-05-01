@@ -398,6 +398,7 @@ endforeach()
 
 # Allow some projects to be built conditionally.
 set(SDL2_DISABLE_SDL2MAIN ON)
+
 set_option(SDL2_DISABLE_INSTALL    "Disable installation of SDL2" ${SDL2_SUBPROJECT})
 set_option(SDL2_DISABLE_UNINSTALL  "Disable uninstallation of SDL2" OFF)
 
@@ -467,12 +468,12 @@ dep_option(SDL_WAYLAND_LIBDECOR    "Use client-side window decorations on Waylan
 dep_option(SDL_WAYLAND_LIBDECOR_SHARED     "Dynamically load libdecor support" ON "SDL_WAYLAND_LIBDECOR;SDL_WAYLAND_SHARED" OFF)
 dep_option(SDL_WAYLAND_QT_TOUCH    "QtWayland server support for Wayland video driver" ON "SDL_WAYLAND" OFF)
 set_option(SDL_RPI                 "Use Raspberry Pi video driver" ${UNIX_SYS})
-set_option(SDL_COCOA               "Use Cocoa video driver" ${APPLE})
+set_option(SDL_COCOA               "Use Cocoa video driver" ON "APPLE AND NOT IOS" OFF)
 set_option(SDL_DIRECTX             "Use DirectX for Windows audio/video" ${WINDOWS})
 set_option(SDL_XINPUT              "Use Xinput for Windows" ${WINDOWS})
 set_option(SDL_WASAPI              "Use the Windows WASAPI audio driver" ${WINDOWS})
 set_option(SDL_RENDER_D3D          "Enable the Direct3D render driver" ${WINDOWS})
-set_option(SDL_RENDER_METAL        "Enable the Metal render driver" ${APPLE})
+set(SDL_RENDER_METAL OFF)
 set_option(SDL_VIVANTE             "Use Vivante EGL video driver" ${UNIX_SYS})
 dep_option(SDL_VULKAN              "Enable Vulkan support" ON "ANDROID OR APPLE OR LINUX OR WINDOWS" OFF)
 set_option(SDL_METAL               "Enable Metal support" ${APPLE})
@@ -492,8 +493,8 @@ set_option(SDL_CCACHE              "Use Ccache to speed up build" ON)
 
 option(SDL_WERROR "Enable -Werror" OFF)
 
-option(SDL_SHARED "Build a shared version of the library" ${SDL_SHARED_ENABLED_BY_DEFAULT})
-option(SDL_STATIC "Build a static version of the library" ${SDL_STATIC_ENABLED_BY_DEFAULT})
+set(SDL_SHARED OFF)
+set(SDL_STATIC ON)
 set(SDL_TEST OFF)
 
 dep_option(SDL_STATIC_PIC      "Static version of the library should be built with Position Independent Code" "${CMAKE_POSITION_INDEPENDENT_CODE}" "SDL_STATIC" OFF)
@@ -2095,7 +2096,7 @@ elseif(APPLE)
   # !!! FIXME: we need Carbon for some very old API calls in
   # !!! FIXME:  src/video/cocoa/SDL_cocoakeyboard.c, but we should figure out
   # !!! FIXME:  how to dump those.
-  if(DARWIN OR MACOSX)
+  if(DARWIN OR MACOSX AND NOT IOS)
     set(SDL_FRAMEWORK_COCOA 1)
     set(SDL_FRAMEWORK_CARBON 1)
   endif()
@@ -3697,6 +3698,12 @@ if(NOT SDL2_DISABLE_INSTALL)
     install(FILES "${SDL2_SOURCE_DIR}/sdl2.m4" DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/aclocal")
   endif()
 endif()
+
+# REngine Change: We must include SDL Main sources on SDL
+# otherwise, iOS and Android will not Build
+if (IOS OR ANDROID)
+    target_sources(SDL2-static PRIVATE ${SDLMAIN_SOURCES})
+endif ()
 
 ##### Uninstall target #####
 

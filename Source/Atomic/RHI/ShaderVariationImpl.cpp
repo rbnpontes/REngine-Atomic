@@ -14,7 +14,12 @@
 
 #include "../DebugNew.h"
 
-#include <GLEW/glew.h>
+#if RENGINE_PLATFORM_IOS || RENGINE_PLATFORM_ANDROID
+    #include <OpenGLES/gltypes.h>
+    #include <OpenGLES/ES3/gl.h>
+#else
+    #include <GLEW/glew.h>
+#endif
 #include <DiligentCore/Graphics/GraphicsEngine/interface/Shader.h>
 #include <DiligentCore/Graphics/GraphicsEngineOpenGL/interface/ShaderGL.h>
 #include <DiligentCore/Graphics/GraphicsTools/interface/ShaderMacroHelper.hpp>

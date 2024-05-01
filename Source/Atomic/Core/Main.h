@@ -70,7 +70,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE prevInstance, PSTR cmdLine, in
 // Android or iOS or tvOS: use SDL_main
 #elif defined(__ANDROID__) || defined(IOS) || defined(TVOS)
 #define ATOMIC_DEFINE_MAIN(function) \
-extern "C" int SDL_main(int argc, char** argv); \
+extern "C" __attribute__((visibility("default"))) int SDL_main(int argc, char** argv); \
 int SDL_main(int argc, char** argv) \
 { \
     Atomic::ParseArguments(argc, argv); \

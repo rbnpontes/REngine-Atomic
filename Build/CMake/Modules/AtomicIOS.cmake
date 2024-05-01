@@ -20,7 +20,7 @@ set(CMAKE_REQUIRED_FLAGS ";-DSmileyHack=byYaoWT;-DCMAKE_MACOSX_BUNDLE=1;-DCMAKE_
 # Obtain iOS sysroot path
 execute_process(COMMAND xcodebuild -version -sdk ${CMAKE_OSX_SYSROOT} Path OUTPUT_VARIABLE IOS_SYSROOT OUTPUT_STRIP_TRAILING_WHITESPACE)
 
-message(${IOS_SYSROOT})
+message(STATUS "iOS SysRoot: ${IOS_SYSROOT}")
 
 set(CMAKE_FIND_ROOT_PATH ${IOS_SYSROOT})
 

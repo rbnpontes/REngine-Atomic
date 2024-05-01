@@ -63,7 +63,7 @@ endif ()
 
 add_subdirectory(Source)
 
-if (ATOMIC_DESKTOP AND ATOMIC_DEV_BUILD)
+if (ATOMIC_DEV_BUILD)
     if (NOT DEFINED ATOMIC_CPLUSPLUS_EXAMPLES)
         set(ATOMIC_CPLUSPLUS_EXAMPLES 1)
     endif ()
