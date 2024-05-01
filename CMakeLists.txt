@@ -29,6 +29,12 @@ if (ATOMIC_DEV_BUILD)
     add_definitions("-DATOMIC_DEV_BUILD=1")
 endif ()
 
+if(NOT DEFINED ENV{VULKAN_SDK})
+    message(FATAL_ERROR "VULKAN_SDK environment variable is required to build REngine.")
+endif()
+
+set(VULKAN_SDK $ENV{VULKAN_SDK})
+
 include(AtomicPlatform)
 
 find_program(CLDOC cldoc)
