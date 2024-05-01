@@ -25,3 +25,5 @@ message(STATUS "iOS SysRoot: ${IOS_SYSROOT}")
 set(CMAKE_FIND_ROOT_PATH ${IOS_SYSROOT})
 
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -framework AudioToolbox -framework AVFoundation -framework CoreAudio -framework CoreGraphics -framework Foundation -framework OpenGLES -framework QuartzCore -framework UIKit -framework CoreMotion -framework GameController")
+
+set(ATOMIC_WEBVIEW OFF)
