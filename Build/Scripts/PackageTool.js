@@ -47,6 +47,21 @@ function write_string(input, buffer, offset) {
     // write null terminator
     return buffer.writeUint8(0, offset);
 }
+
+/**
+ * 
+ * @param {string} directoryPath 
+ */
+function mkdir_recursive(directoryPath) {
+    const parts = directoryPath.split('/');
+    let dir = '/';
+    for(let i = 0; i < parts.length; ++i) {
+        dir = path.join(dir, parts[i]);
+        if(fs.existsSync(dir))
+            continue;
+        fs.mkdirSync(dir);
+    }
+}
 /**
  * Read string from buffer
  * @param {Buffer} buffer 
@@ -104,17 +119,16 @@ const resource_entries = [];
 class PackageTool {
     /**
      * @param {string} directory 
-     * @param {string} packageName 
+     * @param {string} outputPath 
      * @param {boolean} isBigEndian
      */
-    constructor(directory, packageName, isBigEndian, outputDir) {
+    constructor(directory, outputPath, isBigEndian) {
         this.directory = directory;
-        this.packageName = packageName;
+        this.outputPath = outputPath;
         this.checksum = 0;
         this.entriesHeaderSize = 0; // helper var used to estimate entries size
         this.size = header_size;
         this.isBigEndian = isBigEndian;
-        this.outputDir = path.resolve(outputDir);
     }
     /**
      * Collect Files
@@ -194,12 +208,13 @@ class PackageTool {
         if(this.size != offset)
             throw new Error("Something is wrong. It seems that write package exceeds the expected size.");
 
-        const packageName = path.basename(this.directory);
-        const outputPath = path.join(this.outputDir, packageName+'.pak');
-        if(fs.existsSync(outputPath))
-            fs.unlinkSync(outputPath);
-        fs.writeFileSync(outputPath, buffer);
-        return outputPath;
+        const directoryPath = path.dirname(this.outputPath);
+        mkdir_recursive(directoryPath);
+
+        if(fs.existsSync(this.outputPath))
+            fs.unlinkSync(this.outputPath);
+        fs.writeFileSync(this.outputPath, buffer);
+        return this.outputPath;
     }
 
     /**
@@ -356,8 +371,8 @@ function print_usage() {
     console.log([
         '@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@',
         '@@@ REngine - PackageTool                                     @@@',
-        '@@@ Usage: yarn pkg [directory] [package-name].pak            @@@',
-        '@@@        [0=little endian|1=big endian] [output-directory]  @@@',
+        '@@@ Usage: yarn pkg [directory] [package-output-path].pak     @@@',
+        '@@@        [0=little endian|1=big endian]                     @@@',
         '@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@'
     ].join('\n'));
 }
@@ -367,33 +382,35 @@ function error(err_desc) {
     process.exit(1);
 }
 
-const args = [...argv];
-args.splice(0, argv.length - 4);
-if(args.length < 4)
-    error('Invalid arguments');
+function getArgs() {
+    const args = [...argv];
+    const selfCmdIdx = args.findIndex(x => x.endsWith('PackageTool.js'));
+    const result = args.splice(selfCmdIdx + 1, args.length);
+    if(result.length < 3)
+        error('Invalid arguments');
+    return result;
+}
 
-const [directory, pkgName, isBigEndian, outputDir] = args;
+const [directory, pkgPath, isBigEndian] = getArgs();
 {
     if(!directory)
         error('Invalid arguments. Directory is empty');
     
-    if(!pkgName)
-        error('Invalid arguments. Package name is empty');
+    if(!pkgPath)
+        error('Invalid arguments. Package output path is empty');
     
-    if(!pkgName.endsWith('.pak'))
-        error('Invalid arguments. Package name must ends with extension .pak');
+    if(!pkgPath.endsWith('.pak'))
+        error('Invalid arguments. Package output path must ends with extension .pak');
 
     if(isBigEndian != '0' && isBigEndian != '1')
         error('Invalid arguments. Endianess must be specified');
-    
-    if(!outputDir)
-        error('Invalid arguments. Output directory is required.');
 }
 
 const pkg = new PackageTool(
     path.resolve(directory), 
-    pkgName, Boolean(parseInt(isBigEndian) | 0),
-    outputDir);
+    pkgPath, 
+    Boolean(parseInt(isBigEndian) | 0)
+);
 
 console.log('- Collecting files');
 pkg.collect();

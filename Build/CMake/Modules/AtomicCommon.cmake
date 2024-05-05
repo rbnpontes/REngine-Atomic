@@ -21,6 +21,7 @@
 #
 
 include(CMakeParseArguments)
+include(TestBigEndian)
 
 # Source environment
 execute_process(COMMAND env OUTPUT_VARIABLE ENVIRONMENT)
@@ -222,6 +223,24 @@ macro(replace_in_list substring replacement variable_list)
         string(REPLACE "${substring}" "${replacement}" ${single_variable} "${${single_variable}}")
     endforeach ()
 endmacro()
+
+function(create_package resource_dir output_path)
+    message(STATUS "Creating package for: ${output_path}")
+    TEST_BIG_ENDIAN(IS_BIG_ENDIAN)
+    if (IS_BIG_ENDIAN)
+        set(pak_endianess "1")
+    else()
+        set(pak_endianess "0")
+    endif()
+
+    execute_process(
+        COMMAND "yarn" "pkg" "${resource_dir}" "${output_path}" "${pak_endianess}" 
+        WORKING_DIRECTORY "${ATOMIC_SOURCE_DIR}/build"
+        RESULTS_VARIABLE RENGINE_PAK_RESULT)
+    if(NOT RENGINE_PAK_RESULT STREQUAL "0")
+        message(FATAL_ERROR "Failed to pack ${output_path}")
+    endif()
+endfunction()
 
 # Macro for setting msvc runtime flags globally.
 # Macro arguments:
