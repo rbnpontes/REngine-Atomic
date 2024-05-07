@@ -238,21 +238,15 @@ namespace REngine
             return depth_stencil_view_;
         }
     private:
-        bool IsSrgb() const {
-            int effective_srgb{};
-            if(SDL_GL_GetAttribute(SDL_GL_FRAMEBUFFER_SRGB_CAPABLE, &effective_srgb) != 0)
-                return false;
-            return effective_srgb != 0;
-        }
         Diligent::TEXTURE_FORMAT GetDepthStencilFormat() const {
             static const Diligent::TEXTURE_FORMAT default_format = Diligent::TEX_FORMAT_D24_UNORM_S8_UINT;
             
             int effective_depth_bits{};
-            if(SDL_GL_GetAttribute(SDL_GL_DEPTH_SIZE, &effective_depth_bits))
+            if(SDL_GL_GetAttribute(SDL_GL_DEPTH_SIZE, &effective_depth_bits) != 0)
                 return default_format;
             
             int effective_stencil_bits{};
-            if(SDL_GL_GetAttribute(SDL_GL_STENCIL_SIZE, &effective_stencil_bits))
+            if(SDL_GL_GetAttribute(SDL_GL_STENCIL_SIZE, &effective_stencil_bits) != 0)
                 return default_format;
             
             if(effective_depth_bits == 16 && effective_stencil_bits == 0)
@@ -275,7 +269,8 @@ namespace REngine
                 swap_chain_desc.PreTransform = Diligent::SURFACE_TRANSFORM_IDENTITY;
             
 #if RENGINE_PLATFORM_IOS
-            glGetIntegerv(GL_FRAMEBUFFER_BINDING, reinterpret_cast<GLint*>(&default_framebuffer_));
+            // ios framebuffer is always 1
+            default_framebuffer_ = 1;
 #endif
             int width{};
             int height{};
@@ -283,10 +278,6 @@ namespace REngine
             SDL_GL_GetDrawableSize(window_, &width, &height);
             swap_chain_desc.Width = static_cast<u32>(width);
             swap_chain_desc.Height = static_cast<u32>(height);
-            swap_chain_desc.ColorBufferFormat = IsSrgb() 
-                ? Diligent::TEX_FORMAT_RGBA8_UNORM_SRGB
-                : Diligent::TEX_FORMAT_RGBA8_UNORM;
-            swap_chain_desc.DepthBufferFormat = GetDepthStencilFormat();
         }
         
         void CreateDummyBuffers() {
@@ -313,7 +304,7 @@ namespace REngine
             
             
             dummy_tex_desc.Name = "Main Depth buffer";
-            dummy_tex_desc.Format = swap_chain_desc.DepthBufferFormat;
+            dummy_tex_desc.Format = GetDepthStencilFormat();
             dummy_tex_desc.BindFlags = Diligent::BIND_DEPTH_STENCIL;
             
             Diligent::RefCntAutoPtr<Diligent::ITexture> dummy_depth;

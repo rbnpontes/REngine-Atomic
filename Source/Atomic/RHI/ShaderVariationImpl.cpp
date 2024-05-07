@@ -58,8 +58,11 @@ namespace Atomic
             ea::shared_array<u8> shader_file_data;
             u32 shader_file_size = 0;
             // Compile shader if don't have valid bytecode
-            if (!Compile(shader_file_data, &shader_file_size))
+            if (!Compile(shader_file_data, &shader_file_size)) 
+            {
+                ATOMIC_LOGERROR(compilerOutput_);
                 return false;
+            }
             // Save Shader File
             SaveByteCode(binary_shader_name, shader_file_data, shader_file_size);
         }
@@ -256,7 +259,7 @@ namespace Atomic
             defines.push_back("OPENGL");
             break;
         }
-
+        
         switch (type_)
         {
         case VS:
@@ -306,8 +309,10 @@ namespace Atomic
         }
 
         String glsl_version = "#version 450\n";
-#if RENGINE_PLATFORM_APPLE
+#if RENGINE_PLATFORM_MACOS
         glsl_version = "#version 330\n";
+#else
+        glsl_version = "#version 300 es\n";
 #endif
         source_code = glsl_version + String(macros_header.c_str()) + source_code;
         source_code.Append("void main()\n{\n");

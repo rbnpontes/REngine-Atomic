@@ -66,6 +66,8 @@ namespace Atomic
         bool borderless{};
         /// Enable FullScreen
         bool fullscreen{};
+        /// High dpi
+        bool high_dpi{};
         /// Requires on OpenGL backend
         u8 multisample{};
         /// Window position x
@@ -91,7 +93,10 @@ namespace Atomic
     };
 
     static void sdl_create_default_window(SDLWindowCreateDesc* ci, SDLWindowResult* result) {
-        u32 flags = SDL_WINDOW_ALLOW_HIGHDPI;
+        u32 flags = 0;
+        if(ci->high_dpi)
+            flags |= SDL_WINDOW_ALLOW_HIGHDPI;
+        
         if(!ci->external_window) {
             if(ci->resizable)
                 flags |= SDL_WINDOW_RESIZABLE;
@@ -140,7 +145,9 @@ namespace Atomic
     }
 
     static void sdl_create_gl_window(SDLWindowCreateDesc* ci, SDLWindowResult* result) {
-        u32 flags = SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI;
+        u32 flags = SDL_WINDOW_OPENGL;
+        if(ci->high_dpi)
+            flags |= SDL_WINDOW_ALLOW_HIGHDPI;
         if(!ci->external_window) {
             flags |= SDL_WINDOW_SHOWN;
             
@@ -150,16 +157,26 @@ namespace Atomic
                 flags |= SDL_WINDOW_BORDERLESS;
         }
         
+#if RENGINE_PLATFORM_IOS
+        const auto x = 0;
+        const auto y = 0;
+#else
         const auto x = SDL_WINDOWPOS_UNDEFINED_DISPLAY(ci->x);
         const auto y = SDL_WINDOWPOS_UNDEFINED_DISPLAY(ci->y);
+#endif
         const auto width = ci->width;
         const auto height = ci->height;
         
         SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-        
+#if RENGINE_PLATFORM_IOS || RENGINE_PLATFORM_ANDROID
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
+#else
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+#endif
         
         constexpr static int s_color_bits[] = { 8, 1 };
         constexpr static int s_depth_bits[] = { 24, 16};
@@ -249,6 +266,13 @@ namespace Atomic
 #elif RENGINE_PLATFORM_WEB
         throw std::runtime_error("Not implemented Web Window");
 #endif
+    }
+
+    static bool sdl_gl_srgb_support() {
+        int value = 0;
+        if(SDL_GL_GetAttribute(SDL_GL_FRAMEBUFFER_SRGB_CAPABLE, &value) != 0)
+            return false;
+        return value != 0;
     }
 
     const Vector2 Graphics::pixelUVOffset(0.0f, 0.0f);
@@ -354,6 +378,11 @@ namespace Atomic
 
 		Diligent::TEXTURE_FORMAT fullscreen_format = SDL_BITSPERPIXEL(mode.format) == 16 ? Diligent::TEX_FORMAT_B5G6R5_UNORM : Diligent::TEX_FORMAT_RGBA8_UNORM;
 
+#if RENGINE_PLATFORM_IOS
+        fullscreen = true;
+        borderless = false;
+        resizable = true;
+#endif
 		// If zero dimensions in windowed mode, set windowed mode to maximize and set a predefined default restored window size. If zero in fullscreen, use desktop mode
 		if (!width || !height)
 		{
@@ -369,6 +398,12 @@ namespace Atomic
 				height = 500;
 			}
 		}
+        
+#if RENGINE_PLATFORM_IOS || RENGINE_PLATFORM_ANDROID
+        // On mobile devices Window size cannot be greater than Device size
+        width = Min(width, mode.w);
+        height = Min(height, mode.h);
+#endif
 
 		// Fullscreen or Borderless can not be resizable
 		if (fullscreen || borderless)
@@ -382,7 +417,7 @@ namespace Atomic
 		if (width == width_ && height == height_ && fullscreen == fullscreen_ && borderless == borderless_ && resizable == resizable_ &&
 			vsync == vsync_ && tripleBuffer == tripleBuffer_ && multiSample == multiSample_)
 			return true;
-
+        
 		SDL_SetHint(SDL_HINT_ORIENTATIONS, orientations_.CString());
 
 		if (!window_)
@@ -394,6 +429,7 @@ namespace Atomic
                 resizable,
                 borderless,
                 fullscreen,
+                highDPI,
                 static_cast<u8>(multiSample),
                 0,
                 0,
@@ -413,10 +449,7 @@ namespace Atomic
                 if (SDL_GL_GetAttribute(SDL_GL_MULTISAMPLESAMPLES, &effective_multisample) == 0)
                     multiSample = Max(1, effective_multisample);
                 
-                int effective_srgb{};
-                if (SDL_GL_GetAttribute(SDL_GL_FRAMEBUFFER_SRGB_CAPABLE, &effective_srgb) == 0)
-                    sRGB_ = effective_srgb != 0;
-                
+                sRGB_ = sdl_gl_srgb_support();
                 SDL_GL_SetSwapInterval(vsync ? 1 : 0);
             }
             
@@ -427,6 +460,7 @@ namespace Atomic
             driver_desc_->window = result.native_window;
 		}
 
+#if !defined(RENGINE_PLATFORM_IOS) && !defined(RENGINE_PLATFORM_ANDROID)
 		// Check fullscreen mode validity. Use a closest match if not found
 		if (fullscreen)
 		{
@@ -451,6 +485,7 @@ namespace Atomic
 				refreshRate = resolutions[best].z_;
 			}
 		}
+#endif
 
 		AdjustWindow(width, height, fullscreen, borderless, monitor);
 		monitor_ = monitor;
@@ -517,6 +552,9 @@ namespace Atomic
 
 	void Graphics::SetSRGB(bool enable)
 	{
+        if(enable && GetBackend() == GraphicsBackend::OpenGL && !sdl_gl_srgb_support())
+            enable = false;
+        
 		bool newEnable = enable && sRGBWriteSupport_;
 		if (newEnable != sRGB_)
 		{

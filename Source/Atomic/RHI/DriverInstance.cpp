@@ -7,13 +7,20 @@
 #include "../Graphics/Graphics.h"
 #include "./SwapChain.h"
 
-#include <GLEW/glew.h>
+#if RENGINE_PLATFORM_IOS
+    #include <OpenGLES/ES3/gl.h>
+#else
+    #include <GLEW/glew.h>
+#endif
+
 #if WIN32
 #include <DiligentCore/Graphics/GraphicsEngineD3D11/interface/EngineFactoryD3D11.h>
 #include <DiligentCore/Graphics/GraphicsEngineD3D12/interface/EngineFactoryD3D12.h>
 #endif
 #include <DiligentCore/Graphics/GraphicsEngineVulkan/interface/EngineFactoryVk.h>
+
 #include <DiligentCore/Graphics/GraphicsEngineOpenGL/interface/EngineFactoryOpenGL.h>
+
 #include <DiligentCore/Graphics/GraphicsEngineOpenGL/interface/DeviceContextGL.h>
 #include <DiligentCore/Graphics/GraphicsEngineOpenGL/interface/SwapChainGL.h>
 
@@ -98,7 +105,7 @@ namespace REngine
         swap_chain_desc.Width = init_desc.window_size.x_;
         swap_chain_desc.Height = init_desc.window_size.y_;
         swap_chain_desc.BufferCount = init_desc.triple_buffer ? 3 : 2;
-#if RENGINE_PLATFORM_APPLE
+#if RENGINE_PLATFORM_MACOS
         // Apple Environments requires triple buffer
         swap_chain_desc.BufferCount = 3;
 #endif
