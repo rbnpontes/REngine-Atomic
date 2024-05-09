@@ -231,6 +231,7 @@ namespace REngine
         if (hash == 0)
             hash = info.ToHash();
 
+        const auto backend = driver->GetBackend();
         // If hash matches from previous stored pipeline state
         // then return it instead.
         const auto pipeline_it = s_pipelines.Find(hash);
@@ -357,27 +358,27 @@ namespace REngine
             stencil_cmp_function];
 
         unsigned depth_bits = 24;
-        auto is_not_opengl = driver->GetBackend() != Atomic::GraphicsBackend::OpenGL;
+        auto is_opengl = backend == Atomic::GraphicsBackend::OpenGL || backend == Atomic::GraphicsBackend::OpenGLES;
         if (info.output.depth_stencil_format == Diligent::TEX_FORMAT_D16_UNORM)
             depth_bits = 16;
-    	const int scaled_depth_bias = is_not_opengl
-                                          ? static_cast<int>(info.constant_depth_bias * static_cast<float>((1 <<
-                                              depth_bits)))
-                                          : 0;
+        
+        const int scaled_depth_bias = is_opengl
+                    ? 0
+                    : static_cast<int>(info.constant_depth_bias * static_cast<float>(1 << depth_bits));
 
         ci.GraphicsPipeline.RasterizerDesc.FillMode = s_fill_mode_tbl[info.fill_mode];
         ci.GraphicsPipeline.RasterizerDesc.CullMode = s_cull_mode_tbl[info.cull_mode];
     	ci.GraphicsPipeline.RasterizerDesc.FrontCounterClockwise = false;
         ci.GraphicsPipeline.RasterizerDesc.DepthBias = scaled_depth_bias;
-        if(is_not_opengl)
-            ci.GraphicsPipeline.RasterizerDesc.DepthBiasClamp = M_INFINITY;
-        else
+        if(is_opengl || backend == GraphicsBackend::Vulkan)
             ci.GraphicsPipeline.RasterizerDesc.DepthBiasClamp = 0;
+        else
+            ci.GraphicsPipeline.RasterizerDesc.DepthBiasClamp = M_INFINITY;
     	ci.GraphicsPipeline.RasterizerDesc.SlopeScaledDepthBias = info.slope_scaled_depth_bias;
         ci.GraphicsPipeline.RasterizerDesc.DepthClipEnable = true;
         ci.GraphicsPipeline.RasterizerDesc.ScissorEnable = info.scissor_test_enabled;
         //ci.GraphicsPipeline.RasterizerDesc.ScissorEnable = false;
-        ci.GraphicsPipeline.RasterizerDesc.AntialiasedLineEnable = is_not_opengl && info.line_anti_alias;
+        ci.GraphicsPipeline.RasterizerDesc.AntialiasedLineEnable = !is_opengl && info.line_anti_alias;
 
         ci.PSODesc.ResourceLayout.DefaultVariableType = Diligent::SHADER_RESOURCE_VARIABLE_TYPE_DYNAMIC;
 

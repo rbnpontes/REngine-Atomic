@@ -25,3 +25,5 @@ endif ()
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-invalid-offsetof -stdlib=libc++")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-invalid-command-line-argument -Wno-unused-command-line-argument")
+
+link_directories(/usr/local/lib)
