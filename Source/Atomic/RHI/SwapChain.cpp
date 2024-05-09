@@ -268,10 +268,17 @@ namespace REngine
             if(swap_chain_desc.PreTransform == Diligent::SURFACE_TRANSFORM_OPTIMAL)
                 swap_chain_desc.PreTransform = Diligent::SURFACE_TRANSFORM_IDENTITY;
             
-#if RENGINE_PLATFORM_IOS
-            // ios framebuffer is always 1
-            default_framebuffer_ = 1;
-#endif
+            int profile_mask = 0;
+            SDL_GL_GetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, &profile_mask);
+            if(profile_mask == SDL_GL_CONTEXT_PROFILE_ES)
+                default_framebuffer_ = 1;
+            else 
+            {
+                typedef void(*glGetIntegervFunc)(GLenum pname, GLint * params);
+                glGetIntegervFunc func = reinterpret_cast<glGetIntegervFunc>(SDL_GL_GetProcAddress("glGetIntegerv"));
+                func(GL_FRAMEBUFFER_BINDING, reinterpret_cast<GLint*>(&default_framebuffer_));
+            }
+            
             int width{};
             int height{};
             
