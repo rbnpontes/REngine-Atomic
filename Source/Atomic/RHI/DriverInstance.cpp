@@ -7,12 +7,6 @@
 #include "../Graphics/Graphics.h"
 #include "./SwapChain.h"
 
-#if RENGINE_PLATFORM_IOS
-    #include <OpenGLES/ES3/gl.h>
-#else
-    #include <GLEW/glew.h>
-#endif
-
 #if WIN32
 #include <DiligentCore/Graphics/GraphicsEngineD3D11/interface/EngineFactoryD3D11.h>
 #include <DiligentCore/Graphics/GraphicsEngineD3D12/interface/EngineFactoryD3D12.h>
@@ -196,6 +190,7 @@ namespace REngine
                 fill_create_info(init_desc, FindBestAdapter(init_desc.adapter_id, init_desc.backend), ci);
 
                 Diligent::IDeviceContext* device_context = nullptr;
+                ci.GLContext = init_desc.gl_context.get();
                 factory->AttachToActiveGLContext(ci, &render_device_, &device_context);
                 device_contexts[0] = device_context;
                 

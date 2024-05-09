@@ -168,15 +168,24 @@ namespace Atomic
         const auto height = ci->height;
         
         SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-#if RENGINE_PLATFORM_IOS || RENGINE_PLATFORM_ANDROID
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
+        
+        if(ci->backend == GraphicsBackend::OpenGLES) 
+        {
+            SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+            SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+            SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
+        }
+        else 
+        {
+            SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
+            // MacOS platforms max supported version is 4.1
+#if RENGINE_PLATFORM_MACOS
+            SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
 #else
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+            SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 5);
 #endif
+            SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+        }
         
         constexpr static int s_color_bits[] = { 8, 1 };
         constexpr static int s_depth_bits[] = { 24, 16};
@@ -241,7 +250,7 @@ namespace Atomic
 
     static void sdl_create_window(SDLWindowCreateDesc* ci, SDLWindowResult* result) {
         // OpenGL backend requires a custom instantiation
-        if(ci->backend == GraphicsBackend::OpenGL)
+        if(ci->backend == GraphicsBackend::OpenGL || ci->backend == GraphicsBackend::OpenGLES)
             sdl_create_gl_window(ci, result);
         else
             sdl_create_default_window(ci, result);
@@ -351,6 +360,27 @@ namespace Atomic
             ATOMIC_LOGWARNING("Is not possible to update Graphics Backend after Graphics initialization.");
             return;
         }
+      
+#if !RENGINE_PLATFORM_WINDOWS
+        if(backend == GraphicsBackend::D3D11) {
+            backend = GraphicsBackend::OpenGL;
+            ATOMIC_LOGWARNING("D3D11 is not supported on Non-Windows platform. Switching to OpenGL backend.");
+        }
+            
+        if(backend == GraphicsBackend::D3D12) {
+            backend = GraphicsBackend::D3D12;
+            ATOMIC_LOGWARNING("D3D12 is not supported on Non-Windows platform. Switching to Vulkan backend.");
+        }
+#endif
+#if RENGINE_PLATFORM_IOS || RENGINE_PLATFORM_ANDROID
+        if(backend == GraphicsBackend::OpenGL)
+            backend = GraphicsBackend::OpenGLES;
+#endif
+        
+#if RENGINE_PLATFORM_WINDOWS || RENGINE_PLATFORM_MACOS
+        if(backend == GraphicsBackend::OpenGLES) 
+            ATOMIC_LOGWARNING("Graphics Backend GL ES requires libGLESv2 installed in your machine. You can build yourself ANGLE lib or copy from Chrome like browser to your system machine.");
+#endif
         
         driver_desc_->backend = backend;
     }
@@ -382,6 +412,9 @@ namespace Atomic
         fullscreen = true;
         borderless = false;
         resizable = true;
+#endif
+#if RENGINE_PLATFORM_MACOS
+        highDPI = true;
 #endif
 		// If zero dimensions in windowed mode, set windowed mode to maximize and set a predefined default restored window size. If zero in fullscreen, use desktop mode
 		if (!width || !height)
