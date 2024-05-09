@@ -33,69 +33,70 @@
 #include "TargetConditionals.h"
 #endif
 
-#if defined(IOS)
+#if RENGINE_PLATFORM_IOS
 #include <mach/mach_host.h>
 #elif defined(TVOS)
 extern "C" unsigned SDL_TVOS_GetActiveProcessorCount();
-#elif !defined(__linux__) && !defined(__EMSCRIPTEN__)
+#elif !defined(__linux__) && !defined(__EMSCRIPTEN__) && (defined(RENGINE_PLATFORM_MACOS) && !defined(__arm64__))
 #include <libcpuid.h>
 #endif
 
 #if defined(_WIN32)
-#include <windows.h>
-#include <io.h>
-#if defined(_MSC_VER)
-#include <float.h>
-#include <Lmcons.h> // For UNLEN. 
-#elif defined(__MINGW32__)
-#include <lmcons.h> // For UNLEN. Apparently MSVC defines "<Lmcons.h>" (with an upperscore 'L' but MinGW uses an underscore 'l'). 
-#include <ntdef.h> 
-#endif
+    #include <windows.h>
+    #include <io.h>
+    #if defined(_MSC_VER)
+        #include <float.h>
+        #include <Lmcons.h> // For UNLEN.
+    #elif defined(__MINGW32__)
+        #include <lmcons.h> // For UNLEN. Apparently MSVC defines "<Lmcons.h>" (with an upperscore 'L' but MinGW uses an underscore 'l').
+        #include <ntdef.h>
+    #endif
 #elif defined(__linux__) && !defined(__ANDROID__) 
-#include <pwd.h> 
-#include <sys/sysinfo.h>
-#include <sys/utsname.h>
+    #include <pwd.h>
+    #include <sys/sysinfo.h>
+    #include <sys/utsname.h>
 #elif defined(__APPLE__)
-#include <sys/sysctl.h>
-#include <SystemConfiguration/SystemConfiguration.h> // For the detection functions inside GetLoginName(). 
+    #include <sys/types.h>
+    #include <sys/sysctl.h>
+    #include <SystemConfiguration/SystemConfiguration.h> // For the detection functions inside GetLoginName().
 #endif
 #ifndef _WIN32
-#include <unistd.h>
+    #include <unistd.h>
 #endif
 
 #if defined(__EMSCRIPTEN__) && defined(__EMSCRIPTEN_PTHREADS__)
-#include <emscripten/threading.h>
+    #include <emscripten/threading.h>
 #endif
 
 #if defined(__i386__)
-// From http://stereopsis.com/FPU.html
+    // From http://stereopsis.com/FPU.html
 
-#define FPU_CW_PREC_MASK        0x0300
-#define FPU_CW_PREC_SINGLE      0x0000
-#define FPU_CW_PREC_DOUBLE      0x0200
-#define FPU_CW_PREC_EXTENDED    0x0300
-#define FPU_CW_ROUND_MASK       0x0c00
-#define FPU_CW_ROUND_NEAR       0x0000
-#define FPU_CW_ROUND_DOWN       0x0400
-#define FPU_CW_ROUND_UP         0x0800
-#define FPU_CW_ROUND_CHOP       0x0c00
+    #define FPU_CW_PREC_MASK        0x0300
+    #define FPU_CW_PREC_SINGLE      0x0000
+    #define FPU_CW_PREC_DOUBLE      0x0200
+    #define FPU_CW_PREC_EXTENDED    0x0300
+    #define FPU_CW_ROUND_MASK       0x0c00
+    #define FPU_CW_ROUND_NEAR       0x0000
+    #define FPU_CW_ROUND_DOWN       0x0400
+    #define FPU_CW_ROUND_UP         0x0800
+    #define FPU_CW_ROUND_CHOP       0x0c00
 
-inline unsigned GetFPUState()
-{
-    unsigned control = 0;
-    __asm__ __volatile__ ("fnstcw %0" : "=m" (control));
-    return control;
-}
+    inline unsigned GetFPUState()
+    {
+        unsigned control = 0;
+        __asm__ __volatile__ ("fnstcw %0" : "=m" (control));
+        return control;
+    }
 
-inline void SetFPUState(unsigned control)
-{
-    __asm__ __volatile__ ("fldcw %0" : : "m" (control));
-}
+    inline void SetFPUState(unsigned control)
+    {
+        __asm__ __volatile__ ("fldcw %0" : : "m" (control));
+    }
 #endif
 
 #ifndef MINI_URHO
 // ATOMIC BEGIN
-#include <SDL/include/SDL.h>
+    #include <SDL/include/SDL.h>
 // ATOMIC END
 #endif
 
@@ -160,8 +161,7 @@ static void GetCPUData(struct CpuCoreCount* data)
         }
     }
 }
-
-#elif !defined(__EMSCRIPTEN__) && !defined(TVOS)
+#elif !defined(__EMSCRIPTEN__) && !defined(TVOS) && (RENGINE_PLATFORM_IOS && !defined(__arm64__))
 static void GetCPUData(struct cpu_id_t* data)
 {
     if (cpu_identify(0, data) < 0)
@@ -406,11 +406,11 @@ String GetPlatform()
 {
 #if defined(__ANDROID__)
     return "Android";
-#elif defined(IOS)
+#elif RENGINE_PLATFORM_IOS
     return "iOS";
 #elif defined(TVOS)
     return "tvOS";
-#elif defined(__APPLE__)
+#elif RENGINE_PLATFORM_MACOS
     return "macOS";
 #elif defined(_WIN32)
     return "Windows";
@@ -452,6 +452,17 @@ unsigned GetNumPhysicalCPUs()
 #else
     return 1; // Targeting a single-threaded Emscripten build.
 #endif
+#elif RENGINE_PLATFORM_MACOS && defined(__arm64__)
+    int mib[2];
+    size_t len;
+
+    // Set up the mib array
+    mib[0] = CTL_HW;
+    mib[1] = HW_AVAILCPU;
+
+    // Get the number of available CPUs
+    sysctl(mib, 2, NULL, &len, NULL, 0);
+    return len / sizeof(int);
 #else
     struct cpu_id_t data;
     GetCPUData(&data);
@@ -485,6 +496,17 @@ unsigned GetNumLogicalCPUs()
 #else
     return 1; // Targeting a single-threaded Emscripten build.
 #endif
+#elif RENGINE_PLATFORM_MACOS && defined(__arm64__)
+    int mib[2];
+    size_t len;
+
+    // Set up the mib array
+    mib[0] = CTL_HW;
+    mib[1] = HW_NCPU;
+
+    // Get the number of available CPUs
+    sysctl(mib, 2, NULL, &len, NULL, 0);
+    return len / sizeof(int);
 #else
     struct cpu_id_t data;
     GetCPUData(&data);

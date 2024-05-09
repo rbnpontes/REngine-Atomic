@@ -43,7 +43,6 @@ if (CLDOC)
 endif ()
 
 if (ATOMIC_WEBVIEW)
-
     if (APPLE)
         if (POLICY CMP0037)
             # new cmake doesn't like creating framework whose name has spaces

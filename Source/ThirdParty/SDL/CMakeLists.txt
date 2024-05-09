@@ -496,6 +496,7 @@ option(SDL_WERROR "Enable -Werror" OFF)
 set(SDL_SHARED OFF)
 set(SDL_STATIC ON)
 set(SDL_TEST OFF)
+set(SDL_RENDER OFF)
 
 dep_option(SDL_STATIC_PIC      "Static version of the library should be built with Position Independent Code" "${CMAKE_POSITION_INDEPENDENT_CODE}" "SDL_STATIC" OFF)
 

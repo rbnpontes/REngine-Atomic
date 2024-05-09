@@ -368,10 +368,18 @@ namespace Atomic
         }
             
         if(backend == GraphicsBackend::D3D12) {
-            backend = GraphicsBackend::D3D12;
+            backend = GraphicsBackend::Vulkan;
             ATOMIC_LOGWARNING("D3D12 is not supported on Non-Windows platform. Switching to Vulkan backend.");
         }
 #endif
+        
+#if RENGINE_PLATFORM_MACOS && !__arm64__
+        if(backend == GraphicsBackend::Vulkan) {
+            backend = GraphicsBackend::Vulkan;
+            ATOMIC_LOGWARNING("Vulkan is not supported on this Apple Machine. Switching to OpenGL backend");
+        }
+#endif
+        
 #if RENGINE_PLATFORM_IOS || RENGINE_PLATFORM_ANDROID
         if(backend == GraphicsBackend::OpenGL)
             backend = GraphicsBackend::OpenGLES;
@@ -381,7 +389,6 @@ namespace Atomic
         if(backend == GraphicsBackend::OpenGLES) 
             ATOMIC_LOGWARNING("Graphics Backend GL ES requires libGLESv2 installed in your machine. You can build yourself ANGLE lib or copy from Chrome like browser to your system machine.");
 #endif
-        
         driver_desc_->backend = backend;
     }
 
