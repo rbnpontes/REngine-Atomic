@@ -565,22 +565,7 @@ String GetLoginName()
     if (GetUserName(name, &len))
         return name;
 #elif defined(__APPLE__) && !defined(IOS) && !defined(TVOS)
-    SCDynamicStoreRef s = SCDynamicStoreCreate(NULL, CFSTR("GetConsoleUser"), NULL, NULL);
-    if (s != NULL)
-    {
-        uid_t u; 
-        CFStringRef n = SCDynamicStoreCopyConsoleUser(s, &u, NULL);
-        CFRelease(s); 
-        if (n != NULL)
-        {
-            char name[256]; 
-            Boolean b = CFStringGetCString(n, name, 256, kCFStringEncodingUTF8);
-            CFRelease(n); 
-
-            if (b == true)
-                return name; 
-        }
-    }
+    return getlogin();
 #endif
     return "(?)";
 }
