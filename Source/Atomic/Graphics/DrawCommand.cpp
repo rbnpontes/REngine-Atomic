@@ -1790,6 +1790,10 @@ namespace REngine
 				dirty_flags_ ^= static_cast<u32>(RenderCommandDirtyState::commit_srb);
 				context_->CommitShaderResources(shader_resource_binding_, RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
 			}
+            
+#if ATOMIC_DEBUG
+            ValidatePipelineAndRenderTargets();
+#endif
 		}
 		void BoundRenderTargets() const
 		{
@@ -1829,7 +1833,7 @@ namespace REngine
 			const auto renderer = graphics_->GetContext()->GetSubsystem<Renderer>();
 			if (!renderer)
 			{
-				ATOMIC_LOGWARNING("Can´t clear without Renderer. Skipping!");
+				ATOMIC_LOGWARNING("Can't clear without Renderer. Skipping!");
 				return;
 			}
 
@@ -1858,7 +1862,7 @@ namespace REngine
 				pipeline_info.output.depth_stencil_format = depth_stencil_->GetParentTexture()->GetFormat();
 			else
 				pipeline_info.output.depth_stencil_format = graphics_->GetImpl()->GetSwapChain()->GetDesc().DepthBufferFormat;
-			pipeline_info.output.num_rts = 1;
+			pipeline_info.output.num_rts = num_rts_;
 			pipeline_info.blend_mode = BLEND_REPLACE;
 			pipeline_info.color_write_enabled = desc.flags & CLEAR_COLOR;
 			pipeline_info.alpha_to_coverage_enabled = false;
@@ -1976,6 +1980,22 @@ namespace REngine
 
 			return result;
 		}
+#if ATOMIC_DEBUG
+        void ValidatePipelineAndRenderTargets() 
+        {
+            assert(num_rts_ == pipeline_info_->output.num_rts && "Used Render Target Count is not same of Pipeline State. This indicates a bug on DrawCommand implementation");
+            assert(bind_depth_stencil_ && "Depth Stencil is Required. This indicates a bug on DrawCommand implementation");
+            assert(bind_depth_stencil_->GetTexture()->GetDesc().Format == pipeline_info_->output.depth_stencil_format
+                   && "Depth Stencil Format is not same of Pipeline State. This indicates a bug on DrawCommand implementation");
+            
+            for(u32 i = 0; i < num_rts_; ++i) 
+            {
+                assert(bind_rts_[i] && "Render Target is Required. This indicates a bug on DrawCommand implementation");
+                assert(bind_rts_[i]->GetTexture()->GetDesc().Format == pipeline_info_->output.render_target_formats[i]
+                       && "Assigned render target is not same of Pipeline State. This indicates a bug on DrawCommand implementation");
+            }
+        }
+#endif
 
 		static void WriteShaderParameter(ShaderProgram* program, const StringHash& param, void* data, u32 length)
 		{
