@@ -187,13 +187,23 @@ class ATOMIC_API UIWidget : public Object, public tb::TBWidgetDelegate
     UIWidget* GetParent();
     UIWidget* GetContentRoot();
     IntRect GetRect();
+    IntRect GetRectInPixels();
 
     UIPreferredSize* GetPreferredSize();
     String GetText();
 
-    void SetRect(IntRect r);
+    /// Set Rect. This method will apply DPI scale
+    void SetRect(IntRect rect);
+    /// Set Rect in Pixels.
+    void SetRectInPixels(IntRect rect);
+    /// Set Size. This method will apply DPI scale on Width and Height
     virtual bool SetSize(int width, int height);
+    /// Set Size in Pixels
+    virtual bool SetSizeInPixels(int width, int height);
+    /// Set Position. This method will apply DPI scale on X and Y coords
     void SetPosition(int x, int y);
+    /// Set Position in Pixels.
+    void SetPositionInPixels(int x, int y);
     void SetText(const String& text);
     void SetSkinBg(const String& id);
     void SetLayoutParams(UILayoutParams* params);
@@ -300,17 +310,34 @@ class ATOMIC_API UIWidget : public Object, public tb::TBWidgetDelegate
     void SetFontId(const String& fontId);
     String GetFontId();
     void SetFontSize(int size);
+    void SetFontSizeInPixels(int size);
     int GetFontSize();
+    int GetFontSizeInPixels();
 
     // Rect
-    void SetX(int x) { IntRect r(GetRect()); r.right_ = x + r.Width(); r.left_ = x; SetRect(r); }
+    void SetX(int x);
+    void SetXInPixels(int x);
+    
     int GetX() { return GetRect().left_; }
-    void SetY(int y) { IntRect r(GetRect()); r.bottom_ = y + r.Height(); r.top_ = y; SetRect(r); }
+    int GetXInPixels() { return GetRectInPixels().left_; }
+    
+    void SetY(int y);
+    void SetYInPixels(int y);
+    
     int GetY() { return GetRect().top_; }
-    void SetWidth(int width) { IntRect r(GetRect()); r.right_ = r.left_ + width; SetRect(r); }
+    int GetYInPixels() { return GetRectInPixels().top_; }
+    
+    void SetWidth(int width);
+    void SetWidthInPixels(int width);
+    
     int GetWidth() { return GetRect().Width(); }
-    void SetHeight(int height) { IntRect r(GetRect()); r.bottom_ = r.top_ + height; SetRect(r); }
+    int GetWidthInPixels() { return GetRectInPixels().Width(); }
+    
+    void SetHeight(int height);
+    void SetHeightInPixels(int height);
+    
     int GetHeight() { return GetRect().Height(); }
+    int GetHeightInPixels() { return GetRectInPixels().Height(); }
 
     // Layout Params
     void SetLayoutWidth(int width);
@@ -344,7 +371,7 @@ class ATOMIC_API UIWidget : public Object, public tb::TBWidgetDelegate
     float GetAutoOpacity();
 
 protected:
-
+    Vector2 GetDownscaleFactor();
     void ConvertEvent(UIWidget* handler, UIWidget* target, const tb::TBWidgetEvent &ev, VariantMap& data);
 
     void SetWidget(tb::TBWidget* widget);
@@ -360,6 +387,7 @@ protected:
 
     SharedPtr<UIDragObject> dragObject_;
 
+    Graphics* graphics_;
     bool multiTouch_;
 
 };

@@ -1337,8 +1337,6 @@ namespace Atomic
         case CF_DXT3:
         case CF_DXT5:
                 return TEX_FORMAT_UNKNOWN;
-            case CF_ETC1:
-                return TEX_FORMAT_ET
 #else
 		case CF_DXT1:
 			return TEX_FORMAT_BC1_UNORM;
