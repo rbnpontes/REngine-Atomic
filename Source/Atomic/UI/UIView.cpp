@@ -174,7 +174,7 @@ bool UIView::SetRenderToTexture(bool value, const int width, const int height)
     return SetSize(width, height);
 }
 
-bool UIView::SetSize(int width, int height)
+bool UIView::SetSizeInPixels(int width, int height)
 {
     if (!widget_)
         return false;
@@ -182,7 +182,7 @@ bool UIView::SetSize(int width, int height)
     if (width < UIVIEW_MIN_TEXTURE_SIZE || width > UIVIEW_MAX_TEXTURE_SIZE ||
         height < UIVIEW_MIN_TEXTURE_SIZE || height > UIVIEW_MAX_TEXTURE_SIZE)
     {
-        ATOMIC_LOGERROR("UIView::SetSize() - Attempting to set invalid size, failed");
+        ATOMIC_LOGERROR("UIView::SetSizeInPixels() - Attempting to set invalid size, failed");
         return false;
     }
 
@@ -198,7 +198,7 @@ bool UIView::SetSize(int width, int height)
 
     }
 
-    return UIWidget::SetSize(width, height);
+    return UIWidget::SetSizeInPixels(width, height);
 
 }
 

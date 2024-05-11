@@ -66,6 +66,8 @@ namespace Atomic
         bool borderless{};
         /// Enable FullScreen
         bool fullscreen{};
+        /// High dpi
+        bool high_dpi{};
         /// Requires on OpenGL backend
         u8 multisample{};
         /// Window position x
@@ -91,7 +93,10 @@ namespace Atomic
     };
 
     static void sdl_create_default_window(SDLWindowCreateDesc* ci, SDLWindowResult* result) {
-        u32 flags = SDL_WINDOW_ALLOW_HIGHDPI;
+        u32 flags = 0;
+        if(ci->high_dpi)
+            flags |= SDL_WINDOW_ALLOW_HIGHDPI;
+        
         if(!ci->external_window) {
             if(ci->resizable)
                 flags |= SDL_WINDOW_RESIZABLE;
@@ -140,7 +145,9 @@ namespace Atomic
     }
 
     static void sdl_create_gl_window(SDLWindowCreateDesc* ci, SDLWindowResult* result) {
-        u32 flags = SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI;
+        u32 flags = SDL_WINDOW_OPENGL;
+        if(ci->high_dpi)
+            flags |= SDL_WINDOW_ALLOW_HIGHDPI;
         if(!ci->external_window) {
             flags |= SDL_WINDOW_SHOWN;
             
@@ -150,16 +157,35 @@ namespace Atomic
                 flags |= SDL_WINDOW_BORDERLESS;
         }
         
+#if RENGINE_PLATFORM_IOS
+        const auto x = 0;
+        const auto y = 0;
+#else
         const auto x = SDL_WINDOWPOS_UNDEFINED_DISPLAY(ci->x);
         const auto y = SDL_WINDOWPOS_UNDEFINED_DISPLAY(ci->y);
+#endif
         const auto width = ci->width;
         const auto height = ci->height;
         
         SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
         
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+        if(ci->backend == GraphicsBackend::OpenGLES) 
+        {
+            SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+            SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+            SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
+        }
+        else 
+        {
+            SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
+            // MacOS platforms max supported version is 4.1
+#if RENGINE_PLATFORM_MACOS
+            SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+#else
+            SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 5);
+#endif
+            SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+        }
         
         constexpr static int s_color_bits[] = { 8, 1 };
         constexpr static int s_depth_bits[] = { 24, 16};
@@ -224,7 +250,7 @@ namespace Atomic
 
     static void sdl_create_window(SDLWindowCreateDesc* ci, SDLWindowResult* result) {
         // OpenGL backend requires a custom instantiation
-        if(ci->backend == GraphicsBackend::OpenGL)
+        if(ci->backend == GraphicsBackend::OpenGL || ci->backend == GraphicsBackend::OpenGLES)
             sdl_create_gl_window(ci, result);
         else
             sdl_create_default_window(ci, result);
@@ -243,12 +269,22 @@ namespace Atomic
 #elif RENGINE_PLATFORM_MACOS
         result->native_window.pNSView = result->metal_view.get();
 #elif RENGINE_PLATFORM_IOS
-        result->native_window.pCALayer = sys_info.info.uikit.window;
+        if(result->metal_view)
+            result->native_window.pCALayer = result->metal_view.get();
+        else
+            result->native_window.pCALayer = sys_info.info.uikit.window;
 #elif RENGINE_PLATFORM_ANDROID
         result->native_window.pAWindow = sys_info.info.android.window;
 #elif RENGINE_PLATFORM_WEB
         throw std::runtime_error("Not implemented Web Window");
 #endif
+    }
+
+    static bool sdl_gl_srgb_support() {
+        int value = 0;
+        if(SDL_GL_GetAttribute(SDL_GL_FRAMEBUFFER_SRGB_CAPABLE, &value) != 0)
+            return false;
+        return value != 0;
     }
 
     const Vector2 Graphics::pixelUVOffset(0.0f, 0.0f);
@@ -327,7 +363,42 @@ namespace Atomic
             ATOMIC_LOGWARNING("Is not possible to update Graphics Backend after Graphics initialization.");
             return;
         }
+      
+#if !RENGINE_PLATFORM_WINDOWS
+        if(backend == GraphicsBackend::D3D11) {
+            backend = GraphicsBackend::OpenGL;
+            ATOMIC_LOGWARNING("D3D11 is not supported on Non-Windows platform. Switching to OpenGL backend.");
+        }
+            
+        if(backend == GraphicsBackend::D3D12) {
+            backend = GraphicsBackend::Vulkan;
+            ATOMIC_LOGWARNING("D3D12 is not supported on Non-Windows platform. Switching to Vulkan backend.");
+        }
+#endif
         
+#if RENGINE_PLATFORM_MACOS && !__arm64__
+        if(backend == GraphicsBackend::Vulkan) {
+            backend = GraphicsBackend::Vulkan;
+            ATOMIC_LOGWARNING("Vulkan is not supported on this Apple Machine. Switching to OpenGL backend");
+        }
+#endif
+    
+#if RENGINE_PLATFORM_IOS
+        if(backend == GraphicsBackend::OpenGL || backend == GraphicsBackend::OpenGLES) {
+            backend = GraphicsBackend::Vulkan;
+            ATOMIC_LOGWARNING("OpenGL is not supported on iOS. Switching to Vulkan(MoltenVk)");
+        }
+#endif
+        
+#if RENGINE_PLATFORM_ANDROID
+        if(backend == GraphicsBackend::OpenGL)
+            backend = GraphicsBackend::OpenGLES;
+#endif
+        
+#if RENGINE_PLATFORM_WINDOWS || RENGINE_PLATFORM_MACOS
+        if(backend == GraphicsBackend::OpenGLES) 
+            ATOMIC_LOGWARNING("Graphics Backend GL ES requires libGLESv2 installed in your machine. You can build yourself ANGLE lib or copy from Chrome like browser to your system machine.");
+#endif
         driver_desc_->backend = backend;
     }
 
@@ -354,6 +425,14 @@ namespace Atomic
 
 		Diligent::TEXTURE_FORMAT fullscreen_format = SDL_BITSPERPIXEL(mode.format) == 16 ? Diligent::TEX_FORMAT_B5G6R5_UNORM : Diligent::TEX_FORMAT_RGBA8_UNORM;
 
+#if RENGINE_PLATFORM_IOS
+        fullscreen = true;
+        borderless = false;
+        resizable = true;
+#endif
+#if RENGINE_PLATFORM_MACOS
+        highDPI = true;
+#endif
 		// If zero dimensions in windowed mode, set windowed mode to maximize and set a predefined default restored window size. If zero in fullscreen, use desktop mode
 		if (!width || !height)
 		{
@@ -369,6 +448,12 @@ namespace Atomic
 				height = 500;
 			}
 		}
+        
+#if RENGINE_PLATFORM_IOS || RENGINE_PLATFORM_ANDROID
+        // On mobile devices Window size cannot be greater than Device size
+        width = Min(width, mode.w);
+        height = Min(height, mode.h);
+#endif
 
 		// Fullscreen or Borderless can not be resizable
 		if (fullscreen || borderless)
@@ -382,7 +467,7 @@ namespace Atomic
 		if (width == width_ && height == height_ && fullscreen == fullscreen_ && borderless == borderless_ && resizable == resizable_ &&
 			vsync == vsync_ && tripleBuffer == tripleBuffer_ && multiSample == multiSample_)
 			return true;
-
+        
 		SDL_SetHint(SDL_HINT_ORIENTATIONS, orientations_.CString());
 
 		if (!window_)
@@ -394,6 +479,7 @@ namespace Atomic
                 resizable,
                 borderless,
                 fullscreen,
+                highDPI,
                 static_cast<u8>(multiSample),
                 0,
                 0,
@@ -413,10 +499,7 @@ namespace Atomic
                 if (SDL_GL_GetAttribute(SDL_GL_MULTISAMPLESAMPLES, &effective_multisample) == 0)
                     multiSample = Max(1, effective_multisample);
                 
-                int effective_srgb{};
-                if (SDL_GL_GetAttribute(SDL_GL_FRAMEBUFFER_SRGB_CAPABLE, &effective_srgb) == 0)
-                    sRGB_ = effective_srgb != 0;
-                
+                sRGB_ = sdl_gl_srgb_support();
                 SDL_GL_SetSwapInterval(vsync ? 1 : 0);
             }
             
@@ -427,6 +510,7 @@ namespace Atomic
             driver_desc_->window = result.native_window;
 		}
 
+#if !defined(RENGINE_PLATFORM_IOS) && !defined(RENGINE_PLATFORM_ANDROID)
 		// Check fullscreen mode validity. Use a closest match if not found
 		if (fullscreen)
 		{
@@ -451,6 +535,7 @@ namespace Atomic
 				refreshRate = resolutions[best].z_;
 			}
 		}
+#endif
 
 		AdjustWindow(width, height, fullscreen, borderless, monitor);
 		monitor_ = monitor;
@@ -517,6 +602,9 @@ namespace Atomic
 
 	void Graphics::SetSRGB(bool enable)
 	{
+        if(enable && GetBackend() == GraphicsBackend::OpenGL && !sdl_gl_srgb_support())
+            enable = false;
+        
 		bool newEnable = enable && sRGBWriteSupport_;
 		if (newEnable != sRGB_)
 		{
@@ -1244,7 +1332,12 @@ namespace Atomic
 		{
 		case CF_RGBA:
 			return TEX_FORMAT_RGBA8_UNORM;
-
+#if RENGINE_PLATFORM_IOS || RENGINE_PLATFORM_ANDROID
+        case CF_DXT1:
+        case CF_DXT3:
+        case CF_DXT5:
+                return TEX_FORMAT_UNKNOWN;
+#else
 		case CF_DXT1:
 			return TEX_FORMAT_BC1_UNORM;
 
@@ -1253,7 +1346,7 @@ namespace Atomic
 
 		case CF_DXT5:
 			return TEX_FORMAT_BC3_UNORM;
-
+#endif
 		default:
 			return TEX_FORMAT_UNKNOWN;
 		}
@@ -1637,7 +1730,7 @@ namespace Atomic
         return Vector2((float)total_pixels_w / (float)width_, (float)total_pixels_h / (float)height_);
     }
 
-	bool Graphics::CreateDevice(int width, int height, int multiSample)
+	void Graphics::CreateDevice(int width, int height, int multiSample)
 	{
         Vector2 size(static_cast<float>(width), static_cast<float>(height));
         size *= GetScale();
@@ -1654,7 +1747,7 @@ namespace Atomic
 		if (!impl_->InitDevice(*driver_desc_))
 		{
 			ATOMIC_LOGERROR("Failed to initialize graphics driver.");
-			return false;
+            throw std::runtime_error("Failed to initialize graphics driver.");
 		}
 
 		CheckFeatureSupport();
@@ -1668,8 +1761,10 @@ namespace Atomic
 
 	bool Graphics::UpdateSwapChain(int width, int height)
 	{
-		if (impl_->GetSwapChain() == nullptr)
-			return CreateDevice(width, height, multiSample_);
+        if (impl_->GetSwapChain() == nullptr) {
+            CreateDevice(width, height, multiSample_);
+            return;
+        }
 
         const auto scale = GetScale();
         const auto real_width = width * scale.x_;

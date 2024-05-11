@@ -339,9 +339,9 @@ void WritePackageFile(const String& fileName, const String& rootDir)
 void WriteHeader(File& dest)
 {
     if (!compress_)
-        dest.WriteFileID("UPAK");
+        dest.WriteFileID("RPAK");
     else
-        dest.WriteFileID("ULZ4");
+        dest.WriteFileID("RLZ4");
     dest.WriteUInt(entries_.Size());
     dest.WriteUInt(checksum_);
 }

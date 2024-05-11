@@ -416,7 +416,7 @@ void Batch::Prepare(View* view, Camera* camera, bool setModelTransform, bool all
                         Matrix4 lightVecRot(lightNode->GetWorldRotation().RotationMatrix());
                         // HLSL compiler will pack the parameters as if the matrix is only 3x4, so must be careful to not overwrite
                         // the next parameter
-                        if(graphics->GetBackend() == GraphicsBackend::OpenGL)
+                        if(graphics->GetBackend() == GraphicsBackend::OpenGL || graphics->GetBackend() == GraphicsBackend::Vulkan)
                             graphics->SetShaderParameter(PSP_LIGHTMATRICES, lightVecRot.Data(), 16);
                         else
                             graphics->SetShaderParameter(PSP_LIGHTMATRICES, lightVecRot.Data(), 12);

@@ -291,8 +291,15 @@ namespace REngine
     void shader_compiler_preprocess(const ShaderCompilerDesc& desc, ShaderCompilerPreProcessResult& output)
     {
         ::glslang::InitializeProcess();
+        
+        auto source_code = desc.source_code;
+#if RENGINE_PLATFORM_IOS
+        // Replace header version to 310 es, Otherwise the code above will not work!
+        source_code.Replace("#version 300 es", "#version 310 es");
+#endif
+        
         const auto resources = init_resources();
-        const char* shader_strings[] = {desc.source_code.CString()};
+        const char* shader_strings[] = {source_code.CString()};
         const int shader_strings_len[] = {static_cast<int>(desc.source_code.Length())};
 
         constexpr auto messages = EShMsgSpvRules;
@@ -351,7 +358,12 @@ namespace REngine
             final_result.Append(line);
             final_result.Append('\n');
         }
-
+        
+#if RENGINE_PLATFORM_IOS
+        // Replace header version to 310 es, Otherwise the code above will not work!
+        final_result.Replace("#version 310 es", "#version 300 es");
+#endif
+        
         output.has_error = false;
         output.source_code = final_result;
     }
@@ -359,8 +371,14 @@ namespace REngine
     void shader_compiler_compile(const ShaderCompilerDesc& desc, const bool optimize, ShaderCompilerResult& output)
     {
         ::glslang::InitializeProcess();
+        auto source_code = desc.source_code;
+#if RENGINE_PLATFORM_IOS
+        // Replace header version to 310 es, Otherwise the code above will not work!
+        source_code.Replace("#version 300 es", "#version 310 es");
+#endif
+        
         const auto resources = init_resources();
-        const char* shader_strings[] = {desc.source_code.CString()};
+        const char* shader_strings[] = {source_code.CString()};
         const int shader_strings_len[] = {static_cast<int>(desc.source_code.Length())};
 
         constexpr auto messages = EShMsgSpvRules;

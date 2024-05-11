@@ -9,6 +9,12 @@ set(PROJECT_ARCH "x86_64")
 set(CMAKE_OSX_ARCHITECTURES "x86_64")
 set(CMAKE_OSX_DEPLOYMENT_TARGET "10.13")
 
+if(CMAKE_SYSTEM_PROCESSOR MATCHES "arm64")
+    set(CMAKE_OSX_ARCHITECTURES arm64)
+    set(PROJECT_ARCH "arm64")
+    set(ATOMIC_WEBVIEW OFF)
+endif()
+
 if (CMAKE_GENERATOR STREQUAL "Xcode")
     set(ATOMIC_XCODE 1)
 elseif (NOT CMAKE_CROSSCOMPILING)
@@ -19,3 +25,5 @@ endif ()
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-invalid-offsetof -stdlib=libc++")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-invalid-command-line-argument -Wno-unused-command-line-argument")
+
+link_directories(/usr/local/lib)

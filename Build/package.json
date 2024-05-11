@@ -10,13 +10,14 @@
   },
   "engineStrict": true,
   "scripts": {
-    "build" : "jake -f ./Scripts/Bootstrap.js",
-    "build:vs2022": "node ./Scripts/Bootstrap.js --task=build:genvs2022"
+    "build": "jake -f ./Scripts/Bootstrap.js ${0}",
+    "build:vs2022": "node ./Scripts/Bootstrap.js --task=build:genvs2022",
+    "pkg": "node ./Scripts/PackageTool.js"
   },
   "dependencies": {
     "dts-generator": "^2.0.0",
     "fs-extra": "^11.2.0",
-    "glob": "^6.0.3",
+    "glob": "^10.3.12",
     "jake": "^10.8.7",
     "monaco-editor": "^0.9.0",
     "tslint": "^3.2.0",

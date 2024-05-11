@@ -468,7 +468,6 @@ dep_option(SDL_WAYLAND_LIBDECOR    "Use client-side window decorations on Waylan
 dep_option(SDL_WAYLAND_LIBDECOR_SHARED     "Dynamically load libdecor support" ON "SDL_WAYLAND_LIBDECOR;SDL_WAYLAND_SHARED" OFF)
 dep_option(SDL_WAYLAND_QT_TOUCH    "QtWayland server support for Wayland video driver" ON "SDL_WAYLAND" OFF)
 set_option(SDL_RPI                 "Use Raspberry Pi video driver" ${UNIX_SYS})
-set_option(SDL_COCOA               "Use Cocoa video driver" ON "APPLE AND NOT IOS" OFF)
 set_option(SDL_DIRECTX             "Use DirectX for Windows audio/video" ${WINDOWS})
 set_option(SDL_XINPUT              "Use Xinput for Windows" ${WINDOWS})
 set_option(SDL_WASAPI              "Use the Windows WASAPI audio driver" ${WINDOWS})
@@ -496,6 +495,11 @@ option(SDL_WERROR "Enable -Werror" OFF)
 set(SDL_SHARED OFF)
 set(SDL_STATIC ON)
 set(SDL_TEST OFF)
+set(SDL_RENDER OFF)
+
+if(APPLE AND NOT IOS)
+  set(SDL_COCOA ON)
+endif()
 
 dep_option(SDL_STATIC_PIC      "Static version of the library should be built with Position Independent Code" "${CMAKE_POSITION_INDEPENDENT_CODE}" "SDL_STATIC" OFF)
 

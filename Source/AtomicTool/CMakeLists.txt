@@ -17,7 +17,7 @@ target_link_libraries(AtomicTool libcurl)
 if (ATOMIC_JAVASCRIPT OR ATOMIC_DOTNET)
     target_link_libraries(AtomicTool AtomicNETScript)
     # Custom target which is always considered out of date, checks for zero size/missing script bindings and generates
-    add_custom_target( AtomicToolCheckScripts
+    add_custom_target(AtomicToolCheckScripts
                     WORKING_DIRECTORY "${ATOMIC_SOURCE_DIR}"
                     COMMAND "${CMAKE_COMMAND}" -E make_directory \"${ATOMIC_SOURCE_DIR}/Artifacts/Build/AtomicTool\"
                     COMMAND "${CMAKE_COMMAND}" -E copy_if_different \"$<TARGET_FILE:AtomicTool>\" \"${ATOMIC_SOURCE_DIR}/Artifacts/Build/AtomicTool/\"

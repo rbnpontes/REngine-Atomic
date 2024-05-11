@@ -53,7 +53,7 @@ public:
     virtual ~UIView();
 
     /// Set the view size
-    bool SetSize(int width, int height);
+    bool SetSizeInPixels(int width, int height) override;
 
     /// Remove the UIView from the UI subsystem, readding removed views is not advised
     void Remove();

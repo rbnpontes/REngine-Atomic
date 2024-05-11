@@ -25,6 +25,8 @@
 #include <emmintrin.h>
 #endif
 
+#include <DiligentCore/Graphics/GraphicsAccessories/interface/GraphicsAccessories.hpp>
+
 #define MAX_SHADER_PARAMETER_UPDATES 100
 
 namespace REngine
@@ -105,8 +107,8 @@ namespace REngine
 			if (graphics_->GetBackend() == GraphicsBackend::OpenGL)
 				glDisable(GL_CLIP_PLANE0);
 
-			clip_plane_ = Vector4::ZERO;
-			curr_pipeline_hash_			= 
+			clip_plane_ = Atomic::Vector4::ZERO;
+			curr_pipeline_hash_			=
 			curr_vbuffer_checksum_		= 
 			curr_vertx_decl_checksum_	= 0u;
 
@@ -496,7 +498,7 @@ namespace REngine
 			if(shader_parameters_cache_get(param.Value(), &parameter))
 			{
 				const auto cbuffer = static_cast<ConstantBuffer*>(parameter->bufferPtr_);
-				cbuffer->SetParameter(parameter->offset_, sizeof(Vector2), &value);
+				cbuffer->SetParameter(parameter->offset_, sizeof(Atomic::Vector2), &value);
 				return;
 			}
 
@@ -522,7 +524,7 @@ namespace REngine
 			if(shader_parameters_cache_get(param.Value(), &parameter))
 			{
 				const auto cbuffer = static_cast<ConstantBuffer*>(parameter->bufferPtr_);
-				cbuffer->SetParameter(parameter->offset_, sizeof(Vector3), &value);
+				cbuffer->SetParameter(parameter->offset_, sizeof(Atomic::Vector3), &value);
 				return;
 			}
 
@@ -548,7 +550,7 @@ namespace REngine
 			if(shader_parameters_cache_get(param.Value(), &parameter))
 			{
 				const auto cbuffer = static_cast<ConstantBuffer*>(parameter->bufferPtr_);
-				cbuffer->SetParameter(parameter->offset_, sizeof(Vector4), &value);
+				cbuffer->SetParameter(parameter->offset_, sizeof(Atomic::Vector4), &value);
 				return;
 			}
 
@@ -1492,7 +1494,7 @@ namespace REngine
 
 			bind_depth_stencil_ = depth_stencil;
 
-			const auto format = depth_stencil->GetDesc().Format;
+			const auto format = depth_stencil ? depth_stencil->GetDesc().Format : TEX_FORMAT_UNKNOWN;
 			if(format != pipeline_info_->output.depth_stencil_format)
 				dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::pipeline);
 			pipeline_info_->output.depth_stencil_format = format;
@@ -1788,6 +1790,10 @@ namespace REngine
 				dirty_flags_ ^= static_cast<u32>(RenderCommandDirtyState::commit_srb);
 				context_->CommitShaderResources(shader_resource_binding_, RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
 			}
+            
+#if ATOMIC_DEBUG
+            ValidatePipelineAndRenderTargets();
+#endif
 		}
 		void BoundRenderTargets() const
 		{
@@ -1800,18 +1806,21 @@ namespace REngine
 		void ClearByHardware(const DrawCommandClearDesc& desc) const
 		{
 			ATOMIC_PROFILE(IDrawCommand::ClearByHardware);
-				
+            const auto depth_fmt = depth_stencil_
+                ? depth_stencil_->GetParentTexture()->GetFormat()
+                : graphics_->GetImpl()->GetSwapChain()->GetDepthBufferDSV()->GetDesc().Format;
 			auto clear_stencil_flags = Diligent::CLEAR_DEPTH_FLAG_NONE;
+            bool is_depth_stencil = Diligent::GetTextureFormatAttribs(depth_fmt).ComponentType == Diligent::COMPONENT_TYPE_DEPTH_STENCIL;
+                
 			if(desc.flags & CLEAR_COLOR && bind_rts_[0])
 				context_->ClearRenderTarget(bind_rts_[0], desc.color.Data(), Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
 			if((desc.flags & (CLEAR_DEPTH | CLEAR_STENCIL)) !=0 && bind_depth_stencil_)
 			{
 				if(desc.flags & CLEAR_DEPTH)
 					clear_stencil_flags |= Diligent::CLEAR_DEPTH_FLAG;
-				if(desc.flags & CLEAR_STENCIL)
+				if(desc.flags & CLEAR_STENCIL && is_depth_stencil)
 					clear_stencil_flags |= Diligent::CLEAR_STENCIL_FLAG;
-
-				context_->ClearDepthStencil(bind_depth_stencil_, 
+				context_->ClearDepthStencil(bind_depth_stencil_,
 					clear_stencil_flags, 
 					desc.depth, 
 					static_cast<u8>(desc.stencil), 
@@ -1824,7 +1833,7 @@ namespace REngine
 			const auto renderer = graphics_->GetContext()->GetSubsystem<Renderer>();
 			if (!renderer)
 			{
-				ATOMIC_LOGWARNING("Can´t clear without Renderer. Skipping!");
+				ATOMIC_LOGWARNING("Can't clear without Renderer. Skipping!");
 				return;
 			}
 
@@ -1849,11 +1858,11 @@ namespace REngine
 				pipeline_info.output.render_target_formats[0] = render_targets_[0]->GetParentTexture()->GetFormat();
 			else
 				pipeline_info.output.render_target_formats[0] = graphics_->GetImpl()->GetSwapChain()->GetDesc().ColorBufferFormat;
-			if (depth_stencil_)
-				pipeline_info.output.depth_stencil_format = depth_stencil_->GetParentTexture()->GetFormat();
+			if (bind_depth_stencil_)
+				pipeline_info.output.depth_stencil_format = bind_depth_stencil_->GetDesc().Format;
 			else
-				pipeline_info.output.depth_stencil_format = graphics_->GetImpl()->GetSwapChain()->GetDesc().DepthBufferFormat;
-			pipeline_info.output.num_rts = 1;
+                pipeline_info.output.depth_stencil_format = TEX_FORMAT_UNKNOWN;
+			pipeline_info.output.num_rts = num_rts_;
 			pipeline_info.blend_mode = BLEND_REPLACE;
 			pipeline_info.color_write_enabled = desc.flags & CLEAR_COLOR;
 			pipeline_info.alpha_to_coverage_enabled = false;
@@ -1971,6 +1980,28 @@ namespace REngine
 
 			return result;
 		}
+#if ATOMIC_DEBUG
+        void ValidatePipelineAndRenderTargets() 
+        {
+            assert(num_rts_ == pipeline_info_->output.num_rts && "Used Render Target Count is not same of Pipeline State. This indicates a bug on DrawCommand implementation");
+            if(bind_depth_stencil_){
+                assert(bind_depth_stencil_->GetDesc().Format == pipeline_info_->output.depth_stencil_format
+                       && "Depth Stencil Format is not same of Pipeline State. This indicates a bug on DrawCommand implementation");
+            }
+            else
+            {
+                assert(pipeline_info_->output.depth_stencil_format == TEX_FORMAT_UNKNOWN
+                       && "Pipeline State expects a assigned depth stencil but none is bound. This indicates a bug on DrawCommand implementation");
+            }
+            
+            for(u32 i = 0; i < num_rts_; ++i) 
+            {
+                assert(bind_rts_[i] && "Render Target is Required. This indicates a bug on DrawCommand implementation");
+                assert(bind_rts_[i]->GetTexture()->GetDesc().Format == pipeline_info_->output.render_target_formats[i]
+                       && "Assigned render target is not same of Pipeline State. This indicates a bug on DrawCommand implementation");
+            }
+        }
+#endif
 
 		static void WriteShaderParameter(ShaderProgram* program, const StringHash& param, void* data, u32 length)
 		{
@@ -2012,7 +2043,7 @@ namespace REngine
 		SharedPtr<ShaderProgram> shader_program_;
 
 		bool enable_clip_planes_{};
-		Vector4 clip_plane_{};
+		Atomic::Vector4 clip_plane_{};
 
 		IntRect scissor_{};
 		IntRect viewport_{};

@@ -7,13 +7,14 @@
 #include "../Graphics/Graphics.h"
 #include "./SwapChain.h"
 
-#include <GLEW/glew.h>
 #if WIN32
 #include <DiligentCore/Graphics/GraphicsEngineD3D11/interface/EngineFactoryD3D11.h>
 #include <DiligentCore/Graphics/GraphicsEngineD3D12/interface/EngineFactoryD3D12.h>
 #endif
 #include <DiligentCore/Graphics/GraphicsEngineVulkan/interface/EngineFactoryVk.h>
+
 #include <DiligentCore/Graphics/GraphicsEngineOpenGL/interface/EngineFactoryOpenGL.h>
+
 #include <DiligentCore/Graphics/GraphicsEngineOpenGL/interface/DeviceContextGL.h>
 #include <DiligentCore/Graphics/GraphicsEngineOpenGL/interface/SwapChainGL.h>
 
@@ -38,6 +39,24 @@ namespace REngine
 #if ATOMIC_DEBUG
         ci.EnableValidation = true;
 #endif
+    }
+
+    static TextureFormat get_best_depth_format(Diligent::IRenderDevice* device, TextureFormat default_fmt) {
+        static const TextureFormat formats[] = {
+            TextureFormat::TEX_FORMAT_D24_UNORM_S8_UINT,
+            TextureFormat::TEX_FORMAT_D32_FLOAT_S8X24_UINT,
+            TextureFormat::TEX_FORMAT_D32_FLOAT,
+            TextureFormat::TEX_FORMAT_D16_UNORM,
+        };
+        
+        for(const auto tex_fmt : formats) 
+        {
+            if(device->GetTextureFormatInfoExt(tex_fmt).BindFlags & Diligent::BIND_DEPTH_STENCIL)
+                return tex_fmt;
+        }
+        
+        ATOMIC_LOGWARNING("Not found a suitable depth format. Using default");
+        return default_fmt;
     }
     
     DriverInstance::DriverInstance(Atomic::Graphics* graphics) :
@@ -98,7 +117,7 @@ namespace REngine
         swap_chain_desc.Width = init_desc.window_size.x_;
         swap_chain_desc.Height = init_desc.window_size.y_;
         swap_chain_desc.BufferCount = init_desc.triple_buffer ? 3 : 2;
-#if RENGINE_PLATFORM_APPLE
+#if RENGINE_PLATFORM_MACOS
         // Apple Environments requires triple buffer
         swap_chain_desc.BufferCount = 3;
 #endif
@@ -178,6 +197,7 @@ namespace REngine
             }
             break;
         case GraphicsBackend::OpenGL:
+        case GraphicsBackend::OpenGLES:
             {
                 const auto factory = GetEngineFactoryOpenGL();
                 engine_factory_ = factory;
@@ -189,6 +209,7 @@ namespace REngine
                 fill_create_info(init_desc, FindBestAdapter(init_desc.adapter_id, init_desc.backend), ci);
 
                 Diligent::IDeviceContext* device_context = nullptr;
+                ci.GLContext = init_desc.gl_context.get();
                 factory->AttachToActiveGLContext(ci, &render_device_, &device_context);
                 device_contexts[0] = device_context;
                 
@@ -221,12 +242,13 @@ namespace REngine
         u8 multi_sample = GetSupportedMultiSample(swap_chain_->GetDesc().ColorBufferFormat, init_desc.multisample);
         Diligent::ISwapChain* default_swapchain = swap_chain_;
         
+        const auto depth_format = get_best_depth_format(render_device_, init_desc.depth_buffer_format);
         if(!swap_chain_->GetDepthBufferDSV())
         {
             if (multi_sample == 1)
-                swapchain_create_wrapper(this, init_desc.depth_buffer_format, &default_swapchain);
+                swapchain_create_wrapper(this, depth_format, &default_swapchain);
             else
-                swapchain_create_msaa(this, init_desc.depth_buffer_format, multi_sample, &default_swapchain);
+                swapchain_create_msaa(this, depth_format, multi_sample, &default_swapchain);
         }
         
         swap_chain_ = default_swapchain;

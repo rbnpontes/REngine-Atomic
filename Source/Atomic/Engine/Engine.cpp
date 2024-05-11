@@ -321,6 +321,8 @@ bool Engine::Initialize(const VariantMap& parameters)
             graphics->SetForceGL2(GetParameter(parameters, EP_FORCE_GL2).GetBool());
 #endif
 
+        graphics->SetBackend(
+             static_cast<GraphicsBackend>(GetParameter(parameters, EP_GRAPHICS_BACKEND, (int)GraphicsBackend::OpenGL).GetInt()));
         if (!graphics->SetMode(
 // ATOMIC BEGIN
             GetParameter(parameters, EP_WINDOW_MAXIMIZED, false).GetBool() ? 0 : GetParameter(parameters, EP_WINDOW_WIDTH, 0).GetInt(),
@@ -1073,6 +1075,26 @@ VariantMap Engine::ParseParameters(const Vector<String>& arguments)
 	            ret[EP_PROFILER_LISTEN] = true;
             }
 #endif
+            else if(argument == "-backend" && !value.Empty())
+            {
+                static const ea::hash_map<u32, GraphicsBackend> s_backend_tbl = {
+                    { StringHash("d3d").ToHash(), GraphicsBackend::D3D11 },
+                    { StringHash("d3d11").ToHash(), GraphicsBackend::D3D11 },
+                    { StringHash("d3d12").ToHash(), GraphicsBackend::D3D12 },
+                    { StringHash("vulkan").ToHash(), GraphicsBackend::Vulkan },
+                    { StringHash("vk").ToHash(), GraphicsBackend::Vulkan },
+                    { StringHash("opengl").ToHash(), GraphicsBackend::OpenGL },
+                    { StringHash("gl").ToHash(), GraphicsBackend::OpenGL },
+                    { StringHash("opengles").ToHash(), GraphicsBackend::OpenGLES },
+                    { StringHash("gles").ToHash(), GraphicsBackend::OpenGLES },
+                    { StringHash("egl").ToHash(), GraphicsBackend::OpenGLES },
+                };
+                
+                const auto it = s_backend_tbl.find_as(value.ToHash());
+                if(it != s_backend_tbl.end())
+                    ret[EP_GRAPHICS_BACKEND] = static_cast<int>(it->second);
+                ++i;
+            }
         }
     }
 

@@ -1,7 +1,14 @@
 #pragma once
 #include "./RHITypes.h"
 
-#include <GLEW/glew.h>
+#if RENGINE_PLATFORM_IOS
+    #include <OpenGLES/ES3/gl.h>
+#elif RENGINE_PLATFORM_MACOS
+    #include <OpenGL/OpenGL.h>
+    #include <OpenGL/gl.h>
+#else
+    #include <GLEW/glew.h>
+#endif
 
 #include <DiligentCore/Graphics/GraphicsEngine/interface/SwapChain.h>
 #include <DiligentCore/Graphics/GraphicsEngine/interface/RenderDevice.h>

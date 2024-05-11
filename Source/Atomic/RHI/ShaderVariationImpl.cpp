@@ -58,8 +58,11 @@ namespace Atomic
             ea::shared_array<u8> shader_file_data;
             u32 shader_file_size = 0;
             // Compile shader if don't have valid bytecode
-            if (!Compile(shader_file_data, &shader_file_size))
+            if (!Compile(shader_file_data, &shader_file_size)) 
+            {
+                ATOMIC_LOGERROR(compilerOutput_);
                 return false;
+            }
             // Save Shader File
             SaveByteCode(binary_shader_name, shader_file_data, shader_file_size);
         }
@@ -159,7 +162,8 @@ namespace Atomic
             ATOMIC_LOGERROR("Invalid shader bytecode type. Compiled shader file is not compatible with Vulkan bytecode.");
             return false;  
         }
-        else if(backend == GraphicsBackend::OpenGL && bin_result.byte_code_type != ShaderByteCodeType::Raw)
+        else if((backend == GraphicsBackend::OpenGL || backend == GraphicsBackend::OpenGLES)
+                && bin_result.byte_code_type != ShaderByteCodeType::Raw)
         {
             ATOMIC_LOGERROR("Invalid shader bytecode type. Shader file must contains a valid GLSL shader.");
             return false;
@@ -201,6 +205,7 @@ namespace Atomic
             ci.ByteCodeSize = bin_result.byte_code_size;
             break;
         case GraphicsBackend::OpenGL:
+        case GraphicsBackend::OpenGLES:
             ci.Source = static_cast<char*>(static_cast<void*>(bin_result.byte_code.get()));
             ci.SourceLength = bin_result.byte_code_size;
             break;
@@ -256,7 +261,7 @@ namespace Atomic
             defines.push_back("OPENGL");
             break;
         }
-
+        
         switch (type_)
         {
         case VS:
@@ -306,8 +311,10 @@ namespace Atomic
         }
 
         String glsl_version = "#version 450\n";
-#if RENGINE_PLATFORM_APPLE
+#if RENGINE_PLATFORM_MACOS
         glsl_version = "#version 330\n";
+#else
+        glsl_version = "#version 300 es\n";
 #endif
         source_code = glsl_version + String(macros_header.c_str()) + source_code;
         source_code.Append("void main()\n{\n");

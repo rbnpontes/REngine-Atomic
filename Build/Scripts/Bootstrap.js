@@ -1,3 +1,4 @@
+console.log("Starting Bootstrap...");
 var os = require('os');
 var path = require('path');
 
