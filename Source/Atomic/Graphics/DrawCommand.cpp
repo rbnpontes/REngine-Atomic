@@ -1985,7 +1985,7 @@ namespace REngine
         {
             assert(num_rts_ == pipeline_info_->output.num_rts && "Used Render Target Count is not same of Pipeline State. This indicates a bug on DrawCommand implementation");
             if(bind_depth_stencil_){
-                assert(bind_depth_stencil_->GetTexture()->GetDesc().Format == pipeline_info_->output.depth_stencil_format
+                assert(bind_depth_stencil_->GetDesc().Format == pipeline_info_->output.depth_stencil_format
                        && "Depth Stencil Format is not same of Pipeline State. This indicates a bug on DrawCommand implementation");
             }
             else
