@@ -91,6 +91,8 @@ namespace REngine
 			Diligent::RefCntAutoPtr<Diligent::ITexture> depth_buffer;
 			device_->CreateTexture(desc, nullptr, &depth_buffer);
 
+            // On iOS, this format can be changed at creation
+            depth_fmt_ = depth_buffer->GetDesc().Format;
 			depth_buffer_view_ = depth_buffer->GetDefaultView(Diligent::TEXTURE_VIEW_DEPTH_STENCIL);
 		}
 		virtual void GetDepthBufferDesc(Diligent::TextureDesc& desc)

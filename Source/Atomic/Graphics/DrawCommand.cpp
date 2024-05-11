@@ -1494,7 +1494,7 @@ namespace REngine
 
 			bind_depth_stencil_ = depth_stencil;
 
-			const auto format = depth_stencil->GetDesc().Format;
+			const auto format = depth_stencil ? depth_stencil->GetDesc().Format : TEX_FORMAT_UNKNOWN;
 			if(format != pipeline_info_->output.depth_stencil_format)
 				dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::pipeline);
 			pipeline_info_->output.depth_stencil_format = format;
@@ -1858,10 +1858,10 @@ namespace REngine
 				pipeline_info.output.render_target_formats[0] = render_targets_[0]->GetParentTexture()->GetFormat();
 			else
 				pipeline_info.output.render_target_formats[0] = graphics_->GetImpl()->GetSwapChain()->GetDesc().ColorBufferFormat;
-			if (depth_stencil_)
-				pipeline_info.output.depth_stencil_format = depth_stencil_->GetParentTexture()->GetFormat();
+			if (bind_depth_stencil_)
+				pipeline_info.output.depth_stencil_format = bind_depth_stencil_->GetDesc().Format;
 			else
-				pipeline_info.output.depth_stencil_format = graphics_->GetImpl()->GetSwapChain()->GetDesc().DepthBufferFormat;
+                pipeline_info.output.depth_stencil_format = TEX_FORMAT_UNKNOWN;
 			pipeline_info.output.num_rts = num_rts_;
 			pipeline_info.blend_mode = BLEND_REPLACE;
 			pipeline_info.color_write_enabled = desc.flags & CLEAR_COLOR;
@@ -1984,9 +1984,15 @@ namespace REngine
         void ValidatePipelineAndRenderTargets() 
         {
             assert(num_rts_ == pipeline_info_->output.num_rts && "Used Render Target Count is not same of Pipeline State. This indicates a bug on DrawCommand implementation");
-            assert(bind_depth_stencil_ && "Depth Stencil is Required. This indicates a bug on DrawCommand implementation");
-            assert(bind_depth_stencil_->GetTexture()->GetDesc().Format == pipeline_info_->output.depth_stencil_format
-                   && "Depth Stencil Format is not same of Pipeline State. This indicates a bug on DrawCommand implementation");
+            if(bind_depth_stencil_){
+                assert(bind_depth_stencil_->GetTexture()->GetDesc().Format == pipeline_info_->output.depth_stencil_format
+                       && "Depth Stencil Format is not same of Pipeline State. This indicates a bug on DrawCommand implementation");
+            }
+            else
+            {
+                assert(pipeline_info_->output.depth_stencil_format == TEX_FORMAT_UNKNOWN
+                       && "Pipeline State expects a assigned depth stencil but none is bound. This indicates a bug on DrawCommand implementation");
+            }
             
             for(u32 i = 0; i < num_rts_; ++i) 
             {

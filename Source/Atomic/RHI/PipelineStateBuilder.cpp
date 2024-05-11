@@ -315,7 +315,7 @@ namespace REngine
         for (unsigned i = 0; i < info.output.num_rts; ++i)
             ci.GraphicsPipeline.RTVFormats[i] = info.output.render_target_formats[i];
         ci.GraphicsPipeline.DSVFormat = info.output.depth_stencil_format;
-        assert(ci.GraphicsPipeline.DSVFormat != Diligent::TEX_FORMAT_UNKNOWN);
+        //assert(ci.GraphicsPipeline.DSVFormat != Diligent::TEX_FORMAT_UNKNOWN);
 
         ci.GraphicsPipeline.SmplDesc.Count = info.output.multi_sample;
 

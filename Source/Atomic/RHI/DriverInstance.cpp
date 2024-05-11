@@ -40,6 +40,24 @@ namespace REngine
         ci.EnableValidation = true;
 #endif
     }
+
+    static TextureFormat get_best_depth_format(Diligent::IRenderDevice* device, TextureFormat default_fmt) {
+        static const TextureFormat formats[] = {
+            TextureFormat::TEX_FORMAT_D24_UNORM_S8_UINT,
+            TextureFormat::TEX_FORMAT_D32_FLOAT_S8X24_UINT,
+            TextureFormat::TEX_FORMAT_D32_FLOAT,
+            TextureFormat::TEX_FORMAT_D16_UNORM,
+        };
+        
+        for(const auto tex_fmt : formats) 
+        {
+            if(device->GetTextureFormatInfoExt(tex_fmt).BindFlags & Diligent::BIND_DEPTH_STENCIL)
+                return tex_fmt;
+        }
+        
+        ATOMIC_LOGWARNING("Not found a suitable depth format. Using default");
+        return default_fmt;
+    }
     
     DriverInstance::DriverInstance(Atomic::Graphics* graphics) :
         graphics_(graphics),
@@ -224,12 +242,13 @@ namespace REngine
         u8 multi_sample = GetSupportedMultiSample(swap_chain_->GetDesc().ColorBufferFormat, init_desc.multisample);
         Diligent::ISwapChain* default_swapchain = swap_chain_;
         
+        const auto depth_format = get_best_depth_format(render_device_, init_desc.depth_buffer_format);
         if(!swap_chain_->GetDepthBufferDSV())
         {
             if (multi_sample == 1)
-                swapchain_create_wrapper(this, init_desc.depth_buffer_format, &default_swapchain);
+                swapchain_create_wrapper(this, depth_format, &default_swapchain);
             else
-                swapchain_create_msaa(this, init_desc.depth_buffer_format, multi_sample, &default_swapchain);
+                swapchain_create_msaa(this, depth_format, multi_sample, &default_swapchain);
         }
         
         swap_chain_ = default_swapchain;
