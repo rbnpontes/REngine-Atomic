@@ -269,7 +269,10 @@ namespace Atomic
 #elif RENGINE_PLATFORM_MACOS
         result->native_window.pNSView = result->metal_view.get();
 #elif RENGINE_PLATFORM_IOS
-        result->native_window.pCALayer = sys_info.info.uikit.window;
+        if(result->metal_view)
+            result->native_window.pCALayer = result->metal_view.get();
+        else
+            result->native_window.pCALayer = sys_info.info.uikit.window;
 #elif RENGINE_PLATFORM_ANDROID
         result->native_window.pAWindow = sys_info.info.android.window;
 #elif RENGINE_PLATFORM_WEB
@@ -379,8 +382,15 @@ namespace Atomic
             ATOMIC_LOGWARNING("Vulkan is not supported on this Apple Machine. Switching to OpenGL backend");
         }
 #endif
+    
+#if RENGINE_PLATFORM_IOS
+        if(backend == GraphicsBackend::OpenGL || backend == GraphicsBackend::OpenGLES) {
+            backend = GraphicsBackend::Vulkan;
+            ATOMIC_LOGWARNING("OpenGL is not supported on iOS. Switching to Vulkan(MoltenVk)");
+        }
+#endif
         
-#if RENGINE_PLATFORM_IOS || RENGINE_PLATFORM_ANDROID
+#if RENGINE_PLATFORM_ANDROID
         if(backend == GraphicsBackend::OpenGL)
             backend = GraphicsBackend::OpenGLES;
 #endif
@@ -1322,7 +1332,14 @@ namespace Atomic
 		{
 		case CF_RGBA:
 			return TEX_FORMAT_RGBA8_UNORM;
-
+#if RENGINE_PLATFORM_IOS || RENGINE_PLATFORM_ANDROID
+        case CF_DXT1:
+        case CF_DXT3:
+        case CF_DXT5:
+                return TEX_FORMAT_UNKNOWN;
+            case CF_ETC1:
+                return TEX_FORMAT_ET
+#else
 		case CF_DXT1:
 			return TEX_FORMAT_BC1_UNORM;
 
@@ -1331,7 +1348,7 @@ namespace Atomic
 
 		case CF_DXT5:
 			return TEX_FORMAT_BC3_UNORM;
-
+#endif
 		default:
 			return TEX_FORMAT_UNKNOWN;
 		}
@@ -1715,7 +1732,7 @@ namespace Atomic
         return Vector2((float)total_pixels_w / (float)width_, (float)total_pixels_h / (float)height_);
     }
 
-	bool Graphics::CreateDevice(int width, int height, int multiSample)
+	void Graphics::CreateDevice(int width, int height, int multiSample)
 	{
         Vector2 size(static_cast<float>(width), static_cast<float>(height));
         size *= GetScale();
@@ -1732,7 +1749,7 @@ namespace Atomic
 		if (!impl_->InitDevice(*driver_desc_))
 		{
 			ATOMIC_LOGERROR("Failed to initialize graphics driver.");
-			return false;
+            throw std::runtime_error("Failed to initialize graphics driver.");
 		}
 
 		CheckFeatureSupport();
@@ -1746,8 +1763,10 @@ namespace Atomic
 
 	bool Graphics::UpdateSwapChain(int width, int height)
 	{
-		if (impl_->GetSwapChain() == nullptr)
-			return CreateDevice(width, height, multiSample_);
+        if (impl_->GetSwapChain() == nullptr) {
+            CreateDevice(width, height, multiSample_);
+            return;
+        }
 
         const auto scale = GetScale();
         const auto real_width = width * scale.x_;

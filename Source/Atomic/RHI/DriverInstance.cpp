@@ -179,6 +179,7 @@ namespace REngine
             }
             break;
         case GraphicsBackend::OpenGL:
+        case GraphicsBackend::OpenGLES:
             {
                 const auto factory = GetEngineFactoryOpenGL();
                 engine_factory_ = factory;
