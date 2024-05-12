@@ -1756,7 +1756,6 @@ namespace Atomic
 		draw_command_ = ea::shared_ptr<IDrawCommand>(REngine::graphics_create_command(this));
         draw_command_->Reset();
 		GetSubsystem<DrawCommandQueue>()->AddCommand(draw_command_);
-		return true;
 	}
 
 	bool Graphics::UpdateSwapChain(int width, int height)
