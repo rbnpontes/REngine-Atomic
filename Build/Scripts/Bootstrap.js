@@ -15,9 +15,8 @@ var fs = require('fs-extra');
 require('../node_modules/jake/lib/jake');
 
 var config = require('./BuildConfig');
-var host = require('./Host');
-require('./BuildCommon');
-
+// load build and cmake gen tasks
+require('./CMakeTasks');
 var cmd = config._[0];
 
 // Check that we're in a local repo and not a downloaded zip
@@ -42,13 +41,10 @@ function printHelp() {
     console.log("--noexamples    : Don't include examples with editor");
     console.log("--task=name     : Build the specified task (for development)");
     console.log("--package       : packages the editor to Artifacts/Dist");
-    console.log("--diligent      : Enable Diligent Core renderer");
     if (os.platform() == "win32") {
       console.log("--vs2015        : Build with VS2015");
       console.log("--vs2017        : Build with VS2017");
       console.log("--vs2022        : Build with VS2022");
-      console.log("--opengl        : Enable OpenGL renderer");
-      console.log("--d3d9          : Enable DirectX 9 renderer");
     }
 
     console.log("--------------------------")
