@@ -104,16 +104,6 @@ using namespace tb;
 #include "SystemUI/Console.h"
 #include "SystemUI/MessageBox.h"
 
-namespace tb
-{
-
-void TBSystem::RescheduleTimer(double fire_time)
-{
-
-}
-
-}
-
 namespace Atomic
 {
 

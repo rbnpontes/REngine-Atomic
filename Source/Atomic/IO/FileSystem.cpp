@@ -34,7 +34,7 @@
 
 #ifdef __ANDROID__
 // ATOMIC BEGIN
-#include <SDL/SDL_rwops.h>
+#include <SDL2/SDL_rwops.h>
 // ATOMIC END
 #endif
 

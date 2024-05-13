@@ -20,9 +20,12 @@
 #include "../RHI/DiligentUtils.h"
 #include "../RHI/ShaderParametersCache.h"
 
-#include <GLEW/glew.h>
+#if !RENGINE_PLATFORM_ANDROID
+	#include <GLEW/glew.h>
+#endif
+
 #if RENGINE_SSE
-#include <emmintrin.h>
+	#include <emmintrin.h>
 #endif
 
 #include <DiligentCore/Graphics/GraphicsAccessories/interface/GraphicsAccessories.hpp>
@@ -104,8 +107,10 @@ namespace REngine
 			vertex_offsets_.fill(0);
 
 			enable_clip_planes_ = false;
+#if !RENGINE_PLATFORM_ANDROID
 			if (graphics_->GetBackend() == GraphicsBackend::OpenGL)
 				glDisable(GL_CLIP_PLANE0);
+#endif
 
 			clip_plane_ = Atomic::Vector4::ZERO;
 			curr_pipeline_hash_			=
@@ -1164,6 +1169,7 @@ namespace REngine
 		}
 		void SetClipPlane(const DrawCommandClipPlaneDesc& desc) override
 		{
+			#if !RENGINE_PLATFORM_ANDROID
 			if(desc.enable != enable_clip_planes_ && graphics_->GetBackend() == GraphicsBackend::OpenGL)
 			{
 				if (desc.enable)
@@ -1171,6 +1177,7 @@ namespace REngine
 				else
 					glDisable(GL_CLIP_PLANE0);
 			}
+			#endif
 
 			enable_clip_planes_ = desc.enable;
 			if(!enable_clip_planes_)

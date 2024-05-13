@@ -30,4 +30,3 @@ target_include_directories(EAAssert PUBLIC include)
 # Package Dependencies 
 #-------------------------------------------------------------------------------------------
 target_link_libraries(EAAssert EABase)
-

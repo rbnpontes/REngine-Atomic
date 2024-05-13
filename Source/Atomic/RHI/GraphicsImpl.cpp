@@ -1762,7 +1762,7 @@ namespace Atomic
 	{
         if (impl_->GetSwapChain() == nullptr) {
             CreateDevice(width, height, multiSample_);
-            return;
+            return false;
         }
 
         const auto scale = GetScale();

@@ -446,9 +446,7 @@ Input::Input(Context* context) :
 
     SubscribeToEvent(E_SCREENMODE, ATOMIC_HANDLER(Input, HandleScreenMode));
 
-#if defined(__ANDROID__)
-    SDL_SetHint(SDL_HINT_ANDROID_SEPARATE_MOUSE_AND_TOUCH, "1");
-#elif defined(__EMSCRIPTEN__)
+#if defined(__EMSCRIPTEN__)
     emscriptenInput_ = new EmscriptenInput(this);
 #endif
 

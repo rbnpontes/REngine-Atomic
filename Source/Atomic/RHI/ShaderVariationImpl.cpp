@@ -14,9 +14,11 @@
 
 #include "../DebugNew.h"
 
-#if RENGINE_PLATFORM_IOS || RENGINE_PLATFORM_ANDROID
+#if RENGINE_PLATFORM_IOS
     #include <OpenGLES/gltypes.h>
     #include <OpenGLES/ES3/gl.h>
+#elif RENGINE_PLATFORM_ANDROID
+    #include <GLES3/gl3.h>
 #else
     #include <GLEW/glew.h>
 #endif

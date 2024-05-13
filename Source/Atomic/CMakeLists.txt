@@ -7,7 +7,6 @@ file (GLOB INPUT_SOURCE Input/*.cpp Input/*.h)
 file (GLOB RESOURCE_SOURCE Resource/*.cpp Resource/*.h)
 file (GLOB AUDIO_SOURCE Audio/*.cpp Audio/*.h)
 file (GLOB NETWORK_SOURCE Network/*.cpp Network/*.h)
-file (GLOB WEB_SOURCE Web/*.cpp Web/*.h)
 file (GLOB SCRIPT_SOURCE Script/*.cpp Script/*.h)
 file (GLOB METRICS_SOURCE Metrics/*.cpp Metrics/*.h)
 if (NOT WEB AND NOT IOS AND NOT ANDROID)
@@ -44,7 +43,7 @@ set (SOURCE_FILES ${CONTAINER_SOURCE} ${CORE_SOURCE} ${ENGINE_SOURCE} ${INPUT_SO
                   ${ATOMIC3D_SOURCE}
                   ${ATOMIC2D_SOURCE} ${ENVIRONMENT_SOURCE}
                   ${SCENE_SOURCE} ${UI_SOURCE} ${SYSTEM_UI_SOURCE}
-                  ${WEB_SOURCE} ${SCRIPT_SOURCE} ${METRICS_SOURCE}
+                  ${SCRIPT_SOURCE} ${METRICS_SOURCE}
                   ${PLATFORM_SOURCE} ${DATABASE_SOURCE} ${IK_SOURCE} 
                   ${NAVIGATION_SOURCE} ${RHI_SOURCE})
 
@@ -113,9 +112,7 @@ set (PUBLIC_THIRD_PARTY_DEPS
     PugiXml
     STB 
     SDL2::SDL2-static
-    ASIO 
     rapidjson 
-    WebSocketPP 
     imgui
     EASTL)
 set (PRIVATE_THIRD_PARTY_DEPS)
@@ -127,10 +124,10 @@ endif ()
 
 if (ANDROID)
     list(APPEND PRIVATE_THIRD_PARTY_DEPS dl log android GLESv1_CM GLESv2)
-    target_compile_definitions(Atomic PUBLIC -DATOMIC_PLATFORM_ANDROID=1 -DGLEW_NO_GLU=1)
+    target_compile_definitions(Atomic PUBLIC -DATOMIC_PLATFORM_ANDROID=1 -DRENGINE_PLATFORM_ANDROID=1)
 elseif (APPLE)
     target_compile_definitions(Atomic PUBLIC -DRENGINE_PLATFORM_APPLE=1)
-    list(APPEND PRIVATE_THIRD_PARTY_DEPSs
+    list(APPEND PRIVATE_THIRD_PARTY_DEPS
             "-framework AudioToolbox"
             "-framework CoreAudio" 
             "-framework CoreVideo" 
@@ -190,7 +187,7 @@ endif ()
 
 if (NOT WEB)
     target_compile_definitions (Atomic PUBLIC -DATOMIC_THREADING=1 -DATOMIC_NETWORK=1 -DATOMIC_WEB=1)
-    list(APPEND PUBLIC_THIRD_PARTY_DEPS libcurl Civetweb kNet)
+    list(APPEND PUBLIC_THIRD_PARTY_DEPS Civetweb kNet)
 endif()
 
 if (ATOMIC_PROFILING)

@@ -177,12 +177,6 @@ macro(setup_library)
     get_target_property(LIB_TYPE ${TARGET_NAME} TYPE)
 
     setup_target()
-
-    # Setup the compiler flags for building shared library
-    if (LIB_TYPE STREQUAL SHARED_LIBRARY)
-        # Hide the symbols that are not explicitly marked for export
-        add_compiler_export_flags()
-    endif ()
 endmacro()
 
 # Macro for setting up an executable target

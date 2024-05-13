@@ -3,6 +3,8 @@
 
 #if RENGINE_PLATFORM_IOS
     #include <OpenGLES/ES3/gl.h>
+#elif RENGINE_PLATFORM_ANDROID
+	#include <GLES3/gl3.h>
 #elif RENGINE_PLATFORM_MACOS
     #include <OpenGL/OpenGL.h>
     #include <OpenGL/gl.h>

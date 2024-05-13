@@ -1,9 +1,6 @@
-
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}" ../FreeType/include ../SDL/include)
-
 if(APPLE)
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-exceptions -Wall -Wextra -Wno-unused-parameter")
-  add_definitions(-DMACOSX)
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-exceptions -Wall -Wextra")
+    add_definitions(-DMACOSX)
 endif(APPLE)
 
 add_definitions(-DTB_FONT_RENDERER_FREETYPE)
@@ -23,7 +20,16 @@ file (GLOB H_FILES *.h image/*.h animation/*.h parser/*.h renderers/*.h utf8/*.h
 set (SOURCE_FILES ${C_FILES} ${H_FILES})
 
 add_library(TurboBadger ${SOURCE_FILES})
+
+target_link_libraries(TurboBadger PUBLIC SDL2::SDL2-static FreeType)
+set(TURBO_BADGER_PRIVATE_FLAGS)
 target_include_directories(TurboBadger SYSTEM BEFORE PUBLIC .)
 if (NOT MSVC)
-    target_compile_options(TurboBadger PRIVATE -std=gnu++11)
+    list(APPEND TURBO_BADGER_PRIVATE_FLAGS "-std=c++11")
 endif ()
+
+if(ANDROID)
+    list(APPEND TURBO_BADGER_PRIVATE_FLAGS "-Wno-format-security")
+endif()
+
+target_compile_options(TurboBadger PRIVATE ${TURBO_BADGER_PRIVATE_FLAGS})
