@@ -53,9 +53,10 @@ function write_string(input, buffer, offset) {
  * @param {string} directoryPath 
  */
 function mkdir_recursive(directoryPath) {
-    const parts = directoryPath.split('/');
-    let dir = '/';
-    for(let i = 0; i < parts.length; ++i) {
+    directoryPath = path.resolve(directoryPath);
+    const parts = directoryPath.split(path.sep);
+    let dir = parts[0];
+    for(let i = 1; i < parts.length; ++i) {
         dir = path.join(dir, parts[i]);
         if(fs.existsSync(dir))
             continue;

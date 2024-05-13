@@ -31,21 +31,15 @@ set(JAVASCRIPT_BINDINGS_PLATFORM_ROOT "${ATOMIC_SOURCE_DIR}/Artifacts/Build/Sour
 # if not, we must run yarn command to generate then
 if(NOT EXISTS "${ATOMIC_SOURCE_DIR}/Build/node_modules")
     message(STATUS "[Building]: Installing Dependencies")
-    execute_process(COMMAND "yarn"
-        WORKING_DIRECTORY "${ATOMIC_SOURCE_DIR}/Build"
-        RESULTS_VARIABLE RENGINE_DEPS_INSTALL_RESULT)
-    if(NOT RENGINE_DEPS_INSTALL_RESULT STREQUAL "0")
+    execute_yarn()
+    if(NOT YARN_RESULT STREQUAL "0")
         message(FATAL_ERROR "[Building]: Failed to Install Dependencies")
     endif()
 endif ()
 
-if (NOT EXISTS "${JAVASCRIPT_BINDINGS_PLATFORM_ROOT}/Javascript")
-    execute_process(COMMAND "yarn" "build" "build:precreateScriptBindings[${JAVASCRIPT_BINDINGS_PLATFORM}]"
-        WORKING_DIRECTORY "${ATOMIC_SOURCE_DIR}/Build" 
-        RESULTS_VARIABLE RENGINE_PRECREATE_SCRIPT_BINDINGS_RESULT)
-    if (NOT RENGINE_PRECREATE_SCRIPT_BINDINGS_RESULT STREQUAL "0")
-        message(FATAL_ERROR "Failed to create script bindings")
-    endif()
+if (NOT EXISTS "${JAVASCRIPT_BINDINGS_PLATFORM_ROOT}/Javascript" AND ATOMIC_JAVASCRIPT)
+    set(YARN_ARGS "build" "build:precreateScriptBindings[${JAVASCRIPT_BINDINGS_PLATFORM}]")
+    execute_yarn()
 endif ()
 
 file(GLOB_RECURSE JAVASCRIPT_BINDINGS_NATIVE_FILENAMES ${JAVASCRIPT_BINDINGS_PLATFORM_ROOT}/*.cpp ${JAVASCRIPT_BINDINGS_PLATFORM_ROOT}/*.h)
