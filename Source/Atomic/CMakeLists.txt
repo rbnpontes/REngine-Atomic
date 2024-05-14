@@ -83,16 +83,19 @@ configure_file("${CMAKE_CURRENT_SOURCE_DIR}/BuildInfo/AtomicGitSHA.cpp.in" "${CM
 
 set (SOURCE_FILES ${SOURCE_FILES} BuildInfo/AtomicBuildInfo.cpp BuildInfo/AtomicBuildInfo.h BuildInfo/AtomicGitSHA.cpp BuildInfo/AtomicGitSHA.h)
 
-if (ATOMIC_DYNAMIC_RUNTIME)
+if (RENGINE_SHARED)
     set(ATOMIC_LIBRARY_TYPE SHARED)
 else ()
     set(ATOMIC_LIBRARY_TYPE STATIC)
 endif ()
+
 add_library(Atomic ${ATOMIC_LIBRARY_TYPE} ${SOURCE_FILES})
-if (NOT ATOMIC_DYNAMIC_RUNTIME)
+if (NOT RENGINE_SHARED)
     target_compile_definitions (Atomic PUBLIC -DATOMIC_STATIC_DEFINE=1 -DATOMIC_API=)
 else ()
-    target_compile_definitions (Atomic PRIVATE -DATOMIC_EXPORTS=1)
+    target_compile_definitions (Atomic 
+        PRIVATE -DATOMIC_EXPORTS=1 
+    )
 endif ()
 
 if(ATOMIC_SSE OR RENGINE_SSE)
@@ -111,10 +114,10 @@ set (PUBLIC_THIRD_PARTY_DEPS
     LZ4 
     PugiXml
     STB 
-    SDL2::SDL2-static
     rapidjson 
     imgui
-    EASTL)
+    EASTL
+    SDL2::SDL2-static)
 set (PRIVATE_THIRD_PARTY_DEPS)
 
 target_compile_definitions (Atomic PUBLIC -DATOMIC_CXX11=1)
@@ -160,6 +163,7 @@ list(APPEND PUBLIC_THIRD_PARTY_DEPS
     Diligent-Common
     Diligent-GraphicsEngineOpenGL-static 
     Diligent-GraphicsEngineVk-static)
+
 list(APPEND PRIVATE_THIRD_PARTY_DEPS glslang
     SPIRV
     spirv-cross-core
@@ -169,6 +173,7 @@ list(APPEND PRIVATE_THIRD_PARTY_DEPS glslang
     SPIRV-Tools
     SPIRV-Tools-opt
 )
+
 if (WIN32)
     list(APPEND PUBLIC_THIRD_PARTY_DEPS Diligent-GraphicsEngineD3D11-static Diligent-GraphicsEngineD3D12-static)
 endif ()

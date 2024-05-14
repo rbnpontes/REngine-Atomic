@@ -1,78 +1,4 @@
 if(PLATFORM_WIN32 OR PLATFORM_UNIVERSAL_WINDOWS)
-
-    function(copy_required_dlls TARGET_NAME)
-        if(D3D11_SUPPORTED)
-            list(APPEND ENGINE_DLLS Diligent-GraphicsEngineD3D11-shared)
-        endif()
-        if(D3D12_SUPPORTED)
-            list(APPEND ENGINE_DLLS Diligent-GraphicsEngineD3D12-shared)
-        endif()
-        if(GL_SUPPORTED)
-            list(APPEND ENGINE_DLLS Diligent-GraphicsEngineOpenGL-shared)
-        endif()
-        if(VULKAN_SUPPORTED)
-            list(APPEND ENGINE_DLLS Diligent-GraphicsEngineVk-shared)
-        endif()
-        if(METAL_SUPPORTED)
-            list(APPEND ENGINE_DLLS Diligent-GraphicsEngineMetal-shared)
-        endif()
-        if(TARGET Diligent-Archiver-shared)
-            list(APPEND ENGINE_DLLS Diligent-Archiver-shared)
-        endif()
-
-        foreach(DLL ${ENGINE_DLLS})
-            add_custom_command(TARGET ${TARGET_NAME} POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                    "\"$<TARGET_FILE:${DLL}>\""
-                    "\"$<TARGET_FILE_DIR:${TARGET_NAME}>\"")
-        endforeach(DLL)
-
-        # Copy D3Dcompiler_47.dll, dxcompiler.dll, and dxil.dll
-        if(MSVC)
-            if ((D3D11_SUPPORTED OR D3D12_SUPPORTED) AND VS_D3D_COMPILER_PATH)
-                # Note that VS_D3D_COMPILER_PATH can only be used in a Visual Studio command
-                # and is not a valid path during CMake configuration
-                list(APPEND SHADER_COMPILER_DLLS ${VS_D3D_COMPILER_PATH})
-            endif()
-
-            if(D3D12_SUPPORTED AND VS_DXC_COMPILER_PATH AND VS_DXIL_SIGNER_PATH)
-                # For the compiler to sign the bytecode, you have to have a copy of dxil.dll in
-                # the same folder as the dxcompiler.dll at runtime.
-
-                # Note that VS_DXC_COMPILER_PATH and VS_DXIL_SIGNER_PATH can only be used in a Visual Studio command
-                # and are not valid paths during CMake configuration
-                list(APPEND SHADER_COMPILER_DLLS ${VS_DXC_COMPILER_PATH})
-                list(APPEND SHADER_COMPILER_DLLS ${VS_DXIL_SIGNER_PATH})
-            endif()
-
-            foreach(DLL ${SHADER_COMPILER_DLLS})
-                add_custom_command(TARGET ${TARGET_NAME} POST_BUILD
-                    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                        ${DLL}
-                        "\"$<TARGET_FILE_DIR:${TARGET_NAME}>\"")
-            endforeach(DLL)
-
-            if(D3D12_SUPPORTED AND EXISTS ${DILIGENT_PIX_EVENT_RUNTIME_DLL_PATH})
-                add_custom_command(TARGET ${TARGET_NAME} POST_BUILD
-                    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                        ${DILIGENT_PIX_EVENT_RUNTIME_DLL_PATH}
-                        "\"$<TARGET_FILE_DIR:${TARGET_NAME}>\"")
-            endif()
-
-            if(VULKAN_SUPPORTED)
-                if(NOT DEFINED DILIGENT_DXCOMPILER_FOR_SPIRV_PATH)
-                    message(FATAL_ERROR "DILIGENT_DXCOMPILER_FOR_SPIRV_PATH is undefined, check order of cmake includes")
-                endif()
-                if(EXISTS ${DILIGENT_DXCOMPILER_FOR_SPIRV_PATH})
-                    add_custom_command(TARGET ${TARGET_NAME} POST_BUILD
-                        COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                            ${DILIGENT_DXCOMPILER_FOR_SPIRV_PATH}
-                            "\"$<TARGET_FILE_DIR:${TARGET_NAME}>/spv_dxcompiler.dll\"")
-                endif()
-            endif()
-        endif()
-    endfunction()
-
     function(package_required_dlls TARGET_NAME)
         if(D3D12_SUPPORTED AND VS_DXC_COMPILER_PATH AND VS_DXIL_SIGNER_PATH)
             # Copy the dlls to the project's CMake binary dir
@@ -225,16 +151,7 @@ endfunction()
 
 # Returns default backend library type (static/dynamic) for the current platform
 function(get_backend_libraries_type _LIB_TYPE)
-    if(PLATFORM_WIN32 OR PLATFORM_LINUX OR PLATFORM_ANDROID OR PLATFORM_UNIVERSAL_WINDOWS OR PLATFORM_MACOS)
-        set(LIB_TYPE "shared")
-    elseif(PLATFORM_IOS OR PLATFORM_TVOS OR PLATFORM_EMSCRIPTEN)
-        # Statically link with the engine on iOS, tvOS and Emscripten.
-        # It is also possible to link dynamically by
-        # putting the library into the framework.
-        set(LIB_TYPE "static")
-    else()
-        message(FATAL_ERROR "Undefined platform")
-    endif()
+    set(LIB_TYPE "static")
     set(${_LIB_TYPE} ${LIB_TYPE} PARENT_SCOPE)
 endfunction()
 
@@ -282,19 +199,8 @@ function(install_core_lib _TARGET)
     get_target_relative_dir(${_TARGET} TARGET_RELATIVE_PATH)
 
     get_target_property(TARGET_TYPE ${_TARGET} TYPE)
-    if(TARGET_TYPE STREQUAL STATIC_LIBRARY)
-        list(APPEND DILIGENT_CORE_INSTALL_LIBS_LIST ${_TARGET})
-        set(DILIGENT_CORE_INSTALL_LIBS_LIST ${DILIGENT_CORE_INSTALL_LIBS_LIST} CACHE INTERNAL "Core libraries installation list")
-    elseif(TARGET_TYPE STREQUAL SHARED_LIBRARY)
-        install(TARGETS				 ${_TARGET}
-                ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}/${DILIGENT_CORE_DIR}/$<CONFIG>"
-                LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}/${DILIGENT_CORE_DIR}/$<CONFIG>"
-                RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}/${DILIGENT_CORE_DIR}/$<CONFIG>"
-        )
-        if (DILIGENT_INSTALL_PDB)
-            install(FILES $<TARGET_PDB_FILE:${_TARGET}> DESTINATION "${CMAKE_INSTALL_BINDIR}/${DILIGENT_CORE_DIR}/$<CONFIG>" OPTIONAL)
-        endif()
-    endif()
+    list(APPEND DILIGENT_CORE_INSTALL_LIBS_LIST ${_TARGET})
+    set(DILIGENT_CORE_INSTALL_LIBS_LIST ${DILIGENT_CORE_INSTALL_LIBS_LIST} CACHE INTERNAL "Core libraries installation list")
 
     if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/interface")
         install(DIRECTORY    interface
@@ -379,44 +285,6 @@ endfunction()
 
 
 function(add_format_validation_target MODULE_NAME MODULE_ROOT_PATH IDE_FOLDER)
-
-    if(${DILIGENT_NO_FORMAT_VALIDATION})
-        return()
-    endif()
-
-    add_custom_target(${MODULE_NAME}-ValidateFormatting ALL)
-
-    if (NOT ("${DILIGENT_CORE_SOURCE_DIR}" STREQUAL "${MODULE_ROOT_PATH}"))
-        # Start by copying .clang-format file to the module's root folder
-        add_custom_command(TARGET ${MODULE_NAME}-ValidateFormatting
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different "${DILIGENT_CORE_SOURCE_DIR}/.clang-format" "${MODULE_ROOT_PATH}/.clang-format"
-        )
-    endif()
-
-    if(CMAKE_HOST_SYSTEM_NAME STREQUAL "Windows")
-        set(RUN_VALIDATION_SCRIPT validate_format_win.bat)
-    elseif(CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
-        set(RUN_VALIDATION_SCRIPT ./validate_format_linux.sh)
-    elseif(CMAKE_HOST_SYSTEM_NAME STREQUAL "Darwin")
-        set(RUN_VALIDATION_SCRIPT ./validate_format_mac.sh)
-    endif()
-
-    if (RUN_VALIDATION_SCRIPT)
-        # Run the format validation script
-        add_custom_command(TARGET ${MODULE_NAME}-ValidateFormatting
-            COMMAND ${RUN_VALIDATION_SCRIPT}
-            WORKING_DIRECTORY "${MODULE_ROOT_PATH}/BuildTools/FormatValidation"
-            COMMENT "Validating ${MODULE_NAME} module's source code formatting..."
-            VERBATIM
-        )
-
-        if(TARGET ${MODULE_NAME}-ValidateFormatting)
-            set_target_properties(${MODULE_NAME}-ValidateFormatting PROPERTIES FOLDER ${IDE_FOLDER})
-        endif()
-    else()
-		message(DEBUG "${MODULE_NAME}-ValidateFormatting target will be disabled because format validation script is not available on ${CMAKE_HOST_SYSTEM_NAME} host platform.")
-    endif()
-
 endfunction()
 
 

@@ -59,7 +59,7 @@
 #endif
 // ATOMIC BEGIN
 #ifdef ATOMIC_WEB
-#include "../Web/Web.h"
+//#include "../Web/Web.h"
 #endif
 // ATOMIC END
 #ifdef ATOMIC_DATABASE
@@ -160,7 +160,7 @@ Engine::Engine(Context* context) :
 #endif
     // ATOMIC BEGIN
 #ifdef ATOMIC_WEB
-    context_->RegisterSubsystem(new Web(context_));
+    //context_->RegisterSubsystem(new Web(context_));
 #endif
     // ATOMIC END
 #ifdef ATOMIC_DATABASE
@@ -208,7 +208,7 @@ Engine::Engine(Context* context) :
     context_->network_ = context_->GetSubsystem<Network>();
 #endif
 #ifdef ATOMIC_WEB
-    context_->web_ = context_->GetSubsystem<Web>();
+    //context_->web_ = context_->GetSubsystem<Web>();
 #endif
 #ifdef ATOMIC_DATABASE
     context_->db_ = context_->GetSubsystem<Database>();

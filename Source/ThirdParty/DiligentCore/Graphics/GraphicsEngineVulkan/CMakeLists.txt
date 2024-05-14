@@ -153,13 +153,13 @@ add_library(Diligent-GraphicsEngineVk-static STATIC
     readme.md
 )
 
-add_library(Diligent-GraphicsEngineVk-shared SHARED
-    readme.md
-)
+# add_library(Diligent-GraphicsEngineVk-shared SHARED
+#     readme.md
+# )
 
-if(MSVC)
-    target_sources(Diligent-GraphicsEngineVk-shared PRIVATE ${DLL_SOURCE})
-endif()
+# if(MSVC)
+#     target_sources(Diligent-GraphicsEngineVk-shared PRIVATE ${DLL_SOURCE})
+# endif()
 
 target_include_directories(Diligent-GraphicsEngineVk-static
 PRIVATE
@@ -276,22 +276,22 @@ PRIVATE
 PUBLIC
     ${PUBLIC_DEPENDENCIES}
 )
-target_link_libraries(Diligent-GraphicsEngineVk-shared
-PRIVATE
-    Diligent-BuildSettings
-    ${WHOLE_ARCHIVE_FLAG} Diligent-GraphicsEngineVk-static ${NO_WHOLE_ARCHIVE_FLAG}
-PUBLIC
-    ${PUBLIC_DEPENDENCIES}
-)
+# target_link_libraries(Diligent-GraphicsEngineVk-shared
+# PRIVATE
+#     Diligent-BuildSettings
+#     ${WHOLE_ARCHIVE_FLAG} Diligent-GraphicsEngineVk-static ${NO_WHOLE_ARCHIVE_FLAG}
+# PUBLIC
+#     ${PUBLIC_DEPENDENCIES}
+# )
 
-if (MINGW_BUILD)
-    # Restrict export to GetEngineFactoryVk
-    file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/export.map
-        "{ global: *GetEngineFactoryVk*; local: *; };"
-    )
-    # set_target_properties does not append link flags, but overwrites them
-    target_link_options(Diligent-GraphicsEngineVk-shared PRIVATE LINKER:--version-script=export.map)
-endif()
+# if (MINGW_BUILD)
+#     # Restrict export to GetEngineFactoryVk
+#     file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/export.map
+#         "{ global: *GetEngineFactoryVk*; local: *; };"
+#     )
+#     # set_target_properties does not append link flags, but overwrites them
+#     target_link_options(Diligent-GraphicsEngineVk-shared PRIVATE LINKER:--version-script=export.map)
+# endif()
 
 if(PLATFORM_WIN32)
     set(PRIVATE_COMPILE_DEFINITIONS VK_USE_PLATFORM_WIN32_KHR=1 NOMINMAX DILIGENT_USE_VOLK=1)
@@ -317,23 +317,23 @@ PRIVATE
     DILIGENT_NO_GLSLANG=$<BOOL:${DILIGENT_NO_GLSLANG}>
     DILIGENT_NO_HLSL=$<BOOL:${DILIGENT_NO_HLSL}>
 )
-target_compile_definitions(Diligent-GraphicsEngineVk-shared PRIVATE ${PRIVATE_COMPILE_DEFINITIONS} ENGINE_DLL=1)
+# target_compile_definitions(Diligent-GraphicsEngineVk-shared PRIVATE ${PRIVATE_COMPILE_DEFINITIONS} ENGINE_DLL=1)
 
-if(PLATFORM_WIN32)
+# if(PLATFORM_WIN32)
 
-    # Do not add 'lib' prefix when building with MinGW
-    set_target_properties(Diligent-GraphicsEngineVk-shared PROPERTIES PREFIX "")
+#     # Do not add 'lib' prefix when building with MinGW
+#     set_target_properties(Diligent-GraphicsEngineVk-shared PROPERTIES PREFIX "")
 
-    # Set output name to GraphicsEngineVk_{32|64}{r|d}
-    set_dll_output_name(Diligent-GraphicsEngineVk-shared GraphicsEngineVk)
+#     # Set output name to GraphicsEngineVk_{32|64}{r|d}
+#     set_dll_output_name(Diligent-GraphicsEngineVk-shared GraphicsEngineVk)
 
-else()
-    set_target_properties(Diligent-GraphicsEngineVk-shared PROPERTIES
-        OUTPUT_NAME GraphicsEngineVk
-    )
-endif()
+# else()
+#     set_target_properties(Diligent-GraphicsEngineVk-shared PROPERTIES
+#         OUTPUT_NAME GraphicsEngineVk
+#     )
+# endif()
 
-set_common_target_properties(Diligent-GraphicsEngineVk-shared)
+# set_common_target_properties(Diligent-GraphicsEngineVk-shared)
 set_common_target_properties(Diligent-GraphicsEngineVk-static)
 
 source_group("src" FILES ${SRC})
@@ -347,15 +347,15 @@ source_group("include\\Vulkan Utilities" FILES ${VULKAN_UTILS_INCLUDE})
 set_target_properties(Diligent-GraphicsEngineVk-static PROPERTIES
     FOLDER DiligentCore/Graphics
 )
-set_target_properties(Diligent-GraphicsEngineVk-shared PROPERTIES
-    FOLDER DiligentCore/Graphics
-)
+# set_target_properties(Diligent-GraphicsEngineVk-shared PROPERTIES
+#     FOLDER DiligentCore/Graphics
+# )
 
 set_source_files_properties(
     readme.md PROPERTIES HEADER_FILE_ONLY TRUE
 )
 
 if(DILIGENT_INSTALL_CORE)
-    install_core_lib(Diligent-GraphicsEngineVk-shared)
+    # install_core_lib(Diligent-GraphicsEngineVk-shared)
     install_core_lib(Diligent-GraphicsEngineVk-static)
 endif()

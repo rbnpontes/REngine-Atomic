@@ -39,6 +39,7 @@ void SetAssetManager(AAssetManager *pManager)
 
 namespace tb {
 
+TBFileExternalReaderFunction TBFile::reader_function = NULL;
 // == TBSystem ========================================
 
 double TBSystem::GetTimeMS()

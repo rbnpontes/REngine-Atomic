@@ -161,12 +161,12 @@ add_library(Diligent-GraphicsEngineOpenGL-static STATIC
     readme.md
 )
 
-add_library(Diligent-GraphicsEngineOpenGL-shared SHARED
-    readme.md
-)
-if(MSVC)
-    target_sources(Diligent-GraphicsEngineOpenGL-shared PRIVATE ${DLL_SOURCE})
-endif()
+# add_library(Diligent-GraphicsEngineOpenGL-shared SHARED
+#     readme.md
+# )
+# if(MSVC)
+#     target_sources(Diligent-GraphicsEngineOpenGL-shared PRIVATE ${DLL_SOURCE})
+# endif()
 
 target_include_directories(Diligent-GraphicsEngineOpenGL-static
 PRIVATE
@@ -238,13 +238,13 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     endif()
 endif()
 
-if (MINGW_BUILD)
-    # Restrict export to GetEngineFactoryOpenGL
-    file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/export.map
-        "{ global: *GetEngineFactoryOpenGL*; local: *; };"
-    )
-    target_link_options(Diligent-GraphicsEngineOpenGL-shared PRIVATE LINKER:--version-script=export.map)
-endif()
+# if (MINGW_BUILD)
+#     # Restrict export to GetEngineFactoryOpenGL
+#     file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/export.map
+#         "{ global: *GetEngineFactoryOpenGL*; local: *; };"
+#     )
+#     target_link_options(Diligent-GraphicsEngineOpenGL-shared PRIVATE LINKER:--version-script=export.map)
+# endif()
 
 target_link_libraries(Diligent-GraphicsEngineOpenGL-static
 PRIVATE
@@ -252,15 +252,15 @@ PRIVATE
 PUBLIC
     ${PUBLIC_DEPENDENCIES}
 )
-target_link_libraries(Diligent-GraphicsEngineOpenGL-shared
-PRIVATE
-    Diligent-BuildSettings
-    ${WHOLE_ARCHIVE_FLAG} Diligent-GraphicsEngineOpenGL-static ${NO_WHOLE_ARCHIVE_FLAG}
-PUBLIC
-    ${PUBLIC_DEPENDENCIES}
-)
+# target_link_libraries(Diligent-GraphicsEngineOpenGL-shared
+# PRIVATE
+#     Diligent-BuildSettings
+#     ${WHOLE_ARCHIVE_FLAG} Diligent-GraphicsEngineOpenGL-static ${NO_WHOLE_ARCHIVE_FLAG}
+# PUBLIC
+#     ${PUBLIC_DEPENDENCIES}
+# )
 
-target_compile_definitions(Diligent-GraphicsEngineOpenGL-shared PUBLIC ENGINE_DLL=1)
+# target_compile_definitions(Diligent-GraphicsEngineOpenGL-shared PUBLIC ENGINE_DLL=1)
 if(PLATFORM_MACOS)
     # Silence OpenGL deprecation warnings
     target_compile_definitions(Diligent-GraphicsEngineOpenGL-static PUBLIC GL_SILENCE_DEPRECATION)
@@ -271,22 +271,22 @@ elseif(PLATFORM_EMSCRIPTEN)
     target_link_options(Diligent-GraphicsEngineOpenGL-static PUBLIC "SHELL: -s FULL_ES3=1 -s DISABLE_EXCEPTION_CATCHING=0")
 endif()
 
-if(PLATFORM_WIN32)
-    # Do not add 'lib' prefix when building with MinGW
-    set_target_properties(Diligent-GraphicsEngineOpenGL-shared PROPERTIES PREFIX "")
+# if(PLATFORM_WIN32)
+#     # Do not add 'lib' prefix when building with MinGW
+#     set_target_properties(Diligent-GraphicsEngineOpenGL-shared PROPERTIES PREFIX "")
 
-    # Set output name to GraphicsEngineOpenGL_{32|64}{r|d}
-    set_dll_output_name(Diligent-GraphicsEngineOpenGL-shared GraphicsEngineOpenGL)
-else()
-    set_target_properties(Diligent-GraphicsEngineOpenGL-shared PROPERTIES
-        OUTPUT_NAME GraphicsEngineOpenGL
-    )
-endif()
+#     # Set output name to GraphicsEngineOpenGL_{32|64}{r|d}
+#     set_dll_output_name(Diligent-GraphicsEngineOpenGL-shared GraphicsEngineOpenGL)
+# else()
+#     set_target_properties(Diligent-GraphicsEngineOpenGL-shared PROPERTIES
+#         OUTPUT_NAME GraphicsEngineOpenGL
+#     )
+# endif()
 
 add_library(Diligent-GLAdapterSelector OBJECT "src/GLAdapterSelector.cpp")
 target_link_libraries(Diligent-GLAdapterSelector PRIVATE Diligent-BuildSettings)
 
-set_common_target_properties(Diligent-GraphicsEngineOpenGL-shared)
+# set_common_target_properties(Diligent-GraphicsEngineOpenGL-shared)
 set_common_target_properties(Diligent-GraphicsEngineOpenGL-static)
 set_common_target_properties(Diligent-GLAdapterSelector)
 
@@ -301,9 +301,9 @@ source_group("interface" FILES ${INTERFACE})
 set_target_properties(Diligent-GraphicsEngineOpenGL-static PROPERTIES
     FOLDER DiligentCore/Graphics
 )
-set_target_properties(Diligent-GraphicsEngineOpenGL-shared PROPERTIES
-    FOLDER DiligentCore/Graphics
-)
+# set_target_properties(Diligent-GraphicsEngineOpenGL-shared PROPERTIES
+#     FOLDER DiligentCore/Graphics
+# )
 set_target_properties(Diligent-GLAdapterSelector PROPERTIES 
     FOLDER DiligentCore/Graphics
 )
@@ -313,7 +313,7 @@ set_source_files_properties(
 )
 
 if(DILIGENT_INSTALL_CORE)
-    install_core_lib(Diligent-GraphicsEngineOpenGL-shared)
+    # install_core_lib(Diligent-GraphicsEngineOpenGL-shared)
     install_core_lib(Diligent-GraphicsEngineOpenGL-static)
     install_core_lib(Diligent-GLAdapterSelector)
 endif()

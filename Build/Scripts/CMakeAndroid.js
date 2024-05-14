@@ -29,11 +29,11 @@ function requireNdkEnv() {
  */
 function scanDir(p) {
     // cache files for a better performance
-    if(!this.memo_files)
-        this.memo_files = {};
+    if(!scanDir.memo_files)
+        scanDir.memo_files = {};
     
-    const files = this.memo_files[p] ?? fs.readdirSync(p).map(x => path.join(p, x));
-    this.memo_files[p] = files;
+    const files = scanDir.memo_files[p] ?? fs.readdirSync(p).map(x => path.join(p, x));
+    scanDir.memo_files[p] = files;
 
     let results = files;
     files.forEach(file => {
@@ -76,7 +76,29 @@ function getCmakeCommand() {
     return os.platform() == 'win32' ? 'cmake.exe' : 'cmake';
 }
 
-function executeCmake(abi, output) {
+/**
+ * @param {string[]} args 
+ * @param {string?} workingDir
+ * @returns {Promise<void>}
+ */
+function executeCmake(args, workingDir) {
+    const proc = nodeSpawn(getCmakeCommand(), args, { cwd: workingDir });
+    proc.stdout.on('data', data => {
+        console.log(data.toString());
+    });
+    proc.stderr.on('data', (data)=> {
+        console.error(data.toString());
+    });
+    return new Promise((resolve, reject)=> {
+        proc.on('exit', code => {
+            if(code != 0)
+                reject(new Error('CMake process exited with code '+code));
+            resolve();
+        });
+    });
+}
+
+function genProject(abi, output) {
     if(!fs.existsSync(output))
         fs.mkdirSync(output, { recursive: true });
     
@@ -93,39 +115,86 @@ function executeCmake(abi, output) {
         '-DATOMIC_PROFILING=OFF',
         // TODO: fix this issues
         '-DATOMIC_JAVASCRIPT=OFF',
-        '-DATOMIC_DOTNET=OFF'
+        '-DATOMIC_DOTNET=OFF',
+        '-DRENGINE_SHARED=ON',
+        '-DBUILD_SHARED_LIBS=ON'
     ];
 
-    const proc = nodeSpawn(getCmakeCommand(), args);
-    proc.stdout.on('data', data => {
-        console.log(data.toString());
-    });
-    proc.stderr.on('data', (data)=> {
-        console.error(data.toString());
-    });
+    return executeCmake(args);
+}
 
-    return new Promise((resolve, reject)=> {
-        proc.on('exit', code => {
-            if(code != 0)
-                reject(new Error('CMake process exited with code '+code));
-            resolve();
-        });
+function buildProject(abi, path) {
+    if(!fs.existsSync(path)) {
+        console.log(`- Android project ${abi} does not exists. Skipping!`);
+        return Promise.resolve(void(0));
+    }
+
+    // limit cores to 2 ~ 8
+    const available_cores = Math.min(Math.max(os.cpus().length, 2), 8);
+    console.log(`- Build with ${available_cores} cores`);
+    return executeCmake([
+        '--build', '.', 
+        '-j', available_cores.toString()
+    ], path);
+}
+
+function copyBuildLibs(project_src, dest) {
+    const files = scanDir(project_src);
+    const libs = files.filter(x => {
+        x = path.basename(x);
+        return x.startsWith('lib') && x.endsWith('.so') /*|| x.endsWith('.a')*/;
+    });
+    libs.forEach(lib => {
+        const lib_file_name = path.basename(lib);
+        const dest_path = path.join(dest, lib_file_name);
+        if(fs.existsSync(dest_path))
+            fs.unlinkSync(dest_path);
+
+        console.log(`- Copying ${path.basename(dest_path)}`);
+        const data = fs.readFileSync(lib)
+        fs.writeFileSync(dest_path, data);
     });
 }
 
-namespace('build', function() {
-    task('genandroid', {
-        async: true
-    }, async function() {
-        const output_dir = path.resolve(g_engine_root, '../REngine-Android');
-        if(!fs.existsSync(output_dir))
-            fs.mkdirSync(output_dir);
+namespace('android', ()=> {
+    const project_dir = path.resolve(g_engine_root, '../REngine-Android');
+    const lib_dir = path.resolve(project_dir, 'lib');
 
+    task('gen', async ()=> {
+        if(!fs.existsSync(project_dir))
+            fs.mkdirSync(project_dir);
+        
         for(let i = 0; i < g_supported_abis.length; ++i) {
             const abi = g_supported_abis[i];
             console.log(`- Generating Android ${abi} Project`);
-            await executeCmake(abi, path.join(output_dir, abi));
-            console.log('- Finish. Project generated with success 🎉');
+            await genProject(abi, path.join(project_dir, abi));
+            console.log('- Finished. Project generated with success 🎉');
         }
+    });
+    
+    task('build', async ()=> {
+        for(let i = 0; i < g_supported_abis.length; ++i) {
+            const project_gen_path = path.join(project_dir, g_supported_abis[i]);
+            console.log(`- Building Android ${g_supported_abis[i]} Project`);
+            await buildProject(g_supported_abis[i], project_gen_path);
+            console.log('- Finished. Project built with success 🎉');
+        }
+    });
+
+    task('cpylibs', ()=> {
+        // create lib artifact dir
+        if(!fs.existsSync(lib_dir))
+            fs.mkdirSync(lib_dir);
+        
+        console.log('- Copying build libraries');
+        g_supported_abis.forEach(abi => {
+            console.log(`- Copying build libraries ${abi}`);
+            const target_lib_path = path.join(lib_dir, abi);
+            const project_gen_path = path.join(project_dir, abi);
+            if(!fs.existsSync(target_lib_path))
+                fs.mkdirSync(target_lib_path);
+            copyBuildLibs(project_gen_path, target_lib_path);
+            console.log(`- Finished. ${abi} libraries has been copied with success 🎉`);
+        });
     });
 });
