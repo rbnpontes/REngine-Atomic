@@ -181,6 +181,22 @@ namespace('android', ()=> {
         }
     });
 
+    task('clrlibs', ()=> {
+        console.log('- Clearing built libraries');
+        g_supported_abis.forEach(abi => {
+            console.log(`- Clearing libraries ${abi}`);
+            const target_lib_path = path.join(lib_dir, abi);
+            if(!fs.existsSync(target_lib_path))
+                return;
+
+            const files = fs.readdirSync(target_lib_path);
+            files.forEach(file => {
+                file = path.join(target_lib_path, file);
+                fs.unlinkSync(file);
+            });
+            console.log(`- Finished. Total of (${files.length}) ${abi} files cleared.`);
+        });
+    });
     task('cpylibs', ()=> {
         // create lib artifact dir
         if(!fs.existsSync(lib_dir))

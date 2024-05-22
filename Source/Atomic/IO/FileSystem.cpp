@@ -33,9 +33,10 @@
 #include "../IO/Log.h"
 
 #ifdef __ANDROID__
-// ATOMIC BEGIN
-#include <SDL2/SDL_rwops.h>
-// ATOMIC END
+    #include "./Android/FileOperations.h"
+    // ATOMIC BEGIN
+    #include <SDL2/SDL_rwops.h>
+    // ATOMIC END
 #endif
 
 #ifndef MINI_URHO
@@ -656,7 +657,6 @@ bool FileSystem::DirExists(const String& pathName) const
 #ifdef __ANDROID__
     if (ATOMIC_IS_ASSET(fixedName))
     {
-        throw std::runtime_error("Not implemented");
         // Split the pathname into two components: the longest parent directory path and the last name component
         // String assetPath(ATOMIC_ASSET((fixedName + "/")));
         // String parentPath;
@@ -679,6 +679,7 @@ bool FileSystem::DirExists(const String& pathName) const
         // }
         // SDL_Android_FreeFileList(&list, &count);
         // return exist;
+        return REngine::file_operations_file_exists(pathName.CString());
     }
 #endif
 

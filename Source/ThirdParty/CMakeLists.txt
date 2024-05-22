@@ -37,16 +37,16 @@ add_subdirectory(JO)
 add_subdirectory(LZ4)
 add_subdirectory(PugiXml)
 add_subdirectory(STB)
-add_subdirectory(TurboBadger)
 add_subdirectory(zlib)
 
 if (NOT ATOMIC_BUILD_2D)
     add_subdirectory(Bullet)
     add_subdirectory(StanHull)
 endif()
-
+    
 add_subdirectory(SDL)
-
+    
+add_subdirectory(TurboBadger)
 add_subdirectory(Recast)
 add_subdirectory(Detour)
 add_subdirectory(DetourCrowd)

@@ -11,9 +11,9 @@ file (GLOB C_FILES *.cpp image/*.cpp animation/*.cpp parser/*.cpp renderers/*.cp
 file (GLOB H_FILES *.h image/*.h animation/*.h parser/*.h renderers/*.h utf8/*.h)
 set (SOURCE_FILES ${C_FILES} ${H_FILES})
 
-add_library(TurboBadger ${SOURCE_FILES})
+add_library(TurboBadger STATIC ${SOURCE_FILES})
 
-target_link_libraries(TurboBadger PUBLIC SDL2::SDL2-static FreeType)
+target_link_libraries(TurboBadger PRIVATE SDL2::SDL2-static FreeType)
 set(TURBO_BADGER_PRIVATE_FLAGS)
 target_include_directories(TurboBadger SYSTEM BEFORE PUBLIC .)
 if (NOT MSVC)

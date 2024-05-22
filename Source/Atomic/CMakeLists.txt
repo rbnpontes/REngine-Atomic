@@ -36,6 +36,10 @@ if (APPLE AND NOT IOS)
     set (PLATFORM_SOURCE IO/MacFileWatcher.mm UI/UIDragDropMac.mm)
 endif()
 
+if(ANDROID)
+    file(GLOB PLATFORM_SOURCE IO/Android/*.cpp IO/Android/*.h)
+endif()
+
 set (SOURCE_FILES ${CONTAINER_SOURCE} ${CORE_SOURCE} ${ENGINE_SOURCE} ${INPUT_SOURCE}
                   ${AUDIO_SOURCE} ${IO_SOURCE} ${MATH_SOURCE}
                   ${RESOURCE_SOURCE} ${PHYSICS_SOURCE} ${IPC_SOURCE}
@@ -116,9 +120,8 @@ set (PUBLIC_THIRD_PARTY_DEPS
     STB 
     rapidjson 
     imgui
-    EASTL
-    SDL2::SDL2-static)
-set (PRIVATE_THIRD_PARTY_DEPS)
+    EASTL)
+set (PRIVATE_THIRD_PARTY_DEPS SDL2::SDL2-static)
 
 target_compile_definitions (Atomic PUBLIC -DATOMIC_CXX11=1)
 if (ATOMIC_64BIT)
