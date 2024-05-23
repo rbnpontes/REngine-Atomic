@@ -156,6 +156,40 @@ function copyBuildLibs(project_src, dest) {
     });
 }
 
+function buildResourcePackages(package_path) {
+    if(!fs.existsSync(package_path))
+        fs.mkdirSync(package_path, { recursive: true });
+
+    {
+        // Clear directory files
+        const tmp_files = fs.readdirSync(package_path);
+        if(tmp_files.length != 0)
+            console.log(`- Resource Directory isn\'t empty. Clearing (${tmp_files.length}) resources.`);
+        tmp_files.forEach(x => fs.unlinkSync(path.join(package_path, x)));
+    }
+
+    const { PackageTool } = require('./PackageTool');
+    const pkgs = [
+        path.join(g_engine_root, 'Resources/CoreData'),
+        path.join(g_engine_root, 'Resources/PlayerData'),
+        path.join(g_engine_root, 'Submodules/EngineExamples/FeatureExamples/CPlusPlus/Data')
+    ]
+        .filter(x => fs.existsSync(x))
+        .map(x => new PackageTool(x, path.join(package_path, path.basename(x))+'.pak', false));
+
+    pkgs.forEach(pkg => {
+        const pkg_name = path.basename(pkg.directory) + '.pak';
+        console.log(`- Building package ${pkg_name}`);
+        pkg.collect();
+        pkg.calculateOffsets();
+        pkg.calculateChecksum();
+        const output_pkg = pkg.build();
+        console.log(`- Validating ${pkg_name}`);
+        pkg.validate(output_pkg);
+        console.log('- Package was validate with success');
+    });
+}
+
 namespace('android', ()=> {
     const project_dir = path.resolve(g_engine_root, '../REngine-Android');
     const lib_dir = path.resolve(project_dir, 'lib');
@@ -179,6 +213,12 @@ namespace('android', ()=> {
             await buildProject(g_supported_abis[i], project_gen_path);
             console.log('- Finished. Project built with success 🎉');
         }
+    });
+
+    task('buildres', async ()=> {
+        console.log('- Build resources');
+        buildResourcePackages(path.join(project_dir, 'resources'));
+        console.log('- Finished. Resources has been build with success 🎉');
     });
 
     task('clrlibs', ()=> {

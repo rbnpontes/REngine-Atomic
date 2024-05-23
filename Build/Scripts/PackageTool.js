@@ -4,7 +4,6 @@
 const fs = require('fs');
 const path = require('path');
 const glob = require('glob');
-const { argv, off } = require('process');
 
 const ignore_extensions = ['.bak', '.rule'];
 const pkg_file_id = 'RPAK';
@@ -113,10 +112,17 @@ class PackageHeader {
     }
 }
 
+const resource_entries_symbol = Symbol('resource_entries');
 /**
- * @type {Array<ResourceEntry>}
+ * 
+ * @param {PackageTool} instance 
+ * @returns {Array<ResourceEntry>}
  */
-const resource_entries = [];
+function getResourceEntries (instance) {
+    if(!instance[resource_entries_symbol])
+        instance[resource_entries_symbol] = [];
+    return instance[resource_entries_symbol];
+}
 class PackageTool {
     /**
      * @param {string} directory 
@@ -156,19 +162,19 @@ class PackageTool {
             this.entriesHeaderSize += entry.getDataSize();
             this.size += entry.size + entry.getDataSize();
 
-            resource_entries.push(entry);
+            getResourceEntries(this).push(entry);
         });
     }
 
     calculateOffsets() {
         const baseResourceDataOffset = header_size + this.entriesHeaderSize;
-        resource_entries.forEach(entry => {
+        getResourceEntries(this).forEach(entry => {
             entry.offset += baseResourceDataOffset;
         });
     }
 
     calculateChecksum() {
-        resource_entries.forEach(entry => {
+        getResourceEntries(this).forEach(entry => {
             const buffer = entry.getBuffer();
             for(let i = 0; i < buffer.byteLength; ++i) {
                 const value = buffer.readUint8(i);
@@ -193,7 +199,7 @@ class PackageTool {
             throw new Error('Something is wrong. Offset is not equal to header size');
         }
 
-        resource_entries.forEach(entry => {
+        getResourceEntries(this).forEach(entry => {
             offset = this.processEntryHeader(entry, buffer, offset);
         });
 
@@ -202,7 +208,7 @@ class PackageTool {
             throw new Error("Something is wrong. It seems that entries header write exceeds the expected size.");
         }
     
-        resource_entries.forEach(entry => {
+        getResourceEntries(this).forEach(entry => {
             offset = this.processEntry(entry, buffer, offset);
         });
 
@@ -233,7 +239,7 @@ class PackageTool {
 
         const write_call = (this.isBigEndian ? buffer.writeUInt32BE : buffer.writeUint32LE).bind(buffer);
         // write package size
-        offset = write_call(resource_entries.length, offset);
+        offset = write_call(getResourceEntries(this).length, offset);
         // write package checksum
         return write_call(this.checksum, offset);
     }
@@ -278,7 +284,7 @@ class PackageTool {
             throw new Error('Package Size doesn\'t matches current package size.');
 
         let offset = this.readHeader(buffer, header, 0);
-        if(header.size != resource_entries.length)
+        if(header.size != getResourceEntries(this).length)
             throw new Error('Header Size doesn\'t matches resource entries length.');
 
         if(header.checksum != this.checksum) {
@@ -299,12 +305,12 @@ class PackageTool {
 
         // validate entries.
         entries.forEach((entry, idx)=> {
-            if(entry.name !== resource_entries[idx].name)
+            if(entry.name !== getResourceEntries(this)[idx].name)
                 throw new Error('Invalid package entry. package entry name doesn\'t matches.');
-            if(entry.size != resource_entries[idx].size)
+            if(entry.size != getResourceEntries(this)[idx].size)
                 throw new Error('Invalid package entry. package entry size doesn\'t matches.');
-            if(entry.checksum != resource_entries[idx].checksum){
-                console.log(resource_entries[idx], entry);
+            if(entry.checksum != getResourceEntries(this)[idx].checksum){
+                console.log(getResourceEntries(this)[idx], entry);
                 throw new Error('Invalid package entry. package entry checksum doesn\'t matches.');
             }
 
@@ -368,65 +374,8 @@ class PackageTool {
     }
 }
 
-function print_usage() {
-    console.log([
-        '@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@',
-        '@@@ REngine - PackageTool                                     @@@',
-        '@@@ Usage: yarn pkg [directory] [package-output-path].pak     @@@',
-        '@@@        [0=little endian|1=big endian]                     @@@',
-        '@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@'
-    ].join('\n'));
-}
-function error(err_desc) {
-    console.error(`Error: ${err_desc}`);
-    print_usage();
-    process.exit(1);
-}
-
-function getArgs() {
-    const args = [...argv];
-    const selfCmdIdx = args.findIndex(x => x.endsWith('PackageTool.js'));
-    const result = args.splice(selfCmdIdx + 1, args.length);
-    if(result.length < 3)
-        error('Invalid arguments');
-    return result;
-}
-
-const [directory, pkgPath, isBigEndian] = getArgs();
-{
-    if(!directory)
-        error('Invalid arguments. Directory is empty');
-    
-    if(!pkgPath)
-        error('Invalid arguments. Package output path is empty');
-    
-    if(!pkgPath.endsWith('.pak'))
-        error('Invalid arguments. Package output path must ends with extension .pak');
-
-    if(isBigEndian != '0' && isBigEndian != '1')
-        error('Invalid arguments. Endianess must be specified');
-}
-
-const pkg = new PackageTool(
-    path.resolve(directory), 
-    pkgPath, 
-    Boolean(parseInt(isBigEndian) | 0)
-);
-
-console.log('- Collecting files');
-pkg.collect();
-console.log('- Calculating offsets');
-pkg.calculateOffsets();
-console.log('- Calculating checksum');
-pkg.calculateChecksum();
-console.log('- Building Package');
-const packageOutputPath = pkg.build();
-console.log('- Validating Package');
-try {
-    pkg.validate(packageOutputPath);
-} catch(e) {
-    console.error('- Invalid Package. Exiting!');
-    console.error(e.message);
-    process.exit(0);
-}
-console.log('- 🎉 Finished');
+module.exports = {
+    PackageHeader,
+    PackageTool,
+    ResourceEntry
+};
