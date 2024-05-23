@@ -272,9 +272,11 @@ namespace REngine
             
             int profile_mask = 0;
             SDL_GL_GetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, &profile_mask);
+#ifdef RENGINE_PLATFORM_APPLE
             if(profile_mask == SDL_GL_CONTEXT_PROFILE_ES)
                 default_framebuffer_ = 1;
-            else 
+            else
+#endif
             {
                 typedef void(*glGetIntegervFunc)(GLenum pname, GLint * params);
                 glGetIntegervFunc func = reinterpret_cast<glGetIntegervFunc>(SDL_GL_GetProcAddress("glGetIntegerv"));

@@ -657,28 +657,6 @@ bool FileSystem::DirExists(const String& pathName) const
 #ifdef __ANDROID__
     if (ATOMIC_IS_ASSET(fixedName))
     {
-        // Split the pathname into two components: the longest parent directory path and the last name component
-        // String assetPath(ATOMIC_ASSET((fixedName + "/")));
-        // String parentPath;
-        // unsigned pos = assetPath.FindLast('/', assetPath.Length() - 2);
-        // if (pos != String::NPOS)
-        // {
-        //     parentPath = assetPath.Substring(0, pos);
-        //     assetPath = assetPath.Substring(pos + 1);
-        // }
-        // assetPath.Resize(assetPath.Length() - 1);
-
-        // bool exist = false;
-        // int count;
-        // char** list = SDL_Android_GetFileList(parentPath.CString(), &count);
-        // for (int i = 0; i < count; ++i)
-        // {
-        //     exist = assetPath == list[i];
-        //     if (exist)
-        //         break;
-        // }
-        // SDL_Android_FreeFileList(&list, &count);
-        // return exist;
         return REngine::file_operations_file_exists(pathName.CString());
     }
 #endif
@@ -742,8 +720,7 @@ String FileSystem::GetProgramDir() const
 String FileSystem::GetUserDocumentsDir() const
 {
 #if defined(__ANDROID__)
-    throw std::runtime_error("Not implemented");
-    //return AddTrailingSlash(SDL_AndroidGetExternalStoragePath());
+    return String(REngine::file_operations_get_docs_dir().c_str());
 #elif defined(IOS) || defined(TVOS)
     return AddTrailingSlash(SDL_IOS_GetDocumentsDir());
 #elif defined(_WIN32)
