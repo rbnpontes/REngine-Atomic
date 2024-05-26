@@ -293,14 +293,14 @@ namespace REngine
         ::glslang::InitializeProcess();
         
         auto source_code = desc.source_code;
-#if RENGINE_PLATFORM_IOS
+#if RENGINE_PLATFORM_IOS || RENGINE_PLATFORM_ANDROID
         // Replace header version to 310 es, Otherwise the code above will not work!
-        source_code.Replace("#version 300 es", "#version 310 es");
+        source_code.Replace("#version 300 es", "#version 450");
 #endif
         
         const auto resources = init_resources();
         const char* shader_strings[] = {source_code.CString()};
-        const int shader_strings_len[] = {static_cast<int>(desc.source_code.Length())};
+        const int shader_strings_len[] = {static_cast<int>(source_code.Length())};
 
         constexpr auto messages = EShMsgSpvRules;
 
@@ -327,7 +327,7 @@ namespace REngine
 
         if (!result)
         {
-            fill_error("Failed to parse shader source", desc.source_code, &shader, output.error);
+            fill_error("Failed to parse shader source", source_code, &shader, output.error);
             output.has_error = true;
             return;
         }
@@ -341,7 +341,7 @@ namespace REngine
 
         if (!result)
         {
-            fill_error("Failed to parse preprocess shader source", desc.source_code, &shader, output.error);
+            fill_error("Failed to parse preprocess shader source", source_code, &shader, output.error);
             output.has_error = true;
             return;
         }
@@ -359,9 +359,9 @@ namespace REngine
             final_result.Append('\n');
         }
         
-#if RENGINE_PLATFORM_IOS
+#if RENGINE_PLATFORM_IOS || RENGINE_PLATFORM_ANDROID
         // Replace header version to 310 es, Otherwise the code above will not work!
-        final_result.Replace("#version 310 es", "#version 300 es");
+        final_result.Replace("#version 450", "#version 300 es");
 #endif
         
         output.has_error = false;
@@ -372,14 +372,14 @@ namespace REngine
     {
         ::glslang::InitializeProcess();
         auto source_code = desc.source_code;
-#if RENGINE_PLATFORM_IOS
+#if RENGINE_PLATFORM_IOS || RENGINE_PLATFORM_ANDROID
         // Replace header version to 310 es, Otherwise the code above will not work!
-        source_code.Replace("#version 300 es", "#version 310 es");
+        source_code.Replace("#version 300 es", "#version 450");
 #endif
         
         const auto resources = init_resources();
         const char* shader_strings[] = {source_code.CString()};
-        const int shader_strings_len[] = {static_cast<int>(desc.source_code.Length())};
+        const int shader_strings_len[] = {static_cast<int>(source_code.Length())};
 
         constexpr auto messages = EShMsgSpvRules;
 
@@ -426,6 +426,13 @@ namespace REngine
         spv_options.generateDebugInfo = true;
         spv_options.disableOptimizer = false;
         spv_options.optimizeSize = true;
+        #if RENGINE_PLATFORM_ANDROID
+            // There's a unsolved problem at the date of this change
+            // that occurs only at specific architecture of android NDK
+            // https://github.com/KhronosGroup/glslang/issues/3534
+            // we must to disable optimization to workaround this problem
+            spv_options.optimizeSize = false;
+        #endif
 
         glslang::GlslangToSpv(*intermediate, spirv_code, &spv_logger, &spv_options);
         const std::string spirv_log = spv_logger.getAllMessages();

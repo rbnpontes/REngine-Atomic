@@ -124,6 +124,7 @@
 #endif
 
 #if defined(ANDROID) || defined(__ANDROID__)
+#define TB_FILE_POSIX
 #define TB_SYSTEM_ANDROID
 #define TB_CLIPBOARD_DUMMY
 #endif

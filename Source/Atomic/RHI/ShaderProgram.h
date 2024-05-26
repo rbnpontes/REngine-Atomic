@@ -43,12 +43,15 @@ namespace REngine
         ShaderSamplerDesc* GetSampler(const Atomic::StringHash& name) const;
         unsigned ToHash() const { return hash_; }
         bool IsInUseTexture(const Atomic::StringHash& texture) const;
+        const ea::vector<REngine::ShaderCompilerReflectInputElement>& GetInputElements() const { return input_elements_; }
     private:
+        void CollectUsedInputElements(const Atomic::ShaderVariation* vertex_shader, const Atomic::ShaderVariation* pixel_shader);
         void CollectShaderParameters(const Atomic::ShaderVariation* shader) const;
         void CollectShaderTextures(const Atomic::ShaderVariation* shader);
 
         Atomic::Graphics* graphics_;
         ea::hash_map<u32, ea::shared_ptr<ShaderSamplerDesc>> used_textures_{};
+        ea::vector<REngine::ShaderCompilerReflectInputElement> input_elements_{};
         ShaderSamplerDesc* used_texture_slot_names_[Atomic::MAX_TEXTURE_UNITS];
         unsigned hash_{0};
 #if ATOMIC_DEBUG

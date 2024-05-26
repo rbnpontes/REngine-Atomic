@@ -1627,11 +1627,13 @@ namespace REngine
 				return;
 			}
 
+			assert(shader_program_ && "Required Shader Program");
+
 			VertexDeclarationCreationDesc creation_desc;
 			creation_desc.graphics = graphics_;
 			creation_desc.hash = curr_vertx_decl_checksum_;
 			creation_desc.vertex_buffers = &vertex_buffers_;
-			creation_desc.vertex_shader = pipeline_info_->vs_shader;
+			creation_desc.program = shader_program_;
 			vertex_declaration_ = new VertexDeclaration(creation_desc);
 
 			if(!vertex_declaration_->GetNumInputs())

@@ -4,6 +4,17 @@
 #include "./DiligentUtils.h"
 #include "./ShaderParametersCache.h"
 
+#if RENGINE_PLATFORM_IOS
+    #include <OpenGLES/gltypes.h>
+    #include <OpenGLES/ES3/gl.h>
+#elif RENGINE_PLATFORM_ANDROID
+    #include <GLES3/gl3.h>
+#else
+    #include <GLEW/glew.h>
+#endif
+
+#include <DiligentCore/Graphics/GraphicsEngineOpenGL/interface/ShaderGL.h>
+
 namespace REngine
 {
     static constexpr unsigned s_max_constant_buffers = static_cast<unsigned>(Atomic::MAX_SHADER_PARAMETER_GROUPS *
@@ -18,6 +29,7 @@ namespace REngine
         ps_shader_name_ = creation_desc.pixel_shader->GetName();
 #endif
 
+        CollectUsedInputElements(creation_desc.vertex_shader, creation_desc.pixel_shader);
         CollectShaderParameters(creation_desc.vertex_shader);
         CollectShaderParameters(creation_desc.pixel_shader);
         CollectShaderTextures(creation_desc.vertex_shader);
@@ -33,6 +45,61 @@ namespace REngine
     {
     	return used_textures_.find_as(texture.Value()) != used_textures_.end();
     }
+
+
+    void ShaderProgram::CollectUsedInputElements(const Atomic::ShaderVariation* vertex_shader, const Atomic::ShaderVariation* pixel_shader) {
+        // OpenGL strips unused attributes when vertex shader and fragment shader
+        // is linked into GL Shader Program. 
+        const auto backend = graphics_->GetBackend();
+        if(backend != GraphicsBackend::OpenGL && backend != GraphicsBackend::OpenGLES)
+            return;
+
+        const auto vs = vertex_shader->GetGPUObject().Cast<Diligent::IShaderGL>(Diligent::IID_ShaderGL);
+        const auto ps = pixel_shader->GetGPUObject().Cast<Diligent::IShaderGL>(Diligent::IID_ShaderGL);
+
+        const auto tmp_program = glCreateProgram();
+        glAttachShader(tmp_program, vs->GetGLShaderHandle());
+        glAttachShader(tmp_program, ps->GetGLShaderHandle());
+        glLinkProgram(tmp_program);
+
+        // Reflection already lists all vertex attributes for us
+        // But order and used inputs is not guaranteed, in this case
+        // we will remap all location based on compiled GL shader.
+        // excluding the unused ones.
+
+        ea::hash_map<u32, REngine::ShaderCompilerReflectInputElement> elements;
+        // fill input elements on hash map for fast lookup
+    	for (auto& it : vertex_shader->GetInputElements())
+            elements[StringHash(it.name).Value()] = it;
+
+        GLint num_attrs;
+        GLint max_attr_length;
+        glGetProgramiv(tmp_program, GL_ACTIVE_ATTRIBUTES, &num_attrs);
+        glGetProgramiv(tmp_program, GL_ACTIVE_ATTRIBUTE_MAX_LENGTH, &max_attr_length);
+
+        ea::vector<char> buffer(max_attr_length);
+        // Loop for each active attribute
+        // And update current input layout list.
+        for(GLint i = 0; i < num_attrs; ++i)
+        {
+            GLsizei length;
+            GLint size;
+            GLenum type;
+            glGetActiveAttrib(tmp_program, i, static_cast<GLsizei>(buffer.size()), &length, &size, &type, buffer.data());
+            GLint location = glGetAttribLocation(tmp_program, buffer.data());
+            StringHash name_hash = String(buffer.data(), length);
+
+            const auto it = elements.find_as(name_hash.Value());
+            if (it == elements.end())
+                continue;
+
+            auto& element = it->second;
+            element.index = static_cast<u8>(location);
+            input_elements_.push_back(element);
+        }
+
+        glDeleteProgram(tmp_program);
+    };
 
     void ShaderProgram::CollectShaderParameters(const Atomic::ShaderVariation* shader) const
     {

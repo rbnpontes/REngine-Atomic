@@ -1,5 +1,7 @@
 #include "./FileOperations.h"
 #include "../Log.h"
+#include <jni.h>
+
 extern "C" {
     JNIEnv* Android_JNI_GetEnv();
 }

@@ -157,7 +157,7 @@ namespace Atomic
                 flags |= SDL_WINDOW_BORDERLESS;
         }
         
-#if RENGINE_PLATFORM_IOS
+#if RENGINE_PLATFORM_IOS || RENGINE_PLATFORM_ANDROID
         const auto x = 0;
         const auto y = 0;
 #else
@@ -172,7 +172,11 @@ namespace Atomic
         if(ci->backend == GraphicsBackend::OpenGLES) 
         {
             SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-            SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+#if RENGINE_PLATFORM_ANDROID
+			SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+#else
+			SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+#endif
             SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
         }
         else 
@@ -425,7 +429,7 @@ namespace Atomic
 
 		Diligent::TEXTURE_FORMAT fullscreen_format = SDL_BITSPERPIXEL(mode.format) == 16 ? Diligent::TEX_FORMAT_B5G6R5_UNORM : Diligent::TEX_FORMAT_RGBA8_UNORM;
 
-#if RENGINE_PLATFORM_IOS
+#if RENGINE_PLATFORM_IOS || RENGINE_PLATFORM_ANDROID
         fullscreen = true;
         borderless = false;
         resizable = true;
@@ -493,7 +497,7 @@ namespace Atomic
             if(!result.window)
                 return false;
             
-            if(driver_desc_->backend == GraphicsBackend::OpenGL)
+            if(driver_desc_->backend == GraphicsBackend::OpenGL || driver_desc_->backend == GraphicsBackend::OpenGLES)
             {
                 int effective_multisample{};
                 if (SDL_GL_GetAttribute(SDL_GL_MULTISAMPLESAMPLES, &effective_multisample) == 0)
@@ -602,7 +606,9 @@ namespace Atomic
 
 	void Graphics::SetSRGB(bool enable)
 	{
-        if(enable && GetBackend() == GraphicsBackend::OpenGL && !sdl_gl_srgb_support())
+		const auto backend = GetBackend();
+		const auto is_opengl = backend == GraphicsBackend::OpenGL || backend == GraphicsBackend::OpenGLES; 
+        if(enable && is_opengl && !sdl_gl_srgb_support())
             enable = false;
         
 		bool newEnable = enable && sRGBWriteSupport_;
@@ -1429,6 +1435,8 @@ namespace Atomic
 		if (newWidth == width_ && newHeight == height_)
 			return;
 
+		width_ = newWidth;
+		height_ = newHeight;
 		UpdateSwapChain(newWidth, newHeight);
 
 		// Reset rendertargets and viewport for the new screen size
@@ -1769,9 +1777,6 @@ namespace Atomic
         const auto real_width = width * scale.x_;
         const auto real_height = height * scale.y_;
 		impl_->GetSwapChain()->Resize(real_width, real_height);
-
-		width_ = width;
-		height_ = height;
 		ResetRenderTargets();
 		return true;
 	}

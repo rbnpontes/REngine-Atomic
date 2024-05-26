@@ -1,5 +1,6 @@
 #pragma once
 #include "./RHITypes.h"
+#include "./ShaderProgram.h"
 #include "../Container/RefCounted.h"
 #include "../Graphics/Graphics.h"
 
@@ -8,7 +9,7 @@ namespace REngine
 	struct VertexDeclarationCreationDesc
 	{
 		Atomic::Graphics* graphics{nullptr};
-		Atomic::ShaderVariation* vertex_shader{nullptr};
+		REngine::ShaderProgram* program{nullptr};
 		ea::array<ea::shared_ptr<Atomic::VertexBuffer>, Atomic::MAX_VERTEX_STREAMS>* vertex_buffers{nullptr};
 		u32 hash{ 0 };
 	};

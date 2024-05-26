@@ -4,6 +4,7 @@
 const fs = require('fs');
 const path = require('path');
 const glob = require('glob');
+const os = require('os');
 
 const ignore_extensions = ['.bak', '.rule'];
 const pkg_file_id = 'RPAK';
@@ -253,7 +254,13 @@ class PackageTool {
     processEntryHeader(entry, buffer, offset) {
         // force checksum to be uint32
         const checksum = entry.checksum >>> 0;
-        offset = write_string(entry.name, buffer, offset);
+        let name = entry.name;
+
+        // Windows uses backslash as path separator. We need to fix to linux based.
+        if(os.platform() == 'win32')
+            name = name.replace(/\\/g, '/');
+        
+        offset = write_string(name, buffer, offset);
 
         const write_call = (this.isBigEndian ? buffer.writeUInt32BE : buffer.writeUInt32LE).bind(buffer);
         offset = write_call(entry.offset, offset);
@@ -305,7 +312,11 @@ class PackageTool {
 
         // validate entries.
         entries.forEach((entry, idx)=> {
-            if(entry.name !== getResourceEntries(this)[idx].name)
+            let entryName = entry.name;
+            // we need to convert package path separtor to windows based
+            if(os.platform() == 'win32')
+                entryName = entryName.replace(/\//g, '\\');
+            if(entryName !== getResourceEntries(this)[idx].name)
                 throw new Error('Invalid package entry. package entry name doesn\'t matches.');
             if(entry.size != getResourceEntries(this)[idx].size)
                 throw new Error('Invalid package entry. package entry size doesn\'t matches.');

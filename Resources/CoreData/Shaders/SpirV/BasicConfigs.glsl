@@ -1,7 +1,9 @@
 #ifndef BASIC_CONFIGS_GLSL
 #define BASIC_CONFIGS_GLSL 1
 
-// #extension GL_EXT_clip_cull_distance: enable
+#ifdef RENGINE_PLATFORM_ANDROID
+    #extension GL_EXT_clip_cull_distance: enable
+#endif
 #extension GL_OES_standard_derivatives : enable
 
 #ifdef GL_ES
