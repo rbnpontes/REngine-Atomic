@@ -253,7 +253,7 @@ namespace Atomic
         }
 
         #ifdef RENGINE_PLATFORM_WINDOWS
-            defines.push_back("RENGINE_PLATFORM_WINDOW");
+            defines.push_back("RENGINE_PLATFORM_WINDOWS");
         #endif
         #ifdef RENGINE_PLATFORM_MACOS
             defines.push_back("RENGINE_PLATFORM_MACOS");
@@ -335,12 +335,24 @@ namespace Atomic
             REngine::ShaderCompilerDesc compiler_desc = {};
             compiler_desc.type = type_;
             compiler_desc.source_code = source_code;
-            REngine::ShaderCompilerResult result = {};
 
+            // Preprocess shader before compile
+            REngine::ShaderCompilerPreProcessResult pre_process_result = {};
+            REngine::shader_compiler_preprocess(compiler_desc, pre_process_result);
+
+            if(pre_process_result.has_error)
+            {
+                compilerOutput_ = pre_process_result.source_code;
+                return false;
+            }
+
+            // Put pre-processed shader code and compile to obtain spirv bytecode
+            compiler_desc.source_code = pre_process_result.source_code;
+
+            REngine::ShaderCompilerResult result = {};
             REngine::shader_compiler_compile(compiler_desc, true, result);
             if (result.has_error)
             {
-                //ATOMIC_LOGERROR(result.error);
                 compilerOutput_ = result.error;
                 return false;
             }
@@ -384,8 +396,6 @@ namespace Atomic
             }
             else if (backend == GraphicsBackend::OpenGL || backend == GraphicsBackend::OpenGLES)
             {
-                REngine::ShaderCompilerPreProcessResult pre_process_result = {};
-                REngine::shader_compiler_preprocess(compiler_desc, pre_process_result);
                 const auto byte_code = reinterpret_cast<const unsigned char*>(pre_process_result.source_code.CString());
                 byteCode_ = ea::vector<u8>(
                     byte_code,

@@ -267,7 +267,7 @@ namespace Atomic
         SDL_GetWindowWMInfo(result->window.get(), &sys_info);
         
 #if RENGINE_PLATFORM_WINDOWS
-        result->HWND = sysInfo.info.win.window;
+        result->native_window.hWnd = sys_info.info.win.window;
 #elif RENGINE_PLATFORM_LINUX
         throw std::runtime_error("Not implemented Linux Window");
 #elif RENGINE_PLATFORM_MACOS

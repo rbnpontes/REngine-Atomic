@@ -731,13 +731,13 @@ bool JSBModule::Load(const String& jsonFilename)
 
     name_ = root.Get("name").GetString();
 
-    JSONValue requires = root.Get("requires");
+    JSONValue req = root.Get("requires");
 
-    if (requires.IsArray())
+    if (req.IsArray())
     {
-        for (unsigned j = 0; j < requires.GetArray().Size(); j++)
+        for (unsigned j = 0; j < req.GetArray().Size(); j++)
         {
-            requirements_.Push(requires[j].GetString());
+            requirements_.Push(req[j].GetString());
         }
 
     }

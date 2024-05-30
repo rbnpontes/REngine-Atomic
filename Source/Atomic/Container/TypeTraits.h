@@ -4,6 +4,7 @@
 #include <eastl/unordered_map.h>
 #include <eastl/unordered_set.h>
 #include <eastl/vector.h>
+#include <eastl/fixed_vector.h>
 #include <eastl/array.h>
 #include <eastl/shared_ptr.h>
 #include <eastl/shared_array.h>

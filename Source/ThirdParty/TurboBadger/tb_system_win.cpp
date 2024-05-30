@@ -31,9 +31,9 @@ double TBSystem::GetTimeMS()
 
 // Implementation currently done in port_glut.cpp.
 // Windows timer suck. Glut timers suck too (can't be canceled) but that will do for now.
-//void TBSystem::RescheduleTimer(double fire_time)
-//{
-//}
+void TBSystem::RescheduleTimer(double fire_time)
+{
+}
 
 int TBSystem::GetLongClickDelayMS()
 {
