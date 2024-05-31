@@ -1067,10 +1067,19 @@ struct DoPreprocessing {
                     TSymbolTable&, TIntermediate&,
                     EShOptimizationLevel, EShMessages)
     {
+        struct VertexAttribute {
+            std::string name;
+            std::string type;
+            unsigned ref_count;
+        };
+
         // This is a list of tokens that do not require a space before or after.
         static const std::string noNeededSpaceBeforeTokens = ";)[].,";
         static const std::string noNeededSpaceAfterTokens = ".([";
         glslang::TPpToken ppToken;
+
+        std::unordered_map<std::string, VertexAttribute*> vertex_attributes;
+        VertexAttribute* curr_attribute = nullptr;
 
         parseContext.setScanner(&input);
         ppContext.setInput(input, versionWillBeError);
@@ -1176,8 +1185,36 @@ struct DoPreprocessing {
                     outputBuffer += ' ';
                 }
             }
-            if (token == PpAtomIdentifier)
+
+            // If vertex attribute was found, then we need to insert into vertex attributes map
+            if(curr_attribute && token == ';') {
+                vertex_attributes[curr_attribute->name] = curr_attribute;
+                curr_attribute = nullptr;
+            }
+
+            if (token == PpAtomIdentifier) 
+            {
+                const auto is_attribute = strcmp(ppToken.name, "in") == 0;
+                if (is_attribute)
+                    curr_attribute = new VertexAttribute();
+                else if(curr_attribute) {
+                    // if is not attribute but attribute has been set.
+                    // Then we must fill attribute data.
+                    // First is type and second is their name.
+                    if (curr_attribute->type.empty())
+                        curr_attribute->type = ppToken.name;
+                    else if (curr_attribute->name.empty())
+                        curr_attribute->name = ppToken.name;
+                }
+                else {
+                    // Increment number of references if vertex attribute has been used.
+                    const auto attr_it = vertex_attributes.find(ppToken.name);
+                    if (attr_it != vertex_attributes.end())
+                        ++attr_it->second->ref_count;
+                }
+
                 lastTokenName = ppToken.name;
+            }
             lastToken = token;
             if (token == PpAtomConstString)
                 outputBuffer += "\"";
@@ -1186,6 +1223,22 @@ struct DoPreprocessing {
                 outputBuffer += "\"";
         } while (true);
         outputBuffer += '\n';
+
+        // Strip unused vertex attributes
+        for(const auto& attr_it : vertex_attributes) {
+            auto attr = attr_it.second;
+            if(attr->ref_count > 0) {
+                delete attr;
+                continue;
+            }
+
+            std::string replace_criteria = "in " + attr->type + " " + attr->name + ";";
+            const auto idx = outputBuffer.find(replace_criteria);
+            outputBuffer.erase(idx, replace_criteria.length());
+
+            delete attr;
+        }
+
         *outputString = std::move(outputBuffer);
 
         bool success = true;

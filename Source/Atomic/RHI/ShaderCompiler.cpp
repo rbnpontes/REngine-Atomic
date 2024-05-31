@@ -353,7 +353,8 @@ namespace REngine
             Split('\n');
         for (auto& line : code_parts)
         {
-            if (line.Trimmed().Length() == 0)
+            const auto raw_line = line.Trimmed();
+            if (raw_line.Length() == 0)
                 continue;
             final_result.Append(line);
             final_result.Append('\n');
