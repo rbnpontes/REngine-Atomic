@@ -136,7 +136,8 @@ namespace REngine
         
 
         auto device_contexts = new IDeviceContext*[num_deferred_contexts + 1];
-        
+
+        ATOMIC_LOGDEBUGF("Graphics Backend: %s", s_backend_names_tbl[static_cast<u8>(init_desc.backend)]);
         switch (init_desc.backend)
         {
 #if WIN32
