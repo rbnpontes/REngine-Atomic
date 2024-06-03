@@ -334,6 +334,7 @@ namespace Atomic
         {
             REngine::ShaderCompilerDesc compiler_desc = {};
             compiler_desc.type = type_;
+            compiler_desc.name = name_.CString();
             compiler_desc.source_code = source_code;
 
             // Preprocess shader before compile

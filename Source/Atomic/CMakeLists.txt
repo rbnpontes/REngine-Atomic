@@ -121,7 +121,7 @@ set (PUBLIC_THIRD_PARTY_DEPS
     rapidjson 
     imgui
     EASTL)
-set (PRIVATE_THIRD_PARTY_DEPS SDL2::SDL2-static)
+set (PRIVATE_THIRD_PARTY_DEPS SDL2::SDL2-static shaderc)
 
 target_compile_definitions (Atomic PUBLIC -DATOMIC_CXX11=1)
 if (ATOMIC_64BIT)

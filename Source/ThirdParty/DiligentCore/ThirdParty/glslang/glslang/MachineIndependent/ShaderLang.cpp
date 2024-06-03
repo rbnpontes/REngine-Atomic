@@ -76,6 +76,8 @@
 // Build-time generated includes
 #include "glslang/build_info.h"
 
+#include <queue>
+
 namespace { // anonymous namespace for file-local functions and symbols
 
 // Total number of successful initializers of glslang: a refcount
@@ -938,7 +940,7 @@ bool ProcessDeferred(
 
     //
     // Now we can process the full shader under proper symbols and rules.
-    //
+    //3
 
     std::unique_ptr<TParseContextBase> parseContext(CreateParseContext(*symbolTable, intermediate, version, profile, source,
                                                     stage, compiler->infoSink,
@@ -1064,13 +1066,82 @@ struct DoPreprocessing {
     explicit DoPreprocessing(std::string* string): outputString(string) {}
     bool operator()(TParseContextBase& parseContext, TPpContext& ppContext,
                     TInputScanner& input, bool versionWillBeError,
-                    TSymbolTable&, TIntermediate&,
+                    TSymbolTable&, TIntermediate& intermediate,
                     EShOptimizationLevel, EShMessages)
     {
         struct VertexAttribute {
             std::string name;
             std::string type;
             unsigned ref_count;
+        };
+        class MethodDefinition {
+        public:
+            MethodDefinition() : ref_count(0), completed(false), capture_arguments(false){}
+            std::string name;
+            std::string type;
+            std::unordered_map<std::string, std::string> arguments;
+            unsigned ref_count;
+            bool completed;
+            bool capture_arguments;
+
+            MethodDefinition* process(int token, 
+                const TPpToken& pp_token,
+                std::vector<std::string>& last_tokens)
+            {
+                if(token == '(' && !capture_arguments) 
+                {
+                    capture_arguments = true;
+                    return this;
+                }
+                if(token == ')' && capture_arguments) 
+                {
+                    capture_arguments = false;
+                    return processArguments(token, pp_token, last_tokens);
+                }
+
+                return this;
+            }
+
+            MethodDefinition* processArguments(int token, 
+                const TPpToken& pp_token,
+                std::vector<std::string>& last_tokens)
+            {
+                if(last_tokens.size() == 1 || last_tokens.size() % 2 != 0) {
+                    last_tokens.clear();
+                    return nullptr;
+                }
+
+                for(unsigned i = 0; i < last_tokens.size(); i += 2) 
+                    arguments[last_tokens[i]] = last_tokens[i + 1];
+                return this;
+            }
+        };
+
+        class TmpTraverser : public TIntermTraverser {
+        public:
+            TmpTraverser(std::unordered_map<std::string, MethodDefinition*>* available_methods)
+                : TIntermTraverser(true, false, false),
+            available_methods_(available_methods) {}
+
+            bool visitAggregate(TVisit, TIntermAggregate* aggr) override
+            {
+                std::string name = aggr->getName().c_str();
+                if (name.empty())
+                    return true;
+
+                const auto end_method_idx = name.find("(");
+                name.erase(end_method_idx, name.length());
+
+                if (available_methods_->find(name) != available_methods_->end())
+                    return true;
+
+                const auto definition = new MethodDefinition();
+                definition->name = name;
+                available_methods_->insert(std::make_pair(name, definition));
+                return true;
+            }
+        private:
+            std::unordered_map<std::string, MethodDefinition*>* available_methods_;
         };
 
         // This is a list of tokens that do not require a space before or after.
@@ -1079,7 +1150,13 @@ struct DoPreprocessing {
         glslang::TPpToken ppToken;
 
         std::unordered_map<std::string, VertexAttribute*> vertex_attributes;
+        std::unordered_map<std::string, MethodDefinition*> methods;
+
         VertexAttribute* curr_attribute = nullptr;
+        MethodDefinition* curr_method = nullptr;
+
+        auto traverse = TmpTraverser(&methods);
+        intermediate.getTreeRoot()->traverse(&traverse);
 
         parseContext.setScanner(&input);
         ppContext.setInput(input, versionWillBeError);
@@ -1152,6 +1229,9 @@ struct DoPreprocessing {
 
         int lastToken = EndOfInput; // lastToken records the last token processed.
         std::string lastTokenName;
+        std::vector<std::string> last_tokens;
+
+        bool method_capture_args = false;
         do {
             int token = ppContext.tokenize(ppToken);
             if (token == EndOfInput)
@@ -1192,6 +1272,9 @@ struct DoPreprocessing {
                 curr_attribute = nullptr;
             }
 
+            if (curr_method)
+                curr_method = curr_method->process(token, ppToken, last_tokens);
+
             if (token == PpAtomIdentifier) 
             {
                 const auto is_attribute = strcmp(ppToken.name, "in") == 0;
@@ -1213,6 +1296,19 @@ struct DoPreprocessing {
                         ++attr_it->second->ref_count;
                 }
 
+                const auto method_it = methods.find(ppToken.name);
+                if(method_it != methods.end()) {
+
+                    if (!method_it->second->completed) 
+                    {
+                        curr_method = method_it->second;
+                        // It's probably that the last token is function return type.
+                        curr_method->type = lastTokenName;
+                    }
+                    ++method_it->second->ref_count;
+                }
+
+
                 lastTokenName = ppToken.name;
             }
             lastToken = token;
@@ -1223,6 +1319,16 @@ struct DoPreprocessing {
                 outputBuffer += "\"";
         } while (true);
         outputBuffer += '\n';
+
+        // Strip unused methods
+        for(const auto& method_it : methods) {
+            auto method = method_it.second;
+            if(method->ref_count > 0) {
+                delete method;
+                continue;
+            }
+
+        }
 
         // Strip unused vertex attributes
         for(const auto& attr_it : vertex_attributes) {

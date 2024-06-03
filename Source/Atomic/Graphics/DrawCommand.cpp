@@ -819,7 +819,7 @@ namespace REngine
 						ResolveTexture(static_cast<TextureCube*>(texture));
 				}
 
-				if (texture->GetLevelsDirty())
+				if (levels_dirty)
 					texture->RegenerateLevels();
 				if(params_dirty)
 				{

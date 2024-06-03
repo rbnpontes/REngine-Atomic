@@ -190,6 +190,7 @@ namespace REngine
 
 	struct ShaderCompilerDesc
     {
+        Atomic::String name{};
         Atomic::String source_code{};
         Atomic::ShaderType type{};
 

@@ -93,4 +93,10 @@ if (ATOMIC_PROFILING)
     add_subdirectory(tracy)
 endif ()
 
+add_subdirectory(spirv-headers)
+add_subdirectory(spirv-tools)
+add_subdirectory(glslang)
+add_subdirectory(libshaderc_util)
+add_subdirectory(libshaderc)
+
 add_subdirectory(DiligentCore)
