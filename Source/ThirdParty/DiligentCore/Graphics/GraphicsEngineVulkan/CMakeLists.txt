@@ -314,7 +314,7 @@ endif()
 target_compile_definitions(Diligent-GraphicsEngineVk-static
 PRIVATE
     ${PRIVATE_COMPILE_DEFINITIONS}
-    DILIGENT_NO_GLSLANG=$<BOOL:${DILIGENT_NO_GLSLANG}>
+    DILIGENT_NO_GLSLANG=1
     DILIGENT_NO_HLSL=$<BOOL:${DILIGENT_NO_HLSL}>
 )
 # target_compile_definitions(Diligent-GraphicsEngineVk-shared PRIVATE ${PRIVATE_COMPILE_DEFINITIONS} ENGINE_DLL=1)

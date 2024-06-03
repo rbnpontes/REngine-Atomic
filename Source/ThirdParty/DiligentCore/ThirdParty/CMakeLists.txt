@@ -41,7 +41,7 @@ if (VULKAN_SUPPORTED OR METAL_SUPPORTED)
     endif()
 
     # option(DILIGENT_NO_GLSLANG "Do NOT build glslang compiler" OFF)
-    set (DILIGENT_NO_GLSLANG ON)
+    set (DILIGENT_NO_GLSLANG TRUE)
     option(DILIGENT_IMPROVE_SPIRV_TOOLS_DEBUG_PERF "Enable some optimizations for SPIRV-Tools, glslang, SPIRV-Cross and related projects in debug build to improve performance" ON)
 
     if (NOT (${DILIGENT_NO_GLSLANG} AND ${DILIGENT_NO_HLSL}) AND (NOT TARGET SPIRV-Tools-static))
