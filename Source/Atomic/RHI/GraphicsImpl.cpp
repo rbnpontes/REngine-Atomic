@@ -168,9 +168,11 @@ namespace Atomic
         const auto height = ci->height;
         
         SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-        
+
+#if !RENGINE_PLATFORM_WINDOWS && !RENGINE_PLATFORM_LINUX
         if(ci->backend == GraphicsBackend::OpenGLES) 
         {
+			SDL_SetHint(SDL_HINT_OPENGL_ES_DRIVER, "1");
             SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
 #if RENGINE_PLATFORM_ANDROID
 			SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
@@ -179,7 +181,8 @@ namespace Atomic
 #endif
             SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
         }
-        else 
+        else
+#endif
         {
             SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
             // MacOS platforms max supported version is 4.1
@@ -399,9 +402,13 @@ namespace Atomic
             backend = GraphicsBackend::OpenGLES;
 #endif
         
-#if RENGINE_PLATFORM_WINDOWS || RENGINE_PLATFORM_MACOS
+#if RENGINE_PLATFORM_MACOS
         if(backend == GraphicsBackend::OpenGLES) 
             ATOMIC_LOGWARNING("Graphics Backend GL ES requires libGLESv2 installed in your machine. You can build yourself ANGLE lib or copy from Chrome like browser to your system machine.");
+#endif
+#if RENGINE_PLATFORM_WINDOWS
+		if (backend == GraphicsBackend::OpenGLES)
+			ATOMIC_LOGWARNING("Graphics Backend GL ES isn't supported on this environment. Engine will try to emulate operations.");
 #endif
         driver_desc_->backend = backend;
     }

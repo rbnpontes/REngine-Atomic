@@ -4,7 +4,7 @@
 #include "ScreenPos.glsl"
 #include "Fog.glsl"
 
-#ifndef GL_ES
+#ifndef RENGINE_IS_GLES
     varying vec4 vScreenPos;
     varying vec2 vReflectUV;
     varying vec2 vWaterUV;

@@ -29,13 +29,8 @@
 #include "shaderc_private.h"
 #include "spirv/unified1/spirv.hpp"
 
-#if (defined(_MSC_VER) && !defined(_CPPUNWIND)) || !defined(__EXCEPTIONS)
-#define TRY_IF_EXCEPTIONS_ENABLED
-#define CATCH_IF_EXCEPTIONS_ENABLED(X) if (0)
-#else
 #define TRY_IF_EXCEPTIONS_ENABLED try
 #define CATCH_IF_EXCEPTIONS_ENABLED(X) catch (X)
-#endif
 
 namespace {
 
@@ -662,7 +657,8 @@ shaderc_compilation_result_t CompileToSpecifiedOutputType(
                                 : shaderc_compilation_status_compilation_error;
     }
   }
-  CATCH_IF_EXCEPTIONS_ENABLED(...) {
+  CATCH_IF_EXCEPTIONS_ENABLED(const std::exception& e) {
+    result->messages = e.what();
     result->compilation_status = shaderc_compilation_status_internal_error;
   }
   return result;
@@ -735,7 +731,8 @@ shaderc_compilation_result_t shaderc_assemble_into_spv(
       result->compilation_status = shaderc_compilation_status_invalid_assembly;
     }
   }
-  CATCH_IF_EXCEPTIONS_ENABLED(...) {
+  CATCH_IF_EXCEPTIONS_ENABLED(const std::exception& e) {
+    result->messages = e.what();
     result->compilation_status = shaderc_compilation_status_internal_error;
   }
 

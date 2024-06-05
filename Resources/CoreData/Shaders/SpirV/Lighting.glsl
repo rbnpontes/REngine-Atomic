@@ -70,7 +70,7 @@
     #endif
 
     #ifdef SHADOW
-        #if defined(DIRLIGHT) && (!defined(GL_ES) || defined(WEBGL))
+        #if defined(DIRLIGHT) && (!defined(RENGINE_IS_GLES) || defined(WEBGL))
             #define NUMCASCADES 4
         #else
             #define NUMCASCADES 1
@@ -177,7 +177,7 @@
 
     #ifdef SHADOW
 
-        #if defined(DIRLIGHT) && (!defined(GL_ES) || defined(WEBGL))
+        #if defined(DIRLIGHT) && (!defined(RENGINE_IS_GLES) || defined(WEBGL))
             #define NUMCASCADES 4
         #else
             #define NUMCASCADES 1
@@ -208,7 +208,7 @@
             }
         #endif
 
-        #ifndef GL_ES
+        #ifndef RENGINE_IS_GLES
             float GetShadow(vec4 shadowPos)
             {
                 #if defined(SIMPLE_SHADOW)
@@ -294,7 +294,7 @@
                 return min(inLight + max((depth - cShadowDepthFade.z) * cShadowDepthFade.w, 0.0), 1.0);
             }
 
-            #if !defined(GL_ES) || defined(WEBGL)
+            #if !defined(RENGINE_IS_GLES) || defined(WEBGL)
                 float GetDirShadow(const vec4 iShadowPos[NUMCASCADES], float depth)
                 {
                     vec4 shadowPos;
@@ -317,7 +317,7 @@
                 }
             #endif
 
-            #ifndef GL_ES
+            #ifndef RENGINE_IS_GLES
             float GetDirShadowDeferred(vec4 projWorldPos, vec3 normal, float depth)
             {
                 vec4 shadowPos;
@@ -348,7 +348,7 @@
             #endif
         #endif
 
-        #ifndef GL_ES
+        #ifndef RENGINE_IS_GLES
             float GetShadow(const vec4 iShadowPos[NUMCASCADES], float depth)
         #else
             float GetShadow(const highp vec4 iShadowPos[NUMCASCADES], float depth)
@@ -363,7 +363,7 @@
             #endif
         }
 
-        #ifndef GL_ES
+        #ifndef RENGINE_IS_GLES
             float GetShadowDeferred(vec4 projWorldPos, vec3 normal, float depth)
             {
                 #ifdef DIRLIGHT

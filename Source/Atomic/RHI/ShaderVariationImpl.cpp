@@ -248,7 +248,13 @@ namespace Atomic
             break;
         case GraphicsBackend::OpenGL:
         case GraphicsBackend::OpenGLES:
-            defines.push_back("OPENGL");
+	        {
+                defines.push_back("OPENGL");
+#ifdef RENGINE_PLATFORM_WINDOWS
+                if (backend == GraphicsBackend::OpenGLES)
+                    defines.push_back("OPENGLES");
+#endif
+	        }
             break;
         }
 
