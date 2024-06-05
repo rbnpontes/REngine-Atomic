@@ -113,7 +113,9 @@ void CalculateShadowMatrix(Matrix4& dest, LightBatchQueue* queue, unsigned split
     offset.x_ += scale.x_ + pixelUVOffset.x_ / width;
     offset.y_ += scale.y_ + pixelUVOffset.y_ / height;
 
-    if(renderer->GetGraphics()->GetBackend() == GraphicsBackend::OpenGL)
+    const auto backend = renderer->GetGraphics()->GetBackend();
+
+    if(backend == GraphicsBackend::OpenGL || backend == GraphicsBackend::OpenGLES)
     {
         offset.z_ = 0.5f;
         scale.z_ = 0.5f;
@@ -149,7 +151,8 @@ void CalculateSpotMatrix(Matrix4& dest, Light* light)
     spotProj.m22_ = 1.0f / Max(light->GetRange(), M_EPSILON);
     spotProj.m32_ = 1.0f;
 
-    if(light->GetGraphics()->GetBackend() == GraphicsBackend::OpenGL)
+    const auto backend = light->GetGraphics()->GetBackend();
+    if(backend == GraphicsBackend::OpenGL || backend == GraphicsBackend::OpenGLES)
     {
         texAdjust.SetTranslation(Vector3(0.5f, 0.5f, 0.5f));
         texAdjust.SetScale(Vector3(0.5f, -0.5f, 0.5f));
@@ -186,9 +189,10 @@ void Batch::Prepare(View* view, Camera* camera, bool setModelTransform, bool all
 
     Graphics* graphics = view->GetGraphics();
     Renderer* renderer = view->GetRenderer();
-    Node* cameraNode = camera ? camera->GetNode() : 0;
-    Light* light = lightQueue_ ? lightQueue_->light_ : 0;
-    Texture2D* shadowMap = lightQueue_ ? lightQueue_->shadowMap_ : 0;
+    Node* cameraNode = camera ? camera->GetNode() : nullptr;
+    Light* light = lightQueue_ ? lightQueue_->light_ : nullptr;
+    Texture2D* shadowMap = lightQueue_ ? lightQueue_->shadowMap_ : nullptr;
+    const auto backend = graphics->GetBackend();
 
     // Set shaders first. The available shader parameters and their register/uniform positions depend on the currently set shaders
     graphics->SetShaders(vertexShader_, pixelShader_);
@@ -356,8 +360,7 @@ void Batch::Prepare(View* view, Camera* camera, bool setModelTransform, bool all
                         Matrix4 lightVecRot(lightNode->GetWorldRotation().RotationMatrix());
                         // HLSL compiler will pack the parameters as if the matrix is only 3x4, so must be careful to not overwrite
                         // the next parameter
-
-                        if(graphics->GetBackend() == GraphicsBackend::OpenGL)
+                        if(backend == GraphicsBackend::OpenGL || backend == GraphicsBackend::OpenGLES)
                             graphics->SetShaderParameter(VSP_LIGHTMATRICES, lightVecRot.Data(), 16);
                         else 
                             graphics->SetShaderParameter(VSP_LIGHTMATRICES, lightVecRot.Data(), 12);
@@ -416,7 +419,8 @@ void Batch::Prepare(View* view, Camera* camera, bool setModelTransform, bool all
                         Matrix4 lightVecRot(lightNode->GetWorldRotation().RotationMatrix());
                         // HLSL compiler will pack the parameters as if the matrix is only 3x4, so must be careful to not overwrite
                         // the next parameter
-                        if(graphics->GetBackend() == GraphicsBackend::OpenGL || graphics->GetBackend() == GraphicsBackend::Vulkan)
+                        // TODO: move matrix pack size to graphics capabilities
+                        if(backend == GraphicsBackend::OpenGL || backend == GraphicsBackend::OpenGLES || backend == GraphicsBackend::Vulkan)
                             graphics->SetShaderParameter(PSP_LIGHTMATRICES, lightVecRot.Data(), 16);
                         else
                             graphics->SetShaderParameter(PSP_LIGHTMATRICES, lightVecRot.Data(), 12);
@@ -439,7 +443,7 @@ void Batch::Prepare(View* view, Camera* camera, bool setModelTransform, bool all
                     float mulY;
                     float addX;
                     float addY;
-                    if(graphics->GetBackend() == GraphicsBackend::OpenGL)
+                    if(backend == GraphicsBackend::OpenGL || backend == GraphicsBackend::OpenGLES)
                     {
                         mulX = (float)(faceWidth - 3) / width;
                         mulY = (float)(faceHeight - 3) / height;
@@ -535,9 +539,8 @@ void Batch::Prepare(View* view, Camera* camera, bool setModelTransform, bool all
                     }
 
                     normalOffsetScale *= light->GetShadowBias().normalOffset_;
-#ifdef GL_ES_VERSION_2_0
-                    normalOffsetScale *= renderer->GetMobileNormalOffsetMul();
-#endif
+                    if(backend == GraphicsBackend::OpenGLES)
+                        normalOffsetScale *= renderer->GetMobileNormalOffsetMul();
                     graphics->SetShaderParameter(VSP_NORMALOFFSETSCALE, normalOffsetScale);
                     graphics->SetShaderParameter(PSP_NORMALOFFSETSCALE, normalOffsetScale);
                 }
@@ -596,14 +599,17 @@ void Batch::Prepare(View* view, Camera* camera, bool setModelTransform, bool all
     }
 
     // Set zone texture if necessary
-#ifndef GL_ES_VERSION_2_0
-    if (zone_ && graphics->HasTextureUnit(TU_ZONE))
-        graphics->SetTexture(TU_ZONE, zone_->GetZoneTexture());
-#else
-    // On OpenGL ES set the zone texture to the environment unit instead
-    if (zone_ && zone_->GetZoneTexture() && graphics->HasTextureUnit(TU_ENVIRONMENT))
-        graphics->SetTexture(TU_ENVIRONMENT, zone_->GetZoneTexture());
-#endif
+    if(backend == GraphicsBackend::OpenGLES)
+    {
+        // On OpenGL ES set the zone texture to the environment unit instead
+        if (zone_ && zone_->GetZoneTexture() && graphics->HasTextureUnit(TU_ENVIRONMENT))
+            graphics->SetTexture(TU_ENVIRONMENT, zone_->GetZoneTexture());
+    }
+	else
+    {
+        if (zone_ && graphics->HasTextureUnit(TU_ZONE))
+            graphics->SetTexture(TU_ZONE, zone_->GetZoneTexture());
+    }
 
     // Set material-specific shader parameters and textures
     if (material_)
@@ -756,14 +762,14 @@ void BatchQueue::SortBackToFront()
     Sort(sortedBatchGroups_.Begin(), sortedBatchGroups_.End(), CompareBatchGroupOrder);
 }
 
-void BatchQueue::SortFrontToBack()
+void BatchQueue::SortFrontToBack(GraphicsBackend backend)
 {
     sortedBatches_.Clear();
 
     for (unsigned i = 0; i < batches_.Size(); ++i)
         sortedBatches_.Push(&batches_[i]);
 
-    SortFrontToBack2Pass(sortedBatches_);
+    SortFrontToBack2Pass(sortedBatches_, backend);
 
     // Sort each group front to back
     for (HashMap<BatchGroupKey, BatchGroup>::Iterator i = batchGroups_.Begin(); i != batchGroups_.End(); ++i)
@@ -789,16 +795,19 @@ void BatchQueue::SortFrontToBack()
     for (HashMap<BatchGroupKey, BatchGroup>::Iterator i = batchGroups_.Begin(); i != batchGroups_.End(); ++i)
         sortedBatchGroups_[index++] = &i->second_;
 
-    SortFrontToBack2Pass(reinterpret_cast<PODVector<Batch*>& >(sortedBatchGroups_));
+    SortFrontToBack2Pass(reinterpret_cast<PODVector<Batch*>& >(sortedBatchGroups_), backend);
 }
 
-void BatchQueue::SortFrontToBack2Pass(PODVector<Batch*>& batches)
+void BatchQueue::SortFrontToBack2Pass(PODVector<Batch*>& batches, GraphicsBackend backend)
 {
     // Mobile devices likely use a tiled deferred approach, with which front-to-back sorting is irrelevant. The 2-pass
     // method is also time consuming, so just sort with state having priority
-#ifdef GL_ES_VERSION_2_0
-    Sort(batches.Begin(), batches.End(), CompareBatchesState);
-#else
+    if(backend == GraphicsBackend::OpenGLES)
+    {
+        Sort(batches.Begin(), batches.End(), CompareBatchesState);
+        return;
+    }
+
     // For desktop, first sort by distance and remap shader/material/geometry IDs in the sort key
     Sort(batches.Begin(), batches.End(), CompareBatchesFrontToBack);
 
@@ -849,7 +858,6 @@ void BatchQueue::SortFrontToBack2Pass(PODVector<Batch*>& batches)
 
     // Finally sort again with the rewritten ID's
     Sort(batches.Begin(), batches.End(), CompareBatchesState);
-#endif
 }
 
 void BatchQueue::SetInstancingData(void* lockedData, unsigned stride, unsigned& freeIndex)

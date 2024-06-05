@@ -34,7 +34,9 @@ namespace Atomic
 {
 	static float GetPositionAdjust(GraphicsBackend backend)
 	{
-		return backend == GraphicsBackend::OpenGL ? 0.0f : 0.5f;
+		const auto is_opengl = backend == GraphicsBackend::OpenGL ||
+			backend == GraphicsBackend::OpenGLES;
+		return is_opengl ? 0.0f : 0.5f;
 	}
 	static Vector3 GetPositionAdjustVector3(GraphicsBackend backend)
 	{

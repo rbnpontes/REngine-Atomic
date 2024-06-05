@@ -452,7 +452,9 @@ Matrix4 Camera::GetProjection() const
 
 Matrix4 Camera::GetGPUProjection() const
 {
-    if(graphics_->GetBackend() != GraphicsBackend::OpenGL)
+    const auto backend = graphics_->GetBackend();
+    const auto is_opengl = backend == GraphicsBackend::OpenGL || backend == GraphicsBackend::OpenGLES;
+    if(!is_opengl)
         return GetProjection(); // Already matches API-specific format
     // See formulation for depth range conversion at http://www.ogre3d.org/forums/viewtopic.php?f=4&t=13357
     Matrix4 ret = GetProjection();

@@ -1680,11 +1680,6 @@ namespace Atomic
 		return 128;
 	}
 
-	bool Graphics::GetGL3Support()
-	{
-		return false;
-	}
-
 	/*bool Graphics::OpenWindow(int width, int height, bool resizable, bool borderless)
 	{
         SDLWindowCreateDesc create_desc = {};

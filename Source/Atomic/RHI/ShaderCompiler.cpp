@@ -142,10 +142,11 @@ namespace REngine
     void shader_compiler_preprocess(const ShaderCompilerDesc& desc, ShaderCompilerPreProcessResult& output)
     {
         auto source_code = desc.source_code;
-#if RENGINE_PLATFORM_IOS || RENGINE_PLATFORM_ANDROID
-        // Replace header version to 310 es, Otherwise the code above will not work!
-        source_code.Replace("#version 300 es", "#version 450");
-#endif
+        if(desc.backend == GraphicsBackend::OpenGLES)
+        {
+            // Replace header version to 310 es, Otherwise the code above will not work!
+            source_code.Replace("#version 300 es", "#version 450");
+        }
 
         const auto compiler = shaderc_compiler_initialize();
         const auto options = shaderc_compile_options_initialize();
@@ -171,10 +172,11 @@ namespace REngine
     	else
         {
             Atomic::String source_code = shaderc_result_get_bytes(result);
-#if RENGINE_PLATFORM_IOS || RENGINE_PLATFORM_ANDROID
-            // Replace header version to 310 es.
-            source_code.Replace("#version 450", "#version 300 es");
-#endif
+            if(desc.backend == GraphicsBackend::OpenGLES)
+            {
+                // Replace header version to 310 es.
+                source_code.Replace("#version 450", "#version 300 es");
+            }
     		output.source_code = source_code;
             output.has_error = false;
             output.error = shaderc_result_get_error_message(result);
@@ -189,10 +191,11 @@ namespace REngine
     void shader_compiler_compile(const ShaderCompilerDesc& desc, const bool optimize, ShaderCompilerResult& output)
     {
         auto source_code = desc.source_code;
-#if RENGINE_PLATFORM_IOS || RENGINE_PLATFORM_ANDROID
-        // Replace header version to 310 es, Otherwise the code above will not work!
-        source_code.Replace("#version 300 es", "#version 450");
-#endif
+        if(desc.backend == GraphicsBackend::OpenGLES)
+        {
+            // Replace header version to 310 es, Otherwise the code above will not work!
+            source_code.Replace("#version 300 es", "#version 450");
+        }
 
         const auto compiler = shaderc_compiler_initialize();
         const auto options = shaderc_compile_options_initialize();

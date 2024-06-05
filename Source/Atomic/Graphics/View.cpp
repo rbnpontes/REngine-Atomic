@@ -262,8 +262,7 @@ void UpdateDrawableGeometriesWork(const WorkItem* item, unsigned threadIndex)
 void SortBatchQueueFrontToBackWork(const WorkItem* item, unsigned threadIndex)
 {
     BatchQueue* queue = reinterpret_cast<BatchQueue*>(item->start_);
-
-    queue->SortFrontToBack();
+    queue->SortFrontToBack(queue->backend_);
 }
 
 void SortBatchQueueBackToFrontWork(const WorkItem* item, unsigned threadIndex)
@@ -276,15 +275,15 @@ void SortBatchQueueBackToFrontWork(const WorkItem* item, unsigned threadIndex)
 void SortLightQueueWork(const WorkItem* item, unsigned threadIndex)
 {
     LightBatchQueue* start = reinterpret_cast<LightBatchQueue*>(item->start_);
-    start->litBaseBatches_.SortFrontToBack();
-    start->litBatches_.SortFrontToBack();
+    start->litBaseBatches_.SortFrontToBack(start->backend_);
+    start->litBatches_.SortFrontToBack(start->backend_);
 }
 
 void SortShadowQueueWork(const WorkItem* item, unsigned threadIndex)
 {
     LightBatchQueue* start = reinterpret_cast<LightBatchQueue*>(item->start_);
     for (unsigned i = 0; i < start->shadowSplits_.Size(); ++i)
-        start->shadowSplits_[i].shadowBatches_.SortFrontToBack();
+        start->shadowSplits_[i].shadowBatches_.SortFrontToBack(start->backend_);
 }
 
 StringHash ParseTextureTypeXml(ResourceCache* cache, String filename);
@@ -344,8 +343,10 @@ bool View::Define(RenderSurface* renderTarget, Viewport* viewport)
     viewSize_ = viewRect_.Size();
     rtSize_ = IntVector2(rtWidth, rtHeight);
 
-    // On OpenGL flip the viewport if rendering to a texture for consistent UV addressing with Direct3D9
-    if (renderTarget_ && graphics_->GetBackend() == GraphicsBackend::OpenGL)
+    // On OpenGL flip the viewport if rendering to a texture for consistent UV addressing
+    const auto backend = graphics_->GetBackend();
+    const auto is_opengl = backend == GraphicsBackend::OpenGL || backend == GraphicsBackend::OpenGLES;
+    if (renderTarget_ && is_opengl)
     {
         viewRect_.bottom_ = rtHeight - viewRect_.top_;
         viewRect_.top_ = viewRect_.bottom_ - viewSize_.y_;
@@ -401,8 +402,9 @@ bool View::Define(RenderSurface* renderTarget, Viewport* viewport)
 
     // On OpenGL ES we assume a stencil is not available or would not give a good performance, and disable light stencil
     // optimizations in any case
-    // noStencil_ = true;
-    if(graphics_->GetBackend() == GraphicsBackend::OpenGL)
+    if(backend == GraphicsBackend::OpenGLES)
+	    noStencil_ = true;
+    if(backend == GraphicsBackend::OpenGL)
     {
         for (unsigned i = 0; i < renderPath_->commands_.Size(); ++i)
         {
@@ -584,6 +586,7 @@ void View::Update(const FrameInfo& frame)
 
 void View::Render()
 {
+    const auto backend = graphics_->GetBackend();
     SendViewEvent(E_BEGINVIEWRENDER);
 
     if (hasScenePasses_ && (!octree_ || !camera_))
@@ -610,19 +613,17 @@ void View::Render()
         camera_->SetAspectRatioInternal((float)(viewSize_.x_) / (float)(viewSize_.y_));
 
     // Bind the face selection and indirection cube maps for point light shadows
-#ifndef GL_ES_VERSION_2_0
-    if (renderer_->GetDrawShadows())
+    if (renderer_->GetDrawShadows() && backend != GraphicsBackend::OpenGLES)
     {
         graphics_->SetTexture(TU_FACESELECT, renderer_->GetFaceSelectCubeMap());
         graphics_->SetTexture(TU_INDIRECTION, renderer_->GetIndirectionCubeMap());
     }
-#endif
 
     if (renderTarget_)
     {
         // On OpenGL, flip the projection if rendering to a texture so that the texture can be addressed in the same way
-        // as a render texture produced on Direct3D9
-        if(graphics_->GetBackend() == GraphicsBackend::OpenGL && camera_)
+        // as a render texture produced on D3D and Vulkan
+        if((backend == GraphicsBackend::OpenGL || backend == GraphicsBackend::OpenGLES) && camera_)
             camera_->SetFlipVertical(true);
     }
 
@@ -670,7 +671,7 @@ void View::Render()
         }
     }
 
-    if (camera_ && graphics_->GetBackend() == GraphicsBackend::OpenGL)
+    if (camera_ && (backend == GraphicsBackend::OpenGL || backend == GraphicsBackend::OpenGLES))
         camera_->SetFlipVertical(false);
 
     // Run framebuffer blitting if necessary. If scene was resolved from backbuffer, do not touch depth
@@ -731,10 +732,13 @@ void View::SetCameraShaderParameters(Camera* camera)
     graphics_->SetShaderParameter(PSP_FARCLIP, farClip);
 
     Vector4 depthMode = Vector4::ZERO;
+    const auto backend = graphics_->GetBackend();
+    const auto is_opengl = backend == GraphicsBackend::OpenGL || backend == GraphicsBackend::OpenGLES;
+
     if (camera->IsOrthographic())
     {
         depthMode.x_ = 1.0f;
-        if(graphics_->GetBackend() == GraphicsBackend::OpenGL)
+        if(is_opengl)
         {
             depthMode.z_ = 0.5f;
             depthMode.w_ = 0.5f;
@@ -758,7 +762,7 @@ void View::SetCameraShaderParameters(Camera* camera)
 
     Matrix4 projection = camera->GetGPUProjection();
     // Add constant depth bias manually to the projection matrix due to glPolygonOffset() inconsistency
-    if(graphics_->GetBackend() == GraphicsBackend::OpenGL)
+    if(is_opengl)
     {
 	    float constantBias = 2.0f * graphics_->GetDepthConstantBias();
         projection.m22_ += projection.m32_ * constantBias;
@@ -781,12 +785,13 @@ void View::SetCommandShaderParameters(const RenderPathCommand& command)
 
 void View::SetGBufferShaderParameters(const IntVector2& texSize, const IntRect& viewRect)
 {
+    const auto backend = graphics_->GetBackend();
     float texWidth = (float)texSize.x_;
     float texHeight = (float)texSize.y_;
     float widthRange = 0.5f * viewRect.Width() / texWidth;
     float heightRange = 0.5f * viewRect.Height() / texHeight;
 
-    if(graphics_->GetBackend() == GraphicsBackend::OpenGL)
+    if(backend == GraphicsBackend::OpenGL || backend == GraphicsBackend::OpenGLES)
     {
         Vector4 bufferUVOffset(((float)viewRect.left_) / texWidth + widthRange,
             1.0f - (((float)viewRect.top_) / texHeight + heightRange), widthRange, heightRange);
@@ -1320,13 +1325,18 @@ void View::UpdateGeometries()
                 item->priority_ = M_MAX_UNSIGNED;
                 item->workFunction_ =
                     command.sortMode_ == SORT_FRONTTOBACK ? SortBatchQueueFrontToBackWork : SortBatchQueueBackToFrontWork;
-                item->start_ = &batchQueues_[command.passIndex_];
+
+            	auto& batch_it = batchQueues_[command.passIndex_];
+                batch_it.backend_ = graphics_->GetBackend();
+            	item->start_ = &batch_it;
+                
                 queue->AddWorkItem(item);
             }
         }
 
         for (Vector<LightBatchQueue>::Iterator i = lightQueues_.Begin(); i != lightQueues_.End(); ++i)
         {
+            i.ptr_->backend_ = graphics_->GetBackend();
             SharedPtr<WorkItem> lightItem = queue->GetFreeItem();
             lightItem->priority_ = M_MAX_UNSIGNED;
             lightItem->workFunction_ = SortLightQueueWork;
@@ -1566,7 +1576,8 @@ void View::ExecuteRenderPathCommands()
                     // If the render path ends into a quad, it can be redirected to the final render target
                     // However, on OpenGL we can not reliably do this in case the final target is the backbuffer, and we want to
                     // render depth buffer sensitive debug geometry afterward (backbuffer and textures can not share depth)
-                    const auto is_opengl = graphics_->GetBackend() == GraphicsBackend::OpenGL;
+                    const auto backend = graphics_->GetBackend();
+                	const auto is_opengl = backend == GraphicsBackend::OpenGL || backend == GraphicsBackend::OpenGLES;
 
                     if((is_opengl && i == lastCommandIndex && command.type_ == CMD_QUAD && renderTarget_) 
                         || (!is_opengl && i == lastCommandIndex && command.type_ == CMD_QUAD))
@@ -2018,10 +2029,11 @@ void View::AllocateScreenBuffers()
     // Due to FBO limitations, in OpenGL deferred modes need to render to texture first and then blit to the backbuffer
     // Also, if rendering to a texture with full deferred rendering, it must be RGBA to comply with the rest of the buffers,
     // unless using OpenGL 3
-    const auto is_opengl = graphics_->GetBackend() == GraphicsBackend::OpenGL;
+    const auto backend = graphics_->GetBackend();
+    const auto is_opengl = backend == GraphicsBackend::OpenGL || backend == GraphicsBackend::OpenGLES;
     if(is_opengl)
     {
-        if (((deferred_ || hasScenePassToRTs) && !renderTarget_) || (!Graphics::GetGL3Support() && deferredAmbient_ && renderTarget_
+        if (((deferred_ || hasScenePassToRTs) && !renderTarget_) || (backend == GraphicsBackend::OpenGLES && deferredAmbient_ && renderTarget_
             && renderTarget_->GetParentTexture()->GetFormat() != Graphics::GetRGBAFormat()))
                 needSubstitute = true;
         // Also need substitute if rendering to backbuffer using a custom (readable) depth buffer
@@ -2051,7 +2063,7 @@ void View::AllocateScreenBuffers()
     }
 
     // On OpenGL 2 ensure that all MRT buffers are RGBA in deferred rendering
-    if (is_opengl && deferred_ && !renderer_->GetHDRRendering() && !Graphics::GetGL3Support())
+    if (is_opengl && deferred_ && !renderer_->GetHDRRendering() && backend == GraphicsBackend::OpenGLES)
         format = Graphics::GetRGBAFormat();
 
     if (hasViewportRead)
@@ -2060,10 +2072,8 @@ void View::AllocateScreenBuffers()
 
         // If OpenGL ES, use substitute target to avoid resolve from the backbuffer, which may be slow. However if multisampling
         // is specified, there is no choice
-#ifdef GL_ES_VERSION_2_0
-        if (!renderTarget_ && graphics_->GetMultiSample() < 2)
+        if (!renderTarget_ && graphics_->GetMultiSample() < 2 && backend == GraphicsBackend::OpenGLES)
             needSubstitute = true;
-#endif
 
         // If we have viewport read and target is a cube map, must allocate a substitute target instead as BlitFramebuffer()
         // does not support reading a cube map
@@ -2169,8 +2179,9 @@ void View::BlitFramebuffer(Texture* source, RenderSurface* destination, bool dep
 
 void View::DrawFullscreenQuad(bool setIdentityProjection)
 {
+    const auto backend = graphics_->GetBackend();
+    const auto is_opengl = backend == GraphicsBackend::OpenGL || backend == GraphicsBackend::OpenGLES;
     Geometry* geometry = renderer_->GetQuadGeometry();
-
     // If no camera, no choice but to use identity projection
     if (!camera_)
         setIdentityProjection = true;
@@ -2179,7 +2190,7 @@ void View::DrawFullscreenQuad(bool setIdentityProjection)
     {
         Matrix3x4 model = Matrix3x4::IDENTITY;
         Matrix4 projection = Matrix4::IDENTITY;
-        if(graphics_->GetBackend() == GraphicsBackend::OpenGL)
+        if(is_opengl)
         {
             if (camera_ && camera_->GetFlipVertical())
                 projection.m11_ = -1.0f;
@@ -2317,11 +2328,11 @@ void View::ProcessLight(LightQueryResult& query, unsigned threadIndex)
     // If shadow distance non-zero, check it
     if (isShadowed && light->GetShadowDistance() > 0.0f && light->GetDistance() > light->GetShadowDistance())
         isShadowed = false;
+
+    // TODO: move the condition above to graphics capabilities
     // OpenGL ES can not support point light shadows
-#ifdef GL_ES_VERSION_2_0
-    if (isShadowed && type == LIGHT_POINT)
+    if (isShadowed && type == LIGHT_POINT && graphics_->GetBackend() == GraphicsBackend::OpenGLES)
         isShadowed = false;
-#endif
     // Get lit geometries. They must match the light mask and be inside the main camera frustum to be considered
     PODVector<Drawable*>& tempDrawables = tempDrawables_[threadIndex];
     query.litGeometries_.Clear();
@@ -2700,6 +2711,8 @@ void View::SetupDirLightShadowCamera(Camera* shadowCamera, Light* light, float n
 void View::FinalizeShadowCamera(Camera* shadowCamera, Light* light, const IntRect& shadowViewport,
     const BoundingBox& shadowCasterBox)
 {
+    const auto backend = graphics_->GetBackend();
+    const auto is_opengl = backend == GraphicsBackend::OpenGL || backend == GraphicsBackend::OpenGLES;
     const FocusParameters& parameters = light->GetShadowFocus();
     float shadowMapWidth = (float)(shadowViewport.Width());
     LightType type = light->GetLightType();
@@ -2739,7 +2752,7 @@ void View::FinalizeShadowCamera(Camera* shadowCamera, Light* light, const IntRec
             shadowCamera->SetZoom(shadowCamera->GetZoom() * ((shadowMapWidth - 2.0f) / shadowMapWidth));
         else
         {
-            if(graphics_->GetBackend() == GraphicsBackend::OpenGL)
+            if(is_opengl)
                 shadowCamera->SetZoom(shadowCamera->GetZoom() * ((shadowMapWidth - 3.0f) / shadowMapWidth));
             else
                 shadowCamera->SetZoom(shadowCamera->GetZoom() * ((shadowMapWidth - 4.0f) / shadowMapWidth));
@@ -3080,6 +3093,7 @@ bool View::NeedRenderShadowMap(const LightBatchQueue& queue)
 void View::RenderShadowMap(const LightBatchQueue& queue)
 {
     ATOMIC_PROFILE(RenderShadowMap);
+    const auto backend = graphics_->GetBackend();
     const auto command = graphics_->GetDrawCommand();
     command->BeginDebug("ShadowMap Pass", Color::BLACK);
 
@@ -3141,10 +3155,11 @@ void View::RenderShadowMap(const LightBatchQueue& queue)
 
         // Perform further modification of depth bias on OpenGL ES, as shadow calculations' precision is limited
         float addition = 0.0f;
-#ifdef GL_ES_VERSION_2_0
-        multiplier *= renderer_->GetMobileShadowBiasMul();
-        addition = renderer_->GetMobileShadowBiasAdd();
-#endif
+        if(backend == GraphicsBackend::OpenGLES)
+        {
+            multiplier *= renderer_->GetMobileShadowBiasMul();
+            addition = renderer_->GetMobileShadowBiasAdd();
+        }
 
         graphics_->SetDepthBias(multiplier * parameters.constantBias_ + addition, multiplier * parameters.slopeScaledBias_);
 

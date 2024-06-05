@@ -231,7 +231,9 @@ void UIView::Render(VertexBuffer* buffer, const PODVector<UIBatch>& batches, uns
 
     // On OpenGL, flip the projection if rendering to a texture so that the texture can be addressed in the same way
     // as a render texture produced on Direct3D
-    if (graphics_->GetImpl()->GetBackend() == GraphicsBackend::OpenGL && renderTexture_)
+    const auto backend = graphics_->GetBackend();
+    const auto is_opengl = backend == GraphicsBackend::OpenGL || backend == GraphicsBackend::OpenGLES;
+    if (is_opengl && renderTexture_)
     {
         // ATOMIC ISSUE: https://github.com/AtomicGameEngine/AtomicGameEngine/issues/1581
         // this needs to be fixed, scissors can't be disabled

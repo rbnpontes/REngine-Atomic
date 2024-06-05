@@ -340,6 +340,7 @@ namespace Atomic
         {
             REngine::ShaderCompilerDesc compiler_desc = {};
             compiler_desc.type = type_;
+            compiler_desc.backend = backend;
             compiler_desc.name = name_.CString();
             compiler_desc.source_code = source_code;
 
@@ -355,6 +356,12 @@ namespace Atomic
 
             // Put pre-processed shader code and compile to obtain spirv bytecode
             compiler_desc.source_code = pre_process_result.source_code;
+#ifdef RENGINE_PLATFORM_WINDOWS
+            // OpenGL ES on windows is emulated. we must change version to 4.5
+            if (backend == GraphicsBackend::OpenGLES)
+                compiler_desc.source_code = compiler_desc.source_code.Replaced("#version 300 es", "#version 450");
+#endif
+
 
             REngine::ShaderCompilerResult result = {};
             REngine::shader_compiler_compile(compiler_desc, true, result);

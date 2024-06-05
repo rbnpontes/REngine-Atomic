@@ -733,8 +733,6 @@ public:
 
     /// Return maximum number of supported bones for skinning.
     static unsigned GetMaxBones();
-    /// Return whether is using an OpenGL 3 context. Return always false on Direct3D9 & Direct3D11.
-    static bool GetGL3Support();
 
     // ATOMIC BEGIN
 
