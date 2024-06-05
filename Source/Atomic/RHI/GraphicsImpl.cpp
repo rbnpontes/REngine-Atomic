@@ -38,6 +38,7 @@
     #include <SDL2/SDL_metal.h>
 #endif
 
+
 #include "../DebugNew.h"
 #include "Graphics/DrawCommandQueue.h"
 
@@ -46,6 +47,9 @@
 #endif
 
 #if WIN32
+#include <Windows.h>
+#include <shellscalingapi.h>
+
 // Prefer the high-performance GPU on switchable GPU systems
 extern "C" {
 	__declspec(dllexport) DWORD NvOptimusEnablement = 1;
@@ -256,6 +260,13 @@ namespace Atomic
     }
 
     static void sdl_create_window(SDLWindowCreateDesc* ci, SDLWindowResult* result) {
+		if(ci->high_dpi)
+		{
+#if RENGINE_PLATFORM_WINDOWS
+			const auto res = ::SetProcessDpiAwareness(PROCESS_PER_MONITOR_DPI_AWARE);
+			assert(!FAILED(res));
+#endif
+		}
         // OpenGL backend requires a custom instantiation
         if(ci->backend == GraphicsBackend::OpenGL || ci->backend == GraphicsBackend::OpenGLES)
             sdl_create_gl_window(ci, result);
