@@ -1,3 +1,4 @@
+const { Task } = require('jake');
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
@@ -21,7 +22,6 @@ function requireNdkEnv() {
         throw new Error('NDK_ROOT environment variable path is not valid. This is not a valid directory');    
     return process.env.NDK_ROOT;
 }
-
 /**
  * 
  * @param {string} p
@@ -43,7 +43,6 @@ function scanDir(p) {
     
     return results;
 }
-
 /**
  * @returns {string}
  */
@@ -55,7 +54,6 @@ function getToolchainPath() {
         throw new Error('Not found NDK Android CMake Toolchain. Are you sure that NDK path is correct ?');
     return getToolchainPath.result = toolchain;
 }
-
 /**
  * @returns {string}
  */
@@ -68,14 +66,12 @@ function getMakePath() {
         throw new Error('Not found NDK Android Make. Are you sure that NDK path is correct ?');
     return getMakePath.result = make;
 }
-
 /**
  * @returns {string}
  */
 function getCmakeCommand() {
     return os.platform() == 'win32' ? 'cmake.exe' : 'cmake';
 }
-
 /**
  * @param {string[]} args 
  * @param {string?} workingDir
@@ -97,7 +93,6 @@ function executeCmake(args, workingDir) {
         });
     });
 }
-
 function genProject(abi, output) {
     if(!fs.existsSync(output))
         fs.mkdirSync(output, { recursive: true });
@@ -122,7 +117,6 @@ function genProject(abi, output) {
 
     return executeCmake(args);
 }
-
 function buildProject(abi, path) {
     if(!fs.existsSync(path)) {
         console.log(`- Android project ${abi} does not exists. Skipping!`);
@@ -137,7 +131,6 @@ function buildProject(abi, path) {
         '-j', available_cores.toString()
     ], path);
 }
-
 function copyBuildLibs(project_src, dest) {
     const files = scanDir(project_src);
     const libs = files.filter(x => {
@@ -155,7 +148,6 @@ function copyBuildLibs(project_src, dest) {
         fs.writeFileSync(dest_path, data);
     });
 }
-
 function buildResourcePackages(package_path) {
     if(!fs.existsSync(package_path))
         fs.mkdirSync(package_path, { recursive: true });
@@ -194,7 +186,7 @@ namespace('android', ()=> {
     const project_dir = path.resolve(g_engine_root, '../REngine-Android');
     const lib_dir = path.resolve(project_dir, 'lib');
 
-    task('gen', async ()=> {
+    async function genTask() {
         if(!fs.existsSync(project_dir))
             fs.mkdirSync(project_dir);
         
@@ -204,31 +196,28 @@ namespace('android', ()=> {
             await genProject(abi, path.join(project_dir, abi));
             console.log('- Finished. Project generated with success 🎉');
         }
-    });
-    
-    task('build', async ()=> {
+    }
+    async function buildTask() {
         for(let i = 0; i < g_supported_abis.length; ++i) {
             const project_gen_path = path.join(project_dir, g_supported_abis[i]);
             console.log(`- Building Android ${g_supported_abis[i]} Project`);
             await buildProject(g_supported_abis[i], project_gen_path);
             console.log('- Finished. Project built with success 🎉');
         }
-    });
-
-    task('buildres', async ()=> {
+    }
+    async function buildResourcesTask() {
         console.log('- Build resources');
         buildResourcePackages(path.join(project_dir, 'resources'));
         console.log('- Finished. Resources has been build with success 🎉');
-    });
-
-    task('clrlibs', ()=> {
+    }
+    async function clearLibsTask() {
         console.log('- Clearing built libraries');
         g_supported_abis.forEach(abi => {
             console.log(`- Clearing libraries ${abi}`);
             const target_lib_path = path.join(lib_dir, abi);
             if(!fs.existsSync(target_lib_path))
                 return;
-
+    
             const files = fs.readdirSync(target_lib_path);
             files.forEach(file => {
                 file = path.join(target_lib_path, file);
@@ -236,8 +225,8 @@ namespace('android', ()=> {
             });
             console.log(`- Finished. Total of (${files.length}) ${abi} files cleared.`);
         });
-    });
-    task('cpylibs', ()=> {
+    }
+    async function copyLibsTask() {
         // create lib artifact dir
         if(!fs.existsSync(lib_dir))
             fs.mkdirSync(lib_dir);
@@ -252,5 +241,26 @@ namespace('android', ()=> {
             copyBuildLibs(project_gen_path, target_lib_path);
             console.log(`- Finished. ${abi} libraries has been copied with success 🎉`);
         });
+    }
+
+    task('gen', genTask);
+    task('build', buildTask);
+    task('buildres', buildResourcesTask);
+    task('clrlibs', clearLibsTask);
+    task('cpylibs', copyLibsTask);
+    task('full', async ()=> {
+        const tasks = [
+            genTask,
+            buildTask,
+            buildResourcesTask,
+            clearLibsTask,
+            copyLibsTask
+        ];
+        
+        for(let i = 0; i < tasks.length; ++i) {
+            const task = tasks[i];
+            await task();
+        }
+        console.log('- Finished 🎉');
     });
 });

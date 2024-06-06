@@ -17,6 +17,7 @@
     "android:buildres" : "node ./Scripts/Bootstrap.js --task=android:buildres",
     "android:clrlibs" : "node ./Scripts/Bootstrap.js --task=android:clrlibs",
     "android:cpylibs" : "node ./Scripts/Bootstrap.js --task=android:cpylibs",
+    "android:full" : "node ./Scripts/Bootstrap.js --task=android:full",
     "pkg": "node ./Scripts/PackageToolCommand.js"
   },
   "dependencies": {
