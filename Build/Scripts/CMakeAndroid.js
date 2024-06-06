@@ -183,8 +183,9 @@ function buildResourcePackages(package_path) {
 }
 
 namespace('android', ()=> {
-    const project_dir = path.resolve(g_engine_root, '../REngine-Android');
-    const lib_dir = path.resolve(project_dir, 'lib');
+    const project_dir   = path.resolve(g_engine_root, '../REngine-Android');
+    const lib_dir       = path.resolve(project_dir, 'lib');
+    const resources_dir = path.resolve(project_dir, 'resources');
 
     async function genTask() {
         if(!fs.existsSync(project_dir))
@@ -207,7 +208,7 @@ namespace('android', ()=> {
     }
     async function buildResourcesTask() {
         console.log('- Build resources');
-        buildResourcePackages(path.join(project_dir, 'resources'));
+        buildResourcePackages(resources_dir);
         console.log('- Finished. Resources has been build with success 🎉');
     }
     async function clearLibsTask() {
@@ -243,6 +244,7 @@ namespace('android', ()=> {
         });
     }
     async function genBoilerplateTask(projectNamespace, appName) {
+        console.log(`- Generating Android Project ${appName}`)
         if(!projectNamespace)
             projectNamespace = process.env.project_namespace;
         if(!appName)
@@ -306,6 +308,7 @@ namespace('android', ()=> {
             (hasMustache(dir) ? dirs_2_process : dirs_2_create).push(dir);
         });
 
+        console.log('- Creating Directories');
         // Process directories with mustache pattern
         dirs_2_process.forEach(dir => {
             dir = resolveMustache(dir).replace(/\./g,  path.sep);
@@ -331,6 +334,8 @@ namespace('android', ()=> {
 
              return file_output_path;
         };
+
+        console.log('- Generating Files');
         // Copy files that can't be processed.
         files_2_create.forEach(file_path => {
             const file_output_path = getFinalPath(file_path);
@@ -353,6 +358,36 @@ namespace('android', ()=> {
             const data = resolveMustache(fs.readFileSync(file_path).toString());
             fs.writeFileSync(file_output_path, data);
         });
+
+        // Generate symlinks of resource packages and native libraries
+        const paths_2_symlink = [];
+        fs.readdirSync(lib_dir).forEach(x => {
+            paths_2_symlink.push([
+                // source
+                path.join(lib_dir, x), 
+                // destination
+                path.resolve(project_android_out_dir, 'app/src/main/jniLibs', x)
+            ]);
+        });
+        fs.readdirSync(resources_dir).forEach(x => {
+            paths_2_symlink.push([
+                // source
+                path.join(resources_dir, x),
+                // destination
+                path.join(project_android_out_dir, 'app/src/main/assets', x)
+            ])
+        });
+
+        console.log('- Creating Libraries and Resource symbolic links')
+        paths_2_symlink.forEach(x => {
+            const [src, dest] = x;
+            const symlink_type = fs.statSync(src).isDirectory() ? 'dir' : 'file';
+            if(fs.existsSync(dest))
+                fs.unlinkSync(dest);
+            fs.symlinkSync(src, dest, symlink_type);
+        });
+
+        console.log(`- Finished. Android Project ${appName} was generated with success 🎉`);
     }
 
     task('gen', genTask);
@@ -367,7 +402,8 @@ namespace('android', ()=> {
             buildTask,
             buildResourcesTask,
             clearLibsTask,
-            copyLibsTask
+            copyLibsTask,
+            ()=> genBoilerplateTask('com.rengine.FeatureExamples','FeatureExamples')
         ];
         
         for(let i = 0; i < tasks.length; ++i) {
