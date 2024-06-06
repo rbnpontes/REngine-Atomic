@@ -1,0 +1,16 @@
+package com.rengine
+
+import android.content.res.AssetManager
+import org.libsdl.app.SDL
+
+class EngineGlobals {
+    companion object {
+        @JvmStatic
+        fun getAssetManager() : AssetManager {
+            val assetMgr = SDL.getContext().assets
+            if(assetMgr === null)
+                throw NullPointerException("AssetManager is null");
+            return assetMgr!!
+        }
+    }
+}

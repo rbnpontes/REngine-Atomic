@@ -242,12 +242,125 @@ namespace('android', ()=> {
             console.log(`- Finished. ${abi} libraries has been copied with success 🎉`);
         });
     }
+    async function genBoilerplateTask(projectNamespace, appName) {
+        if(!projectNamespace)
+            projectNamespace = process.env.project_namespace;
+        if(!appName)
+            appName = process.env.app_name;
+
+        const project_android_out_dir = path.resolve(project_dir, appName);
+        const android_template_dir = path.resolve(g_engine_root, 'Build/Android');
+        const text_extensions = [
+            '.kt',
+            '.kts',
+            '.xml',
+            '.java',
+            '.gitignore',
+        ];
+
+        const directories = {};
+        const dirs_2_create = [];
+        const dirs_2_process = [];
+        const files_2_process = [];
+        const files_2_create = [];
+
+        const mustache_variables = {
+            app_name : appName,
+            project_namespace: projectNamespace
+        };
+        const hasMustache = (input)=> /\{{2}[A-Za-z_]+\}{2}/g.test(input);
+        const resolveMustache = (input)=> {
+            Object.entries(mustache_variables).forEach(x => {
+                const [key, value] = x;
+                const expected_keys = ['{{'+key+'}}', '{{ '+ key + ' }}'];
+                const containsKey = ()=> {
+                    return expected_keys.find(expected_key => input.indexOf(expected_key) != -1);
+                };
+
+                // Replace all mustache patterns until no patterns exists
+                while(containsKey())
+                    expected_keys.forEach(expected_key => input = input.replace(expected_key, value));
+            });
+            return input;
+        }; 
+        fs.readdirSync(android_template_dir, { recursive : true })
+            .map(x => path.join(android_template_dir, x))
+            .filter(x => x.endsWith('.template'))
+            .forEach(x => {
+                const stat = fs.statSync(x);
+                directories[path.dirname(x)] = 1;
+                if(stat.isDirectory()) {
+                    (hasMustache(x) ? dirs_2_process : dirs_2_create).push(x);
+                    return;
+                }
+
+                const file_path = x.replace('.template', '');
+                const file_ext = path.extname(file_path);
+
+                if(text_extensions.includes(file_ext))
+                    files_2_process.push(x);
+                else
+                    files_2_create.push(x);
+            });
+        Object.keys(directories).forEach(dir => {
+            (hasMustache(dir) ? dirs_2_process : dirs_2_create).push(dir);
+        });
+
+        // Process directories with mustache pattern
+        dirs_2_process.forEach(dir => {
+            dir = resolveMustache(dir).replace(/\./g,  path.sep);
+            dirs_2_create.push(dir);
+        });
+
+        // Create directories on output project dir
+        dirs_2_create.forEach(dir => {
+            const output_dir = path.join(project_android_out_dir, dir.replace(android_template_dir, ''));
+
+            if(fs.existsSync(output_dir))
+                return;
+            fs.mkdirSync(output_dir, { recursive: true });
+        });
+
+        const getFinalPath = (file_path)=> {
+            let file_output_path = path.join(project_android_out_dir, file_path.replace(android_template_dir, '')).replace('.template', '');
+            file_output_path = resolveMustache(file_output_path);
+
+             // fix replaced mustache directories
+             const dir = path.dirname(file_output_path);
+             file_output_path = file_output_path.replace(dir, dir.replace(/\./g, path.sep));
+
+             return file_output_path;
+        };
+        // Copy files that can't be processed.
+        files_2_create.forEach(file_path => {
+            const file_output_path = getFinalPath(file_path);
+
+            // then, copy file into destination
+            if(fs.existsSync(file_output_path))
+                fs.unlinkSync(file_output_path);
+
+            const buffer = fs.readFileSync(file_path);
+            fs.writeFileSync(file_output_path, buffer);
+        });
+
+        // Process files and copy to destination
+        files_2_process.forEach(file_path => {
+            const file_output_path = getFinalPath(file_path);
+
+            if(fs.existsSync(file_output_path))
+                fs.unlinkSync(file_output_path);
+
+            const data = resolveMustache(fs.readFileSync(file_path).toString());
+            fs.writeFileSync(file_output_path, data);
+        });
+    }
 
     task('gen', genTask);
     task('build', buildTask);
     task('buildres', buildResourcesTask);
     task('clrlibs', clearLibsTask);
     task('cpylibs', copyLibsTask);
+    task('genproj', genBoilerplateTask);
     task('full', async ()=> {
         const tasks = [
             genTask,
