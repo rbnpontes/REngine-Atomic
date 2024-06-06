@@ -1194,7 +1194,7 @@ namespace REngine
 		bool ResolveTexture(Texture2D* dest, const IntRect& viewport) override
 		{
 			ATOMIC_PROFILE(IDrawCommand::ResolveTexture);
-			if(!dest || !dest->GetRenderSurface())
+			if(!dest || !dest->GetRenderSurface() || graphics_->GetBackend() == GraphicsBackend::OpenGLES)
 				return false;
 
 			const auto rt_size = GetRenderTargetDimensions();

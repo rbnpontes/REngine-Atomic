@@ -468,7 +468,7 @@ bool View::Define(RenderSurface* renderTarget, Viewport* viewport)
             lightPassIndex_ = command.passIndex_ = Technique::GetPassIndex(command.pass_);
     }
 
-    octree_ = 0;
+    octree_ = nullptr;
     // Get default zone first in case we do not have zones defined
     cameraZone_ = farClipZone_ = renderer_->GetDefaultZone();
 
@@ -2063,7 +2063,7 @@ void View::AllocateScreenBuffers()
     }
 
     // On OpenGL 2 ensure that all MRT buffers are RGBA in deferred rendering
-    if (is_opengl && deferred_ && !renderer_->GetHDRRendering() && backend == GraphicsBackend::OpenGLES)
+    if (deferred_ && !renderer_->GetHDRRendering() && backend == GraphicsBackend::OpenGLES)
         format = Graphics::GetRGBAFormat();
 
     if (hasViewportRead)
@@ -2072,8 +2072,9 @@ void View::AllocateScreenBuffers()
 
         // If OpenGL ES, use substitute target to avoid resolve from the backbuffer, which may be slow. However if multisampling
         // is specified, there is no choice
-        if (!renderTarget_ && graphics_->GetMultiSample() < 2 && backend == GraphicsBackend::OpenGLES)
-            needSubstitute = true;
+        // TODO: revisit this. Does this makes sense ?
+        /*if (!renderTarget_ && graphics_->GetMultiSample() < 2 && backend == GraphicsBackend::OpenGLES)
+            needSubstitute = true;*/
 
         // If we have viewport read and target is a cube map, must allocate a substitute target instead as BlitFramebuffer()
         // does not support reading a cube map
