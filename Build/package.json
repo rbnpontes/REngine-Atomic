@@ -1,5 +1,5 @@
 {
-  "name": "atomic-editor",
+  "name": "rengine-build-tools",
   "license": "MIT",
   "author": {
     "name": "Ruben Gomes",
@@ -11,6 +11,8 @@
   "engineStrict": true,
   "scripts": {
     "build": "jake -f ./Scripts/Bootstrap.js",
+    "build:vs2015": "node ./Scripts/Bootstrap.js --task=build:genvs2015",
+    "build:vs2017": "node ./Scripts/Bootstrap.js --task=build:genvs2017",
     "build:vs2022": "node ./Scripts/Bootstrap.js --task=build:genvs2022",
     "android:gen": "node ./Scripts/Bootstrap.js --task=android:gen",
     "android:genproj": "jake -f ./Scripts/Bootstrap.js android:genproj",
@@ -19,11 +21,10 @@
     "android:clrlibs": "node ./Scripts/Bootstrap.js --task=android:clrlibs",
     "android:cpylibs": "node ./Scripts/Bootstrap.js --task=android:cpylibs",
     "android:full": "node ./Scripts/Bootstrap.js --task=android:full",
-    "setenv" : "cross-env",
-    "pkg": "node ./Scripts/PackageToolCommand.js"
+    "pkg": "node ./Scripts/PackageToolCommand.js",
+    "win:setupvsenvs" : "node ./Scripts/Bootstrap.js --task=win:setupvsenvs"
   },
   "dependencies": {
-    "cross-env": "^7.0.3",
     "dts-generator": "^2.0.0",
     "fs-extra": "^11.2.0",
     "glob": "^10.3.12",

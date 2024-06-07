@@ -27,9 +27,11 @@ if (ATOMIC_WEBVIEW)
     add_subdirectory(AtomicWebView)
 endif ()
 
-if (ATOMIC_DOTNET)
+if (ATOMIC_JAVASCRIPT OR ATOMIC_DOTNET)
     add_subdirectory(AtomicApp)
-    add_subdirectory(AtomicNET)
+    if (ATOMIC_DOTNET)
+        add_subdirectory(AtomicNET)
+    endif()
 endif ()
 
 if (ATOMIC_DESKTOP)

@@ -142,7 +142,15 @@ if (ATOMIC_WEBVIEW)
     endif ()
 endif (ATOMIC_WEBVIEW)
 
-target_link_libraries(${CEF_TARGET} ToolCore AtomicApp AtomicWebView AtomicJS AtomicPlayerJS ToolCoreJS AtomicNETScriptBindings AtomicNETScript Poco nativefiledialog Atomic)
+target_link_libraries(${CEF_TARGET} ToolCore AtomicWebView AtomicJS AtomicPlayerJS ToolCoreJS Poco nativefiledialog Atomic)
+
+if(ATOMIC_JAVASCRIPT OR ATOMIC_DOTNET)
+    target_link_libraries(${CEF_TARGET} AtomicApp)
+endif()
+
+if(ATOMIC_DOTNET)
+    target_link_libraries(${CEF_TARGET} AtomicNETScriptBindings AtomicNETScript)
+endif()
 
 if (APPLE)
     set(TARGET_PROPERTIES MACOSX_BUNDLE_INFO_PLIST "${ATOMIC_SOURCE_DIR}/Build/CMake/Modules/AtomicEditorInfo.plist.template")
