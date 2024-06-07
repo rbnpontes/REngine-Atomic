@@ -33,9 +33,10 @@
 #include "../IO/Log.h"
 
 #ifdef __ANDROID__
-// ATOMIC BEGIN
-#include <SDL/SDL_rwops.h>
-// ATOMIC END
+    #include "./Android/FileOperations.h"
+    // ATOMIC BEGIN
+    #include <SDL2/SDL_rwops.h>
+    // ATOMIC END
 #endif
 
 #ifndef MINI_URHO
@@ -70,12 +71,15 @@
     #include <mach-o/dyld.h>
 #endif
 
+#include <stdexcept>
+
 extern "C"
 {
 #ifdef __ANDROID__
-    const char* SDL_Android_GetFilesDir();
-    char** SDL_Android_GetFileList(const char* path, int* count);
-    void SDL_Android_FreeFileList(char*** array, int* count);
+    // TODO: implement this
+    //const char* SDL_Android_GetFilesDir();
+    //char** SDL_Android_GetFileList(const char* path, int* count);
+    //void SDL_Android_FreeFileList(char*** array, int* count);
 #elif defined(IOS) || defined(TVOS)
     const char* SDL_IOS_GetResourceDir();
     const char* SDL_IOS_GetDocumentsDir();
@@ -653,28 +657,7 @@ bool FileSystem::DirExists(const String& pathName) const
 #ifdef __ANDROID__
     if (ATOMIC_IS_ASSET(fixedName))
     {
-        // Split the pathname into two components: the longest parent directory path and the last name component
-        String assetPath(ATOMIC_ASSET((fixedName + "/")));
-        String parentPath;
-        unsigned pos = assetPath.FindLast('/', assetPath.Length() - 2);
-        if (pos != String::NPOS)
-        {
-            parentPath = assetPath.Substring(0, pos);
-            assetPath = assetPath.Substring(pos + 1);
-        }
-        assetPath.Resize(assetPath.Length() - 1);
-
-        bool exist = false;
-        int count;
-        char** list = SDL_Android_GetFileList(parentPath.CString(), &count);
-        for (int i = 0; i < count; ++i)
-        {
-            exist = assetPath == list[i];
-            if (exist)
-                break;
-        }
-        SDL_Android_FreeFileList(&list, &count);
-        return exist;
+        return REngine::file_operations_file_exists(pathName.CString());
     }
 #endif
 
@@ -737,7 +720,7 @@ String FileSystem::GetProgramDir() const
 String FileSystem::GetUserDocumentsDir() const
 {
 #if defined(__ANDROID__)
-    return AddTrailingSlash(SDL_Android_GetFilesDir());
+    return String(REngine::file_operations_get_docs_dir().c_str());
 #elif defined(IOS) || defined(TVOS)
     return AddTrailingSlash(SDL_IOS_GetDocumentsDir());
 #elif defined(_WIN32)
@@ -819,36 +802,37 @@ void FileSystem::ScanDirInternal(Vector<String>& result, String path, const Stri
 #ifdef __ANDROID__
     if (ATOMIC_IS_ASSET(path))
     {
-        String assetPath(ATOMIC_ASSET(path));
-        assetPath.Resize(assetPath.Length() - 1);       // AssetManager.list() does not like trailing slash
-        int count;
-        char** list = SDL_Android_GetFileList(assetPath.CString(), &count);
-        for (int i = 0; i < count; ++i)
-        {
-            String fileName(list[i]);
-            if (!(flags & SCAN_HIDDEN) && fileName.StartsWith("."))
-                continue;
+        throw std::runtime_error("Not implemented");
+//         String assetPath(ATOMIC_ASSET(path));
+//         assetPath.Resize(assetPath.Length() - 1);       // AssetManager.list() does not like trailing slash
+//         int count;
+//         char** list = SDL_Android_GetFileList(assetPath.CString(), &count);
+//         for (int i = 0; i < count; ++i)
+//         {
+//             String fileName(list[i]);
+//             if (!(flags & SCAN_HIDDEN) && fileName.StartsWith("."))
+//                 continue;
 
-#ifdef ASSET_DIR_INDICATOR
-            // Patch the directory name back after retrieving the directory flag
-            bool isDirectory = fileName.EndsWith(ASSET_DIR_INDICATOR);
-            if (isDirectory)
-            {
-                fileName.Resize(fileName.Length() - sizeof(ASSET_DIR_INDICATOR) / sizeof(char) + 1);
-                if (flags & SCAN_DIRS)
-                    result.Push(deltaPath + fileName);
-                if (recursive)
-                    ScanDirInternal(result, path + fileName, startPath, filter, flags, recursive);
-            }
-            else if (flags & SCAN_FILES)
-#endif
-            {
-                if (filterExtension.Empty() || fileName.EndsWith(filterExtension))
-                    result.Push(deltaPath + fileName);
-            }
-        }
-        SDL_Android_FreeFileList(&list, &count);
-        return;
+// #ifdef ASSET_DIR_INDICATOR
+//             // Patch the directory name back after retrieving the directory flag
+//             bool isDirectory = fileName.EndsWith(ASSET_DIR_INDICATOR);
+//             if (isDirectory)
+//             {
+//                 fileName.Resize(fileName.Length() - sizeof(ASSET_DIR_INDICATOR) / sizeof(char) + 1);
+//                 if (flags & SCAN_DIRS)
+//                     result.Push(deltaPath + fileName);
+//                 if (recursive)
+//                     ScanDirInternal(result, path + fileName, startPath, filter, flags, recursive);
+//             }
+//             else if (flags & SCAN_FILES)
+// #endif
+//             {
+//                 if (filterExtension.Empty() || fileName.EndsWith(filterExtension))
+//                     result.Push(deltaPath + fileName);
+//             }
+//         }
+//         SDL_Android_FreeFileList(&list, &count);
+//         return;
     }
 #endif
 #ifdef _WIN32

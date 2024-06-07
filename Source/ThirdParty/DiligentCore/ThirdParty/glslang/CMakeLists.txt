@@ -47,10 +47,6 @@ option(BUILD_EXTERNAL "Build external dependencies in /External" ON)
 
 set(LIB_TYPE STATIC)
 
-if(BUILD_SHARED_LIBS)
-    set(LIB_TYPE SHARED)
-endif()
-
 if ("${CMAKE_BUILD_TYPE}" STREQUAL "")
     # This logic inside SPIRV-Tools, which can upset build target dependencies
     # if changed after targets are already defined. To prevent these issues,

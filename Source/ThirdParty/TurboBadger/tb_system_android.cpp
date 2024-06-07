@@ -5,11 +5,13 @@
 
 #include "tb_system.h"
 
-#ifdef TB_SYSTEM_ANDROID_DISABLED
+#ifdef TB_SYSTEM_ANDROID
 
 #include <android/log.h>
 #include <sys/time.h>
 #include <stdio.h>
+#include <assert.h>
+#include <stdlib.h>
 
 // for native asset manager
 #include <sys/types.h>
@@ -30,93 +32,69 @@ void TBDebugOut(const char *str)
 
 #endif // TB_RUNTIME_DEBUG_INFO
 
+extern "C" {
+    // access SDL JNIEnv
+    JNIEnv* Android_JNI_GetEnv();
+}
+
 AAssetManager *g_pManager = NULL;
 
-void SetAssetManager(AAssetManager *pManager)
+AAssetManager* GetAssetManager() 
 {
-    g_pManager = pManager;
+    if(g_pManager)
+        return g_pManager;
+    
+    JNIEnv* env = Android_JNI_GetEnv();
+
+    jclass klass = env->FindClass("com/rengine/EngineGlobals");
+    assert(klass != NULL && "Not found com.rengine.EngineGlobals java class");
+
+    jmethodID method_id = env->GetStaticMethodID(klass, "getAssetManager", "()Landroid/content/res/AssetManager;");
+    assert(method_id != NULL && "Not found com.rengine.EngineGlobals.getAssetManager method");
+
+    jobject asset_mgr = env->CallStaticObjectMethod(klass, method_id);
+
+    return g_pManager = AAssetManager_fromJava(env, asset_mgr);
 }
 
 namespace tb {
+    // == TBSystem ========================================
 
-// == TBSystem ========================================
-
-double TBSystem::GetTimeMS()
-{
-    struct timeval now;
-    gettimeofday(&now, NULL);
-    return now.tv_usec / 1000 + now.tv_sec * 1000;
-}
-
-void TBSystem::RescheduleTimer(double fire_time)
-{
-}
-
-int TBSystem::GetLongClickDelayMS()
-{
-    return 500;
-}
-
-int TBSystem::GetPanThreshold()
-{
-    return 5 * GetDPI() / 120;
-}
-
-int TBSystem::GetPixelsPerLine()
-{
-    return 40 * GetDPI() / 120;
-}
-
-int TBSystem::GetDPI()
-{
-    AConfiguration *config = AConfiguration_new();
-    AConfiguration_fromAssetManager(config, g_pManager);
-    int32_t density = AConfiguration_getDensity(config);
-    AConfiguration_delete(config);
-    if (density == 0 || density == ACONFIGURATION_DENSITY_NONE)
-        return 120;
-    return density;
-}
-
-// == TBFile =====================================
-
-class TBAndroidFile : public TBFile
-{
-public:
-    TBAndroidFile(AAsset* f) : file(f) {}
-    virtual ~TBAndroidFile() { AAsset_close(file); }
-
-    virtual long Size()
+    double TBSystem::GetTimeMS()
     {
-        return AAsset_getLength(file);
+        struct timeval now;
+        gettimeofday(&now, NULL);
+        return now.tv_usec / 1000 + now.tv_sec * 1000;
     }
-    virtual size_t Read(void *buf, size_t elemSize, size_t count)
-    {
-        return AAsset_read(file, buf, elemSize * count);
-    }
-private:
-    AAsset *file;
-};
 
-TBFile *TBFile::Open(const char *filename, TBFileMode mode)
-{
-    AAsset *f = nullptr;
-    switch (mode)
+    void TBSystem::RescheduleTimer(double fire_time)
     {
-    case MODE_READ:
-        f = AAssetManager_open(g_pManager, filename, AASSET_MODE_UNKNOWN);
-        break;
-    default:
-        break;
     }
-    if (!f)
-        return nullptr;
-    TBAndroidFile *tbf = new TBAndroidFile(f);
-    if (!tbf)
-        AAsset_close(f);
-    return tbf;
+
+    int TBSystem::GetLongClickDelayMS()
+    {
+        return 500;
+    }
+
+    int TBSystem::GetPanThreshold()
+    {
+        return 5 * GetDPI() / 120;
+    }
+
+    int TBSystem::GetPixelsPerLine()
+    {
+        return 40 * GetDPI() / 120;
+    }
+
+    int TBSystem::GetDPI()
+    {
+        AConfiguration *config = AConfiguration_new();
+        AConfiguration_fromAssetManager(config, GetAssetManager());
+        int32_t density = AConfiguration_getDensity(config);
+        AConfiguration_delete(config);
+        if (density == 0 || density == ACONFIGURATION_DENSITY_NONE)
+            return 120;
+        return density;
+    }
 }
-
-}; // namespace tb
-
 #endif // TB_SYSTEM_ANDROID

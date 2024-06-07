@@ -288,9 +288,10 @@ bool TextureCube::SetSize(int size, TextureFormat format, TextureUsage usage, in
         for (unsigned i = 0; i < MAX_CUBEMAP_FACES; ++i)
         {
             renderSurfaces_[i] = new RenderSurface(this);
-#ifdef ATOMIC_OPENGL
-            renderSurfaces_[i]->target_ = GL_TEXTURE_CUBE_MAP_POSITIVE_X + i;
-#endif
+// TODO: revisit this
+//#ifdef ATOMIC_OPENGL
+//            renderSurfaces_[i]->target_ = GL_TEXTURE_CUBE_MAP_POSITIVE_X + i;
+//#endif
         }
 
         // Nearest filtering by default

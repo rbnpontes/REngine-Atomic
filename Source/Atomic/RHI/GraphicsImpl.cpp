@@ -38,6 +38,7 @@
     #include <SDL2/SDL_metal.h>
 #endif
 
+
 #include "../DebugNew.h"
 #include "Graphics/DrawCommandQueue.h"
 
@@ -46,6 +47,9 @@
 #endif
 
 #if WIN32
+#include <Windows.h>
+#include <shellscalingapi.h>
+
 // Prefer the high-performance GPU on switchable GPU systems
 extern "C" {
 	__declspec(dllexport) DWORD NvOptimusEnablement = 1;
@@ -157,7 +161,7 @@ namespace Atomic
                 flags |= SDL_WINDOW_BORDERLESS;
         }
         
-#if RENGINE_PLATFORM_IOS
+#if RENGINE_PLATFORM_IOS || RENGINE_PLATFORM_ANDROID
         const auto x = 0;
         const auto y = 0;
 #else
@@ -168,14 +172,21 @@ namespace Atomic
         const auto height = ci->height;
         
         SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-        
+
+#if !RENGINE_PLATFORM_WINDOWS && !RENGINE_PLATFORM_LINUX
         if(ci->backend == GraphicsBackend::OpenGLES) 
         {
+			SDL_SetHint(SDL_HINT_OPENGL_ES_DRIVER, "1");
             SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-            SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+#if RENGINE_PLATFORM_ANDROID
+			SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+#else
+			SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+#endif
             SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
         }
-        else 
+        else
+#endif
         {
             SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
             // MacOS platforms max supported version is 4.1
@@ -249,6 +260,13 @@ namespace Atomic
     }
 
     static void sdl_create_window(SDLWindowCreateDesc* ci, SDLWindowResult* result) {
+		if(ci->high_dpi)
+		{
+#if RENGINE_PLATFORM_WINDOWS
+			const auto res = ::SetProcessDpiAwareness(PROCESS_PER_MONITOR_DPI_AWARE);
+			assert(!FAILED(res));
+#endif
+		}
         // OpenGL backend requires a custom instantiation
         if(ci->backend == GraphicsBackend::OpenGL || ci->backend == GraphicsBackend::OpenGLES)
             sdl_create_gl_window(ci, result);
@@ -263,7 +281,7 @@ namespace Atomic
         SDL_GetWindowWMInfo(result->window.get(), &sys_info);
         
 #if RENGINE_PLATFORM_WINDOWS
-        result->HWND = sysInfo.info.win.window;
+        result->native_window.hWnd = sys_info.info.win.window;
 #elif RENGINE_PLATFORM_LINUX
         throw std::runtime_error("Not implemented Linux Window");
 #elif RENGINE_PLATFORM_MACOS
@@ -395,9 +413,13 @@ namespace Atomic
             backend = GraphicsBackend::OpenGLES;
 #endif
         
-#if RENGINE_PLATFORM_WINDOWS || RENGINE_PLATFORM_MACOS
+#if RENGINE_PLATFORM_MACOS
         if(backend == GraphicsBackend::OpenGLES) 
             ATOMIC_LOGWARNING("Graphics Backend GL ES requires libGLESv2 installed in your machine. You can build yourself ANGLE lib or copy from Chrome like browser to your system machine.");
+#endif
+#if RENGINE_PLATFORM_WINDOWS
+		if (backend == GraphicsBackend::OpenGLES)
+			ATOMIC_LOGWARNING("Graphics Backend GL ES isn't supported on this environment. Engine will try to emulate operations.");
 #endif
         driver_desc_->backend = backend;
     }
@@ -425,7 +447,7 @@ namespace Atomic
 
 		Diligent::TEXTURE_FORMAT fullscreen_format = SDL_BITSPERPIXEL(mode.format) == 16 ? Diligent::TEX_FORMAT_B5G6R5_UNORM : Diligent::TEX_FORMAT_RGBA8_UNORM;
 
-#if RENGINE_PLATFORM_IOS
+#if RENGINE_PLATFORM_IOS || RENGINE_PLATFORM_ANDROID
         fullscreen = true;
         borderless = false;
         resizable = true;
@@ -493,7 +515,7 @@ namespace Atomic
             if(!result.window)
                 return false;
             
-            if(driver_desc_->backend == GraphicsBackend::OpenGL)
+            if(driver_desc_->backend == GraphicsBackend::OpenGL || driver_desc_->backend == GraphicsBackend::OpenGLES)
             {
                 int effective_multisample{};
                 if (SDL_GL_GetAttribute(SDL_GL_MULTISAMPLESAMPLES, &effective_multisample) == 0)
@@ -602,7 +624,9 @@ namespace Atomic
 
 	void Graphics::SetSRGB(bool enable)
 	{
-        if(enable && GetBackend() == GraphicsBackend::OpenGL && !sdl_gl_srgb_support())
+		const auto backend = GetBackend();
+		const auto is_opengl = backend == GraphicsBackend::OpenGL || backend == GraphicsBackend::OpenGLES; 
+        if(enable && is_opengl && !sdl_gl_srgb_support())
             enable = false;
         
 		bool newEnable = enable && sRGBWriteSupport_;
@@ -1429,6 +1453,8 @@ namespace Atomic
 		if (newWidth == width_ && newHeight == height_)
 			return;
 
+		width_ = newWidth;
+		height_ = newHeight;
 		UpdateSwapChain(newWidth, newHeight);
 
 		// Reset rendertargets and viewport for the new screen size
@@ -1665,11 +1691,6 @@ namespace Atomic
 		return 128;
 	}
 
-	bool Graphics::GetGL3Support()
-	{
-		return false;
-	}
-
 	/*bool Graphics::OpenWindow(int width, int height, bool resizable, bool borderless)
 	{
         SDLWindowCreateDesc create_desc = {};
@@ -1756,23 +1777,19 @@ namespace Atomic
 		draw_command_ = ea::shared_ptr<IDrawCommand>(REngine::graphics_create_command(this));
         draw_command_->Reset();
 		GetSubsystem<DrawCommandQueue>()->AddCommand(draw_command_);
-		return true;
 	}
 
 	bool Graphics::UpdateSwapChain(int width, int height)
 	{
         if (impl_->GetSwapChain() == nullptr) {
             CreateDevice(width, height, multiSample_);
-            return;
+            return false;
         }
 
         const auto scale = GetScale();
         const auto real_width = width * scale.x_;
         const auto real_height = height * scale.y_;
 		impl_->GetSwapChain()->Resize(real_width, real_height);
-
-		width_ = width;
-		height_ = height;
 		ResetRenderTargets();
 		return true;
 	}

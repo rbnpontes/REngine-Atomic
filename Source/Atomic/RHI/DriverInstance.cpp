@@ -107,11 +107,12 @@ namespace REngine
         using namespace Diligent;
         if (IsInitialized())
             return true;
-        
-        if(init_desc.backend == GraphicsBackend::OpenGL && !init_desc.gl_context) {
+
+        const auto is_opengl = init_desc.backend == GraphicsBackend::OpenGL ||
+            init_desc.backend == GraphicsBackend::OpenGLES;
+
+        if(is_opengl && !init_desc.gl_context)
             throw std::runtime_error("OpenGL backend requires GL Context!");
-            return false;
-        }
 
         SwapChainDesc swap_chain_desc;
         swap_chain_desc.Width = init_desc.window_size.x_;
@@ -129,14 +130,15 @@ namespace REngine
         fullscreen_mode_desc.RefreshRateNumerator = init_desc.refresh_rate;
         
         auto num_deferred_contexts = init_desc.num_deferred_contexts;
-        if(init_desc.backend == GraphicsBackend::OpenGL)
+        if(is_opengl)
             num_deferred_contexts = 0;
         device_contexts_.Resize(num_deferred_contexts + 1);
         memset(device_contexts_.Buffer(), 0x0, sizeof(Diligent::IDeviceContext*) * device_contexts_.Size());
         
 
         auto device_contexts = new IDeviceContext*[num_deferred_contexts + 1];
-        
+
+        ATOMIC_LOGDEBUGF("Graphics Backend: %s", s_backend_names_tbl[static_cast<u8>(init_desc.backend)]);
         switch (init_desc.backend)
         {
 #if WIN32

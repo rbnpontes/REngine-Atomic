@@ -241,9 +241,9 @@ public:
     /// Sort non-instanced draw calls back to front.
     void SortBackToFront();
     /// Sort instanced and non-instanced draw calls front to back.
-    void SortFrontToBack();
+    void SortFrontToBack(GraphicsBackend backend);
     /// Sort batches front to back while also maintaining state sorting.
-    void SortFrontToBack2Pass(PODVector<Batch*>& batches);
+    void SortFrontToBack2Pass(PODVector<Batch*>& batches, GraphicsBackend backend);
     /// Pre-set instance data of all groups. The vertex buffer must be big enough to hold all data.
     void SetInstancingData(void* lockedData, unsigned stride, unsigned& freeIndex);
     /// Draw.
@@ -281,6 +281,8 @@ public:
     StringHash vsExtraDefinesHash_;
     /// Hash for pixel shader extra defines.
     StringHash psExtraDefinesHash_;
+    /// Graphics Backend. Used on sorting
+    GraphicsBackend backend_;
 };
 
 /// Queue for shadow map draw calls
@@ -317,6 +319,8 @@ struct LightBatchQueue
     PODVector<Light*> vertexLights_;
     /// Light volume draw calls.
     PODVector<Batch> volumeBatches_;
+    /// Graphics Backend. Used on sorting
+    GraphicsBackend backend_;
 };
 
 }

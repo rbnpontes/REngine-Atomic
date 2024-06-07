@@ -59,7 +59,7 @@
 #endif
 // ATOMIC BEGIN
 #ifdef ATOMIC_WEB
-#include "../Web/Web.h"
+//#include "../Web/Web.h"
 #endif
 // ATOMIC END
 #ifdef ATOMIC_DATABASE
@@ -160,7 +160,7 @@ Engine::Engine(Context* context) :
 #endif
     // ATOMIC BEGIN
 #ifdef ATOMIC_WEB
-    context_->RegisterSubsystem(new Web(context_));
+    //context_->RegisterSubsystem(new Web(context_));
 #endif
     // ATOMIC END
 #ifdef ATOMIC_DATABASE
@@ -208,7 +208,7 @@ Engine::Engine(Context* context) :
     context_->network_ = context_->GetSubsystem<Network>();
 #endif
 #ifdef ATOMIC_WEB
-    context_->web_ = context_->GetSubsystem<Web>();
+    //context_->web_ = context_->GetSubsystem<Web>();
 #endif
 #ifdef ATOMIC_DATABASE
     context_->db_ = context_->GetSubsystem<Database>();
@@ -315,11 +315,6 @@ bool Engine::Initialize(const VariantMap& parameters)
         if (HasParameter(parameters, EP_WINDOW_POSITION_X) && HasParameter(parameters, EP_WINDOW_POSITION_Y))
             graphics->SetWindowPosition(GetParameter(parameters, EP_WINDOW_POSITION_X).GetInt(),
                 GetParameter(parameters, EP_WINDOW_POSITION_Y).GetInt());
-
-#ifdef ATOMIC_OPENGL
-        if (HasParameter(parameters, EP_FORCE_GL2))
-            graphics->SetForceGL2(GetParameter(parameters, EP_FORCE_GL2).GetBool());
-#endif
 
         graphics->SetBackend(
              static_cast<GraphicsBackend>(GetParameter(parameters, EP_GRAPHICS_BACKEND, (int)GraphicsBackend::OpenGL).GetInt()));

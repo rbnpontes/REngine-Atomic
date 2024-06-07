@@ -132,7 +132,7 @@ PUBLIC
     include
 )
 
-target_compile_definitions(Diligent-GPUTestFramework PUBLIC DILIGENT_NO_GLSLANG=$<BOOL:${DILIGENT_NO_GLSLANG}>)
+target_compile_definitions(Diligent-GPUTestFramework PUBLIC DILIGENT_NO_GLSLANG=1)
 if(${D3D12_H_HAS_MESH_SHADER})
     target_compile_definitions(Diligent-GPUTestFramework PUBLIC D3D12_H_HAS_MESH_SHADER)
 endif()

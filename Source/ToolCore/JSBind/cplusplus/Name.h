@@ -60,7 +60,7 @@ public:
     bool match(const Name *other, Matcher *matcher = 0) const;
 
 public:
-    struct Compare: std::less<const Name *, const Name *> {
+    struct Compare: std::less<const Name *> {
         bool operator()(const Name *name, const Name *other) const;
     };
 

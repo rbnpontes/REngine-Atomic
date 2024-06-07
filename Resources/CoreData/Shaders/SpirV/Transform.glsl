@@ -51,7 +51,7 @@
     vec4 GetClipPos(vec3 worldPos)
     {
         vec4 ret = vec4(worldPos, 1.0) * cViewProj;
-        #if !defined(GL_ES)
+        #if !defined(RENGINE_IS_GLES)
             #if defined(CLIPPLANE) || defined(OPENGL)
                 gl_ClipDistance[0] = dot(cClipPlane, ret);
             #endif

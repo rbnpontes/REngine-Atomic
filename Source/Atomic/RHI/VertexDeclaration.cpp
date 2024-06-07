@@ -6,7 +6,7 @@ namespace REngine
 	VertexDeclaration::VertexDeclaration(const VertexDeclarationCreationDesc& creation_desc)
 	{
 		hash_ = creation_desc.hash;
-		const auto& shader_input_elements = creation_desc.vertex_shader->GetInputElements();
+		const auto& shader_input_elements = creation_desc.program->GetInputElements();
 		Atomic::HashMap<uint32_t, ShaderCompilerReflectInputElement> shader_input_elements_map;
 		input_layout_desc_.num_elements = 0;
 

@@ -379,9 +379,7 @@ if (NOT DEFINED SDL_SHARED_ENABLED_BY_DEFAULT)
   endif()
 endif()
 
-if (NOT DEFINED SDL_TEST_ENABLED_BY_DEFAULT)
-  set(SDL_TEST_ENABLED_BY_DEFAULT ON)
-endif()
+set(SDL_TEST_ENABLED_BY_DEFAULT OFF)
 
 set(LONGESTOPTIONNAME 0)  # set_option and friends will change this.
 
@@ -494,14 +492,19 @@ option(SDL_WERROR "Enable -Werror" OFF)
 
 set(SDL_SHARED OFF)
 set(SDL_STATIC ON)
+set(SDL_STATIC_PIC ON)
 set(SDL_TEST OFF)
+set(SDL_TESTS OFF)
 set(SDL_RENDER OFF)
+set(SDL2_DISABLE_INSTALL ON)
+set(SDL2_DISABLE_UNINSTALL ON)
+set(SDL2_DISABLE_SDL2MAIN ON)
+set(SDL_CMAKE_DEBUG_POSTFIX "")
 
 if(APPLE AND NOT IOS)
   set(SDL_COCOA ON)
 endif()
 
-dep_option(SDL_STATIC_PIC      "Static version of the library should be built with Position Independent Code" "${CMAKE_POSITION_INDEPENDENT_CODE}" "SDL_STATIC" OFF)
 
 set(HAVE_STATIC_PIC "${SDL_STATIC_PIC}")
 
@@ -3157,23 +3160,13 @@ set(exec_prefix "\${prefix}")
 set(libdir "\${exec_prefix}/${CMAKE_INSTALL_LIBDIR}")
 set(bindir "\${exec_prefix}/${CMAKE_INSTALL_BINDIR}")
 set(includedir "\${prefix}/${CMAKE_INSTALL_INCLUDEDIR}")
-if(SDL_STATIC)
-  set(ENABLE_STATIC_TRUE "")
-  set(ENABLE_STATIC_FALSE "#")
-else()
-  set(ENABLE_STATIC_TRUE "#")
-  set(ENABLE_STATIC_FALSE "")
-endif()
-if(SDL_SHARED)
-  set(PKGCONFIG_LIBS_PRIV "
-Libs.private:")
-  set(ENABLE_SHARED_TRUE "")
-  set(ENABLE_SHARED_FALSE "#")
-else()
-  set(PKGCONFIG_LIBS_PRIV "")
-  set(ENABLE_SHARED_TRUE "#")
-  set(ENABLE_SHARED_FALSE "")
-endif()
+
+set(ENABLE_STATIC_TRUE "")
+set(ENABLE_STATIC_FALSE "#")
+
+set(PKGCONFIG_LIBS_PRIV "")
+set(ENABLE_SHARED_TRUE "#")
+set(ENABLE_SHARED_FALSE "")
 
 # Clean up the different lists
 listtostr(EXTRA_LIBS _EXTRA_LIBS "-l")

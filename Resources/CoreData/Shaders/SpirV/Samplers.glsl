@@ -10,7 +10,7 @@
     uniform sampler2D sLightSpotMap;
     uniform samplerCube sLightCubeMap;
     
-    #ifndef GL_ES
+    #ifndef RENGINE_IS_GLES
         uniform sampler3D sVolumeMap;
         uniform sampler2D sAlbedoBuffer;
         uniform sampler2D sNormalBuffer;

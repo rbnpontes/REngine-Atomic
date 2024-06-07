@@ -12,7 +12,6 @@ target_link_libraries(AtomicTool ToolCore Poco Atomic)
 if (WIN32)
     target_link_libraries(AtomicTool Iphlpapi Wldap32)
 endif()
-target_link_libraries(AtomicTool libcurl)
 
 if (ATOMIC_JAVASCRIPT OR ATOMIC_DOTNET)
     target_link_libraries(AtomicTool AtomicNETScript)

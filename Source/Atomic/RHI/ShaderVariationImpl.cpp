@@ -14,14 +14,7 @@
 
 #include "../DebugNew.h"
 
-#if RENGINE_PLATFORM_IOS || RENGINE_PLATFORM_ANDROID
-    #include <OpenGLES/gltypes.h>
-    #include <OpenGLES/ES3/gl.h>
-#else
-    #include <GLEW/glew.h>
-#endif
 #include <DiligentCore/Graphics/GraphicsEngine/interface/Shader.h>
-#include <DiligentCore/Graphics/GraphicsEngineOpenGL/interface/ShaderGL.h>
 #include <DiligentCore/Graphics/GraphicsTools/interface/ShaderMacroHelper.hpp>
 
 namespace Atomic
@@ -221,10 +214,6 @@ namespace Atomic
         }
 
         object_ = shader;
-
-        if (type_ == VS)
-            FixInputElements();
-
         return true;
     }
 
@@ -258,9 +247,32 @@ namespace Atomic
             defines.push_back("VULKAN");
             break;
         case GraphicsBackend::OpenGL:
-            defines.push_back("OPENGL");
+        case GraphicsBackend::OpenGLES:
+	        {
+                defines.push_back("OPENGL");
+#ifdef RENGINE_PLATFORM_WINDOWS
+                if (backend == GraphicsBackend::OpenGLES)
+                    defines.push_back("OPENGLES");
+#endif
+	        }
             break;
         }
+
+        #ifdef RENGINE_PLATFORM_WINDOWS
+            defines.push_back("RENGINE_PLATFORM_WINDOWS");
+        #endif
+        #ifdef RENGINE_PLATFORM_MACOS
+            defines.push_back("RENGINE_PLATFORM_MACOS");
+        #endif
+        #ifdef RENGINE_PLATFORM_IOS
+            define.push_back("RENGINE_PLATFORM_IOS");
+        #endif
+        #ifdef RENGINE_PLATFORM_APPLE
+            define.push_back("RENGINE_PLATFORM_APPLE");
+        #endif
+        #ifdef RENGINE_PLATFORM_ANDROID
+            defines.push_back("RENGINE_PLATFORM_ANDROID");
+        #endif
         
         switch (type_)
         {
@@ -314,7 +326,8 @@ namespace Atomic
 #if RENGINE_PLATFORM_MACOS
         glsl_version = "#version 330\n";
 #else
-        glsl_version = "#version 300 es\n";
+        if(backend == GraphicsBackend::OpenGLES)
+            glsl_version = "#version 300 es\n";
 #endif
         source_code = glsl_version + String(macros_header.c_str()) + source_code;
         source_code.Append("void main()\n{\n");
@@ -327,13 +340,33 @@ namespace Atomic
         {
             REngine::ShaderCompilerDesc compiler_desc = {};
             compiler_desc.type = type_;
+            compiler_desc.backend = backend;
+            compiler_desc.name = name_.CString();
             compiler_desc.source_code = source_code;
-            REngine::ShaderCompilerResult result = {};
 
+            // Preprocess shader before compile
+            REngine::ShaderCompilerPreProcessResult pre_process_result = {};
+            REngine::shader_compiler_preprocess(compiler_desc, pre_process_result);
+
+            if(pre_process_result.has_error)
+            {
+                compilerOutput_ = pre_process_result.source_code;
+                return false;
+            }
+
+            // Put pre-processed shader code and compile to obtain spirv bytecode
+            compiler_desc.source_code = pre_process_result.source_code;
+#ifdef RENGINE_PLATFORM_WINDOWS
+            // OpenGL ES on windows is emulated. we must change version to 4.5
+            if (backend == GraphicsBackend::OpenGLES)
+                compiler_desc.source_code = compiler_desc.source_code.Replaced("#version 300 es", "#version 450");
+#endif
+
+
+            REngine::ShaderCompilerResult result = {};
             REngine::shader_compiler_compile(compiler_desc, true, result);
             if (result.has_error)
             {
-                //ATOMIC_LOGERROR(result.error);
                 compilerOutput_ = result.error;
                 return false;
             }
@@ -375,10 +408,8 @@ namespace Atomic
                 shader_ci.ByteCode = byteCode_.data();
                 shader_ci.ByteCodeSize = byteCode_.size();
             }
-            else if (backend == GraphicsBackend::OpenGL)
+            else if (backend == GraphicsBackend::OpenGL || backend == GraphicsBackend::OpenGLES)
             {
-                REngine::ShaderCompilerPreProcessResult pre_process_result = {};
-                REngine::shader_compiler_preprocess(compiler_desc, pre_process_result);
                 const auto byte_code = reinterpret_cast<const unsigned char*>(pre_process_result.source_code.CString());
                 byteCode_ = ea::vector<u8>(
                     byte_code,
@@ -412,10 +443,7 @@ namespace Atomic
         switch (type_)
         {
         case VS:
-	        {
-                FixInputElements();
-                ATOMIC_LOGDEBUG("Compiled vertex shader " + GetFullName());
-	        }
+	        ATOMIC_LOGDEBUG("Compiled vertex shader " + GetFullName());
             break;
         case PS:
             ATOMIC_LOGDEBUG("Compiled pixel shader " + GetFullName());
@@ -460,57 +488,7 @@ namespace Atomic
         *shader_file_size = bin_length;
         return true;
     }
-
-    void ShaderVariation::FixInputElements()
-    {
-        if (graphics_->GetImpl()->GetBackend() != GraphicsBackend::OpenGL)
-            return;
-
-        const Diligent::IShaderGL* shader = object_.Cast<Diligent::IShaderGL>(Diligent::IID_ShaderGL);
-        if (!shader)
-            return;
-
-        const auto shader_handle = shader->GetGLShaderHandle();
-        const auto tmp_program = glCreateProgram();
-        glAttachShader(tmp_program, shader_handle);
-        glLinkProgram(tmp_program);
-
-        // Reflection does list all vertex attributes for us
-        // But order is not guaranteed, in this case
-        // we will remap all location based on compiled GL shader.
-        ea::hash_map<u32, REngine::ShaderCompilerReflectInputElement*> elements;
-        // move to hash map for fast lookup
-    	for (auto& it : input_elements_)
-            elements[StringHash(it.name).Value()] = &it;
-
-        GLint num_attrs;
-        GLint max_attr_length;
-        glGetProgramiv(tmp_program, GL_ACTIVE_ATTRIBUTES, &num_attrs);
-        glGetProgramiv(tmp_program, GL_ACTIVE_ATTRIBUTE_MAX_LENGTH, &max_attr_length);
-
-        ea::vector<char> buffer(max_attr_length);
-
-        // Loop for each active attribute
-        // And update current input layout list.
-        for(GLint i =0; i < num_attrs; ++i)
-        {
-            GLsizei length;
-            GLint size;
-            GLenum type;
-            glGetActiveAttrib(tmp_program, i, static_cast<GLsizei>(buffer.size()), &length, &size, &type, buffer.data());
-            GLint location = glGetAttribLocation(tmp_program, buffer.data());
-            StringHash name_hash = String(buffer.data(), length);
-
-            const auto it = elements.find_as(name_hash.Value());
-            if (it == elements.end())
-                continue;
-
-            it->second->index = static_cast<u8>(location);
-        }
-
-        glDeleteProgram(tmp_program);
-    }
-
+    
     void ShaderVariation::SaveByteCode(const String& binaryShaderName, const ea::shared_array<u8>& byte_code,
                                        const u32 byte_code_len) const
     {

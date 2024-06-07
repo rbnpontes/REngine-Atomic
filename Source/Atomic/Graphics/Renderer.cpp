@@ -1061,10 +1061,14 @@ Texture* Renderer::GetScreenBuffer(int width, int height, unsigned format, int m
             // TODO: remove this cast
             newTex2D->SetSize(width, height, static_cast<TextureFormat>(format), depthStencil ? TEXTURE_DEPTHSTENCIL : TEXTURE_RENDERTARGET, multiSample, autoResolve);
 
-#ifdef ATOMIC_OPENGL
             // OpenGL hack: clear persistent floating point screen buffers to ensure the initial contents aren't illegal (NaN)?
             // Otherwise eg. the AutoExposure post process will not work correctly
-            if (persistentKey && Texture::GetDataType(format) == GL_FLOAT)
+            const auto backend = graphics_->GetBackend();
+            const auto is_opengl = backend == GraphicsBackend::OpenGL || backend == GraphicsBackend::OpenGLES;
+            const auto is_float_fmt = format == TextureFormat::TEX_FORMAT_RGB32_FLOAT
+                || format == TextureFormat::TEX_FORMAT_RG32_FLOAT
+                || format == TextureFormat::TEX_FORMAT_R32_FLOAT;
+        	if (persistentKey && is_opengl && is_float_fmt)
             {
                 // Note: this loses current rendertarget assignment
                 graphics_->ResetRenderTargets();
@@ -1073,7 +1077,6 @@ Texture* Renderer::GetScreenBuffer(int width, int height, unsigned format, int m
                 graphics_->SetViewport(IntRect(0, 0, width, height));
                 graphics_->Clear(CLEAR_COLOR);
             }
-#endif
 
             newBuffer = newTex2D;
         }
@@ -1829,7 +1832,9 @@ void Renderer::CreateGeometries()
     pointLightGeometry_->SetIndexBuffer(plib);
     pointLightGeometry_->SetDrawRange(TRIANGLE_LIST, 0, plib->GetIndexCount());
 
-    if (graphics_->GetShadowMapFormat() && graphics_->GetBackend() != GraphicsBackend::OpenGL)
+    const auto backend = graphics_->GetBackend();
+    const auto is_opengl = backend == GraphicsBackend::OpenGL || backend == GraphicsBackend::OpenGLES;
+    if (graphics_->GetShadowMapFormat() && !is_opengl)
     {
         faceSelectCubeMap_ = new TextureCube(context_);
         faceSelectCubeMap_->SetNumLevels(1);
@@ -1862,7 +1867,8 @@ void Renderer::SetIndirectionTextureData()
         faceSelectCubeMap_->SetData((CubeMapFace)i, 0, 0, 0, 1, 1, data);
     }
 
-    const bool isOpenGl = graphics_->GetBackend() == GraphicsBackend::OpenGL;
+    const auto backend = graphics_->GetBackend();
+    const bool is_open_gl = backend == GraphicsBackend::OpenGL || backend == GraphicsBackend::OpenGLES;
     for (unsigned i = 0; i < MAX_CUBEMAP_FACES; ++i)
     {
         unsigned char faceX = (unsigned char)((i & 1) * 255);
@@ -1872,7 +1878,7 @@ void Renderer::SetIndirectionTextureData()
         {
             for (unsigned x = 0; x < 256; ++x)
             {
-                if(isOpenGl)
+                if(is_open_gl)
                 {
                     dest[0] = (unsigned char)x;
                     dest[1] = (unsigned char)(255 - y);
@@ -1932,7 +1938,8 @@ void Renderer::ResetBuffers()
 
 String Renderer::GetShadowVariations() const
 {
-    const auto is_opengl = graphics_->GetBackend() == GraphicsBackend::OpenGL;
+    const auto backend = graphics_->GetBackend();
+    const auto is_opengl = backend == GraphicsBackend::OpenGL || backend == GraphicsBackend::OpenGLES;
     switch (shadowQuality_)
     {
         case SHADOWQUALITY_SIMPLE_16BIT:

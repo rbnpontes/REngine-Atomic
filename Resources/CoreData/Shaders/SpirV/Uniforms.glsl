@@ -1,6 +1,6 @@
 #include "BasicConfigs.glsl"
 
-#ifdef GL_ES
+#if IS_GLES && !RENGINE_PLATFORM_WINDOWS
     #define UNIFORM_BEGIN(name) uniform name {
 #else
     #define UNIFORM_BEGIN(name) layout(std140) uniform name {

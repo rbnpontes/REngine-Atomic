@@ -161,7 +161,7 @@ static void GetCPUData(struct CpuCoreCount* data)
         }
     }
 }
-#elif !defined(__EMSCRIPTEN__) && !defined(TVOS) && (RENGINE_PLATFORM_IOS && !defined(__arm64__))
+#elif !defined(__EMSCRIPTEN__) && !defined(TVOS) && (defined(RENGINE_PLATFORM_IOS) && !defined(__arm64__))
 static void GetCPUData(struct cpu_id_t* data)
 {
     if (cpu_identify(0, data) < 0)
@@ -463,6 +463,27 @@ unsigned GetNumPhysicalCPUs()
     // Get the number of available CPUs
     sysctl(mib, 2, NULL, &len, NULL, 0);
     return len / sizeof(int);
+#elif RENGINE_PLATFORM_WINDOWS
+    DWORD buffer_size = 0;
+    int cpu_count = 0;
+    GetLogicalProcessorInformation(nullptr, &buffer_size);
+    if(GetLastError() == ERROR_INSUFFICIENT_BUFFER)
+    {
+        const auto entry_count = buffer_size / sizeof(SYSTEM_LOGICAL_PROCESSOR_INFORMATION);
+        ea::fixed_vector<SYSTEM_LOGICAL_PROCESSOR_INFORMATION, 64> entries(entry_count);
+        if(GetLogicalProcessorInformation(entries.data(), &buffer_size))
+        {
+	        for(const auto& entry : entries)
+	        {
+                if (entry.Relationship == RelationProcessorCore)
+                    ++cpu_count;
+	        }
+        }
+    }
+
+    if (cpu_count == 0)
+        cpu_count = static_cast<int>(std::thread::hardware_concurrency());
+    return Max(1, cpu_count);
 #else
     struct cpu_id_t data;
     GetCPUData(&data);
@@ -507,6 +528,8 @@ unsigned GetNumLogicalCPUs()
     // Get the number of available CPUs
     sysctl(mib, 2, NULL, &len, NULL, 0);
     return len / sizeof(int);
+#elif RENGINE_PLATFORM_WINDOWS
+    return std::thread::hardware_concurrency();
 #else
     struct cpu_id_t data;
     GetCPUData(&data);

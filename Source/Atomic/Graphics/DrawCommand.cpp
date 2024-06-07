@@ -20,9 +20,12 @@
 #include "../RHI/DiligentUtils.h"
 #include "../RHI/ShaderParametersCache.h"
 
-#include <GLEW/glew.h>
+#if !RENGINE_PLATFORM_ANDROID
+	#include <GLEW/glew.h>
+#endif
+
 #if RENGINE_SSE
-#include <emmintrin.h>
+	#include <emmintrin.h>
 #endif
 
 #include <DiligentCore/Graphics/GraphicsAccessories/interface/GraphicsAccessories.hpp>
@@ -104,8 +107,10 @@ namespace REngine
 			vertex_offsets_.fill(0);
 
 			enable_clip_planes_ = false;
+#if !RENGINE_PLATFORM_ANDROID
 			if (graphics_->GetBackend() == GraphicsBackend::OpenGL)
 				glDisable(GL_CLIP_PLANE0);
+#endif
 
 			clip_plane_ = Atomic::Vector4::ZERO;
 			curr_pipeline_hash_			=
@@ -814,7 +819,7 @@ namespace REngine
 						ResolveTexture(static_cast<TextureCube*>(texture));
 				}
 
-				if (texture->GetLevelsDirty())
+				if (levels_dirty)
 					texture->RegenerateLevels();
 				if(params_dirty)
 				{
@@ -1164,6 +1169,7 @@ namespace REngine
 		}
 		void SetClipPlane(const DrawCommandClipPlaneDesc& desc) override
 		{
+			#if !RENGINE_PLATFORM_ANDROID
 			if(desc.enable != enable_clip_planes_ && graphics_->GetBackend() == GraphicsBackend::OpenGL)
 			{
 				if (desc.enable)
@@ -1171,6 +1177,7 @@ namespace REngine
 				else
 					glDisable(GL_CLIP_PLANE0);
 			}
+			#endif
 
 			enable_clip_planes_ = desc.enable;
 			if(!enable_clip_planes_)
@@ -1187,7 +1194,7 @@ namespace REngine
 		bool ResolveTexture(Texture2D* dest, const IntRect& viewport) override
 		{
 			ATOMIC_PROFILE(IDrawCommand::ResolveTexture);
-			if(!dest || !dest->GetRenderSurface())
+			if(!dest || !dest->GetRenderSurface() || graphics_->GetBackend() == GraphicsBackend::OpenGLES)
 				return false;
 
 			const auto rt_size = GetRenderTargetDimensions();
@@ -1620,11 +1627,13 @@ namespace REngine
 				return;
 			}
 
+			assert(shader_program_ && "Required Shader Program");
+
 			VertexDeclarationCreationDesc creation_desc;
 			creation_desc.graphics = graphics_;
 			creation_desc.hash = curr_vertx_decl_checksum_;
 			creation_desc.vertex_buffers = &vertex_buffers_;
-			creation_desc.vertex_shader = pipeline_info_->vs_shader;
+			creation_desc.program = shader_program_;
 			vertex_declaration_ = new VertexDeclaration(creation_desc);
 
 			if(!vertex_declaration_->GetNumInputs())
