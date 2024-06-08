@@ -199,7 +199,7 @@ if (NOT WEB)
     list(APPEND PUBLIC_THIRD_PARTY_DEPS Civetweb kNet)
 endif()
 
-if (ATOMIC_PROFILING)
+if (RENGINE_PROFILING)
     target_compile_definitions(Atomic PUBLIC -DATOMIC_PROFILING=1 -DRENGINE_PROFILER_TRACY=1)
     list(APPEND PUBLIC_THIRD_PARTY_DEPS TracyClient)
 endif ()

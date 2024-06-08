@@ -23,3 +23,4 @@ require("./BuildWeb");
 require("./BuildAtomicNET");
 require("./BuildLint");
 require("./BuildTasks");
+require('./BuildEditor');

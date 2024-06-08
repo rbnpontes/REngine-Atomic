@@ -89,7 +89,7 @@ endif ()
 
 add_subdirectory(imgui)
 
-if (ATOMIC_PROFILING)
+if (RENGINE_PROFILING)
     add_subdirectory(tracy)
 endif ()
 

@@ -1,10 +1,12 @@
 @echo OFF
+REM this script is used by the build system
+REM they call vs tools vars to start developer command
+REM on any terminal.
 
-call %0\..\SetupVSEnvironment.bat %2
+set last_path=%cd%
+cd %VS_TOOLS%
 
-if not defined ATOMIC_CMAKE_GENERATOR (
-  @echo Problem setting up %2 compilation environment
-  exit /b 1
-)
+call VsDevCmd.bat
+cd %last_path%
 
 msbuild /m Atomic.sln /t:AtomicEditor /t:AtomicPlayer /p:Configuration=%1 /p:Platform=x64
