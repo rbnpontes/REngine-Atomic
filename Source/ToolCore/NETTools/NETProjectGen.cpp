@@ -38,7 +38,6 @@
 
 namespace ToolCore
 {
-
     NETProjectBase::NETProjectBase(Context* context, NETProjectGen* projectGen) :
         Object(context), xmlFile_(new XMLFile(context)), projectGen_(projectGen)
     {
@@ -129,7 +128,6 @@ namespace ToolCore
         return true;
     }
 
-
     void NETCSProject::CreateCompileItemGroup(XMLElement &projectRoot)
     {
         FileSystem* fs = GetSubsystem<FileSystem>();
@@ -137,9 +135,8 @@ namespace ToolCore
         XMLElement igroup = projectRoot.CreateChild("ItemGroup");
 
         // Compile AssemblyInfo.cs
-
-        if (!GetIsPCL() && !sharedReferences_.Size() && outputType_ != "Shared")
-            igroup.CreateChild("Compile").SetAttribute("Include", "Properties\\AssemblyInfo.cs");
+        /*if (!GetIsPCL() && !sharedReferences_.Size() && outputType_ != "Shared")
+            igroup.CreateChild("Compile").SetAttribute("Include", "Properties\\AssemblyInfo.cs");*/
 
         for (unsigned i = 0; i < sourceFolders_.Size(); i++)
         {
@@ -326,7 +323,21 @@ namespace ToolCore
 
             xref = igroup.CreateChild("Reference");
             xref.SetAttribute("Include", ref);
+        }
 
+        for(u32 i = 0; i < projectReferences_.Size(); ++i)
+        {
+            String ref = projectReferences_[i];
+
+            auto ref_item_grp = projectRoot.CreateChild("ItemGroup");
+            auto proj_ref = ref_item_grp.CreateChild("ProjectReference");
+
+            String include = "$(SolutionDir)";
+            include.Append(ref);
+            include.Append("/");
+            include.Append(ref);
+            include.Append(".csproj");
+            proj_ref.SetAttribute("Include", include);
         }
 
         if (atomicProjectPath.Length())
@@ -645,8 +656,6 @@ namespace ToolCore
                 pgroup.CreateChild("MtouchOptimizePNGs").SetValue("False");
             }
         }
-
-
     }
 
     void NETCSProject::CreateApplicationItems(XMLElement &projectRoot)
@@ -917,6 +926,8 @@ namespace ToolCore
         XMLElement guid = pgroup.CreateChild("ProjectGuid");
         guid.SetValue("{" + projectGuid_ + "}");
 
+        pgroup.CreateChild("GenerateAssemblyInfo").SetValue("false");
+
         // OutputType
         XMLElement outputType = pgroup.CreateChild("OutputType");
 
@@ -937,8 +948,6 @@ namespace ToolCore
 
         outputType.SetValue(oType);
 
-        pgroup.CreateChild("AppDesignerFolder").SetValue("Properties");
-
         // RootNamespace
         XMLElement rootNamespace = pgroup.CreateChild("RootNamespace");
         rootNamespace.SetValue(rootNamespace_);
@@ -953,7 +962,7 @@ namespace ToolCore
         {
             pgroup.CreateChild("ProjectTypeGuids").SetValue(String::Joined(projectTypeGuids_, ";"));
         }
-
+        /*
         if (SupportsDesktop())
         {
             pgroup.CreateChild("TargetFrameworkVersion").SetValue("v4.5");
@@ -1047,22 +1056,18 @@ namespace ToolCore
 
             }
         }
+        */
+        if (target_framework_.Empty())
+            target_framework_ = "net8.0";
 
-        if (targetFrameworkProfile_.Length())
-        {
-            pgroup.CreateChild("TargetFrameworkProfile").SetValue(targetFrameworkProfile_);
-        }
-
+        pgroup.CreateChild("TargetFramework").SetValue(target_framework_);
     }
 
     bool NETCSProject::GenerateShared()
     {
         // .shproj
         XMLElement project = xmlFile_->CreateRoot("Project");
-
-        project.SetAttribute("DefaultTargets", "Build");
         project.SetAttribute("ToolsVersion", "14.0");
-        project.SetAttribute("DefaultTargets", "Build");
         project.SetAttribute("xmlns", "http://schemas.microsoft.com/developer/msbuild/2003");
 
         // Project Group
@@ -1126,15 +1131,7 @@ namespace ToolCore
         NETSolution* solution = projectGen_->GetSolution();
 
         XMLElement project = xmlFile_->CreateRoot("Project");
-
-        project.SetAttribute("DefaultTargets", "Build");
-        project.SetAttribute("ToolsVersion", "14.0");
-        project.SetAttribute("DefaultTargets", "Build");
-        project.SetAttribute("xmlns", "http://schemas.microsoft.com/developer/msbuild/2003");
-
-        XMLElement import = project.CreateChild("Import");
-        import.SetAttribute("Project", "$(MSBuildExtensionsPath)\\$(MSBuildToolsVersion)\\Microsoft.Common.props");
-        import.SetAttribute("Condition", "Exists('$(MSBuildExtensionsPath)\\$(MSBuildToolsVersion)\\Microsoft.Common.props')");
+        project.SetAttribute("Sdk", "Microsoft.NET.Sdk");
 
         CreateMainPropertyGroup(project);
         CreateDebugPropertyGroup(project);
@@ -1154,8 +1151,8 @@ namespace ToolCore
         }
 
 
-        if (SupportsDesktop() && !GetIsPCL())
-            project.CreateChild("Import").SetAttribute("Project", "$(MSBuildToolsPath)\\Microsoft.CSharp.targets");
+        /*if (SupportsDesktop() && !GetIsPCL())
+            project.CreateChild("Import").SetAttribute("Project", "$(MSBuildToolsPath)\\Microsoft.CSharp.targets");*/
 
         if (outputType_.ToLower() == "exe" || androidApplication_)
         {
@@ -1470,7 +1467,11 @@ namespace ToolCore
             sharedReferences_.Push(sharedReferences[i].GetString());
         }
 
-        targetFrameworkProfile_ = root["targetFrameworkProfile"].GetString();
+        const JSONArray& projectReferences = root["projectReferences"].GetArray();
+        for (u32 i = 0; i < projectReferences.Size(); ++i)
+            projectReferences_.Push(projectReferences[i].GetString());
+
+        target_framework_ = root["targetFramework"].GetString();
 
         // iOS
         objcBindingApiDefinition_ = root["objcBindingApiDefinition"].GetString();
@@ -1843,7 +1844,6 @@ namespace ToolCore
 
         return LoadProject(jvalue);
     }
-\
     bool NETProjectGen::LoadAtomicProject(const String& atomicProjectPath)
     {        
         ToolEnvironment* tenv = GetSubsystem<ToolEnvironment>();

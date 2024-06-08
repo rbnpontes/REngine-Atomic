@@ -171,7 +171,6 @@ namespace('build', function () {
 
         cmds.push(host.atomicTool + " net compile " + atomicRoot + "Script/AtomicNET/AtomicNETProject.json -platform " + platform + " -config " + configuration);
 
-        console.log('CMD: ', cmds);
         jake.exec(cmds, function () {
 
             complete();

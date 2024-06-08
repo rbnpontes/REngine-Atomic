@@ -1,4 +1,4 @@
-const { exec, execSync } = require('child_process');
+const { execSync } = require('child_process');
 const os = require('os');
 const fs = require('fs');
 const path = require('path');
