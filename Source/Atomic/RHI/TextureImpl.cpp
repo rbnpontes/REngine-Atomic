@@ -52,6 +52,7 @@ unsigned Texture::GetRowDataSize(int width) const
     case TEX_FORMAT_R32_FLOAT:
     case TEX_FORMAT_R24G8_TYPELESS:
     case TEX_FORMAT_R32_TYPELESS:
+    case TEX_FORMAT_BGRA8_UNORM:
         return static_cast<unsigned>(width * 4);
     
     case TEX_FORMAT_RGBA16_UNORM:
