@@ -3,7 +3,9 @@ const {
     editorGenerate, 
     editorBuildFirstPhase, 
     editorBuildSecondPhase,
-    editorCopyBinaries
+    editorCopyBinaries,
+    editorPackage,
+    editorCleanArtifacts
 } = require("./Tasks/BuildEditorTask");
 
 namespace('editor', ()=> {
@@ -12,4 +14,6 @@ namespace('editor', ()=> {
     task('firstphase', editorBuildFirstPhase);
     task('secondphase', editorBuildSecondPhase);
     task('cpybins', editorCopyBinaries);
+    task('pkg', editorPackage);
+    task('clean', editorCleanArtifacts);
 });

@@ -163,7 +163,7 @@ struct TextureComponentMapping
 
     constexpr TEXTURE_COMPONENT_SWIZZLE& operator[](size_t Component)
 	{
-		return (&R)[Component];
+        return (&R)[Component];
 	}
 
     static constexpr TextureComponentMapping Identity()

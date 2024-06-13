@@ -19,11 +19,19 @@ if (ATOMIC_JAVASCRIPT OR ATOMIC_DOTNET)
 
     yarn_get_command()
     # Custom target which is always considered out of date, checks for zero size/missing script bindings and generates
+    # if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    #     add_custom_target(AtomicToolCheckScripts
+    #                     WORKING_DIRECTORY "${ATOMIC_SOURCE_DIR}"
+    #                     COMMAND "${CMAKE_COMMAND}" -E make_directory \"${ATOMIC_SOURCE_DIR}/Artifacts/Build/AtomicTool\"
+    #                     COMMAND "${CMAKE_COMMAND}" -E copy_if_different \"$<TARGET_FILE:AtomicTool>\" \"${ATOMIC_SOURCE_DIR}/Artifacts/Build/AtomicTool/\"
+    #                     COMMAND "${YARN_CMD}" "build" "build:genscripts[false]")
+    # else ()
+    # endif()
     add_custom_target(AtomicToolCheckScripts
                     WORKING_DIRECTORY "${ATOMIC_SOURCE_DIR}"
                     COMMAND "${CMAKE_COMMAND}" -E make_directory \"${ATOMIC_SOURCE_DIR}/Artifacts/Build/AtomicTool\"
                     COMMAND "${CMAKE_COMMAND}" -E copy_if_different \"$<TARGET_FILE:AtomicTool>\" \"${ATOMIC_SOURCE_DIR}/Artifacts/Build/AtomicTool/\"
-                    COMMAND "${YARN_CMD}" "build" "build:genscripts[false]")
+                    COMMAND "${YARN_CMD}" "--cwd" "Build" "build" "build:genscripts[false]")
 
     add_dependencies (AtomicToolCheckScripts AtomicTool)
 
@@ -37,13 +45,13 @@ if (ATOMIC_JAVASCRIPT OR ATOMIC_DOTNET)
 
     add_custom_target ( GenerateScriptBindings
                         WORKING_DIRECTORY "${ATOMIC_SOURCE_DIR}"
-                        COMMAND "${YARN_CMD}" "build" "build:genscripts[true];--trace"
+                        COMMAND "${YARN_CMD}" "--cwd" "Build" "build" "build:genscripts[true];--trace"
                         DEPENDS AtomicTool )
 
     if (ATOMIC_DOTNET)
         add_custom_target ( GenerateAtomicNET
                             WORKING_DIRECTORY "${ATOMIC_SOURCE_DIR}"
-                            COMMAND "${YARN_CMD}" "build" build:genAtomicNET[desktop,$<$<CONFIG:debug>:"Debug">$<$<CONFIG:release>:"Release">];--trace
+                            COMMAND "${YARN_CMD}" "--cwd" "Build" "build" build:genAtomicNET[desktop,$<$<CONFIG:debug>:"Debug">$<$<CONFIG:release>:"Release">];--trace
                             DEPENDS AtomicTool )
     endif()
 endif ()

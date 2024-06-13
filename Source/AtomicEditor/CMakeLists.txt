@@ -142,7 +142,7 @@ if (ATOMIC_WEBVIEW)
     endif ()
 endif (ATOMIC_WEBVIEW)
 
-target_link_libraries(${CEF_TARGET} ToolCore AtomicWebView AtomicJS AtomicPlayerJS ToolCoreJS Poco nativefiledialog Atomic)
+target_link_libraries(${CEF_TARGET} ToolCore AtomicWebView AtomicJS AtomicPlayerJS ToolCoreJS Poco nativefiledialog Atomic EASTL)
 
 if(ATOMIC_JAVASCRIPT OR ATOMIC_DOTNET)
     target_link_libraries(${CEF_TARGET} AtomicApp)
