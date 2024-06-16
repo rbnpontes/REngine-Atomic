@@ -54,7 +54,7 @@ if (ATOMIC_WEBVIEW)
         endif ()
 
         # Add the custom manifest files to the executable.
-        ADD_WINDOWS_MANIFEST("${CMAKE_CURRENT_SOURCE_DIR}/Windows" "${CEF_TARGET}")
+        ADD_WINDOWS_MANIFEST("${CMAKE_CURRENT_SOURCE_DIR}/Windows" "${CEF_TARGET}" "exe")
 
         # Copy binary and resource files to the target output directory.
         COPY_FILES("${CEF_TARGET}" "${CEF_BINARY_FILES}" "${CEF_BINARY_DIR}" "${CEF_TARGET_OUT_DIR}")

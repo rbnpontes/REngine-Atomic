@@ -63,14 +63,8 @@ public:
     /// Set value that will be returned as the User-Agent HTTP header.
     static void SetUserAgent(const String& userAgent) { userAgent_ = userAgent; }
 
-    /// Set value that will be inserted as the product portion of the default User-Agent string 
-    static void SetProductVersion(const String& productVersion) { productVersion_ = productVersion; }
-
     /// Set to a value between 1024 and 65535 to enable remote debugging on the specified port
     static void SetDebugPort(int debugPort) { debugPort_ = debugPort; }
-
-    /// Set whether web security is enabled
-    static void SetWebSecurity(bool enabled) { webSecurity_ = enabled; }
 
     /// Set the name of the function used for JavaScript message queries
     static void SetJSMessageQueryFunctionName(const String& name) { jsMessageQueryFunctionName_ = name; }
@@ -88,10 +82,7 @@ public:
     static const String& GetUserAgent() { return userAgent_; }
 
     /// Get value that will be inserted as the product portion of the default User-Agent string.  If empty the Chromium product version will be used      
-    static const String& GetProductVersion() { return productVersion_; }
-
-    /// Get whether web security is enabled
-    static bool GetWebSecurity() { return webSecurity_; }
+    static const String& GetProductVersion() { return "REngineBrowser"; }
 
     /// Get the name of the function used for JavaScript message queries
     static const String& GetJSMessageQueryFunctionName() { return jsMessageQueryFunctionName_; }
@@ -114,7 +105,6 @@ private:
 
     // configuration settings that must be set before WebBrowserHost subsystem is created
     static String userAgent_;
-    static String productVersion_;
 
     static String rootCacheFolder_;
     static String cacheName_;
@@ -123,7 +113,6 @@ private:
     static String jsMessageQueryCancelFunctionName_;
 
     static int debugPort_;
-    static bool webSecurity_;
 
 
 };

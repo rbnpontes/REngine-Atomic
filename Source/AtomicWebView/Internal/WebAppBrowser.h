@@ -27,7 +27,7 @@
 namespace Atomic
 {
 
-class WebAppBrowser : public WebApp, public CefBrowserProcessHandler
+class WebAppBrowser : public WebApp, public CefBrowserProcessHandler, public CefRenderProcessHandler
 {
 
 public:
@@ -35,9 +35,14 @@ public:
     WebAppBrowser();
 
     // CefApp methods.
-    void OnBeforeCommandLineProcessing(const CefString& process_type, CefRefPtr<CefCommandLine> command_line) OVERRIDE;
+    void OnBeforeCommandLineProcessing(const CefString& process_type, CefRefPtr<CefCommandLine> command_line) override;
 
-    CefRefPtr<CefBrowserProcessHandler> GetBrowserProcessHandler() OVERRIDE
+    CefRefPtr<CefBrowserProcessHandler> GetBrowserProcessHandler() override
+    {
+        return this;
+    }
+
+    CefRefPtr<CefRenderProcessHandler> GetRenderProcessHandler() override
     {
         return this;
     }
@@ -45,10 +50,15 @@ public:
     static bool CreateGlobalProperties(CefRefPtr<CefDictionaryValue>& globalProps);
 
     // CefBrowserProcessHandler methods.
-    virtual void OnContextInitialized() OVERRIDE;
+    virtual void OnContextInitialized() override;
 
-    virtual void OnRenderProcessThreadCreated(CefRefPtr<CefListValue> extra_info) OVERRIDE;
-
+    void OnRegisterCustomSchemes(CefRawPtr<CefSchemeRegistrar> registrar) override;
+    void OnBrowserCreated(CefRefPtr<CefBrowser> browser, CefRefPtr<CefDictionaryValue> extra_info) override;
+    void OnUncaughtException(CefRefPtr<CefBrowser> browser, 
+        CefRefPtr<CefFrame> frame, 
+        CefRefPtr<CefV8Context> context, 
+        CefRefPtr<CefV8Exception> exception, 
+        CefRefPtr<CefV8StackTrace> stackTrace) override;
 private:
 
     DISALLOW_COPY_AND_ASSIGN(WebAppBrowser);

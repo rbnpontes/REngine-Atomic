@@ -26,7 +26,9 @@ namespace Atomic
 {
 
 class WebBrowserHost;
-
+#define MEMORY_RESOURCE_KEY_DATA		"rengine/memres/data"
+#define MEMORY_RESOURCE_KEY_MIME_TYPE	"rengine/memres/mime-type"
+#define MEMORY_RESOURCE_SCHEME_URL		"rengine://memres"
 /// Registers atomic scheme handlers
 void RegisterWebSchemeHandlers(WebBrowserHost* host);
 

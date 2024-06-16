@@ -1,4 +1,5 @@
 set(CMAKE_OSX_DEPLOYMENT_TARGET "10.13" CACHE STRING "Minimum OS X deployment version")
+set (CMAKE_CXX_STANDARD 20)
 
 project(Atomic)
 
@@ -51,10 +52,7 @@ if (ATOMIC_WEBVIEW)
         endif ()
         set(CEF_ROOT "${ATOMIC_SOURCE_DIR}/Submodules/CEF/MacOSX")
     elseif (WIN32)
-        if (ATOMIC_PROJECT_ARCH STREQUAL "x86")
-        else ()
-            set(CEF_ROOT "${ATOMIC_SOURCE_DIR}/Submodules/CEF/Windows/64bit")
-        endif ()
+        set(CEF_ROOT "${ATOMIC_SOURCE_DIR}/Submodules/CEF/Windows")
     else ()
         set(CEF_ROOT "${ATOMIC_SOURCE_DIR}/Submodules/CEF/Linux")
     endif ()

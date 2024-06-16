@@ -35,13 +35,10 @@ void jsapi_init_webview(JSVM* vm, const VariantMap& engineParameters)
     duk_context* ctx = vm->GetJSContext();
 
     const String& userAgent = Engine::GetParameter(engineParameters, "WebViewUserAgent", Variant("")).GetString();
-    const String& productVersion = Engine::GetParameter(engineParameters, "WebViewProductVersion", Variant("")).GetString();
     int debugPort = Engine::GetParameter(engineParameters, "WebViewDebugPort", Variant(3335)).GetInt();
 
     if (userAgent.Length())
         WebBrowserHost::SetUserAgent(userAgent);
-    if (productVersion.Length())
-        WebBrowserHost::SetProductVersion(productVersion);
 
     WebBrowserHost::SetDebugPort(debugPort);
 
