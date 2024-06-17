@@ -48,6 +48,8 @@ public:
 
     virtual void OnWebKitInitialized(CefRefPtr<WebAppRenderer> app) override
     {
+        if (message_router_)
+            return;
         // Create the renderer-side router for query handling.
         CefMessageRouterConfig config;
         config.js_query_function = jsMessageQueryFunctionName_.length() ? jsMessageQueryFunctionName_ : "atomicQuery";
@@ -111,24 +113,21 @@ public:
     {
         if (!extra_info)
             return;
+
         // index 0 is global properties
         if (extra_info->GetSize() > 0)
         {
             if (extra_info->GetType("0") == CefValueType::VTYPE_DICTIONARY)
-                globalProperties_ = extra_info->GetDictionary("0")->Copy(false);            
+                globalProperties_ = extra_info->GetDictionary("0")->Copy(false);
         }
 
         // index 1 is name for jsMessageQuery function
         if (extra_info->GetSize() > 1)
-        {            
             jsMessageQueryFunctionName_ = extra_info->GetString("1");
-        }
 
         // index 2 is name for jsMessageQueryCancel function
         if (extra_info->GetSize() > 2)
-        {
             jsMessageQueryCancelFunctionName_ = extra_info->GetString("2");
-        }
     }
 
     virtual void OnContextCreated(CefRefPtr<WebAppRenderer> app,
@@ -138,8 +137,8 @@ public:
     {
         if (!message_router_)
             return;
-        message_router_->OnContextCreated(browser,  frame, context);
 
+        message_router_->OnContextCreated(browser,  frame, context);
         UpdateGlobalProperties(context);
     }
 
@@ -159,7 +158,6 @@ public:
             CefProcessId source_process,
             CefRefPtr<CefProcessMessage> message) override
     {
-
         const CefString& message_name = message->GetName();
 
         if (message_name == "atomic_eval_javascript")
@@ -246,12 +244,11 @@ CefString WebRenderDelegate::jsMessageQueryCancelFunctionName_;
 
 
 WebAppRenderer::WebAppRenderer() {
+    delegates_.Push(new WebRenderDelegate());
 }
 
 void WebAppRenderer::OnBrowserCreated(CefRefPtr<CefBrowser> browser, CefRefPtr<CefDictionaryValue> extra_info)
 {
-    delegates_.Push(new WebRenderDelegate());
-
     DelegateSet::Iterator it = delegates_.Begin();
     for (; it != delegates_.End(); ++it)
         (*it)->OnBrowserCreated(this, browser, extra_info);

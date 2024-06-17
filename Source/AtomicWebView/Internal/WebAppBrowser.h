@@ -48,6 +48,7 @@ public:
     }
 
     static bool CreateGlobalProperties(CefRefPtr<CefDictionaryValue>& globalProps);
+    static void FillExtraInfo(CefRefPtr<CefDictionaryValue>& extra_info);
 
     // CefBrowserProcessHandler methods.
     virtual void OnContextInitialized() override;

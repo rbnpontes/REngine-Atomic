@@ -24,6 +24,7 @@
 
 #include "WebAppBrowser.h"
 #include "../WebBrowserHost.h"
+#include "include/wrapper/cef_helpers.h"
 
 namespace Atomic
 {
@@ -130,16 +131,19 @@ void WebAppBrowser::OnBrowserCreated(CefRefPtr<CefBrowser> browser, CefRefPtr<Ce
     if (!extra_info)
         return;
     // We're not on main thread here, we're on IO thread
-    CefRefPtr<CefDictionaryValue> globalProps;
+    CEF_REQUIRE_IO_THREAD();
+    FillExtraInfo(extra_info);
+}
 
-    if (CreateGlobalProperties(globalProps))
-    {
-        extra_info->SetDictionary("0", globalProps);
-    }
+void WebAppBrowser::FillExtraInfo(CefRefPtr<CefDictionaryValue>& extra_info)
+{
+	extra_info = CefDictionaryValue::Create();
+
+    CefRefPtr<CefDictionaryValue> globals_data;
+    if (CreateGlobalProperties(globals_data))
+        extra_info->SetDictionary("0", globals_data);
     else
-    {
         extra_info->SetNull("0");
-    }
 
     extra_info->SetString("1", WebBrowserHost::GetJSMessageQueryFunctionName().CString());
     extra_info->SetString("2", WebBrowserHost::GetJSMessageQueryCancelFunctionName().CString());

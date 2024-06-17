@@ -51,7 +51,10 @@
 #include "WebString.h"
 
 #include "./WebSchemeHandler.h"
+
 #include "./Internal/WebInternalStorage.h"
+#include "./Internal/WebClientKeyboardHandler.h"
+#include "./Internal/WebClientLoadHandler.h"
 
 #include <SDL/include/SDL.h>
 
@@ -63,6 +66,8 @@
 
 #include <ThirdParty/SDL/include/SDL_syswm.h>
 
+#include "Internal/WebClientRequestHandler.h"
+
 namespace Atomic
 {
 
@@ -72,10 +77,7 @@ void* GetNSWindowContentView(void* window);
 
 class WebClientPrivate : public CefClient,
         public CefLifeSpanHandler,
-        public CefLoadHandler,
-        public CefDisplayHandler,
-        public CefRequestHandler,
-        public CefKeyboardHandler
+        public CefDisplayHandler
 {
     friend class WebClient;
 
@@ -85,13 +87,16 @@ public:
     {
 
         webClient_ = client;
-        webBrowserHost_ = webClient_->GetSubsystem<WebBrowserHost>();
 
         CefMessageRouterConfig config;
         config.js_query_function = WebBrowserHost::GetJSMessageQueryFunctionName().CString();
         config.js_cancel_function = WebBrowserHost::GetJSMessageQueryCancelFunctionName().CString();
         browserSideRouter_ = CefMessageRouterBrowserSide::Create(config);
 
+        webBrowserHost_ = webClient_->GetSubsystem<WebBrowserHost>();
+        keyboard_handler_ = new REngine::WebClientKeyboardHandler();
+        request_handler_ = new REngine::WebClientRequestHandler(browserSideRouter_.get());
+        load_handler_ = new REngine::WebClientLoadHandler(WeakPtr(client));
     }
 
     ~WebClientPrivate() override
@@ -116,7 +121,7 @@ public:
 
     CefRefPtr<CefLoadHandler> GetLoadHandler() override
     {
-        return this;
+        return load_handler_;
     }
 
     CefRefPtr<CefDisplayHandler> GetDisplayHandler() override
@@ -126,45 +131,12 @@ public:
 
     CefRefPtr<CefRequestHandler> GetRequestHandler() override
     {
-        return this;
+        return request_handler_;
     }
 
     CefRefPtr<CefKeyboardHandler> GetKeyboardHandler() override
     {
-        return this;
-    }
-
-
-    // CefKeyboardHandler
-
-    virtual bool OnPreKeyEvent(CefRefPtr<CefBrowser> browser,
-                               const CefKeyEvent& event,
-                               CefEventHandle os_event,
-                               bool* is_keyboard_shortcut) override
-    {
-        return false;
-    }
-
-
-
-    // CefRequestHandler methods
-
-    void OnRenderViewReady(CefRefPtr<CefBrowser> browser) override
-    {
-    }
-
-    bool OnBeforeBrowse(CefRefPtr<CefBrowser> browser,
-                        CefRefPtr<CefFrame> frame,
-                        CefRefPtr<CefRequest> request,
-                        bool user_gesture,
-                        bool is_redirect) override
-    {
-        CEF_REQUIRE_UI_THREAD();
-
-        browserSideRouter_->OnBeforeBrowse(browser, frame);
-
-        return false;
-
+        return keyboard_handler_;
     }
 
     // CefClient methods
@@ -194,106 +166,10 @@ public:
             return true;
         }
 
-
-        if (browserSideRouter_->OnProcessMessageReceived(browser, frame, source_process, message))
-        {
-            return true;
-        }
-
-        return false;
-    }
-
-    // CefRequestHandler method
-    void OnRenderProcessTerminated(CefRefPtr<CefBrowser> browser,
-                                   TerminationStatus status,
-                                   int error_code,
-                                   const CefString& error_string) override
-    {
-        CEF_REQUIRE_UI_THREAD();
-        static constexpr const char* s_termination_status_names[] = {
-            "TS_ABNORMAL_TERMINATION",
-            "TS_PROCESS_WAS_KILLED",
-            "TS_PROCESS_CRASHED",
-            "TS_PROCESS_OOM",
-            "TS_LAUNCH_FAILED",
-            "TS_INTEGRITY_FAILURE"
-        };
-        ATOMIC_LOGERRORF("Render Process Terminated with error code (%x). Status=%s, Message=%s",
-            error_code,
-            s_termination_status_names[status],
-            error_string.ToString().c_str());
-        browserSideRouter_->OnRenderProcessTerminated(browser);
-    }
-
-    // CefLoadHandler
-
-    void OnLoadStart(CefRefPtr<CefBrowser> browser,
-                     CefRefPtr<CefFrame> frame, TransitionType transition_type) override
-    {
-        if (webClient_.Null() || !frame->IsMain())
-            return;
-
-        VariantMap eventData;
-        eventData[WebViewLoadStart::P_CLIENT] = webClient_;
-
-        CefString cefURL = frame->GetURL();
-        String url;
-        ConvertCEFString(cefURL, url);
-        eventData[WebViewLoadStart::P_URL] = url;
-
-        webClient_->SendEvent(E_WEBVIEWLOADSTART, eventData);
-
-    }
-
-    void OnLoadEnd(CefRefPtr<CefBrowser> browser,
-                   CefRefPtr<CefFrame> frame,
-                   int httpStatusCode) override
-    {
-        if (webClient_.Null() || !frame->IsMain())
-            return;
-
-        VariantMap eventData;
-        eventData[WebViewLoadEnd::P_CLIENT] = webClient_;
-
-        CefString cefURL = frame->GetURL();
-        String url;
-        ConvertCEFString(cefURL, url);
-        eventData[WebViewLoadEnd::P_URL] = url;
-
-        webClient_->SendEvent(E_WEBVIEWLOADEND, eventData);
-
-    }
-
-    void OnLoadError(CefRefPtr<CefBrowser> browser,
-                     CefRefPtr<CefFrame> frame,
-                     ErrorCode errorCode,
-                     const CefString& errorText,
-                     const CefString& failedUrl) override
-    {
-        ATOMIC_LOGERRORF("Failed to load URL: %s\nError: %s", failedUrl.ToString().c_str(), errorText.ToString().c_str());
-    }
-
-    void OnLoadingStateChange(CefRefPtr<CefBrowser> browser,
-                              bool isLoading,
-                              bool canGoBack,
-                              bool canGoForward) override
-    {
-
-        if (webClient_.Null())
-            return;
-
-        VariantMap eventData;
-        eventData[WebViewLoadStateChange::P_CLIENT] = webClient_;
-        eventData[WebViewLoadStateChange::P_LOADING] = isLoading;
-        eventData[WebViewLoadStateChange::P_CANGOBACK] = canGoBack;
-        eventData[WebViewLoadStateChange::P_CANGOFORWARD] = canGoForward;
-
-        webClient_->SendEvent(E_WEBVIEWLOADSTATECHANGE, eventData);
-
+        return browserSideRouter_->OnProcessMessageReceived(browser, frame, source_process, message);
     }
 
     // CefDisplayHandler
-
     void OnAddressChange(CefRefPtr<CefBrowser> browser,
                          CefRefPtr<CefFrame> frame,
                          const CefString& url) override
@@ -401,7 +277,7 @@ public:
         windowInfo.bounds.height = height;
 
 
-        Graphics* graphics = webClient_->GetSubsystem<Graphics>();
+       // Graphics* graphics = webClient_->GetSubsystem<Graphics>();
 
 //        if (graphics)
 //        {
@@ -441,7 +317,9 @@ public:
         String _initialURL = initialLoadString_.Length() ? "x" : initialURL;
 
         webClient_->renderHandler_->SetSize(width, height);
-        CefRefPtr<CefDictionaryValue> extra_info = CefDictionaryValue::Create();
+        CefRefPtr<CefDictionaryValue> extra_info;
+        WebAppBrowser::FillExtraInfo(extra_info);
+
         CefRefPtr<CefBrowser> browser = CefBrowserHost::CreateBrowserSync(windowInfo, 
             this,
             _initialURL.CString(), 
@@ -465,7 +343,6 @@ public:
     }
 
     // CefLifeSpanHandler methods:
-
     virtual void OnAfterCreated(CefRefPtr<CefBrowser> browser) override
     {
         CEF_REQUIRE_UI_THREAD();
@@ -561,7 +438,11 @@ private:
     String initialLoadStringURL_;
 
     CefRefPtr<CefBrowser> browser_;
-    WeakPtr<WebBrowserHost> webBrowserHost_;
+    CefRefPtr<REngine::WebClientKeyboardHandler> keyboard_handler_;
+    CefRefPtr<REngine::WebClientRequestHandler> request_handler_;
+    CefRefPtr<REngine::WebClientLoadHandler> load_handler_;
+
+	WeakPtr<WebBrowserHost> webBrowserHost_;
     WeakPtr<WebClient> webClient_;
     CefRefPtr<CefMessageRouterBrowserSide> browserSideRouter_;
 

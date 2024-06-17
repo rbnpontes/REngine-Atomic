@@ -37,8 +37,8 @@
 #include "WebBrowserHost.h"
 #include "WebSchemeHandler.h"
 
-#include "Atomic/IO/Log.h"
 #include "./Internal/WebInternalStorage.h"
+#include "./Internal/WebUtils.h"
 namespace Atomic
 {
 
@@ -64,8 +64,8 @@ public:
         if (webBrowserHost_.Null())
             return false;
 
-        ConvertCEFString(request->GetURL(), url_);
-        ATOMIC_LOGDEBUGF("Loading %s", url_.CString());
+        url_ = String::EMPTY;
+        REngine::web_utils_convert_cef_str(request->GetURL(), url_);
         //shave off the atomic:// part
         url_ = url_.SubstringUTF8(9);
 
