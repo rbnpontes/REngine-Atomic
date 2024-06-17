@@ -149,7 +149,6 @@ WebBrowserHost::WebBrowserHost(Context* context) : Object (context)
 
     CefSettings settings;
     settings.windowless_rendering_enabled = 1;
-    settings.log_severity = LOGSEVERITY_VERBOSE;
 
     FileSystem* fs = GetSubsystem<FileSystem>();
 
