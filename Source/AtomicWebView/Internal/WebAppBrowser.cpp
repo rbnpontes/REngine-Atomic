@@ -25,6 +25,7 @@
 #include "WebAppBrowser.h"
 #include "../WebBrowserHost.h"
 #include "include/wrapper/cef_helpers.h"
+#include "./WebUtils.h"
 
 namespace Atomic
 {
@@ -152,13 +153,19 @@ void WebAppBrowser::FillExtraInfo(CefRefPtr<CefDictionaryValue>& extra_info)
 void WebAppBrowser::OnUncaughtException(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame,
 	CefRefPtr<CefV8Context> context, CefRefPtr<CefV8Exception> exception, CefRefPtr<CefV8StackTrace> stackTrace)
 {
+    String source_line;
+    String err_msg;
+
+    REngine::web_utils_convert_cef_str(exception->GetSourceLine().ToString(), source_line);
+    REngine::web_utils_convert_cef_str(exception->GetMessage().ToString(), err_msg);
+
     ATOMIC_LOGERRORF("ERROR [%d-%d, %d-%d]: %s %s",
         exception->GetStartPosition(),
         exception->GetEndPosition(),
         exception->GetStartColumn(),
         exception->GetEndColumn(),
-        exception->GetSourceLine().ToString().c_str(),
-        exception->GetMessageA().ToString().c_str()
+        source_line.CString(),
+        err_msg.CString()
     );
 }
 }

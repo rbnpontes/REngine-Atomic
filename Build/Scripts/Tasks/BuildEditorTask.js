@@ -226,33 +226,27 @@ function editorCopyNETBinaries() {
     });
 }
 function editorCopyCEFBinaries() {
-    const bin_files = [
-        'chrome-sandbox',
-        'libcef.so',
-        'natives_blob.bin',
-        'snapshot_blob.bin',
-    ];
-    const res_files = [
-        'cef.pak',
-        'cef_100_percent.pak',
-        'cef_200_percent.pak',
-        'cef_extensions.pak',
-        'devtools_resources.pak',
-        'icudtl.dat',
-        'locales'
-    ];
+    console.log('- Copying CEF binaries')
+    const bin_path = path.join(engine_root, 'Submodules/CEF/Linux/Release');
+    const res_path = path.join(engine_root, 'Submodules/CEF/Linux/Resources');
 
-    bin_files.forEach(x => {
+    const bin_files = fs.readdirSync(
+        bin_path
+    ).map(x => [path.join(bin_path, x), x]);
+    const res_files = fs.readdirSync(
+        res_path
+    ).map(x => [path.join(res_path, x), x]);
+
+
+    [
+        ...bin_files,
+        ...res_files
+    ].forEach(x => {
+        const [filepath, filename] = x;
         fs.copySync(
-            path.join(engine_root, 'Submodules/CEF/Linux/Release', x),
-            path.join(resources_dest, x)
+            filepath,
+            path.join(resources_dest, filename)
         );
-    });
-    res_files.forEach(x => {
-        fs.copySync(
-            path.join(engine_root, 'Submodules/CEF/Linux/Resources', x),
-            path.join(resources_dest, x)
-        )
     });
 }
 async function editorCopyBinaries() {
@@ -262,9 +256,15 @@ async function editorCopyBinaries() {
 
     //const editor_build_dir = path.resolve(build_dir, 'Source', constants.engine_editor_name, config.config);
     const editor_build_dir = (()=> {
-        if(os.platform() == 'win32')
-            return path.resolve(build_dir, 'Source', constants.engine_editor_name, config.config);
-        return path.resolve(build_dir, 'Source', constants.engine_editor_name, constants.engine_editor_name);
+        switch(os.platform()) {
+            case 'win32':
+            case 'linux':
+                return path.resolve(build_dir, 'Source', constants.engine_editor_name, config.config);
+            case 'darwin':
+                return path.resolve(build_dir, 'Source', constants.engine_editor_name, constants.engine_editor_name);
+            default:
+                throw new Error('Not supported this environment');
+        }
     })();
     const editor_output_dir = (()=> {
         if(os.platform() == 'win32')

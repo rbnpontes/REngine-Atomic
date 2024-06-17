@@ -271,7 +271,11 @@ public:
         browserSettings.javascript_close_windows = STATE_DISABLED;
         browserSettings.local_storage = STATE_DISABLED;
 
+#if RENGINE_PLATFORM_WINDOWS
         windowInfo.SetAsWindowless(nullptr);
+#else
+        windowInfo.SetAsWindowless(0);
+#endif
         windowInfo.shared_texture_enabled = 0;
         windowInfo.bounds.width = width;
         windowInfo.bounds.height = height;
