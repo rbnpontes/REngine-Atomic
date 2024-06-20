@@ -16,7 +16,7 @@ if (APPLE)
     set_source_files_properties(${ATOMIC_EDITOR_ICON} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
 else ()
     # We want a console for development builds
-    if (${ATOMIC_DEV_BUILD} EQUAL 1)
+    if (RENGINE_DEV_BUILD AND WIN32)
         add_definitions(-DATOMIC_WIN32_CONSOLE)
     else ()
         set(EXE_TYPE WIN32)

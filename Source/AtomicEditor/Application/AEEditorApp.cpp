@@ -135,24 +135,28 @@ namespace AtomicEditor
         engineParameters_["WindowIcon"] = "Images/AtomicLogo32.png";
 #endif
 
+        String resource_prefix_paths;
+        String resource_paths;
 #ifdef ATOMIC_DEV_BUILD
-        engineParameters_["ResourcePrefixPaths"] = "";
-        String resourcePaths = env->GetCoreDataDir() + ";" + env->GetEditorDataDir();
+        resource_paths = env->GetCoreDataDir() + ";" + env->GetEditorDataDir();
         // for dev builds, add the compile editor scripts from artifacts
-        resourcePaths += ";" + env->GetRootSourceDir() + "Artifacts/Build/Resources/EditorData/";
-        engineParameters_["ResourcePaths"] = resourcePaths;
+        resource_paths += ";" + env->GetRootSourceDir() + "Artifacts/Build/Resources/EditorData/;";
 #else
+        resource_paths += "CoreData;EditorData";
 
-#ifdef ATOMIC_PLATFORM_OSX
-        engineParameters_["ResourcePrefixPaths"] = filesystem->GetProgramDir() + "../Resources";
-
-#else
-        engineParameters_["ResourcePrefixPaths"] = filesystem->GetProgramDir() + "Resources";
-#endif
-
-        engineParameters_["ResourcePaths"] = "CoreData;EditorData";
-
+    #ifdef ATOMIC_PLATFORM_OSX
+        resource_prefix_paths = filesystem->GetProgramDir() + "../Resources";
+    #else
+        resource_prefix_paths = filesystem->GetProgramDir() + "Resources";
+    #endif
 #endif // ATOMIC_DEV_BUILD
+
+        engineParameters_["ResourcePaths"] = resource_paths;
+        engineParameters_["ResourcePrefixPaths"] = resource_prefix_paths;
+
+        ATOMIC_LOGINFOF("ResourcePaths: %s", resource_paths.CString());
+        ATOMIC_LOGINFOF("ResourcePrefixPaths: %s", resource_prefix_paths.CString());
+
         engineParameters_[EP_PROFILER_LISTEN] = false;
 
         GetSubsystem<AEEditorPrefs>()->ReadPreferences(engineParameters_);

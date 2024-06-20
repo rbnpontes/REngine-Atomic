@@ -28,6 +28,7 @@
 
 #include <cstdio>
 #include <fcntl.h>
+#include <iostream>
 
 #ifdef __APPLE__
 #include "TargetConditionals.h"
@@ -235,7 +236,8 @@ void PrintUnicode(const String& str, bool error)
         WriteConsoleW(stream, strW.CString(), strW.Length(), &charsWritten, 0);
     }
 #else
-    fprintf(error ? stderr : stdout, "%s", str.CString());
+    const char* output = str.CString();
+    (error ? std::cerr : std::cout) << output;
 #endif
 #endif
 }

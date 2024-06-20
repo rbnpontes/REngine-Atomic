@@ -20,6 +20,7 @@ const {
 const { 
     execAsync 
 } = require('../Utils/ProcessUtils');
+const { getUnsupportedEnvironmentError } = require('../Exceptions');
 
 
 const engine_root = engineGetRoot();
@@ -263,13 +264,19 @@ async function editorCopyBinaries() {
             case 'darwin':
                 return path.resolve(build_dir, 'Source', constants.engine_editor_name, constants.engine_editor_name);
             default:
-                throw new Error('Not supported this environment');
+                throw getUnsupportedEnvironmentError();
         }
     })();
     const editor_output_dir = (()=> {
-        if(os.platform() == 'win32')
-            return path.resolve(artifacts_root, constants.engine_editor_name);
-        return path.resolve(artifacts_root, constants.engine_editor_name, constants.engine_editor_name);
+        switch(os.platform()){
+            case 'win32':
+            case 'linux':
+                return path.resolve(artifacts_root, constants.engine_editor_name);
+            case 'darwin':
+                return path.resolve(artifacts_root, constants.engine_editor_name, constants.engine_editor_name);
+            default:
+                throw getUnsupportedEnvironmentError();
+        }
     })();
     const core_data_dir = path.resolve(engine_root, 'Resources/CoreData');
     const core_data_output_dir = path.resolve(resources_dest, 'Resources/CoreData');
@@ -352,8 +359,8 @@ async function editorCopyBinaries() {
         fs.copySync(src, dst);
     });
 
-    if (os.platform() == 'linux')
-        editorCopyCEFBinaries();
+    // if (os.platform() == 'linux')
+    //     editorCopyCEFBinaries();
     editorCopyNETBinaries();
 
     console.log('- Editor binaries has been copied with success!!!');

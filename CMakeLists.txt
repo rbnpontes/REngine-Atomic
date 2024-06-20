@@ -11,6 +11,7 @@ set(CMAKE_MODULE_PATH ${ATOMIC_SOURCE_DIR}/Build/CMake/Modules)
 include(AtomicGit)
 include(AtomicUtils)
 include(AtomicCommon)
+include(EngineOptions)
 
 if ("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
     set (ATOMIC_RELEASE_OFF OFF)
@@ -22,12 +23,8 @@ endif ()
 
 add_definitions(-DATOMIC_ROOT_SOURCE_DIR="${ATOMIC_SOURCE_DIR}" -DATOMIC_ROOT_BUILD_DIR="${CMAKE_BINARY_DIR}")
 
-if (NOT DEFINED ATOMIC_DEV_BUILD)
-    set(ATOMIC_DEV_BUILD 1)
-ENDIF ()
-
-if (ATOMIC_DEV_BUILD)
-    add_definitions("-DATOMIC_DEV_BUILD=1")
+if (RENGINE_DEV_BUILD)
+    add_definitions("-DATOMIC_DEV_BUILD=1 -DRENGINE_DEV_BUILD=1")
 endif ()
 
 if(NOT DEFINED ENV{VULKAN_SDK})

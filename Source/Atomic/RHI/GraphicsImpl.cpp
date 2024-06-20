@@ -284,7 +284,8 @@ namespace Atomic
 #if RENGINE_PLATFORM_WINDOWS
         result->native_window.hWnd = sys_info.info.win.window;
 #elif RENGINE_PLATFORM_LINUX
-        throw std::runtime_error("Not implemented Linux Window");
+		result->native_window.pDisplay = sys_info.info.x11.display;
+    	result->native_window.WindowId = sys_info.info.x11.window;
 #elif RENGINE_PLATFORM_MACOS
         result->native_window.pNSView = result->metal_view.get();
 #elif RENGINE_PLATFORM_IOS
