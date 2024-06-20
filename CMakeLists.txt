@@ -47,7 +47,7 @@ if (ATOMIC_WEBVIEW)
             # which CEF3 scripts (including shell) currently require on OSX
             cmake_policy(SET CMP0037 OLD)
         endif ()
-        set(CEF_ROOT "${ATOMIC_SOURCE_DIR}/Submodules/CEF/MacOSX")
+        set(CEF_ROOT "${ATOMIC_SOURCE_DIR}/Submodules/CEF/MacOSX/${PROJECT_ARCH}")
     elseif (WIN32)
         set(CEF_ROOT "${ATOMIC_SOURCE_DIR}/Submodules/CEF/Windows")
     else ()
