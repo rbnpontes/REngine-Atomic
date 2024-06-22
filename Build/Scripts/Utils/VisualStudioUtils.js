@@ -94,6 +94,7 @@ async function visualStudioGetToolsRoot() {
 async function visualStudioDefineVsToolsEnv() {
     const tools_root = await visualStudioGetToolsRoot();
     await execAsync('setx', ['VS_TOOLS', tools_root], { noLogs: true });
+    console.log('- Set VS_TOOLS: '+tools_root);
     process.env.TOOLS_ROOT = tools_root;
 }
 
