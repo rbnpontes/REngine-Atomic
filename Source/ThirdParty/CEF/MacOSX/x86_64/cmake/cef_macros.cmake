@@ -26,7 +26,12 @@ macro(PRINT_CEF_CONFIG)
   message(STATUS "Binary distribution root:     ${_CEF_ROOT}")
   message(STATUS "Base SDK:                     ${CMAKE_OSX_SYSROOT}")
   message(STATUS "Target SDK:                   ${CEF_TARGET_SDK}")
+
   message(STATUS "CEF sandbox:                  ${USE_SANDBOX}")
+
+  set(_libraries ${CEF_STANDARD_LIBS})
+  message(STATUS "Standard libraries:           ${_libraries}")
+
   message(STATUS "Compile defines:              ${CEF_COMPILER_DEFINES}")
   message(STATUS "Compile defines (Debug):      ${CEF_COMPILER_DEFINES_DEBUG}")
   message(STATUS "Compile defines (Release):    ${CEF_COMPILER_DEFINES_RELEASE}")
@@ -42,12 +47,23 @@ macro(PRINT_CEF_CONFIG)
   message(STATUS "Shared link flags:            ${CEF_LINKER_FLAGS} ${CEF_SHARED_LINKER_FLAGS}")
   message(STATUS "Shared link flags (Debug):    ${CEF_LINKER_FLAGS_DEBUG} ${CEF_SHARED_LINKER_FLAGS_DEBUG}")
   message(STATUS "Shared link flags (Release):  ${CEF_LINKER_FLAGS_RELEASE} ${CEF_SHARED_LINKER_FLAGS_RELEASE}")
+
+  if(OS_LINUX OR OS_WINDOWS)
+    message(STATUS "CEF Binary files:             ${CEF_BINARY_FILES}")
+    message(STATUS "CEF Resource files:           ${CEF_RESOURCE_FILES}")
+  endif()
 endmacro()
 
 # Append platform specific sources to a list of sources.
 macro(APPEND_PLATFORM_SOURCES name_of_list)
+  if(OS_LINUX AND ${name_of_list}_LINUX)
+    list(APPEND ${name_of_list} ${${name_of_list}_LINUX})
+  endif()
   if(OS_POSIX AND ${name_of_list}_POSIX)
     list(APPEND ${name_of_list} ${${name_of_list}_POSIX})
+  endif()
+  if(OS_WINDOWS AND ${name_of_list}_WINDOWS)
+    list(APPEND ${name_of_list} ${${name_of_list}_WINDOWS})
   endif()
   if(OS_MAC AND ${name_of_list}_MAC)
     list(APPEND ${name_of_list} ${${name_of_list}_MAC})
@@ -184,7 +200,7 @@ macro(ADD_LOGICAL_TARGET target debug_lib release_lib)
   add_library(${target} ${CEF_LIBTYPE} IMPORTED)
   set_target_properties(${target} PROPERTIES
     IMPORTED_LOCATION "${release_lib}"
-    IMPORTED_LOCATION_DEBUG "${release_lib}"
+    IMPORTED_LOCATION_DEBUG "${debug_lib}"
     IMPORTED_LOCATION_RELEASE "${release_lib}"
     )
 endmacro()
@@ -194,12 +210,12 @@ endmacro()
 macro(SET_COMMON_TARGET_PROPERTIES target)
   # Compile flags.
   target_compile_options(${target} PRIVATE ${CEF_COMPILER_FLAGS} ${CEF_CXX_COMPILER_FLAGS})
-  target_compile_options(${target} PRIVATE $<$<CONFIG:Debug>:${CEF_COMPILER_FLAGS_RELEASE} ${CEF_CXX_COMPILER_FLAGS_RELEASE}>)
+  target_compile_options(${target} PRIVATE $<$<CONFIG:Debug>:${CEF_COMPILER_FLAGS_DEBUG} ${CEF_CXX_COMPILER_FLAGS_DEBUG}>)
   target_compile_options(${target} PRIVATE $<$<CONFIG:Release>:${CEF_COMPILER_FLAGS_RELEASE} ${CEF_CXX_COMPILER_FLAGS_RELEASE}>)
 
   # Compile definitions.
   target_compile_definitions(${target} PRIVATE ${CEF_COMPILER_DEFINES})
-  target_compile_definitions(${target} PRIVATE $<$<CONFIG:Debug>:${CEF_COMPILER_DEFINES_RELEASE}>)
+  target_compile_definitions(${target} PRIVATE $<$<CONFIG:Debug>:${CEF_COMPILER_DEFINES_DEBUG}>)
   target_compile_definitions(${target} PRIVATE $<$<CONFIG:Release>:${CEF_COMPILER_DEFINES_RELEASE}>)
 
   # Include directories.

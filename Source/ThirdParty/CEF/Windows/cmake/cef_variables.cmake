@@ -66,8 +66,7 @@ list(APPEND CEF_COMPILER_DEFINES
 
 
 # Configure use of the sandbox.
-option(USE_SANDBOX "Enable or disable use of the sandbox." ON)
-
+set(USE_SANDBOX FALSE)
 #
 # Windows configuration.
 #
@@ -232,10 +231,10 @@ if(OS_WINDOWS)
     )
 
   # CEF directory paths.
-  set(CEF_RESOURCE_DIR        "${_CEF_ROOT}/Resources")
-  set(CEF_BINARY_DIR          "${_CEF_ROOT}/Release")
-  set(CEF_BINARY_DIR_DEBUG    "${_CEF_ROOT}/Release")
-  set(CEF_BINARY_DIR_RELEASE  "${_CEF_ROOT}/Release")
+  set(CEF_RESOURCE_DIR        "${ATOMIC_SOURCE_DIR}/Artifacts/CEF/Windows/Resources")
+  set(CEF_BINARY_DIR          "${ATOMIC_SOURCE_DIR}/Artifacts/CEF/Windows/Libs")
+  set(CEF_BINARY_DIR_DEBUG    "${ATOMIC_SOURCE_DIR}/Artifacts/CEF/Windows/Libs")
+  set(CEF_BINARY_DIR_RELEASE  "${ATOMIC_SOURCE_DIR}/Artifacts/CEF/Windows/Libs")
 
   # CEF library paths.
   set(CEF_LIB_DEBUG   "${CEF_BINARY_DIR_DEBUG}/libcef.lib")

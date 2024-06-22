@@ -24,22 +24,12 @@ macro(PRINT_CEF_CONFIG)
   endif()
 
   message(STATUS "Binary distribution root:     ${_CEF_ROOT}")
-
-  if(OS_MAC)
-    message(STATUS "Base SDK:                     ${CMAKE_OSX_SYSROOT}")
-    message(STATUS "Target SDK:                   ${CEF_TARGET_SDK}")
-  endif()
-
-  if(OS_WINDOWS)
-    message(STATUS "Visual Studio ATL support:    ${USE_ATL}")
-  endif()
+  message(STATUS "Base SDK:                     ${CMAKE_OSX_SYSROOT}")
+  message(STATUS "Target SDK:                   ${CEF_TARGET_SDK}")
 
   message(STATUS "CEF sandbox:                  ${USE_SANDBOX}")
 
   set(_libraries ${CEF_STANDARD_LIBS})
-  if(OS_WINDOWS AND USE_SANDBOX)
-    list(APPEND _libraries ${CEF_SANDBOX_STANDARD_LIBS})
-  endif()
   message(STATUS "Standard libraries:           ${_libraries}")
 
   message(STATUS "Compile defines:              ${CEF_COMPILER_DEFINES}")
@@ -153,59 +143,9 @@ macro(COPY_SINGLE_FILE target source_file target_file)
   endif()
 endmacro()
 
-
-#
-# Linux macros.
-#
-
-if(OS_LINUX)
-
-# Use pkg-config to find Linux libraries and update compiler/linker variables.
-macro(FIND_LINUX_LIBRARIES libraries)
-  # Read pkg-config info into variables.
-  execute_process(COMMAND pkg-config --cflags ${libraries} OUTPUT_VARIABLE FLL_CFLAGS)
-  execute_process(COMMAND pkg-config --libs-only-L --libs-only-other ${libraries} OUTPUT_VARIABLE FLL_LDFLAGS)
-  execute_process(COMMAND pkg-config --libs-only-l ${libraries} OUTPUT_VARIABLE FLL_LIBS)
-
-  # Strip leading and trailing whitepspace.
-  STRING(STRIP "${FLL_CFLAGS}"  FLL_CFLAGS)
-  STRING(STRIP "${FLL_LDFLAGS}" FLL_LDFLAGS)
-  STRING(STRIP "${FLL_LIBS}"    FLL_LIBS)
-
-  # Convert to a list.
-  separate_arguments(FLL_CFLAGS)
-  separate_arguments(FLL_LDFLAGS)
-  separate_arguments(FLL_LIBS)
-
-  # Update build variables.
-  list(APPEND CEF_C_COMPILER_FLAGS    ${FLL_CFLAGS})
-  list(APPEND CEF_CXX_COMPILER_FLAGS  ${FLL_CFLAGS})
-  list(APPEND CEF_EXE_LINKER_FLAGS    ${FLL_LDFLAGS})
-  list(APPEND CEF_SHARED_LINKER_FLAGS ${FLL_LDFLAGS})
-  list(APPEND CEF_STANDARD_LIBS       ${FLL_LIBS})
-endmacro()
-
-# Set SUID permissions on the specified executable.
-macro(SET_LINUX_SUID_PERMISSIONS target executable)
-  add_custom_command(
-    TARGET ${target}
-    POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E echo ""
-    COMMAND ${CMAKE_COMMAND} -E echo "*** Run the following command manually to set SUID permissions ***"
-    COMMAND ${CMAKE_COMMAND} -E echo "EXE=\"${executable}\" && sudo -- chown root:root $EXE && sudo -- chmod 4755 $EXE"
-    COMMAND ${CMAKE_COMMAND} -E echo ""
-    VERBATIM
-    )
-endmacro()
-
-endif(OS_LINUX)
-
-
 #
 # Mac OS X macros.
 #
-
-if(OS_MAC)
 
 # Manually process and copy over resource files.
 macro(COPY_MAC_RESOURCES resource_list prefix_list target source_dir app_path)
@@ -249,30 +189,6 @@ macro(COPY_MAC_RESOURCES resource_list prefix_list target source_dir app_path)
     endif()
   endforeach()
 endmacro()
-
-endif(OS_MAC)
-
-
-#
-# Windows macros.
-#
-
-if(OS_WINDOWS)
-
-# Add custom manifest files to an executable target.
-macro(ADD_WINDOWS_MANIFEST manifest_path target extension)
-  add_custom_command(
-    TARGET ${target}
-    POST_BUILD
-    COMMAND "mt.exe" -nologo
-            -manifest \"${manifest_path}/${target}.${extension}.manifest\" \"${manifest_path}/compatibility.manifest\"
-            -outputresource:"${CEF_TARGET_OUT_DIR}/${target}.${extension}"\;\#1
-    COMMENT "Adding manifest..."
-    )
-endmacro()
-
-endif(OS_WINDOWS)
-
 
 #
 # Target configuration macros.
@@ -319,33 +235,31 @@ macro(SET_COMMON_TARGET_PROPERTIES target)
     set_property(TARGET ${target} PROPERTY LINK_FLAGS_RELEASE ${_flags_str})
   endif()
 
-  if(OS_MAC)
-    # Set Xcode target properties.
-    set_target_properties(${target} PROPERTIES
-      XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_PATHS                    NO
-      XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD                 "gnu++11"   # -std=gnu++11
-      XCODE_ATTRIBUTE_CLANG_LINK_OBJC_RUNTIME                     NO          # -fno-objc-link-runtime
-      XCODE_ATTRIBUTE_CLANG_WARN_OBJC_MISSING_PROPERTY_SYNTHESIS  YES         # -Wobjc-missing-property-synthesis
-      XCODE_ATTRIBUTE_COPY_PHASE_STRIP                            NO
-      XCODE_ATTRIBUTE_DEAD_CODE_STRIPPING[variant=Release]        YES         # -Wl,-dead_strip
-      XCODE_ATTRIBUTE_GCC_C_LANGUAGE_STANDARD                     "c99"       # -std=c99
-      XCODE_ATTRIBUTE_GCC_CW_ASM_SYNTAX                           NO          # No -fasm-blocks
-      XCODE_ATTRIBUTE_GCC_DYNAMIC_NO_PIC                          NO
-      XCODE_ATTRIBUTE_GCC_ENABLE_CPP_EXCEPTIONS                   NO          # -fno-exceptions
-      XCODE_ATTRIBUTE_GCC_ENABLE_CPP_RTTI                         NO          # -fno-rtti
-      XCODE_ATTRIBUTE_GCC_ENABLE_PASCAL_STRINGS                   NO          # No -mpascal-strings
-      XCODE_ATTRIBUTE_GCC_INLINES_ARE_PRIVATE_EXTERN              YES         # -fvisibility-inlines-hidden
-      XCODE_ATTRIBUTE_GCC_OBJC_CALL_CXX_CDTORS                    YES         # -fobjc-call-cxx-cdtors
-      XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN                  YES         # -fvisibility=hidden
-      XCODE_ATTRIBUTE_GCC_THREADSAFE_STATICS                      NO          # -fno-threadsafe-statics
-      XCODE_ATTRIBUTE_GCC_TREAT_WARNINGS_AS_ERRORS                YES         # -Werror
-      XCODE_ATTRIBUTE_GCC_VERSION                                 "com.apple.compilers.llvm.clang.1_0"
-      XCODE_ATTRIBUTE_GCC_WARN_ABOUT_MISSING_NEWLINE              YES         # -Wnewline-eof
-      XCODE_ATTRIBUTE_USE_HEADERMAP                               NO
-      OSX_ARCHITECTURES_DEBUG                                     "${CMAKE_OSX_ARCHITECTURES}"
-      OSX_ARCHITECTURES_RELEASE                                   "${CMAKE_OSX_ARCHITECTURES}"
-      )
-  endif()
+  # Set Xcode target properties.
+  set_target_properties(${target} PROPERTIES
+    XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_PATHS                    NO
+    XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD                 "gnu++20"   # -std=gnu++11
+    XCODE_ATTRIBUTE_CLANG_LINK_OBJC_RUNTIME                     NO          # -fno-objc-link-runtime
+    XCODE_ATTRIBUTE_CLANG_WARN_OBJC_MISSING_PROPERTY_SYNTHESIS  YES         # -Wobjc-missing-property-synthesis
+    XCODE_ATTRIBUTE_COPY_PHASE_STRIP                            NO
+    XCODE_ATTRIBUTE_DEAD_CODE_STRIPPING[variant=Release]        YES         # -Wl,-dead_strip
+    XCODE_ATTRIBUTE_GCC_C_LANGUAGE_STANDARD                     "c99"       # -std=c99
+    XCODE_ATTRIBUTE_GCC_CW_ASM_SYNTAX                           NO          # No -fasm-blocks
+    XCODE_ATTRIBUTE_GCC_DYNAMIC_NO_PIC                          NO
+    XCODE_ATTRIBUTE_GCC_ENABLE_CPP_EXCEPTIONS                   NO          # -fno-exceptions
+    XCODE_ATTRIBUTE_GCC_ENABLE_CPP_RTTI                         NO          # -fno-rtti
+    XCODE_ATTRIBUTE_GCC_ENABLE_PASCAL_STRINGS                   NO          # No -mpascal-strings
+    XCODE_ATTRIBUTE_GCC_INLINES_ARE_PRIVATE_EXTERN              YES         # -fvisibility-inlines-hidden
+    XCODE_ATTRIBUTE_GCC_OBJC_CALL_CXX_CDTORS                    YES         # -fobjc-call-cxx-cdtors
+    XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN                  YES         # -fvisibility=hidden
+    XCODE_ATTRIBUTE_GCC_THREADSAFE_STATICS                      NO          # -fno-threadsafe-statics
+    XCODE_ATTRIBUTE_GCC_TREAT_WARNINGS_AS_ERRORS                YES         # -Werror
+    XCODE_ATTRIBUTE_GCC_VERSION                                 "com.apple.compilers.llvm.clang.1_0"
+    XCODE_ATTRIBUTE_GCC_WARN_ABOUT_MISSING_NEWLINE              YES         # -Wnewline-eof
+    XCODE_ATTRIBUTE_USE_HEADERMAP                               NO
+    OSX_ARCHITECTURES_DEBUG                                     "${CMAKE_OSX_ARCHITECTURES}"
+    OSX_ARCHITECTURES_RELEASE                                   "${CMAKE_OSX_ARCHITECTURES}"
+    )
 endmacro()
 
 # Set library-specific properties.

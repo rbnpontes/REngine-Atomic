@@ -11,15 +11,20 @@ endif()
 #
 # Shared configuration.
 #
-
-# Determine the platform.
 set(OS_MAC 1)
 set(OS_MACOSX 1)  # For backwards compatibility.
 set(OS_POSIX 1)
 
 # Determine the project architecture.
 if(NOT DEFINED PROJECT_ARCH)
-  set(PROJECT_ARCH "arm64")
+  if(("${CMAKE_HOST_SYSTEM_PROCESSOR}" STREQUAL "arm64") OR
+     ("${CMAKE_CXX_COMPILER_ARCHITECTURE_ID}" STREQUAL "ARM64"))
+    set(PROJECT_ARCH "arm64")
+  elseif(CMAKE_SIZEOF_VOID_P MATCHES 8)
+    set(PROJECT_ARCH "x86_64")
+  else()
+    set(PROJECT_ARCH "x86")
+  endif()
 endif()
 
 if(${CMAKE_GENERATOR} STREQUAL "Ninja")
@@ -53,6 +58,8 @@ list(APPEND CEF_COMPILER_DEFINES
 
 # Configure use of the sandbox.
 set(USE_SANDBOX FALSE)
+
+
 #
 # Mac OS X configuration.
 #
@@ -82,7 +89,7 @@ list(APPEND CEF_CXX_COMPILER_FLAGS
   -fno-threadsafe-statics         # Don't generate thread-safe statics
   -fobjc-call-cxx-cdtors          # Call the constructor/destructor of C++ instance variables in ObjC objects
   -fvisibility-inlines-hidden     # Give hidden visibility to inlined class member functions
-  -std=c++20                      # Use the C++20 language standard
+  -std=c++17                      # Use the C++17 language standard
   -Wno-narrowing                  # Don't warn about type narrowing
   -Wsign-compare                  # Warn about mixed signed/unsigned type comparisons
   )
@@ -148,9 +155,9 @@ endif()
 set(CMAKE_XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "")
 
 # CEF directory paths.
-set(CEF_BINARY_DIR          "${_CEF_ROOT}/$<CONFIGURATION>")
-set(CEF_BINARY_DIR_DEBUG    "${_CEF_ROOT}/Debug")
-set(CEF_BINARY_DIR_RELEASE  "${_CEF_ROOT}/Release")
+set(CEF_BINARY_DIR          "${ATOMIC_SOURCE_DIR}/Artifacts/CEF/MacOSX-${PROJECT_ARCH}")
+set(CEF_BINARY_DIR_DEBUG    "${ATOMIC_SOURCE_DIR}/Artifacts/CEF/MacOSX-${PROJECT_ARCH}")
+set(CEF_BINARY_DIR_RELEASE  "${ATOMIC_SOURCE_DIR}/Artifacts/CEF/MacOSX-${PROJECT_ARCH}")
 
 if(USE_SANDBOX)
   list(APPEND CEF_COMPILER_DEFINES

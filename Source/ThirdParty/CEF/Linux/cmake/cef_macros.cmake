@@ -24,22 +24,9 @@ macro(PRINT_CEF_CONFIG)
   endif()
 
   message(STATUS "Binary distribution root:     ${_CEF_ROOT}")
-
-  if(OS_MAC)
-    message(STATUS "Base SDK:                     ${CMAKE_OSX_SYSROOT}")
-    message(STATUS "Target SDK:                   ${CEF_TARGET_SDK}")
-  endif()
-
-  if(OS_WINDOWS)
-    message(STATUS "Visual Studio ATL support:    ${USE_ATL}")
-  endif()
-
   message(STATUS "CEF sandbox:                  ${USE_SANDBOX}")
 
   set(_libraries ${CEF_STANDARD_LIBS})
-  if(OS_WINDOWS AND USE_SANDBOX)
-    list(APPEND _libraries ${CEF_SANDBOX_STANDARD_LIBS})
-  endif()
   message(STATUS "Standard libraries:           ${_libraries}")
 
   message(STATUS "Compile defines:              ${CEF_COMPILER_DEFINES}")
@@ -57,11 +44,8 @@ macro(PRINT_CEF_CONFIG)
   message(STATUS "Shared link flags:            ${CEF_LINKER_FLAGS} ${CEF_SHARED_LINKER_FLAGS}")
   message(STATUS "Shared link flags (Debug):    ${CEF_LINKER_FLAGS_DEBUG} ${CEF_SHARED_LINKER_FLAGS_DEBUG}")
   message(STATUS "Shared link flags (Release):  ${CEF_LINKER_FLAGS_RELEASE} ${CEF_SHARED_LINKER_FLAGS_RELEASE}")
-
-  if(OS_LINUX OR OS_WINDOWS)
-    message(STATUS "CEF Binary files:             ${CEF_BINARY_FILES}")
-    message(STATUS "CEF Resource files:           ${CEF_RESOURCE_FILES}")
-  endif()
+  message(STATUS "CEF Binary files:             ${CEF_BINARY_FILES}")
+  message(STATUS "CEF Resource files:           ${CEF_RESOURCE_FILES}")
 endmacro()
 
 # Append platform specific sources to a list of sources.
@@ -158,8 +142,6 @@ endmacro()
 # Linux macros.
 #
 
-if(OS_LINUX)
-
 # Use pkg-config to find Linux libraries and update compiler/linker variables.
 macro(FIND_LINUX_LIBRARIES libraries)
   # Read pkg-config info into variables.
@@ -197,82 +179,6 @@ macro(SET_LINUX_SUID_PERMISSIONS target executable)
     VERBATIM
     )
 endmacro()
-
-endif(OS_LINUX)
-
-
-#
-# Mac OS X macros.
-#
-
-if(OS_MAC)
-
-# Manually process and copy over resource files.
-macro(COPY_MAC_RESOURCES resource_list prefix_list target source_dir app_path)
-  foreach(FILENAME ${resource_list})
-    # Remove one or more prefixes from the source paths.
-    set(TARGET_FILENAME "${FILENAME}")
-    foreach(PREFIX ${prefix_list})
-      string(REGEX REPLACE "^.*${PREFIX}" "" TARGET_FILENAME ${TARGET_FILENAME})
-    endforeach()
-
-    # Determine the absolute source and target paths.
-    set(TARGET_PATH "${app_path}/Contents/Resources/${TARGET_FILENAME}")
-    if(IS_ABSOLUTE ${FILENAME})
-      set(SOURCE_PATH ${FILENAME})
-    else()
-      set(SOURCE_PATH "${source_dir}/${FILENAME}")
-    endif()
-
-    if(${FILENAME} MATCHES ".xib$")
-      # Change the target file extension.
-      string(REGEX REPLACE ".xib$" ".nib" TARGET_PATH ${TARGET_PATH})
-
-      get_filename_component(TARGET_DIRECTORY ${TARGET_PATH} PATH)
-      add_custom_command(
-        TARGET ${target}
-        POST_BUILD
-        # Create the target directory.
-        COMMAND ${CMAKE_COMMAND} -E make_directory "${TARGET_DIRECTORY}"
-        # Compile the XIB file to a NIB.
-        COMMAND /usr/bin/ibtool --output-format binary1 --compile "${TARGET_PATH}" "${SOURCE_PATH}"
-        VERBATIM
-        )
-    elseif(NOT ${TARGET_FILENAME} STREQUAL "Info.plist")
-      # Copy the file as-is.
-      add_custom_command(
-        TARGET ${target}
-        POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy "${SOURCE_PATH}" "${TARGET_PATH}"
-        VERBATIM
-        )
-    endif()
-  endforeach()
-endmacro()
-
-endif(OS_MAC)
-
-
-#
-# Windows macros.
-#
-
-if(OS_WINDOWS)
-
-# Add custom manifest files to an executable target.
-macro(ADD_WINDOWS_MANIFEST manifest_path target extension)
-  add_custom_command(
-    TARGET ${target}
-    POST_BUILD
-    COMMAND "mt.exe" -nologo
-            -manifest \"${manifest_path}/${target}.${extension}.manifest\" \"${manifest_path}/compatibility.manifest\"
-            -outputresource:"${CEF_TARGET_OUT_DIR}/${target}.${extension}"\;\#1
-    COMMENT "Adding manifest..."
-    )
-endmacro()
-
-endif(OS_WINDOWS)
-
 
 #
 # Target configuration macros.
@@ -317,34 +223,6 @@ macro(SET_COMMON_TARGET_PROPERTIES target)
   if(CEF_LINKER_FLAGS_RELEASE)
     string(REPLACE ";" " " _flags_str "${CEF_LINKER_FLAGS_RELEASE}")
     set_property(TARGET ${target} PROPERTY LINK_FLAGS_RELEASE ${_flags_str})
-  endif()
-
-  if(OS_MAC)
-    # Set Xcode target properties.
-    set_target_properties(${target} PROPERTIES
-      XCODE_ATTRIBUTE_ALWAYS_SEARCH_USER_PATHS                    NO
-      XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD                 "gnu++11"   # -std=gnu++11
-      XCODE_ATTRIBUTE_CLANG_LINK_OBJC_RUNTIME                     NO          # -fno-objc-link-runtime
-      XCODE_ATTRIBUTE_CLANG_WARN_OBJC_MISSING_PROPERTY_SYNTHESIS  YES         # -Wobjc-missing-property-synthesis
-      XCODE_ATTRIBUTE_COPY_PHASE_STRIP                            NO
-      XCODE_ATTRIBUTE_DEAD_CODE_STRIPPING[variant=Release]        YES         # -Wl,-dead_strip
-      XCODE_ATTRIBUTE_GCC_C_LANGUAGE_STANDARD                     "c99"       # -std=c99
-      XCODE_ATTRIBUTE_GCC_CW_ASM_SYNTAX                           NO          # No -fasm-blocks
-      XCODE_ATTRIBUTE_GCC_DYNAMIC_NO_PIC                          NO
-      XCODE_ATTRIBUTE_GCC_ENABLE_CPP_EXCEPTIONS                   NO          # -fno-exceptions
-      XCODE_ATTRIBUTE_GCC_ENABLE_CPP_RTTI                         NO          # -fno-rtti
-      XCODE_ATTRIBUTE_GCC_ENABLE_PASCAL_STRINGS                   NO          # No -mpascal-strings
-      XCODE_ATTRIBUTE_GCC_INLINES_ARE_PRIVATE_EXTERN              YES         # -fvisibility-inlines-hidden
-      XCODE_ATTRIBUTE_GCC_OBJC_CALL_CXX_CDTORS                    YES         # -fobjc-call-cxx-cdtors
-      XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN                  YES         # -fvisibility=hidden
-      XCODE_ATTRIBUTE_GCC_THREADSAFE_STATICS                      NO          # -fno-threadsafe-statics
-      XCODE_ATTRIBUTE_GCC_TREAT_WARNINGS_AS_ERRORS                YES         # -Werror
-      XCODE_ATTRIBUTE_GCC_VERSION                                 "com.apple.compilers.llvm.clang.1_0"
-      XCODE_ATTRIBUTE_GCC_WARN_ABOUT_MISSING_NEWLINE              YES         # -Wnewline-eof
-      XCODE_ATTRIBUTE_USE_HEADERMAP                               NO
-      OSX_ARCHITECTURES_DEBUG                                     "${CMAKE_OSX_ARCHITECTURES}"
-      OSX_ARCHITECTURES_RELEASE                                   "${CMAKE_OSX_ARCHITECTURES}"
-      )
   endif()
 endmacro()
 
