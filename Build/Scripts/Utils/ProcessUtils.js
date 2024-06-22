@@ -20,6 +20,7 @@ function jakeExecAsync(cmds) {
 function execAsync(procName, args, options) {
     return new Promise((resolve) => {
         const { spawn } = require('child_process');
+        console.log(`- Initializing Process: ${procName}`);
         const proc = spawn(procName, args, { cwd: options?.cwd });
         if(!options?.noLogs) {
             proc.stdout.on('data', data => console.log(data.toString()));
