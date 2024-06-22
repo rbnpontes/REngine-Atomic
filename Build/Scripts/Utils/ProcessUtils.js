@@ -21,7 +21,15 @@ function execAsync(procName, args, options) {
     const { spawn, exec } = require('child_process');
     if(process.platform === "win32") {
         return new Promise((resolve)=> {
-            exec([procName, ...args].join(' '), { cwd: options?.cwd }, (...args)=> {
+            const proc_args = [procName, ...args].map(x => {
+                const has_quotes = x.startsWith('"') && x.endsWith('"');
+                const has_empty_spaces = x.indexOf(" ") != -1;
+
+                if(!has_quotes && has_empty_spaces)
+                    return `"${x}"`;
+                return x;
+            }).join(' ');
+            exec(proc_args, { cwd: options?.cwd }, (...args)=> {
                 const [err, stdout, stderr] = args;
 
                 if(err) {
