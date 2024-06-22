@@ -18,8 +18,29 @@ function jakeExecAsync(cmds) {
  * @return {Promise<number>} returns a promise, when their is fullfiled a error code will provided.
  */
 function execAsync(procName, args, options) {
+    const { spawn, exec } = require('child_process');
+    if(process.platform === "win32") {
+        return new Promise((resolve)=> {
+            exec([procName, ...args].join(' '), { cwd: options?.cwd }, (...args)=> {
+                const [err, stdout, stderr] = args;
+
+                if(err) {
+                    console.error(err);
+                    resolve(1);
+                }
+
+                const err_output = stderr.toString();
+                const log_output = stdout.toString();
+                
+                if(err_output)
+                    console.error(err_output);
+                if(log_output)
+                    console.log(log_output);
+                resolve(0);
+            });
+        });
+    }
     return new Promise((resolve) => {
-        const { spawn } = require('child_process');
         console.log(`- Initializing Process: ${procName}`);
         const proc = spawn(procName, args, { cwd: options?.cwd });
         if(!options?.noLogs) {
