@@ -276,6 +276,8 @@ private:
     bool useClipping_;
     /// Use custom projection matrix flag. Used internally.
     mutable bool customProjection_;
+
+    Graphics* graphics_;
 };
 
 }

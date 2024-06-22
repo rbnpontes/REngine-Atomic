@@ -1,16 +1,16 @@
 #include "../Precompiled.h"
 
+#include "./DiligentUtils.h"
+#include "./DriverInstance.h"
+#include "./ShaderCompiler.h"
 #include "../Graphics/Graphics.h"
 #include "../Graphics/Shader.h"
-#include "../Graphics/VertexBuffer.h"
 #include "../Graphics/ShaderVariation.h"
+#include "../Graphics/VertexBuffer.h"
 #include "../IO/File.h"
 #include "../IO/FileSystem.h"
 #include "../IO/Log.h"
 #include "../Resource/ResourceCache.h"
-#include "./DriverInstance.h"
-#include "./ShaderCompiler.h"
-#include "./DiligentUtils.h"
 
 #include "../DebugNew.h"
 
@@ -48,11 +48,14 @@ namespace Atomic
 
         if (!LoadByteCode(binary_shader_name))
         {
-            SharedArrayPtr<uint8_t> shader_file_data;
-            uint32_t shader_file_size = 0;
+            ea::shared_array<u8> shader_file_data;
+            u32 shader_file_size = 0;
             // Compile shader if don't have valid bytecode
-            if (!Compile(shader_file_data, &shader_file_size))
+            if (!Compile(shader_file_data, &shader_file_size)) 
+            {
+                ATOMIC_LOGERROR(compilerOutput_);
                 return false;
+            }
             // Save Shader File
             SaveByteCode(binary_shader_name, shader_file_data, shader_file_size);
         }
@@ -89,7 +92,7 @@ namespace Atomic
         for (unsigned int& constant_buffer_size : constantBufferSizes_)
             constant_buffer_size = 0;
         parameters_.Clear();
-        byteCode_.Clear();
+        byteCode_.clear();
         elementHash_ = 0;
     }
 
@@ -152,13 +155,14 @@ namespace Atomic
             ATOMIC_LOGERROR("Invalid shader bytecode type. Compiled shader file is not compatible with Vulkan bytecode.");
             return false;  
         }
-        else if(backend == GraphicsBackend::OpenGL && bin_result.byte_code_type != ShaderByteCodeType::Raw)
+        else if((backend == GraphicsBackend::OpenGL || backend == GraphicsBackend::OpenGLES)
+                && bin_result.byte_code_type != ShaderByteCodeType::Raw)
         {
             ATOMIC_LOGERROR("Invalid shader bytecode type. Shader file must contains a valid GLSL shader.");
             return false;
         }
         
-        byteCode_ = PODVector<uint8_t>(bin_result.byte_code, bin_result.byte_code_size);
+        byteCode_ = ea::vector<u8>(bin_result.byte_code.get(), bin_result.byte_code.get() + bin_result.byte_code_size);
         elementHash_ = bin_result.reflect_info.element_hash;
         input_elements_ = bin_result.reflect_info.input_elements;
         parameters_ = bin_result.reflect_info.parameters;
@@ -173,7 +177,7 @@ namespace Atomic
         ci.Desc.Name =full_name.CString();
         ci.Desc.UseCombinedTextureSamplers = true;
         ci.EntryPoint = "main";
-        ci.SourceLanguage = Diligent::SHADER_SOURCE_LANGUAGE_GLSL;
+        ci.SourceLanguage = Diligent::SHADER_SOURCE_LANGUAGE_GLSL_VERBATIM;
         
         switch (type_)
         {
@@ -190,11 +194,12 @@ namespace Atomic
         case GraphicsBackend::D3D11:
         case GraphicsBackend::D3D12:
         case GraphicsBackend::Vulkan:
-            ci.ByteCode = bin_result.byte_code;
+            ci.ByteCode = bin_result.byte_code.get();
             ci.ByteCodeSize = bin_result.byte_code_size;
             break;
         case GraphicsBackend::OpenGL:
-            ci.Source = static_cast<char*>(static_cast<void*>(bin_result.byte_code));
+        case GraphicsBackend::OpenGLES:
+            ci.Source = static_cast<char*>(static_cast<void*>(bin_result.byte_code.get()));
             ci.SourceLength = bin_result.byte_code_size;
             break;
         }
@@ -212,48 +217,75 @@ namespace Atomic
         return true;
     }
 
-    bool ShaderVariation::Compile(SharedArrayPtr<uint8_t>& shader_file_data, uint32_t* shader_file_size)
+    bool ShaderVariation::Compile(ea::shared_array<u8>& shader_file_data, u32* shader_file_size)
     {
         const auto full_name = GetFullName();
         Diligent::ShaderCreateInfo shader_ci = {};
         shader_ci.Desc.Name = full_name.CString();
         shader_ci.Desc.UseCombinedTextureSamplers = true;
-        shader_ci.SourceLanguage = Diligent::SHADER_SOURCE_LANGUAGE_GLSL;
+        shader_ci.SourceLanguage = Diligent::SHADER_SOURCE_LANGUAGE_GLSL_VERBATIM;
         shader_ci.Desc.ShaderType = REngine::utils_get_shader_type(type_);
 
         String source_code = owner_->GetSourceCode(type_);
         String entrypoint;
-        Vector<String> defines = defines_.Split(' ');
+
+        ea::vector<ea::string> defines;
+        for (const auto& part : defines_.Split(' '))
+            defines.push_back(part.CString());
+
         const auto backend = graphics_->GetImpl()->GetBackend();
 
         switch (backend)
         {
         case GraphicsBackend::D3D11:
-            defines.Push("D3D11");
+            defines.push_back("D3D11");
             break;
         case GraphicsBackend::D3D12:
-            defines.Push("D3D12");
+            defines.push_back("D3D12");
             break;
         case GraphicsBackend::Vulkan:
-            defines.Push("VULKAN");
+            defines.push_back("VULKAN");
             break;
         case GraphicsBackend::OpenGL:
-            defines.Push("OPENGL");
+        case GraphicsBackend::OpenGLES:
+	        {
+                defines.push_back("OPENGL");
+#ifdef RENGINE_PLATFORM_WINDOWS
+                if (backend == GraphicsBackend::OpenGLES)
+                    defines.push_back("OPENGLES");
+#endif
+	        }
             break;
         }
 
+        #ifdef RENGINE_PLATFORM_WINDOWS
+            defines.push_back("RENGINE_PLATFORM_WINDOWS");
+        #endif
+        #ifdef RENGINE_PLATFORM_MACOS
+            defines.push_back("RENGINE_PLATFORM_MACOS");
+        #endif
+        #ifdef RENGINE_PLATFORM_IOS
+            define.push_back("RENGINE_PLATFORM_IOS");
+        #endif
+        #ifdef RENGINE_PLATFORM_APPLE
+            define.push_back("RENGINE_PLATFORM_APPLE");
+        #endif
+        #ifdef RENGINE_PLATFORM_ANDROID
+            defines.push_back("RENGINE_PLATFORM_ANDROID");
+        #endif
+        
         switch (type_)
         {
         case VS:
             {
                 entrypoint = "VS();";
-                defines.Push("COMPILEVS");
+                defines.push_back("COMPILEVS");
             }
             break;
         case PS:
             {
                 entrypoint = "PS();";
-                defines.Push("COMPILEPS");
+                defines.push_back("COMPILEPS");
             }
             break;
         case MAX_SHADER_TYPES:
@@ -262,50 +294,43 @@ namespace Atomic
             return false;
         }
 
-        defines.Push(String("MAXBONES=").AppendWithFormat("%d", Graphics::GetMaxBones()));
+        defines.push_back(String("MAXBONES=").AppendWithFormat("%d", Graphics::GetMaxBones()).CString());
 
-        // Collect defines into macros
-        Vector<String> define_values;
-        for (unsigned i = 0; i < defines.Size(); ++i)
+        // Generate shader macros
+        ea::string macros_header;
+        for (const auto& define : defines)
         {
-            unsigned equalsPos = defines[i].Find('=');
-            if (equalsPos != String::NPOS)
+            macros_header +="#define ";
+            const auto equal_pos = define.find('=');
+            if (equal_pos != ea::string::npos)
             {
-                define_values.Push(defines[i].Substring(equalsPos + 1));
-                defines[i].Resize(equalsPos);
-            }
-            else
-                define_values.Push("1");
-        }
-
-        String macros_header;
-        for (unsigned i = 0; i < defines.Size(); ++i)
-        {
-            macros_header.Append("#define ");
-            auto define = defines[i];
-            const auto equal_pos = define.Find('=');
-            if (equal_pos != String::NPOS)
-            {
-                macros_header.Append(define.Substring(equal_pos + 1));
-                macros_header.Append(' ');
-                macros_header.Append(define.Substring(equal_pos + 1, define.Length()));
+                macros_header += define.substr(0, equal_pos);
+                macros_header += ' ';
+                macros_header += define.substr(equal_pos + 1, define.length());
             }
             else
             {
-                macros_header.Append(define);
-                macros_header.Append(" 1");
+                macros_header += define;
+                macros_header += " 1";
             }
-            macros_header.Append('\n');
+            macros_header += '\n';
 
             // In debug mode, check that all defines are referenced by the shader code
-#ifdef _DEBUG
-            if (source_code.Find(defines[i]) == String::NPOS)
-                ATOMIC_LOGWARNING("Shader " + GetFullName() + " does not use the define " + defines[i]);
+#ifdef ATOMIC_DEBUG
+            if (source_code.Find(define.c_str()) == String::NPOS)
+                ATOMIC_LOGWARNING("Shader " + GetFullName() + " does not use the define " + String(define.c_str()));
 #endif
         }
 
-        source_code = String("#version 450\n") + macros_header + source_code;
-        source_code.Append("void main()\n{");
+        String glsl_version = "#version 450\n";
+#if RENGINE_PLATFORM_MACOS
+        glsl_version = "#version 330\n";
+#else
+        if(backend == GraphicsBackend::OpenGLES)
+            glsl_version = "#version 300 es\n";
+#endif
+        source_code = glsl_version + String(macros_header.c_str()) + source_code;
+        source_code.Append("void main()\n{\n");
         source_code.AppendWithFormat("\t%s\n", entrypoint.CString());
         source_code.Append("}");
 
@@ -315,20 +340,40 @@ namespace Atomic
         {
             REngine::ShaderCompilerDesc compiler_desc = {};
             compiler_desc.type = type_;
+            compiler_desc.backend = backend;
+            compiler_desc.name = name_.CString();
             compiler_desc.source_code = source_code;
-            REngine::ShaderCompilerResult result = {};
 
+            // Preprocess shader before compile
+            REngine::ShaderCompilerPreProcessResult pre_process_result = {};
+            REngine::shader_compiler_preprocess(compiler_desc, pre_process_result);
+
+            if(pre_process_result.has_error)
+            {
+                compilerOutput_ = pre_process_result.source_code;
+                return false;
+            }
+
+            // Put pre-processed shader code and compile to obtain spirv bytecode
+            compiler_desc.source_code = pre_process_result.source_code;
+#ifdef RENGINE_PLATFORM_WINDOWS
+            // OpenGL ES on windows is emulated. we must change version to 4.5
+            if (backend == GraphicsBackend::OpenGLES)
+                compiler_desc.source_code = compiler_desc.source_code.Replaced("#version 300 es", "#version 450");
+#endif
+
+
+            REngine::ShaderCompilerResult result = {};
             REngine::shader_compiler_compile(compiler_desc, true, result);
             if (result.has_error)
             {
-                //ATOMIC_LOGERROR(result.error);
                 compilerOutput_ = result.error;
                 return false;
             }
 
             REngine::ShaderCompilerReflectDesc reflect_desc = {
-                result.spirv_code.Buffer(),
-                result.spirv_code.Size(),
+                result.spirv_code.data(),
+                static_cast<u32>(result.spirv_code.size()),
                 type_
             };
             REngine::shader_compiler_reflect(reflect_desc, reflect_info);
@@ -348,7 +393,7 @@ namespace Atomic
             if (backend == GraphicsBackend::D3D11 || backend == GraphicsBackend::D3D12)
             {
                 source_code.Clear();
-                REngine::shader_compiler_to_hlsl({result.spirv_code.Buffer(), result.spirv_code.Size()}, source_code);
+                REngine::shader_compiler_to_hlsl({result.spirv_code.data(), static_cast<u32>(result.spirv_code.size())}, source_code);
 
                 //ATOMIC_LOGDEBUG(source_code);
                 shader_ci.SourceLanguage = Diligent::SHADER_SOURCE_LANGUAGE_HLSL;
@@ -360,17 +405,19 @@ namespace Atomic
             if (backend == GraphicsBackend::Vulkan)
             {
                 byteCode_ = result.spirv_code;
-                shader_ci.ByteCode = byteCode_.Buffer();
-                shader_ci.ByteCodeSize = byteCode_.Size();
+                shader_ci.ByteCode = byteCode_.data();
+                shader_ci.ByteCodeSize = byteCode_.size();
             }
-            else if (backend == GraphicsBackend::OpenGL)
+            else if (backend == GraphicsBackend::OpenGL || backend == GraphicsBackend::OpenGLES)
             {
-                REngine::ShaderCompilerPreProcessResult pre_process_result = {};
-                REngine::shader_compiler_preprocess(compiler_desc, pre_process_result);
                 const auto byte_code = reinterpret_cast<const unsigned char*>(pre_process_result.source_code.CString());
-                byteCode_ = PODVector<unsigned char>(
+                byteCode_ = ea::vector<u8>(
                     byte_code,
-                    pre_process_result.source_code.Length());
+                    byte_code + pre_process_result.source_code.Length()
+                );
+                source_code = pre_process_result.source_code;
+                shader_ci.Source = source_code.CString();
+                shader_ci.SourceLength = source_code.Length();
                 shader_ci.EntryPoint = "main";
             }
         }
@@ -391,10 +438,12 @@ namespace Atomic
             return false;
         }
 
+        object_ = shader;
+
         switch (type_)
         {
         case VS:
-            ATOMIC_LOGDEBUG("Compiled vertex shader " + GetFullName());
+	        ATOMIC_LOGDEBUG("Compiled vertex shader " + GetFullName());
             break;
         case PS:
             ATOMIC_LOGDEBUG("Compiled pixel shader " + GetFullName());
@@ -413,14 +462,14 @@ namespace Atomic
 
             shader->GetBytecode(&byte_code, byte_code_len);
 
-            byteCode_.Resize(static_cast<uint32_t>(byte_code_len));
-            memcpy(byteCode_.Buffer(), byte_code, sizeof(char) * byte_code_len);
+            byteCode_.resize(static_cast<uint32_t>(byte_code_len));
+            memcpy(byteCode_.data(), byte_code, sizeof(char) * byte_code_len);
         }
 #endif
 
         REngine::ShaderCompilerBinDesc bin_desc = {};
-        bin_desc.byte_code = byteCode_.Buffer();
-        bin_desc.byte_code_size = byteCode_.Size();
+        bin_desc.byte_code = byteCode_.data();
+        bin_desc.byte_code_size = byteCode_.size();
         bin_desc.type = type_;
         bin_desc.shader_hash = hash_;
         bin_desc.reflect_info = &reflect_info;
@@ -437,13 +486,11 @@ namespace Atomic
 
         shader_file_data = bin_data;
         *shader_file_size = bin_length;
-
-        object_ = shader;
         return true;
     }
-
-    void ShaderVariation::SaveByteCode(const String& binaryShaderName, const SharedArrayPtr<uint8_t>& byte_code,
-                                       const uint32_t byte_code_len) const
+    
+    void ShaderVariation::SaveByteCode(const String& binaryShaderName, const ea::shared_array<u8>& byte_code,
+                                       const u32 byte_code_len) const
     {
         const auto cache = owner_->GetSubsystem<ResourceCache>();
         const auto fileSystem = owner_->GetSubsystem<FileSystem>();
@@ -468,6 +515,6 @@ namespace Atomic
             return;
 
         file->WriteFileID(s_shader_file_id);
-        file->Write(byte_code.Get(), byte_code_len);
+        file->Write(byte_code.get(), byte_code_len);
     }
 }

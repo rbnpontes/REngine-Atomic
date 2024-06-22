@@ -55,19 +55,22 @@ static const char* filterModeNames[] =
     0
 };
 
+const char** Texture::GetTextureAddressModeNames()
+{
+    return addressModeNames;
+}
+
+const char** Texture::GetTextureFilterModeNames()
+{
+	return filterModeNames;
+}
+
 Texture::Texture(Context* context) :
     ResourceWithMetadata(context),
     GPUObject(GetSubsystem<Graphics>()),
-#ifdef RENGINE_DILIGENT
     view_({}),
     resolve_texture_({}),
     format_(Diligent::TEX_FORMAT_UNKNOWN),
-#else
-    shaderResourceView_(0),
-    sampler_(0),
-    resolveTexture_(0),
-    format_(0),
-#endif
     usage_(TEXTURE_STATIC),
     levels_(0),
     requestedLevels_(0),
@@ -314,7 +317,6 @@ void Texture::CheckTextureBudget(StringHash type)
         cache->ReleaseResources(Material::GetTypeStatic());
 }
 
-#if RENGINE_DILIGENT
 void Texture::GetSamplerDesc(REngine::SamplerDesc& desc) const
 {
     desc.filter_mode = filterMode_;
@@ -330,6 +332,5 @@ void Texture::GetSamplerDesc(REngine::SamplerDesc& desc) const
     desc.address_v = addressMode_[COORD_V];
     desc.address_w = addressMode_[COORD_W];
 }
-#endif
     
 }

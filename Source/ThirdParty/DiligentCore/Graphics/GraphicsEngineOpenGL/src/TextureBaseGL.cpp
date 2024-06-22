@@ -601,6 +601,7 @@ void TextureBaseGL::CopyData(DeviceContextGLImpl* pDeviceCtxGL,
     }
 
     const bool IsDefaultBackBuffer = GetGLHandle() == 0;
+    /*
 #if GL_ARB_copy_image
     // We can't use glCopyImageSubData with the proxy texture of a default framebuffer
     // because we don't have the texture handle. Resort to quad rendering in this case.
@@ -629,7 +630,7 @@ void TextureBaseGL::CopyData(DeviceContextGLImpl* pDeviceCtxGL,
         DEV_CHECK_GL_ERROR("glCopyImageSubData() failed");
     }
     else
-#endif
+#endif*/
     {
 #if PLATFORM_EMSCRIPTEN
         // Always use BlitFramebuffer on WebGL as CopyTexSubimage has

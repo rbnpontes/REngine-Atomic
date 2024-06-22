@@ -26,10 +26,7 @@
 #include "../Container/RefCounted.h"
 #include "../Graphics/GPUObject.h"
 #include "../Graphics/GraphicsDefs.h"
-
-#if RENGINE_DILIGENT
 #include "../RHI/RHITypes.h"
-#endif
 namespace Atomic
 {
 
@@ -85,7 +82,7 @@ public:
     unsigned long long GetElementHash() const { return elementHash_; }
 
     /// Return shader bytecode. Stored persistently on Direct3D11 only.
-    const PODVector<unsigned char>& GetByteCode() const { return byteCode_; }
+    const ea::vector<u8>& GetByteCode() const { return byteCode_; }
 
     /// Return defines.
     const String& GetDefines() const { return defines_; }
@@ -98,42 +95,17 @@ public:
 
     /// Return defines with the CLIPPLANE define appended. Used internally on Direct3D11 only, will be empty on other APIs.
     const String& GetDefinesClipPlane() { return definesClipPlane_; }
-#ifndef RENGINE_DILIGENT
-    /// D3D11 vertex semantic names. Used internally.
-    static const char* elementSemanticNames[];
-#endif
-
-#if RENGINE_DILIGENT
-	const Vector<REngine::ShaderCompilerReflectInputElement>& GetInputElements() const { return input_elements_; }
+	const ea::vector<REngine::ShaderCompilerReflectInputElement>& GetInputElements() const { return input_elements_; }
     StringVector GetUseTextureNames() const { return used_textures_; }
     uint32_t ToHash() const { return hash_; }
-#endif
 
 private:
     /// Load bytecode from a file. Return true if successful.
     bool LoadByteCode(const String& binaryShaderName);
-#if RENGINE_DILIGENT
-    bool Compile(SharedArrayPtr<uint8_t>& shader_file_data, uint32_t* shader_file_size);
-#else
     /// Compile from source. Return true if successful.
-    bool Compile();
-#endif
-    
-#ifndef RENGINE_DILIGENT
-    /// Inspect the constant parameters and input layout (if applicable) from the shader bytecode.
-    void ParseParameters(unsigned char* bufData, unsigned bufSize);
-#endif
-
-
-#if RENGINE_DILIGENT
+    bool Compile(ea::shared_array<u8>& shader_file_data, u32* shader_file_size);
     /// Save bytecode to a file.
-    void SaveByteCode(const String& binaryShaderName, const SharedArrayPtr<uint8_t>& byte_code, const uint32_t byte_code_len) const;
-#else
-    /// Save bytecode to a file.
-    void SaveByteCode(const String& binaryShaderName);
-    /// Calculate constant buffer sizes from parameters.
-    void CalculateConstantBufferSizes();
-#endif
+    void SaveByteCode(const String& binaryShaderName, const ea::shared_array<u8>& byte_code, const u32 byte_code_len) const;
 
     /// Shader this variation belongs to.
     WeakPtr<Shader> owner_;
@@ -148,7 +120,7 @@ private:
     /// Constant buffer sizes. 0 if a constant buffer slot is not in use.
     unsigned constantBufferSizes_[MAX_SHADER_PARAMETER_GROUPS];
     /// Shader bytecode. Needed for inspecting the input signature and parameters. Not used on OpenGL.
-    PODVector<unsigned char> byteCode_;
+    ea::vector<u8> byteCode_;
     /// Shader name.
     String name_;
     /// Defines to use in compiling.
@@ -157,11 +129,9 @@ private:
     String definesClipPlane_;
     /// Shader compile error string.
     String compilerOutput_;
-#if RENGINE_DILIGENT
     StringVector used_textures_{};
-    Vector<REngine::ShaderCompilerReflectInputElement> input_elements_{};
-    uint32_t hash_{};
-#endif
+    ea::vector<REngine::ShaderCompilerReflectInputElement> input_elements_{};
+    u32 hash_{};
 };
 
 }

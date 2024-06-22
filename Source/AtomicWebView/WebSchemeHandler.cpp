@@ -37,8 +37,11 @@
 #include "WebBrowserHost.h"
 #include "WebSchemeHandler.h"
 
+#include "./Internal/WebInternalStorage.h"
+#include "./Internal/WebUtils.h"
 namespace Atomic
 {
+
 
 static WeakPtr<WebBrowserHost> webBrowserHost_;
 
@@ -54,14 +57,15 @@ public:
     }
 
     virtual bool ProcessRequest(CefRefPtr<CefRequest> request,
-                                CefRefPtr<CefCallback> callback) OVERRIDE
+                                CefRefPtr<CefCallback> callback) override
     {
         CEF_REQUIRE_IO_THREAD();
 
         if (webBrowserHost_.Null())
             return false;
 
-        ConvertCEFString(request->GetURL(), url_);
+        url_ = String::EMPTY;
+        REngine::web_utils_convert_cef_str(request->GetURL(), url_);
         //shave off the atomic:// part
         url_ = url_.SubstringUTF8(9);
 
@@ -89,8 +93,8 @@ public:
     }
 
     virtual void GetResponseHeaders(CefRefPtr<CefResponse> response,
-                                    int64& response_length,
-                                    CefString& redirectUrl) OVERRIDE
+                                    i64& response_length,
+                                    CefString& redirectUrl) override
     {
         CEF_REQUIRE_IO_THREAD();
 
@@ -101,15 +105,17 @@ public:
             response->SetMimeType("text/javascript");
         else if (ext == ".ts")
             response->SetMimeType("text/typescript");
+        else if (ext == ".html")
+            response->SetMimeType("text/html");
 
-
+        response->SetHeaderByName("Access-Control-Allow-Origin", "*", true);
         response->SetStatus(200);
 
         // Set the resulting response length
         response_length = fileLength_;
     }
 
-    virtual void Cancel() OVERRIDE
+    virtual void Cancel() override
     {
         CEF_REQUIRE_IO_THREAD();
     }
@@ -117,7 +123,7 @@ public:
     virtual bool ReadResponse(void* data_out,
                               int bytes_to_read,
                               int& bytes_read,
-                              CefRefPtr<CefCallback> callback) OVERRIDE
+                              CefRefPtr<CefCallback> callback) override
     {
         bool has_data = false;
         bytes_read = 0;
@@ -140,15 +146,47 @@ public:
 
         return has_data;
     }
-
 private:
-
     SharedPtr<File> file_;
     unsigned fileLength_;
     String url_;
     unsigned offset_;
 
     IMPLEMENT_REFCOUNTING(ResourceSchemeHandler);
+};
+
+class MemoryResourceSchemeHandler : public CefResourceHandler
+{
+public:
+    MemoryResourceSchemeHandler() = default;
+
+    bool ProcessRequest(CefRefPtr<CefRequest> request, CefRefPtr<CefCallback> callback) override
+    {
+        CEF_REQUIRE_IO_THREAD();
+        return true;
+    }
+    void Cancel() override
+    {
+        CEF_REQUIRE_IO_THREAD();
+    }
+    void GetResponseHeaders(CefRefPtr<CefResponse> response, int64_t& response_length, CefString& redirectUrl) override
+    {
+        CEF_REQUIRE_IO_THREAD();
+
+        auto mime_type = REngine::Web::internal_storage_get_item(MEMORY_RESOURCE_KEY_MIME_TYPE);
+        if (mime_type.empty())
+            mime_type = "text/html";
+
+        response->SetStatus(200);
+        response->SetMimeType(CefString(mime_type.c_str()));
+        response_length = static_cast<i64>(REngine::Web::internal_storage_get_item(MEMORY_RESOURCE_KEY_DATA).length());
+    }
+    bool ReadResponse(void* data_out, int bytes_to_read, int& bytes_read, CefRefPtr<CefCallback> callback) override
+    {
+        const auto val = REngine::Web::internal_storage_get_item(MEMORY_RESOURCE_KEY_DATA);
+        return true;
+    }
+    IMPLEMENT_REFCOUNTING(MemoryResourceSchemeHandler);
 };
 
 // Implementation of the factory for for creating schema handlers.
@@ -160,7 +198,7 @@ public:
     virtual CefRefPtr<CefResourceHandler> Create(CefRefPtr<CefBrowser> browser,
                                                  CefRefPtr<CefFrame> frame,
                                                  const CefString& scheme_name,
-                                                 CefRefPtr<CefRequest> request) OVERRIDE
+                                                 CefRefPtr<CefRequest> request) override
     {
         CEF_REQUIRE_IO_THREAD();
         return new ResourceSchemeHandler();
@@ -168,7 +206,21 @@ public:
 
     IMPLEMENT_REFCOUNTING(ResourceSchemeHandlerFactory);
 };
+// Required to create MemoryResource Scheme Handler
+class MemoryResourceSchemeHandlerFactory : public CefSchemeHandlerFactory
+{
+public:
+    virtual CefRefPtr<CefResourceHandler> Create(CefRefPtr<CefBrowser> browser,
+        CefRefPtr<CefFrame> frame,
+        const CefString& scheme_name,
+        CefRefPtr<CefRequest> request) override
+    {
+        CEF_REQUIRE_IO_THREAD();
+        return new MemoryResourceSchemeHandler();
+    }
 
+    IMPLEMENT_REFCOUNTING(MemoryResourceSchemeHandlerFactory);
+};
 
 void RegisterWebSchemeHandlers(WebBrowserHost* host)
 {
@@ -176,6 +228,8 @@ void RegisterWebSchemeHandlers(WebBrowserHost* host)
 
     CefRegisterSchemeHandlerFactory("atomic", "resources",
                                     new ResourceSchemeHandlerFactory());
+    CefRegisterSchemeHandlerFactory("rengine", "memres",
+                                    new MemoryResourceSchemeHandlerFactory());
 }
 
 

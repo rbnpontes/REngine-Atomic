@@ -475,3 +475,8 @@ declare module Editor {
      */
     export type EditorShortcutType = "cut" | "copy" | "paste" | "undo" | "redo" | "close" | "frameselected" | "selectall";
 }
+
+declare const features : {
+    dotnet : boolean;
+    webview : boolean;
+};

@@ -76,8 +76,8 @@ public:
 protected:
     float uiScale_ = 1.f;
     Atomic::Matrix4 projection_;
-    Atomic::VertexBuffer vertexBuffer_;
-    Atomic::IndexBuffer indexBuffer_;
+    ea::shared_ptr<Atomic::VertexBuffer> vertexBuffer_;
+    ea::shared_ptr<Atomic::IndexBuffer> indexBuffer_;
     Atomic::SharedPtr<Texture2D> fontTexture_;
 
     void ReallocateFontTexture();

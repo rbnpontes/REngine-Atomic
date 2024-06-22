@@ -4,8 +4,12 @@ file (GLOB JAVASCRIPT_BINDINGS_SOURCE ${ATOMIC_SOURCE_DIR}/Artifacts/Build/Sourc
 
 set (SOURCE_FILES ${SOURCE_FILES} ${JAVASCRIPT_BINDINGS_SOURCE} )
 
+set (CMAKE_CXX_STANDARD 14)
 add_library(ToolCoreJS ${SOURCE_FILES})
 
 target_link_libraries(ToolCoreJS ToolCore Assimp)
 
 add_dependencies(ToolCoreJS AtomicToolCheckScripts)
+
+# Put it back C++ version
+set (CMAKE_CXX_STANDARD 20)

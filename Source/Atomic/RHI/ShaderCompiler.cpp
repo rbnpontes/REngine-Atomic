@@ -16,9 +16,7 @@
 #include <spirv-tools/libspirv.hpp>
 #include <spirv-tools/optimizer.hpp>
 
-#include <glslang/Public/ShaderLang.h>
-
-#include <SPIRV/GlslangToSpv.h>
+#include <shaderc/shaderc.h>
 
 
 namespace REngine
@@ -95,161 +93,14 @@ namespace REngine
         Atomic::StringVector samplers_{};
     };
 
-    static EShLanguage get_stage_type(Atomic::ShaderType type)
+    static shaderc_shader_kind get_shader_kind(Atomic::ShaderType type)
     {
-        switch (type)
-        {
-        case Atomic::VS:
-            return EShLangVertex;
-        case Atomic::PS:
-            return EShLangFragment;
-        }
+        constexpr shaderc_shader_kind shader_type_tbl[MAX_SHADER_TYPES] = {
+            shaderc_vertex_shader,
+            shaderc_fragment_shader
+        };
 
-        ATOMIC_LOGERROR("Invalid Shader Type");
-        return EShLangCount;
-    }
-
-    static TBuiltInResource init_resources()
-    {
-        TBuiltInResource resources = {};
-        resources.maxLights = 32;
-        resources.maxClipPlanes = 6;
-        resources.maxTextureUnits = 32;
-        resources.maxTextureCoords = 32;
-        resources.maxVertexAttribs = 64;
-        resources.maxVertexUniformComponents = 4096;
-        resources.maxVaryingFloats = 64;
-        resources.maxVertexTextureImageUnits = 32;
-        resources.maxCombinedTextureImageUnits = 80;
-        resources.maxTextureImageUnits = 32;
-        resources.maxFragmentUniformComponents = 4096;
-        resources.maxDrawBuffers = 32;
-        resources.maxVertexUniformVectors = 128;
-        resources.maxVaryingVectors = 8;
-        resources.maxFragmentUniformVectors = 16;
-        resources.maxVertexOutputVectors = 16;
-        resources.maxFragmentInputVectors = 15;
-        resources.minProgramTexelOffset = -8;
-        resources.maxProgramTexelOffset = 7;
-        resources.maxClipDistances = 8;
-        resources.maxComputeWorkGroupCountX = 65535;
-        resources.maxComputeWorkGroupCountY = 65535;
-        resources.maxComputeWorkGroupCountZ = 65535;
-        resources.maxComputeWorkGroupSizeX = 1024;
-        resources.maxComputeWorkGroupSizeY = 1024;
-        resources.maxComputeWorkGroupSizeZ = 64;
-        resources.maxComputeUniformComponents = 1024;
-        resources.maxComputeTextureImageUnits = 16;
-        resources.maxComputeImageUniforms = 8;
-        resources.maxComputeAtomicCounters = 8;
-        resources.maxComputeAtomicCounterBuffers = 1;
-        resources.maxVaryingComponents = 60;
-        resources.maxVertexOutputComponents = 64;
-        resources.maxGeometryInputComponents = 64;
-        resources.maxGeometryOutputComponents = 128;
-        resources.maxFragmentInputComponents = 128;
-        resources.maxImageUnits = 8;
-        resources.maxCombinedImageUnitsAndFragmentOutputs = 8;
-        resources.maxCombinedShaderOutputResources = 8;
-        resources.maxImageSamples = 0;
-        resources.maxVertexImageUniforms = 0;
-        resources.maxTessControlImageUniforms = 0;
-        resources.maxTessEvaluationImageUniforms = 0;
-        resources.maxGeometryImageUniforms = 0;
-        resources.maxFragmentImageUniforms = 8;
-        resources.maxCombinedImageUniforms = 8;
-        resources.maxGeometryTextureImageUnits = 16;
-        resources.maxGeometryOutputVertices = 256;
-        resources.maxGeometryTotalOutputComponents = 1024;
-        resources.maxGeometryUniformComponents = 1024;
-        resources.maxGeometryVaryingComponents = 64;
-        resources.maxTessControlInputComponents = 128;
-        resources.maxTessControlOutputComponents = 128;
-        resources.maxTessControlTextureImageUnits = 16;
-        resources.maxTessControlUniformComponents = 1024;
-        resources.maxTessControlTotalOutputComponents = 4096;
-        resources.maxTessEvaluationInputComponents = 128;
-        resources.maxTessEvaluationOutputComponents = 128;
-        resources.maxTessEvaluationTextureImageUnits = 16;
-        resources.maxTessEvaluationUniformComponents = 1024;
-        resources.maxTessPatchComponents = 120;
-        resources.maxPatchVertices = 32;
-        resources.maxTessGenLevel = 64;
-        resources.maxViewports = 16;
-        resources.maxVertexAtomicCounters = 0;
-        resources.maxTessControlAtomicCounters = 0;
-        resources.maxTessEvaluationAtomicCounters = 0;
-        resources.maxGeometryAtomicCounters = 0;
-        resources.maxFragmentAtomicCounters = 8;
-        resources.maxCombinedAtomicCounters = 8;
-        resources.maxAtomicCounterBindings = 1;
-        resources.maxVertexAtomicCounterBuffers = 0;
-        resources.maxTessControlAtomicCounterBuffers = 0;
-        resources.maxTessEvaluationAtomicCounterBuffers = 0;
-        resources.maxGeometryAtomicCounterBuffers = 0;
-        resources.maxFragmentAtomicCounterBuffers = 1;
-        resources.maxCombinedAtomicCounterBuffers = 1;
-        resources.maxAtomicCounterBufferSize = 16384;
-        resources.maxTransformFeedbackBuffers = 4;
-        resources.maxTransformFeedbackInterleavedComponents = 64;
-        resources.maxCullDistances = 8;
-        resources.maxCombinedClipAndCullDistances = 8;
-        resources.maxSamples = 4;
-        resources.maxMeshOutputVerticesNV = 256;
-        resources.maxMeshOutputPrimitivesNV = 512;
-        resources.maxMeshWorkGroupSizeX_NV = 32;
-        resources.maxMeshWorkGroupSizeY_NV = 1;
-        resources.maxMeshWorkGroupSizeZ_NV = 1;
-        resources.maxTaskWorkGroupSizeX_NV = 32;
-        resources.maxTaskWorkGroupSizeY_NV = 1;
-        resources.maxTaskWorkGroupSizeZ_NV = 1;
-        resources.maxMeshViewCountNV = 4;
-        resources.maxMeshOutputVerticesEXT = 256;
-        resources.maxMeshOutputPrimitivesEXT = 256;
-        resources.maxMeshWorkGroupSizeX_EXT = 128;
-        resources.maxMeshWorkGroupSizeY_EXT = 128;
-        resources.maxMeshWorkGroupSizeZ_EXT = 128;
-        resources.maxTaskWorkGroupSizeX_EXT = 128;
-        resources.maxTaskWorkGroupSizeY_EXT = 128;
-        resources.maxTaskWorkGroupSizeZ_EXT = 128;
-        resources.maxMeshViewCountEXT = 4;
-        resources.maxDualSourceDrawBuffersEXT = 1;
-
-        resources.limits.nonInductiveForLoops = true;
-        resources.limits.whileLoops = true;
-        resources.limits.doWhileLoops = true;
-        resources.limits.generalUniformIndexing = true;
-        resources.limits.generalAttributeMatrixVectorIndexing = true;
-        resources.limits.generalVaryingIndexing = true;
-        resources.limits.generalSamplerIndexing = true;
-        resources.limits.generalVariableIndexing = true;
-        resources.limits.generalConstantMatrixVectorIndexing = true;
-
-        return resources;
-    }
-
-    static void fill_error(const char* error_message, const Atomic::String& source_code, glslang::TShader* shader,
-                           Atomic::String& output)
-    {
-        Atomic::String output_error(error_message);
-        output_error.AppendWithFormat(": %s\n", shader->getInfoLog());
-        output_error.AppendWithFormat("Debug Log: %s\n", shader->getInfoDebugLog());
-        output_error.AppendWithFormat("Source: \n%s", source_code.CString());
-
-        output = output_error;
-        ::glslang::FinalizeProcess();
-    }
-
-    static void fill_error(const char* error_message, const Atomic::String& source_code, glslang::TProgram* program,
-                           Atomic::String& output)
-    {
-        Atomic::String output_error(error_message);
-        output_error.AppendWithFormat(": %s\n", program->getInfoLog());
-        output_error.AppendWithFormat("Debug Log: %s\n", program->getInfoDebugLog());
-        output_error.AppendWithFormat("Source: \n%s", source_code.CString());
-
-        output = output_error;
-        ::glslang::FinalizeProcess();
+        return shader_type_tbl[type];
     }
 
     static Atomic::VertexElementType get_element_type(const spirv_cross::SPIRType& type)
@@ -290,141 +141,95 @@ namespace REngine
 
     void shader_compiler_preprocess(const ShaderCompilerDesc& desc, ShaderCompilerPreProcessResult& output)
     {
-        ::glslang::InitializeProcess();
-        const auto resources = init_resources();
-        const char* shader_strings[] = {desc.source_code.CString()};
-        const int shader_strings_len[] = {static_cast<int>(desc.source_code.Length())};
-
-        constexpr auto messages = EShMsgSpvRules;
-
-        const auto stage_type = get_stage_type(desc.type);
-        ::glslang::TShader shader(stage_type);
-        shader.setEnvInput(glslang::EShSourceGlsl, stage_type, glslang::EShClientOpenGL, 100);
-        shader.setEnvClient(glslang::EShClientOpenGL, glslang::EShTargetOpenGL_450);
-        shader.setEnvTarget(glslang::EshTargetSpv, glslang::EShTargetSpv_1_0);
-        shader.setEntryPoint("main");
-        shader.setStringsWithLengths(shader_strings, shader_strings_len, 1);
-
-        shader.setAutoMapBindings(true);
-        shader.setAutoMapLocations(true);
-
-        std::string output_shader;
-        glslang::TShader::ForbidIncluder includer = {};
-
-        auto result = shader.parse(&resources,
-                                   100,
-                                   ENoProfile,
-                                   false,
-                                   false,
-                                   EShMsgDefault);
-
-        if (!result)
+        auto source_code = desc.source_code;
+        if(desc.backend == GraphicsBackend::OpenGLES)
         {
-            fill_error("Failed to parse shader source", desc.source_code, &shader, output.error);
+            // Replace header version to 310 es, Otherwise the code above will not work!
+            source_code.Replace("#version 300 es", "#version 450");
+        }
+
+        const auto compiler = shaderc_compiler_initialize();
+        const auto options = shaderc_compile_options_initialize();
+        shaderc_compile_options_set_source_language(options, shaderc_source_language_glsl);
+        shaderc_compile_options_set_optimization_level(options, shaderc_optimization_level_performance);
+        shaderc_compile_options_set_target_env(options, shaderc_target_env_opengl, 0);
+        shaderc_compile_options_set_auto_map_locations(options, true);
+        shaderc_compile_options_set_auto_bind_uniforms(options, true);
+
+        const auto result = shaderc_compile_into_preprocessed_text(compiler,
+            source_code.CString(),
+            source_code.Length(),
+            get_shader_kind(desc.type),
+            desc.name.CString(),
+            "main",
+            options);
+
+        if(shaderc_result_get_compilation_status(result) != shaderc_compilation_status_success)
+        {
+            output.error = shaderc_result_get_error_message(result);
             output.has_error = true;
-            return;
         }
-
-        result = shader.preprocess(&resources,
-                                   100,
-                                   ENoProfile,
-                                   false,
-                                   false,
-                                   messages, &output_shader, includer);
-
-        if (!result)
+    	else
         {
-            fill_error("Failed to parse preprocess shader source", desc.source_code, &shader, output.error);
-            output.has_error = true;
-            return;
+            Atomic::String source_code = shaderc_result_get_bytes(result);
+            if(desc.backend == GraphicsBackend::OpenGLES)
+            {
+                // Replace header version to 310 es.
+                source_code.Replace("#version 450", "#version 300 es");
+            }
+    		output.source_code = source_code;
+            output.has_error = false;
+            output.error = shaderc_result_get_error_message(result);
         }
 
-        ::glslang::FinalizeProcess();
 
-        Atomic::String final_result;
-        const Atomic::StringVector code_parts = Atomic::String(output_shader.c_str(), output_shader.length()).
-            Split('\n');
-        for (auto& line : code_parts)
-        {
-            if (line.Trimmed().Length() == 0)
-                continue;
-            final_result.Append(line);
-            final_result.Append('\n');
-        }
-
-        output.has_error = false;
-        output.source_code = final_result;
+        shaderc_result_release(result);
+    	shaderc_compile_options_release(options);
+        shaderc_compiler_release(compiler);
     }
 
     void shader_compiler_compile(const ShaderCompilerDesc& desc, const bool optimize, ShaderCompilerResult& output)
     {
-        ::glslang::InitializeProcess();
-        const auto resources = init_resources();
-        const char* shader_strings[] = {desc.source_code.CString()};
-        const int shader_strings_len[] = {static_cast<int>(desc.source_code.Length())};
-
-        constexpr auto messages = EShMsgSpvRules;
-
-        const auto stage_type = get_stage_type(desc.type);
-        ::glslang::TShader shader(stage_type);
-        shader.setEnvInput(glslang::EShSourceGlsl, stage_type, glslang::EShClientOpenGL, 100);
-        shader.setEnvClient(glslang::EShClientOpenGL, glslang::EShTargetOpenGL_450);
-        shader.setEnvTarget(glslang::EshTargetSpv, glslang::EShTargetSpv_1_0);
-        shader.setEntryPoint("main");
-        shader.setStringsWithLengths(shader_strings, shader_strings_len, 1);
-        shader.setAutoMapBindings(true);
-        shader.setAutoMapLocations(true);
-
-        auto result = shader.parse(&resources, 100, false, EShMsgDefault);
-
-        if (!result)
+        auto source_code = desc.source_code;
+        if(desc.backend == GraphicsBackend::OpenGLES)
         {
-            fill_error("Failed to parse shader source", desc.source_code, &shader, output.error);
+            // Replace header version to 310 es, Otherwise the code above will not work!
+            source_code.Replace("#version 300 es", "#version 450");
+        }
+
+        const auto compiler = shaderc_compiler_initialize();
+        const auto options = shaderc_compile_options_initialize();
+        shaderc_compile_options_set_source_language(options, shaderc_source_language_glsl);
+        shaderc_compile_options_set_optimization_level(options, shaderc_optimization_level_size);
+        shaderc_compile_options_set_target_env(options, shaderc_target_env_opengl, 0);
+        shaderc_compile_options_set_auto_map_locations(options, true);
+        shaderc_compile_options_set_auto_bind_uniforms(options, true);
+        shaderc_compile_options_set_generate_debug_info(options);
+
+        const auto result = shaderc_compile_into_spv(compiler,
+            source_code.CString(),
+            source_code.Length(),
+            get_shader_kind(desc.type),
+            desc.name.CString(),
+            "main",
+            options);
+
+        if(shaderc_result_get_compilation_status(result) != shaderc_compilation_status_success)
+        {
+            output.error = shaderc_result_get_error_message(result);
             output.has_error = true;
-            return;
         }
-
-        ::glslang::TProgram program;
-        program.addShader(&shader);
-        if (!program.link(messages))
+        else
         {
-            fill_error("Failed to link program", desc.source_code, &program, output.error);
-            output.has_error = true;
-            return;
+            const auto spirv_code = shaderc_result_get_bytes(result);
+            output.error = shaderc_result_get_error_message(result);
+            output.spirv_code = ea::vector<u8>(spirv_code, 
+                spirv_code + shaderc_result_get_length(result));
         }
 
-        if(!program.mapIO())
-        {
-	        fill_error("Failed to map IO", desc.source_code, &program, output.error);
-            output.has_error = true;
-            return;
-        }
-
-        const auto intermediate = program.getIntermediate(stage_type);
-
-        std::vector<uint32_t> spirv_code;
-        spv::SpvBuildLogger spv_logger;
-        glslang::SpvOptions spv_options;
-        spv_options.generateDebugInfo = true;
-        spv_options.disableOptimizer = false;
-        spv_options.optimizeSize = true;
-
-        glslang::GlslangToSpv(*intermediate, spirv_code, &spv_logger, &spv_options);
-        const std::string spirv_log = spv_logger.getAllMessages();
-
-        ::glslang::FinalizeProcess();
-        if(!spirv_log.empty())
-        {
-            output.error = spirv_log.c_str();
-            output.has_error= true;
-            return;
-        }
-
-        output.spirv_code = Atomic::PODVector<uint8_t>(
-            static_cast<uint8_t*>(static_cast<void*>(spirv_code.data())),
-            spirv_code.size() * sizeof(unsigned int)
-        );
-        output.has_error = false;
+        shaderc_result_release(result);
+    	shaderc_compile_options_release(options);
+        shaderc_compiler_release(compiler);
     }
 
     void shader_compiler_reflect(const ShaderCompilerReflectDesc& desc, ShaderCompilerReflectInfo& output)
@@ -484,7 +289,7 @@ namespace REngine
             }
         }
 
-        output.input_elements.Resize(resources.stage_inputs.size());
+        output.input_elements.resize(resources.stage_inputs.size());
         unsigned idx = 0;
         for (const auto& input : resources.stage_inputs)
         {
@@ -590,7 +395,7 @@ namespace REngine
         uint8_t semantic{0};
     };
 
-    Atomic::SharedArrayPtr<uint8_t> shader_compiler_to_bin(const ShaderCompilerBinDesc& desc, uint32_t* output_length)
+    ea::shared_array<u8> shader_compiler_to_bin(const ShaderCompilerBinDesc& desc, uint32_t* output_length)
     {
         ShaderFileHeader file_header = {};
         file_header.type = desc.type;
@@ -600,7 +405,7 @@ namespace REngine
         file_header.parameters_count = desc.reflect_info->parameters.Size();
         file_header.textures_count = desc.reflect_info->samplers.Size();
         file_header.constant_buffers_count = desc.reflect_info->constant_buffers.Size();
-        file_header.input_elements_count = desc.reflect_info->input_elements.Size();
+        file_header.input_elements_count = desc.reflect_info->input_elements.size();
         file_header.input_elements_hash = desc.reflect_info->element_hash;
         constexpr auto header_size = sizeof(ShaderFileHeader);
 
@@ -718,10 +523,10 @@ namespace REngine
         }
 
         *output_length = static_cast<uint32_t>(memory_size);
-        return Atomic::SharedArrayPtr<uint8_t>(buffer);
+        return ea::shared_array<u8>(buffer);
     }
 
-    void shader_compiler_import_bin(void* data, uint32_t data_size, ShaderCompilerImportBinResult& result)
+    void shader_compiler_import_bin(void* data, u32 data_size, ShaderCompilerImportBinResult& result)
     {
         constexpr auto header_size = sizeof(ShaderFileHeader);
         if(!data || data_size == 0)
@@ -820,7 +625,7 @@ namespace REngine
                 result.reflect_info.constant_buffer_sizes[buffer_desc.parameter_group] = buffer_desc.size;
         }
 
-        result.reflect_info.input_elements.Resize(file_header->input_elements_count);
+        result.reflect_info.input_elements.resize(file_header->input_elements_count);
         for(uint32_t i =0; i < file_header->input_elements_count; ++i)
         {
             const auto& input_element = input_elements[i];
@@ -835,13 +640,13 @@ namespace REngine
         }
         
         result.reflect_info.element_hash = file_header->input_elements_hash;
-        result.byte_code = Atomic::SharedArrayPtr<uint8_t>(static_cast<uint8_t*>(malloc(file_header->byte_code_size)));
+        result.byte_code = ea::shared_array<u8>(static_cast<uint8_t*>(malloc(file_header->byte_code_size)));
         result.byte_code_size = file_header->byte_code_size;
         result.byte_code_type = file_header->byte_code_type;
         result.shader_hash = file_header->shader_hash;
         result.type = file_header->type;
         result.has_error = false;
-        memcpy(result.byte_code, byte_code, file_header->byte_code_size);
+        memcpy(result.byte_code.get(), byte_code, file_header->byte_code_size);
     }
 
     void shader_compiler_get_file_ext(Atomic::ShaderType type, Atomic::String& ext)

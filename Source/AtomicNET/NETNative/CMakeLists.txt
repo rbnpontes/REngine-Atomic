@@ -69,9 +69,3 @@ else()
     # See BuildIOS.js for handling of the AtomicNETNative framework, including install_name_tool modification, etc
     # Handling it here was causing issues with certain builds of XCode and where it thought the TARGET_FILE was...
 endif()
-
-if (WIN32)
-    # Copy the D3D shader compiler (for pre-Windows 8)
-    add_custom_command( TARGET AtomicNETNative POST_BUILD
-                        COMMAND ${CMAKE_COMMAND} ARGS -E copy_if_different \"${D3DCOMPILER_47_DLL}\" \"${ATOMICNET_NATIVE_DIR}/D3DCompiler_47.dll\" )
-endif(WIN32)

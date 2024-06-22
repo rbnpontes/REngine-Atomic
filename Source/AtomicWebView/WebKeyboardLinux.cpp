@@ -247,7 +247,7 @@ bool ConvertTextInputEvent(StringHash eventType, VariantMap& eventData, CefKeyEv
  
     if ( text.Length() > 0 )
     {
-        keyEvent.character = (char16)text[0];
+        keyEvent.character = (i16)text[0];
         keyEvent.type = KEYEVENT_CHAR;
         return true; 
     }

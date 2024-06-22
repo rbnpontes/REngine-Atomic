@@ -40,7 +40,7 @@
 // #include "../UI/Text.h"
 #include "../UI/UI.h"
 #include "../UI/UIWidget.h"
-#include <SDL/include/SDL.h>
+#include <SDL2/SDL.h>
 
 // ATOMIC END
 
@@ -446,9 +446,7 @@ Input::Input(Context* context) :
 
     SubscribeToEvent(E_SCREENMODE, ATOMIC_HANDLER(Input, HandleScreenMode));
 
-#if defined(__ANDROID__)
-    SDL_SetHint(SDL_HINT_ANDROID_SEPARATE_MOUSE_AND_TOUCH, "1");
-#elif defined(__EMSCRIPTEN__)
+#if defined(__EMSCRIPTEN__)
     emscriptenInput_ = new EmscriptenInput(this);
 #endif
 
@@ -515,8 +513,9 @@ void Input::Update()
         mpos -= windowPos;
 
         const int buffer = 5;
-        const int width = graphics_->GetWidth() - buffer * 2;
-        const int height = graphics_->GetHeight() - buffer * 2;
+        const auto size = graphics_->GetRenderSize();
+        const int width = size.x_ - buffer * 2;
+        const int height = size.y_ - buffer * 2;
 
         // SetMousePosition utilizes backbuffer coordinate system, scale now from window coordinates
         mpos.x_ = (int)(mpos.x_ * inputScale_.x_);
@@ -1332,7 +1331,6 @@ unsigned Input::LoadGestures(Deserializer& source)
     RWOpsWrapper<Deserializer> wrapper(source);
     return (unsigned)SDL_LoadDollarTemplates(-1, wrapper.GetRWOps());
 }
-
 
 bool Input::RemoveGesture(unsigned gestureID)
 {
@@ -2592,17 +2590,7 @@ void Input::HandleScreenMode(StringHash eventType, VariantMap& eventData)
     minimized_ = (SDL_GetWindowFlags(window) & SDL_WINDOW_MINIMIZED) != 0;
 
     // Calculate input coordinate scaling from SDL window to backbuffer ratio
-    int winWidth, winHeight;
-    int gfxWidth = graphics_->GetWidth();
-    int gfxHeight = graphics_->GetHeight();
-    SDL_GetWindowSize(window, &winWidth, &winHeight);
-    if (winWidth > 0 && winHeight > 0 && gfxWidth > 0 && gfxHeight > 0)
-    {
-        inputScale_.x_ = (float)gfxWidth / (float)winWidth;
-        inputScale_.y_ = (float)gfxHeight / (float)winHeight;
-    }
-    else
-        inputScale_ = Vector2::ONE;
+    inputScale_ = graphics_->GetScale();
 }
 
 void Input::HandleBeginFrame(StringHash eventType, VariantMap& eventData)

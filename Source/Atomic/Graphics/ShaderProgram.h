@@ -23,11 +23,4 @@
 #pragma once
 
 // Note: ShaderProgram class is purposefully API-specific. It should not be used by Urho3D client applications.
-
-#if defined(ATOMIC_OPENGL)
-#include "OpenGL/OGLShaderProgram.h"
-#elif defined(ATOMIC_D3D11)
-#include "Direct3D11/D3D11ShaderProgram.h"
-#else
 #include "../RHI/ShaderProgram.h"
-#endif

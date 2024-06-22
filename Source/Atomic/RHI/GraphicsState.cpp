@@ -3,7 +3,6 @@
 namespace REngine
 {
     static GraphicsState s_state = {};
-    static RenderCommandState s_default_command = {};
 
     const GraphicsState& graphics_state_get()
     {
@@ -85,11 +84,5 @@ namespace REngine
     uint32_t graphics_state_vertex_declarations_count()
     {
         return s_state.vertex_declarations.Size();
-    }
-
-
-    RenderCommandState* default_render_command_get()
-    {
-        return &s_default_command;
     }
 }

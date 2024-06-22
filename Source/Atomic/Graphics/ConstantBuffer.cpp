@@ -33,7 +33,8 @@ namespace Atomic
 
 ConstantBuffer::ConstantBuffer(Context* context) :
     Object(context),
-    GPUObject(GetSubsystem<Graphics>())
+    GPUObject(GetSubsystem<Graphics>()),
+    dirty_(true)
 {
 }
 
@@ -50,6 +51,11 @@ void ConstantBuffer::SetParameter(unsigned offset, unsigned size, const void* da
     auto dst_data = shadowData_ + offset;
     memcpy(dst_data, data, size);
     dirty_ = true;
+}
+
+void* ConstantBuffer::GetWriteBuffer(u32 offset) const
+{
+    return shadowData_ + offset;
 }
 
 void ConstantBuffer::SetVector3ArrayParameter(unsigned offset, unsigned rows, const void* data)

@@ -39,17 +39,19 @@ namespace REngine
     public:
         ShaderProgram(const ShaderProgramCreationDesc& creation_desc);
         ~ShaderProgram() override;
-        bool GetParameter(const Atomic::StringHash& paramName, Atomic::ShaderParameter* parameter);
         ShaderSamplerDesc* GetSampler(Atomic::TextureUnit unit) const;
         ShaderSamplerDesc* GetSampler(const Atomic::StringHash& name) const;
         unsigned ToHash() const { return hash_; }
-        bool IsInUseTexture(const Atomic::StringHash& texture) const { return used_textures_.Contains(texture); }
+        bool IsInUseTexture(const Atomic::StringHash& texture) const;
+        const ea::vector<REngine::ShaderCompilerReflectInputElement>& GetInputElements() const { return input_elements_; }
     private:
-        void CollectShaderParameters(const Atomic::ShaderVariation* shader);
+        void CollectUsedInputElements(const Atomic::ShaderVariation* vertex_shader, const Atomic::ShaderVariation* pixel_shader);
+        void CollectShaderParameters(const Atomic::ShaderVariation* shader) const;
         void CollectShaderTextures(const Atomic::ShaderVariation* shader);
+
         Atomic::Graphics* graphics_;
-        Atomic::HashMap<Atomic::StringHash, Atomic::ShaderParameter> parameters_{};
-        Atomic::HashMap<Atomic::StringHash, ShaderSamplerDesc*> used_textures_{};
+        ea::hash_map<u32, ea::shared_ptr<ShaderSamplerDesc>> used_textures_{};
+        ea::vector<REngine::ShaderCompilerReflectInputElement> input_elements_{};
         ShaderSamplerDesc* used_texture_slot_names_[Atomic::MAX_TEXTURE_UNITS];
         unsigned hash_{0};
 #if ATOMIC_DEBUG

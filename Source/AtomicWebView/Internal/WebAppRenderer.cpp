@@ -46,50 +46,16 @@ public:
 
     }
 
-    virtual void OnWebKitInitialized(CefRefPtr<WebAppRenderer> app) OVERRIDE
+    virtual void OnWebKitInitialized(CefRefPtr<WebAppRenderer> app) override
     {
+        if (message_router_)
+            return;
         // Create the renderer-side router for query handling.
         CefMessageRouterConfig config;
         config.js_query_function = jsMessageQueryFunctionName_.length() ? jsMessageQueryFunctionName_ : "atomicQuery";
         config.js_cancel_function = jsMessageQueryCancelFunctionName_.length() ? jsMessageQueryCancelFunctionName_ : "atomicQueryCancel";
 
         message_router_ = CefMessageRouterRendererSide::Create(config);
-    }
-
-    virtual void OnRenderThreadCreated(CefRefPtr<WebAppRenderer> app,
-                                       CefRefPtr<CefListValue> extra_info) OVERRIDE
-    {
-        // extra info comes from void WebAppBrowser::OnRenderProcessThreadCreated(CefRefPtr<CefListValue> extra_info)
-
-        // index 0 is global properties
-        if (extra_info->GetSize() > 0)
-        {
-            if (extra_info->GetType(0) == CefValueType::VTYPE_DICTIONARY)
-                globalProperties_ = extra_info->GetDictionary(0)->Copy(false);            
-        }
-
-        // index 1 is name for jsMessageQuery function
-        if (extra_info->GetSize() > 1)
-        {            
-            jsMessageQueryFunctionName_ = extra_info->GetString(1);
-        }
-
-        // index 2 is name for jsMessageQueryCancel function
-        if (extra_info->GetSize() > 2)
-        {
-            jsMessageQueryCancelFunctionName_ = extra_info->GetString(2);
-        }
-
-    }
-
-    virtual bool OnBeforeNavigation(CefRefPtr<WebAppRenderer> app,
-                                    CefRefPtr<CefBrowser> browser,
-                                    CefRefPtr<CefFrame> frame,
-                                    CefRefPtr<CefRequest> request,
-                                    cef_navigation_type_t navigation_type,
-                                    bool is_redirect) OVERRIDE
-    {
-        return false;
     }
 
     void UpdateGlobalProperties(CefRefPtr<CefV8Context> context)
@@ -109,7 +75,7 @@ public:
         {
             const CefString& globalVarName = keys[i];
 
-            CefRefPtr<CefV8Value> globalVar = CefV8Value::CreateObject(nullptr);
+            CefRefPtr<CefV8Value> globalVar = CefV8Value::CreateObject(nullptr, nullptr);
 
             CefDictionaryValue::KeyList pkeys;
             CefRefPtr<CefDictionaryValue> props = globalProperties_->GetDictionary(globalVarName);
@@ -142,25 +108,47 @@ public:
     }
 
     virtual void OnBrowserCreated(CefRefPtr<WebAppRenderer> app,
-                                  CefRefPtr<CefBrowser> browser) OVERRIDE
+                                  CefRefPtr<CefBrowser> browser,
+                                  CefRefPtr<CefDictionaryValue> extra_info) override
     {
+        if (!extra_info)
+            return;
+
+        // index 0 is global properties
+        if (extra_info->GetSize() > 0)
+        {
+            if (extra_info->GetType("0") == CefValueType::VTYPE_DICTIONARY)
+                globalProperties_ = extra_info->GetDictionary("0")->Copy(false);
+        }
+
+        // index 1 is name for jsMessageQuery function
+        if (extra_info->GetSize() > 1)
+            jsMessageQueryFunctionName_ = extra_info->GetString("1");
+
+        // index 2 is name for jsMessageQueryCancel function
+        if (extra_info->GetSize() > 2)
+            jsMessageQueryCancelFunctionName_ = extra_info->GetString("2");
     }
 
     virtual void OnContextCreated(CefRefPtr<WebAppRenderer> app,
                                   CefRefPtr<CefBrowser> browser,
                                   CefRefPtr<CefFrame> frame,
-                                  CefRefPtr<CefV8Context> context) OVERRIDE
+                                  CefRefPtr<CefV8Context> context) override
     {
-        message_router_->OnContextCreated(browser,  frame, context);
+        if (!message_router_)
+            return;
 
+        message_router_->OnContextCreated(browser,  frame, context);
         UpdateGlobalProperties(context);
     }
 
     virtual void OnContextReleased(CefRefPtr<WebAppRenderer> app,
                                    CefRefPtr<CefBrowser> browser,
                                    CefRefPtr<CefFrame> frame,
-                                   CefRefPtr<CefV8Context> context) OVERRIDE
+                                   CefRefPtr<CefV8Context> context) override
     {
+        if (!message_router_)
+            return;
         message_router_->OnContextReleased(browser,  frame, context);
     }
 
@@ -168,9 +156,8 @@ public:
             CefRefPtr<WebAppRenderer> app,
             CefRefPtr<CefBrowser> browser,
             CefProcessId source_process,
-            CefRefPtr<CefProcessMessage> message) OVERRIDE
+            CefRefPtr<CefProcessMessage> message) override
     {
-
         const CefString& message_name = message->GetName();
 
         if (message_name == "atomic_eval_javascript")
@@ -198,7 +185,7 @@ public:
             unsigned evalID = (unsigned) message->GetArgumentList()->GetInt(0);
             CefString script = message->GetArgumentList()->GetString(1);
 
-            bool result = context->Eval(script, retval, exception);
+            bool result = context->Eval(script, CefString(""), 0, retval, exception);
 
             // Create the result message object.
             CefRefPtr<CefProcessMessage> msg = CefProcessMessage::Create("atomic_eval_javascript_result");
@@ -213,7 +200,7 @@ public:
             {
                 CefV8ValueList stringifyArgs;
                 stringifyArgs.push_back(retval);
-                CefRefPtr<CefV8Value> sjson = stringify->ExecuteFunctionWithContext(context, NULL, stringifyArgs);
+                CefRefPtr<CefV8Value> sjson = stringify->ExecuteFunctionWithContext(context, nullptr, stringifyArgs);
                 if (!sjson.get() || !sjson->IsString())
                 {
                     args->SetString(2, "WebAppRenderer::OnProcessMessageReceived() - Error Getting Return JSON");
@@ -226,7 +213,7 @@ public:
             else
                 args->SetString(2, exception->GetMessage());
 
-            browser->SendProcessMessage(PID_BROWSER, msg);
+            browser->GetMainFrame()->SendProcessMessage(PID_BROWSER, msg);
 
             context->Exit();
             return true;
@@ -239,7 +226,7 @@ public:
         }
 
         return message_router_->OnProcessMessageReceived(
-                    browser, source_process, message);
+                    browser, browser->GetMainFrame(), source_process, message);
     }
 
 private:
@@ -257,15 +244,14 @@ CefString WebRenderDelegate::jsMessageQueryCancelFunctionName_;
 
 
 WebAppRenderer::WebAppRenderer() {
+    delegates_.Push(new WebRenderDelegate());
 }
 
-void WebAppRenderer::OnRenderThreadCreated(CefRefPtr<CefListValue> extra_info)
+void WebAppRenderer::OnBrowserCreated(CefRefPtr<CefBrowser> browser, CefRefPtr<CefDictionaryValue> extra_info)
 {
-    delegates_.Push(new WebRenderDelegate());
-
     DelegateSet::Iterator it = delegates_.Begin();
     for (; it != delegates_.End(); ++it)
-        (*it)->OnRenderThreadCreated(this, extra_info);
+        (*it)->OnBrowserCreated(this, browser, extra_info);
 }
 
 void WebAppRenderer::OnWebKitInitialized()
@@ -273,13 +259,6 @@ void WebAppRenderer::OnWebKitInitialized()
     DelegateSet::Iterator it = delegates_.Begin();
     for (; it != delegates_.End(); ++it)
         (*it)->OnWebKitInitialized(this);
-}
-
-void WebAppRenderer::OnBrowserCreated(CefRefPtr<CefBrowser> browser)
-{
-    DelegateSet::Iterator it = delegates_.Begin();
-    for (; it != delegates_.End(); ++it)
-        (*it)->OnBrowserCreated(this, browser);
 }
 
 void WebAppRenderer::OnBrowserDestroyed(CefRefPtr<CefBrowser> browser)
@@ -297,23 +276,6 @@ CefRefPtr<CefLoadHandler> WebAppRenderer::GetLoadHandler()
         load_handler = (*it)->GetLoadHandler(this);
 
     return load_handler;
-}
-
-bool WebAppRenderer::OnBeforeNavigation(CefRefPtr<CefBrowser> browser,
-                                        CefRefPtr<CefFrame> frame,
-                                        CefRefPtr<CefRequest> request,
-                                        NavigationType navigation_type,
-                                        bool is_redirect)
-{
-    DelegateSet::Iterator it = delegates_.Begin();
-    for (; it != delegates_.End(); ++it) {
-        if ((*it)->OnBeforeNavigation(this, browser, frame, request, navigation_type, is_redirect))
-        {
-            return true;
-        }
-    }
-
-    return false;
 }
 
 void WebAppRenderer::OnContextCreated(CefRefPtr<CefBrowser> browser,
@@ -360,6 +322,7 @@ void WebAppRenderer::OnFocusedNodeChanged(CefRefPtr<CefBrowser> browser,
 
 bool WebAppRenderer::OnProcessMessageReceived(
         CefRefPtr<CefBrowser> browser,
+        CefRefPtr<CefFrame> frame,
         CefProcessId source_process,
         CefRefPtr<CefProcessMessage> message)
 {

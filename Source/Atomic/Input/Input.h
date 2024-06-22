@@ -157,6 +157,8 @@ public:
     PODVector<float> axes_;
     /// POV hat bits.
     PODVector<int> hats_;
+
+    ea::vector<u32> gesture_ids_;
 };
 
 #ifdef __EMSCRIPTEN__

@@ -24,6 +24,7 @@
 
 #include "UIBatch.h"
 #include "UIWidget.h"
+#include "../Graphics/RenderTexture.h"
 
 namespace Atomic
 {
@@ -52,7 +53,7 @@ public:
     virtual ~UIView();
 
     /// Set the view size
-    bool SetSize(int width, int height);
+    bool SetSizeInPixels(int width, int height) override;
 
     /// Remove the UIView from the UI subsystem, readding removed views is not advised
     void Remove();
@@ -87,7 +88,12 @@ public:
     /// Set whether the UIView renders to texture, useful for 3D UI's, etc
     bool SetRenderToTexture(bool value, const int width = UIVIEW_DEFAULT_TEXTURE_SIZE, const int height = UIVIEW_DEFAULT_TEXTURE_SIZE);
     /// Gets the UIViews render texture, if any
-    Texture2D* GetRenderTexture() { return renderTexture_; }
+    Texture2D* GetRenderTexture() const
+    {
+        if(!renderTexture_)
+            return nullptr;
+	    return renderTexture_->GetBackBuffer().get();
+    }
     /// Returns whether this UIView has a valid render texture
     bool HasRenderTexture() const { return renderTexture_.NotNull(); }
 
@@ -134,7 +140,7 @@ private:
     WeakPtr<UI> ui_;
     WeakPtr<UIComponent> uiComponent_;
 
-    SharedPtr<Texture2D> renderTexture_;
+    SharedPtr<RenderTexture> renderTexture_;
 
     bool autoFocus_;
 

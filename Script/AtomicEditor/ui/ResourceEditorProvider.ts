@@ -101,7 +101,8 @@ export default class ResourceEditorProvider {
         this.registerStandardEditor(new TextFileResourceEditorBuilder());
         this.registerStandardEditor(new JavascriptResourceEditorBuilder());
         this.registerStandardEditor(new JsonResourceEditorBuilder());
-        this.registerStandardEditor(new CSharpResourceEditorBuilder());
+        if(features.dotnet)
+            this.registerStandardEditor(new CSharpResourceEditorBuilder());
         this.registerStandardEditor(new TypescriptResourceEditorBuilder());
         this.registerStandardEditor(new Scene3dResourceEditorBuilder());
         this.registerStandardEditor(new XMLResourceEditorBuilder());
@@ -110,6 +111,7 @@ export default class ResourceEditorProvider {
         // this overrides the test resource editor so need to put it in the custom bucket
         this.registerCustomEditor(new TurboBadgerResourceEditorBuilder());
 
-        this.registerCustomEditor(new VisualStudioResourceEditorBuilder());
+        if(features.dotnet)
+            this.registerCustomEditor(new VisualStudioResourceEditorBuilder());
     }
 }

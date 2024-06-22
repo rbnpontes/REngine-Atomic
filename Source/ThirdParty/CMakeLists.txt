@@ -37,29 +37,25 @@ add_subdirectory(JO)
 add_subdirectory(LZ4)
 add_subdirectory(PugiXml)
 add_subdirectory(STB)
-add_subdirectory(TurboBadger)
 add_subdirectory(zlib)
 
 if (NOT ATOMIC_BUILD_2D)
     add_subdirectory(Bullet)
     add_subdirectory(StanHull)
 endif()
-
+    
 add_subdirectory(SDL)
-
+    
+add_subdirectory(TurboBadger)
 add_subdirectory(Recast)
 add_subdirectory(Detour)
 add_subdirectory(DetourCrowd)
 add_subdirectory(DetourTileCache)
+add_subdirectory(eastl)
 
 if (NOT WEB)
     add_subdirectory(Civetweb)
     add_subdirectory(kNet)
-    if (NOT WIN32)
-        add_subdirectory(openssl)
-    endif()
-    set (CURL_STATICLIB 1)
-    add_subdirectory(libcurl)
 endif()
 
 if (NOT IOS AND NOT ANDROID AND NOT WEB)
@@ -81,17 +77,11 @@ if (ATOMIC_DATABASE_ODBC)
     add_subdirectory(nanodbc)
 endif ()
 
-if (LINUX OR APPLE OR ATOMIC_OPENGL AND NOT IOS)
-    add_subdirectory(GLEW)
-endif()
-
 if (WIN32)
     add_subdirectory(MojoShader)
 endif()
 
-add_subdirectory(ASIO)
 add_subdirectory(rapidjson)
-add_subdirectory(WebSocketPP)
 
 if (ATOMIC_IK)
     add_subdirectory(ik)
@@ -99,12 +89,14 @@ endif ()
 
 add_subdirectory(imgui)
 
-if (ATOMIC_PROFILING)
-    add_subdirectory(easy_profiler)
+if (RENGINE_PROFILING)
     add_subdirectory(tracy)
 endif ()
 
+add_subdirectory(spirv-headers)
+add_subdirectory(spirv-tools)
+add_subdirectory(glslang)
+add_subdirectory(libshaderc_util)
+add_subdirectory(libshaderc)
 
-if (RENGINE_DILIGENT)
-    add_subdirectory(DiligentCore)
-endif()
+add_subdirectory(DiligentCore)

@@ -16,7 +16,7 @@ if (APPLE)
     set_source_files_properties(${ATOMIC_EDITOR_ICON} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
 else ()
     # We want a console for development builds
-    if (${ATOMIC_DEV_BUILD} EQUAL 1)
+    if (RENGINE_DEV_BUILD AND WIN32)
         add_definitions(-DATOMIC_WIN32_CONSOLE)
     else ()
         set(EXE_TYPE WIN32)
@@ -54,7 +54,7 @@ if (ATOMIC_WEBVIEW)
         endif ()
 
         # Add the custom manifest files to the executable.
-        ADD_WINDOWS_MANIFEST("${CMAKE_CURRENT_SOURCE_DIR}/Windows" "${CEF_TARGET}")
+        ADD_WINDOWS_MANIFEST("${CMAKE_CURRENT_SOURCE_DIR}/Windows" "${CEF_TARGET}" "exe")
 
         # Copy binary and resource files to the target output directory.
         COPY_FILES("${CEF_TARGET}" "${CEF_BINARY_FILES}" "${CEF_BINARY_DIR}" "${CEF_TARGET_OUT_DIR}")
@@ -142,22 +142,26 @@ if (ATOMIC_WEBVIEW)
     endif ()
 endif (ATOMIC_WEBVIEW)
 
-target_link_libraries(${CEF_TARGET} ToolCore AtomicApp AtomicWebView AtomicJS AtomicPlayerJS ToolCoreJS AtomicNETScriptBindings AtomicNETScript Poco nativefiledialog Atomic)
+target_link_libraries(${CEF_TARGET} ToolCore AtomicWebView AtomicJS AtomicPlayerJS ToolCoreJS Poco nativefiledialog Atomic EASTL)
+
+if(ATOMIC_JAVASCRIPT OR ATOMIC_DOTNET)
+    target_link_libraries(${CEF_TARGET} AtomicApp)
+endif()
+
+if(ATOMIC_DOTNET)
+    target_link_libraries(${CEF_TARGET} AtomicNETScriptBindings AtomicNETScript)
+endif()
 
 if (APPLE)
     set(TARGET_PROPERTIES MACOSX_BUNDLE_INFO_PLIST "${ATOMIC_SOURCE_DIR}/Build/CMake/Modules/AtomicEditorInfo.plist.template")
     set(MACOSX_BUNDLE_GUI_IDENTIFIER "com.thunderbeastgames.atomiceditor")
     set(MACOSX_BUNDLE_BUNDLE_NAME "AtomicEditor")
-    target_link_libraries(AtomicEditor libcurl)
+    target_link_libraries(AtomicEditor)
 elseif (LINUX)
-    target_link_libraries(AtomicEditor libcurl nativefiledialog ${GTK3_LIBRARIES})
+    target_link_libraries(AtomicEditor nativefiledialog ${GTK3_LIBRARIES})
     target_link_libraries(${CEF_TARGET} libcef_lib libcef_dll_wrapper ${CEF_STANDARD_LIBS})
 else ()
-    target_link_libraries(AtomicEditor libcurl Iphlpapi Wldap32)
-    # pre-Windows 8 can't count on D3DCompiler_47.dll being on system
-    add_custom_command(TARGET AtomicEditor POST_BUILD
-        COMMAND ${CMAKE_COMMAND}
-        ARGS -E copy_if_different \"${D3DCOMPILER_47_DLL}\" \"$<TARGET_FILE_DIR:AtomicEditor>/D3DCompiler_47.dll\")
+    target_link_libraries(AtomicEditor Iphlpapi Wldap32)
 endif ()
 
 if (TARGET_PROPERTIES)

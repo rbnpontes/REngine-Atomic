@@ -929,12 +929,7 @@ Texture2D* Renderer::GetShadowMap(Light* light, Camera* camera, unsigned viewWid
     }
 
     // Find format and usage of the shadow map
-    TextureFormat shadowMapFormat;
-#if RENGINE_DILIGENT
-    shadowMapFormat = TextureFormat::TEX_FORMAT_UNKNOWN;
-#else
-    shadowMapFormat = 0;
-#endif
+    TextureFormat shadowMapFormat = TextureFormat::TEX_FORMAT_UNKNOWN;
     
     TextureUsage shadowMapUsage = TEXTURE_DEPTHSTENCIL;
     int multiSample = 1;
@@ -982,16 +977,8 @@ Texture2D* Renderer::GetShadowMap(Light* light, Camera* camera, unsigned viewWid
         }
         else
         {
-#ifndef GL_ES_VERSION_2_0
-            // OpenGL (desktop) and D3D11: shadow compare mode needs to be specifically enabled for the shadow map
-            newShadowMap->SetFilterMode(FILTER_BILINEAR);
+	        newShadowMap->SetFilterMode(FILTER_BILINEAR);
             newShadowMap->SetShadowCompare(shadowMapUsage == TEXTURE_DEPTHSTENCIL);
-#endif
-#ifndef ATOMIC_OPENGL
-            // Direct3D9: when shadow compare must be done manually, use nearest filtering so that the filtering of point lights
-            // and other shadowed lights matches
-            newShadowMap->SetFilterMode(graphics_->GetHardwareShadowSupport() ? FILTER_BILINEAR : FILTER_NEAREST);
-#endif
             // Create dummy color texture for the shadow map if necessary: Direct3D9, or OpenGL when working around an OS X +
             // Intel driver bug
             if (shadowMapUsage == TEXTURE_DEPTHSTENCIL && dummyColorFormat)
@@ -1074,10 +1061,14 @@ Texture* Renderer::GetScreenBuffer(int width, int height, unsigned format, int m
             // TODO: remove this cast
             newTex2D->SetSize(width, height, static_cast<TextureFormat>(format), depthStencil ? TEXTURE_DEPTHSTENCIL : TEXTURE_RENDERTARGET, multiSample, autoResolve);
 
-#ifdef ATOMIC_OPENGL
             // OpenGL hack: clear persistent floating point screen buffers to ensure the initial contents aren't illegal (NaN)?
             // Otherwise eg. the AutoExposure post process will not work correctly
-            if (persistentKey && Texture::GetDataType(format) == GL_FLOAT)
+            const auto backend = graphics_->GetBackend();
+            const auto is_opengl = backend == GraphicsBackend::OpenGL || backend == GraphicsBackend::OpenGLES;
+            const auto is_float_fmt = format == TextureFormat::TEX_FORMAT_RGB32_FLOAT
+                || format == TextureFormat::TEX_FORMAT_RG32_FLOAT
+                || format == TextureFormat::TEX_FORMAT_R32_FLOAT;
+        	if (persistentKey && is_opengl && is_float_fmt)
             {
                 // Note: this loses current rendertarget assignment
                 graphics_->ResetRenderTargets();
@@ -1086,7 +1077,6 @@ Texture* Renderer::GetScreenBuffer(int width, int height, unsigned format, int m
                 graphics_->SetViewport(IntRect(0, 0, width, height));
                 graphics_->Clear(CLEAR_COLOR);
             }
-#endif
 
             newBuffer = newTex2D;
         }
@@ -1534,10 +1524,11 @@ void Renderer::UpdateQueuedViewport(unsigned index)
     // However, if the same scene is viewed from multiple cameras, update the octree only once
     if (!updatedOctrees_.Contains(octree))
     {
+        const auto size = graphics_->GetSize();
         frame_.camera_ = viewport->GetCamera();
         frame_.viewSize_ = viewRect.Size();
         if (frame_.viewSize_ == IntVector2::ZERO)
-            frame_.viewSize_ = IntVector2(graphics_->GetWidth(), graphics_->GetHeight());
+            frame_.viewSize_ = IntVector2(size.x_, size.y_);
         octree->Update(frame_);
         updatedOctrees_.Insert(octree);
 
@@ -1841,8 +1832,9 @@ void Renderer::CreateGeometries()
     pointLightGeometry_->SetIndexBuffer(plib);
     pointLightGeometry_->SetDrawRange(TRIANGLE_LIST, 0, plib->GetIndexCount());
 
-#if !defined(ATOMIC_OPENGL) || !defined(GL_ES_VERSION_2_0)
-    if (graphics_->GetShadowMapFormat())
+    const auto backend = graphics_->GetBackend();
+    const auto is_opengl = backend == GraphicsBackend::OpenGL || backend == GraphicsBackend::OpenGLES;
+    if (graphics_->GetShadowMapFormat() && !is_opengl)
     {
         faceSelectCubeMap_ = new TextureCube(context_);
         faceSelectCubeMap_->SetNumLevels(1);
@@ -1859,7 +1851,6 @@ void Renderer::CreateGeometries()
 
         SetIndirectionTextureData();
     }
-#endif
 }
 
 void Renderer::SetIndirectionTextureData()
@@ -1876,6 +1867,8 @@ void Renderer::SetIndirectionTextureData()
         faceSelectCubeMap_->SetData((CubeMapFace)i, 0, 0, 0, 1, 1, data);
     }
 
+    const auto backend = graphics_->GetBackend();
+    const bool is_open_gl = backend == GraphicsBackend::OpenGL || backend == GraphicsBackend::OpenGLES;
     for (unsigned i = 0; i < MAX_CUBEMAP_FACES; ++i)
     {
         unsigned char faceX = (unsigned char)((i & 1) * 255);
@@ -1885,17 +1878,20 @@ void Renderer::SetIndirectionTextureData()
         {
             for (unsigned x = 0; x < 256; ++x)
             {
-#ifdef ATOMIC_OPENGL
-                dest[0] = (unsigned char)x;
-                dest[1] = (unsigned char)(255 - y);
-                dest[2] = faceX;
-                dest[3] = (unsigned char)(255 * 2 / 3 - faceY);
-#else
-                dest[0] = (unsigned char)x;
-                dest[1] = (unsigned char)y;
-                dest[2] = faceX;
-                dest[3] = faceY;
-#endif
+                if(is_open_gl)
+                {
+                    dest[0] = (unsigned char)x;
+                    dest[1] = (unsigned char)(255 - y);
+                    dest[2] = faceX;
+                    dest[3] = (unsigned char)(255 * 2 / 3 - faceY);
+                }
+            	else
+                {
+                    dest[0] = (unsigned char)x;
+                    dest[1] = (unsigned char)y;
+                    dest[2] = faceX;
+                    dest[3] = faceY;
+                }
                 dest += 4;
             }
         }
@@ -1942,28 +1938,32 @@ void Renderer::ResetBuffers()
 
 String Renderer::GetShadowVariations() const
 {
+    const auto backend = graphics_->GetBackend();
+    const auto is_opengl = backend == GraphicsBackend::OpenGL || backend == GraphicsBackend::OpenGLES;
     switch (shadowQuality_)
     {
         case SHADOWQUALITY_SIMPLE_16BIT:
-        #ifdef ATOMIC_OPENGL
-            return "SIMPLE_SHADOW ";
-        #else
-            if (graphics_->GetHardwareShadowSupport())
+            if(is_opengl)
                 return "SIMPLE_SHADOW ";
             else
-                return "SIMPLE_SHADOW SHADOWCMP ";
-        #endif
+            {
+                if (graphics_->GetHardwareShadowSupport())
+                    return "SIMPLE_SHADOW ";
+                else
+                    return "SIMPLE_SHADOW SHADOWCMP ";
+            }
         case SHADOWQUALITY_SIMPLE_24BIT:
             return "SIMPLE_SHADOW ";
         case SHADOWQUALITY_PCF_16BIT:
-        #ifdef ATOMIC_OPENGL
-            return "PCF_SHADOW ";
-        #else
-            if (graphics_->GetHardwareShadowSupport())
+            if(is_opengl)
                 return "PCF_SHADOW ";
             else
-                return "PCF_SHADOW SHADOWCMP ";
-        #endif
+            {
+                if (graphics_->GetHardwareShadowSupport())
+                    return "PCF_SHADOW ";
+                else
+                    return "PCF_SHADOW SHADOWCMP ";
+            }
         case SHADOWQUALITY_PCF_24BIT:
             return "PCF_SHADOW ";
         case SHADOWQUALITY_VSM:

@@ -281,20 +281,21 @@ RenderDeviceGLImpl::RenderDeviceGLImpl(IReferenceCounters*       pRefCounters,
         m_DeviceInfo.NDC = NDCAttribs{-1.0f, 0.5f, 0.5f};
     }
 
-    if (m_GLCaps.FramebufferSRGB)
-    {
-        // When GL_FRAMEBUFFER_SRGB is enabled, and if the destination image is in the sRGB colorspace
-        // then OpenGL will assume the shader's output is in the linear RGB colorspace. It will therefore
-        // convert the output from linear RGB to sRGB.
-        // Any writes to images that are not in the sRGB format should not be affected.
-        // Thus this setting should be just set once and left that way
-        glEnable(GL_FRAMEBUFFER_SRGB);
-        if (glGetError() != GL_NO_ERROR)
-        {
-            LOG_ERROR_MESSAGE("Failed to enable SRGB framebuffers");
-            m_GLCaps.FramebufferSRGB = false;
-        }
-    }
+    // TODO: review this feature
+    //if (m_GLCaps.FramebufferSRGB)
+    //{
+    //    // When GL_FRAMEBUFFER_SRGB is enabled, and if the destination image is in the sRGB colorspace
+    //    // then OpenGL will assume the shader's output is in the linear RGB colorspace. It will therefore
+    //    // convert the output from linear RGB to sRGB.
+    //    // Any writes to images that are not in the sRGB format should not be affected.
+    //    // Thus this setting should be just set once and left that way
+    //    glEnable(GL_FRAMEBUFFER_SRGB);
+    //    if (glGetError() != GL_NO_ERROR)
+    //    {
+    //        LOG_ERROR_MESSAGE("Failed to enable SRGB framebuffers");
+    //        m_GLCaps.FramebufferSRGB = false;
+    //    }
+    //}
 
 #if PLATFORM_WIN32 || PLATFORM_LINUX || PLATFORM_MACOS
     if (m_GLCaps.SemalessCubemaps)

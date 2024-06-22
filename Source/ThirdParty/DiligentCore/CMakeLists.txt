@@ -8,7 +8,7 @@ include(GNUInstallDirs)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 # Generate XCode schemes
-set(CMAKE_XCODE_GENERATE_SCHEME TRUE)
+#set(CMAKE_XCODE_GENERATE_SCHEME TRUE)
 # Make malloc write 0xAA to newly allocated memory and 0x55 to deallocated memory
 set(CMAKE_XCODE_SCHEME_MALLOC_SCRIBBLE YES)
 # Place guard pages on each side of large (4096 bytes or more) buffers
@@ -204,7 +204,8 @@ elseif(PLATFORM_MACOS)
     set(ARCHIVER_SUPPORTED TRUE CACHE INTERNAL "Archiver is supported on MacOS platform")
     target_compile_definitions(Diligent-PublicBuildSettings INTERFACE PLATFORM_MACOS=1 PLATFORM_APPLE=1)
 elseif(PLATFORM_IOS)
-    set(GLES_SUPPORTED TRUE CACHE INTERNAL "OpenGLES is supported on iOS platform")
+    set(GLES_SUPPORTED     TRUE CACHE INTERNAL "OpenGLES is supported on iOS platform")
+    set(VULKAN_SUPPORTED   TRUE CACHE INTERNAL "Vulkan is enabled through MoltenVK on iOS platform")
     target_compile_definitions(Diligent-PublicBuildSettings INTERFACE PLATFORM_IOS=1 PLATFORM_APPLE=1)
 elseif(PLATFORM_TVOS)
     target_compile_definitions(Diligent-PublicBuildSettings INTERFACE PLATFORM_TVOS=1 PLATFORM_APPLE=1)

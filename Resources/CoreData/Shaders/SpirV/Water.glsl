@@ -4,7 +4,7 @@
 #include "ScreenPos.glsl"
 #include "Fog.glsl"
 
-#ifndef GL_ES
+#ifndef RENGINE_IS_GLES
     varying vec4 vScreenPos;
     varying vec2 vReflectUV;
     varying vec2 vWaterUV;
@@ -19,19 +19,17 @@
 varying vec3 vNormal;
 
 #ifdef COMPILEVS
-    layout(std140) uniform CustomVS 
-    {
+    UNIFORM_BEGIN(CustomVS) 
         vec2 cNoiseSpeed;
         float cNoiseTiling;
-    };
+    UNIFORM_END()
 #endif
 #ifdef COMPILEPS
-    layout(std140) uniform CustomPS 
-    {
+    UNIFORM_BEGIN(CustomPS) 
         float cNoiseStrength;
         float cFresnelPower;
         vec3 cWaterTint;
-    };
+    UNIFORM_END()
 #endif
 
 void VS()

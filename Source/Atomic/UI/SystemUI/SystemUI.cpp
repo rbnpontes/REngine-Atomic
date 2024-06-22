@@ -40,10 +40,13 @@ namespace Atomic
 {
 
 SystemUI::SystemUI(Atomic::Context* context)
-        : Object(context)
-          , vertexBuffer_(context)
-          , indexBuffer_(context)
+        : Object(context),
+        vertexBuffer_({}),
+        indexBuffer_({})
 {
+    vertexBuffer_ = ea::MakeShared<VertexBuffer>(context);
+    indexBuffer_ = ea::MakeShared<IndexBuffer>(context);
+
     ImGuiIO& io = ImGui::GetIO();
     io.KeyMap[ImGuiKey_Tab] = SCANCODE_TAB;
     io.KeyMap[ImGuiKey_LeftArrow] = SCANCODE_LEFT;
@@ -73,8 +76,12 @@ SystemUI::SystemUI(Atomic::Context* context)
     { return SDL_GetClipboardText(); };
 
     io.UserData = this;
-
+    
     io.Fonts->AddFontDefault();
+    
+    const auto scale = GetSubsystem<Graphics>()->GetScale();
+    uiScale_ = (scale.x_ + scale.y_) / 2.0f;
+    
     ReallocateFontTexture();
     UpdateProjectionMatrix();
 
@@ -96,7 +103,8 @@ void SystemUI::UpdateProjectionMatrix()
 {
     // Update screen size
     auto graphics = GetSubsystem<Graphics>();
-    ImGui::GetIO().DisplaySize = ImVec2((float)graphics->GetWidth(), (float)graphics->GetHeight());
+    const auto size = graphics->GetRenderSize();
+    ImGui::GetIO().DisplaySize = ImVec2((float)size.x_, (float)size.y_);
 
     // Update projection matrix
     IntVector2 viewSize = graphics->GetViewport().Size();
@@ -144,8 +152,13 @@ void SystemUI::OnRawEvent(VariantMap& args)
     case SDL_MOUSEBUTTONDOWN:
         io.MouseDown[evt->button.button - 1] = evt->type == SDL_MOUSEBUTTONDOWN;
     case SDL_MOUSEMOTION:
-        io.MousePos.x = evt->motion.x / uiScale_;
-        io.MousePos.y = evt->motion.y / uiScale_;
+        {
+            const auto scale = GetSubsystem<Graphics>()->GetScale();
+            io.MousePos.x = evt->motion.x / uiScale_;
+            io.MousePos.y = evt->motion.y / uiScale_;
+            io.MousePos.x *= scale.x_;
+            io.MousePos.y *= scale.y_;
+        }
         break;
     case SDL_FINGERUP:
         io.MouseDown[0] = false;
@@ -220,19 +233,19 @@ void SystemUI::OnRenderDrawLists(ImDrawData* data)
         // Resize vertex and index buffers on the fly. Once buffer becomes too small for data that is to be rendered
         // we reallocate buffer to be twice as big as we need now. This is done in order to minimize memory reallocation
         // in rendering loop.
-        if (cmd_list->VtxBuffer.Size > vertexBuffer_.GetVertexCount())
+        if (cmd_list->VtxBuffer.Size > vertexBuffer_->GetVertexCount())
         {
             PODVector<VertexElement> elems = {VertexElement(TYPE_VECTOR2, SEM_POSITION),
                                               VertexElement(TYPE_VECTOR2, SEM_TEXCOORD),
                                               VertexElement(TYPE_UBYTE4_NORM, SEM_COLOR)
             };
-            vertexBuffer_.SetSize((unsigned int)(cmd_list->VtxBuffer.Size * 2), elems, true);
+            vertexBuffer_->SetSize((unsigned int)(cmd_list->VtxBuffer.Size * 2), elems, true);
         }
-        if (cmd_list->IdxBuffer.Size > indexBuffer_.GetIndexCount())
-            indexBuffer_.SetSize((unsigned int)(cmd_list->IdxBuffer.Size * 2), false, true);
+        if (cmd_list->IdxBuffer.Size > indexBuffer_->GetIndexCount())
+            indexBuffer_->SetSize((unsigned int)(cmd_list->IdxBuffer.Size * 2), false, true);
 
-        vertexBuffer_.SetDataRange(cmd_list->VtxBuffer.Data, 0, (unsigned int)cmd_list->VtxBuffer.Size, true);
-        indexBuffer_.SetDataRange(cmd_list->IdxBuffer.Data, 0, (unsigned int)cmd_list->IdxBuffer.Size, true);
+        vertexBuffer_->SetDataRange(cmd_list->VtxBuffer.Data, 0, (unsigned int)cmd_list->VtxBuffer.Size, true);
+        indexBuffer_->SetDataRange(cmd_list->IdxBuffer.Data, 0, (unsigned int)cmd_list->IdxBuffer.Size, true);
 
         _graphics->ClearParameterSources();
         _graphics->SetColorWrite(true);
@@ -241,8 +254,8 @@ void SystemUI::OnRenderDrawLists(ImDrawData* data)
         _graphics->SetDepthWrite(false);
         _graphics->SetFillMode(FILL_SOLID);
         _graphics->SetStencilTest(false);
-        _graphics->SetVertexBuffer(&vertexBuffer_);
-        _graphics->SetIndexBuffer(&indexBuffer_);
+        _graphics->SetVertexBuffer(vertexBuffer_.get());
+        _graphics->SetIndexBuffer(indexBuffer_.get());
 
         for (const ImDrawCmd* cmd = cmd_list->CmdBuffer.begin(); cmd != cmd_list->CmdBuffer.end(); cmd++)
         {
@@ -288,7 +301,7 @@ void SystemUI::OnRenderDrawLists(ImDrawData* data)
                 _graphics->SetScissorTest(true, scissor);
                 _graphics->SetTexture(0, texture);
                 _graphics->Draw(TRIANGLE_LIST, idx_buffer_offset, cmd->ElemCount, 0, 0,
-                                vertexBuffer_.GetVertexCount());
+                                vertexBuffer_->GetVertexCount());
                 idx_buffer_offset += cmd->ElemCount;
             }
         }

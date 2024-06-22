@@ -21,6 +21,7 @@
 #
 
 include(CMakeParseArguments)
+include(TestBigEndian)
 
 # Source environment
 execute_process(COMMAND env OUTPUT_VARIABLE ENVIRONMENT)
@@ -176,12 +177,6 @@ macro(setup_library)
     get_target_property(LIB_TYPE ${TARGET_NAME} TYPE)
 
     setup_target()
-
-    # Setup the compiler flags for building shared library
-    if (LIB_TYPE STREQUAL SHARED_LIBRARY)
-        # Hide the symbols that are not explicitly marked for export
-        add_compiler_export_flags()
-    endif ()
 endmacro()
 
 # Macro for setting up an executable target
@@ -222,6 +217,49 @@ macro(replace_in_list substring replacement variable_list)
         string(REPLACE "${substring}" "${replacement}" ${single_variable} "${${single_variable}}")
     endforeach ()
 endmacro()
+
+function(yarn_get_command)
+    if(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
+        set(YARN_CMD "${ATOMIC_SOURCE_DIR}/Build/Windows/yarn-forward.bat" PARENT_SCOPE)
+    else()
+        set(YARN_CMD "yarn" PARENT_SCOPE)
+    endif()
+endfunction()
+
+macro(execute_yarn)
+    if(NOT DEFINED YARN_WORKING_DIR)
+        set(YARN_WORKING_DIR "${ATOMIC_SOURCE_DIR}/Build")
+    endif()
+
+    yarn_get_command()
+    if(DEFINED YARN_ARGS)
+        set(YARN_ARGS ${YARN_CMD} ${YARN_ARGS})
+    else()
+        set(YARN_ARGS ${YARN_CMD})
+    endif()
+
+    execute_process(
+        COMMAND ${YARN_ARGS}
+        WORKING_DIRECTORY "${YARN_WORKING_DIR}"
+        RESULTS_VARIABLE YARN_RESULT
+    )
+    if(NOT YARN_RESULT STREQUAL "0")
+        message(FATAL_ERROR "Failed to run yarn command. Args: ${YARN_ARGS}")
+    endif()
+endmacro()
+
+function(create_package resource_dir output_path)
+    message(STATUS "Creating package for: ${output_path}")
+    TEST_BIG_ENDIAN(IS_BIG_ENDIAN)
+    if (IS_BIG_ENDIAN)
+        set(pak_endianess "1")
+    else()
+        set(pak_endianess "0")
+    endif()
+
+    set (YARN_ARGS "pkg" "${resource_dir}" "${output_path}" "${pak_endianess}")
+    execute_yarn()
+endfunction()
 
 # Macro for setting msvc runtime flags globally.
 # Macro arguments:

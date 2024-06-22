@@ -31,6 +31,7 @@
 #include "UI.h"
 #include "UIView.h"
 #include "UIRenderer.h"
+#include "RHI/DriverInstance.h"
 
 using namespace tb;
 
@@ -64,6 +65,7 @@ UIView::UIView(Context* context) : UIWidget(context, false),
     widget_->SetSize(rect.w, rect.h);
 
     vertexBuffer_ = new VertexBuffer(context_);
+    vertexBuffer_->SetDebugName("UIView::VertexBuffer");
 
     ui_->AddUIView(this);
 
@@ -165,14 +167,14 @@ bool UIView::SetRenderToTexture(bool value, const int width, const int height)
     }
     else if (value && renderTexture_.Null())
     {
-        renderTexture_ = new Texture2D(context_);
+        renderTexture_ = new RenderTexture(context_);
         SetAutoFocus(false);
     }
 
     return SetSize(width, height);
 }
 
-bool UIView::SetSize(int width, int height)
+bool UIView::SetSizeInPixels(int width, int height)
 {
     if (!widget_)
         return false;
@@ -180,13 +182,14 @@ bool UIView::SetSize(int width, int height)
     if (width < UIVIEW_MIN_TEXTURE_SIZE || width > UIVIEW_MAX_TEXTURE_SIZE ||
         height < UIVIEW_MIN_TEXTURE_SIZE || height > UIVIEW_MAX_TEXTURE_SIZE)
     {
-        ATOMIC_LOGERROR("UIView::SetSize() - Attempting to set invalid size, failed");
+        ATOMIC_LOGERROR("UIView::SetSizeInPixels() - Attempting to set invalid size, failed");
         return false;
     }
 
     if (renderTexture_.NotNull())
     {
-        renderTexture_->SetSize(width, height, graphics_->GetRGBAFormat(), Atomic::TEXTURE_RENDERTARGET);
+        renderTexture_->SetSize(width, height);
+        renderTexture_->SetFormat(graphics_->GetRGBAFormat());
         renderTexture_->SetFilterMode(FILTER_BILINEAR);
         renderTexture_->SetAddressMode(COORD_U, ADDRESS_CLAMP);
         renderTexture_->SetAddressMode(COORD_V, ADDRESS_CLAMP);
@@ -195,7 +198,7 @@ bool UIView::SetSize(int width, int height)
 
     }
 
-    return UIWidget::SetSize(width, height);
+    return UIWidget::SetSizeInPixels(width, height);
 
 }
 
@@ -217,8 +220,7 @@ void UIView::Render(VertexBuffer* buffer, const PODVector<UIBatch>& batches, uns
     }
     else
     {
-        size.x_ = graphics_->GetWidth();
-        size.y_ = graphics_->GetHeight();
+        size = graphics_->GetRenderSize();
     }
 
     bool scissorEnabled = true;
@@ -229,8 +231,9 @@ void UIView::Render(VertexBuffer* buffer, const PODVector<UIBatch>& batches, uns
 
     // On OpenGL, flip the projection if rendering to a texture so that the texture can be addressed in the same way
     // as a render texture produced on Direct3D
-#ifdef ATOMIC_OPENGL
-    if (renderTexture_)
+    const auto backend = graphics_->GetBackend();
+    const auto is_opengl = backend == GraphicsBackend::OpenGL || backend == GraphicsBackend::OpenGLES;
+    if (is_opengl && renderTexture_)
     {
         // ATOMIC ISSUE: https://github.com/AtomicGameEngine/AtomicGameEngine/issues/1581
         // this needs to be fixed, scissors can't be disabled
@@ -239,7 +242,6 @@ void UIView::Render(VertexBuffer* buffer, const PODVector<UIBatch>& batches, uns
         offset.y_ = -offset.y_;
         scale.y_  = -scale.y_;
     }
-#endif
 
     Matrix4 projection(Matrix4::IDENTITY);
     projection.m00_ = scale.x_;
@@ -262,7 +264,7 @@ void UIView::Render(VertexBuffer* buffer, const PODVector<UIBatch>& batches, uns
 
     if (renderTexture_)
     {
-        graphics_->SetRenderTarget(0, renderTexture_->GetRenderSurface());
+        graphics_->SetRenderTarget(0, renderTexture_);
     }
 
     graphics_->SetViewport(rect);
@@ -376,7 +378,7 @@ void UIView::GetBatches(PODVector<UIBatch>& batches, PODVector<float>& vertexDat
 
 void UIView::SubmitBatchVertexData(Texture* texture, const PODVector<float>& vertexData)
 {
-    UIBatch b(BLEND_ALPHA , renderer_->currentScissor_, texture, &vertexData_);
+    UIBatch b(graphics_->GetBackend(), BLEND_ALPHA , renderer_->currentScissor_, texture, &vertexData_);
 
     unsigned begin = b.vertexData_->Size();
     b.vertexData_->Resize(begin + vertexData.Size());

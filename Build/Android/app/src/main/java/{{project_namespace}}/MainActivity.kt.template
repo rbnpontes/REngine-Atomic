@@ -1,0 +1,41 @@
+package {{project_namespace}}
+import android.content.Context
+import android.os.Bundle
+import org.libsdl.app.SDLActivity
+import java.io.File
+
+class MainActivity : SDLActivity() {
+    companion object {
+        const val TAG = "REngine"
+
+        private val regex = Regex("^lib(.*)\\.so$")
+        @JvmStatic
+        fun getLibraryNames(context: Context) = File(context.applicationInfo.nativeLibraryDir)
+            .listFiles { _, it -> regex.matches(it) }!!
+            .sortedBy { it.lastModified() }
+            .map {
+                regex.find(it.name)?.groupValues?.last() ?: throw IllegalStateException()
+            }
+
+    }
+
+    @Override
+    override fun getArguments(): Array<String> {
+        return emptyArray()
+    }
+
+    @Override
+    override fun onBackPressed() {
+        finish()
+    }
+
+    @Override
+    override fun getLibraries(): Array<String> {
+        return arrayOf(
+            "EASTL",
+            "FreeType",
+            "Atomic",
+            "{{app_name}}"
+        )
+    }
+}

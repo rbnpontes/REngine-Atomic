@@ -255,7 +255,7 @@ void RenderPathCommand::RemoveShaderParameter(const String& name)
 
 void RenderPathCommand::SetNumOutputs(unsigned num)
 {
-    num = (unsigned)Clamp((int)num, 1, MAX_RENDERTARGETS);
+    num = (unsigned)Clamp((int)num, 1, (i32)MAX_RENDERTARGETS);
     outputs_.Resize(num);
 }
 

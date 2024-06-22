@@ -1,5 +1,5 @@
 {
-  "name": "atomic-editor",
+  "name": "rengine-build-tools",
   "license": "MIT",
   "author": {
     "name": "Ruben Gomes",
@@ -10,17 +10,37 @@
   },
   "engineStrict": true,
   "scripts": {
-    "build" : "jake -f ./Scripts/Bootstrap.js",
-    "build:vs2022": "node ./Scripts/Bootstrap.js --task=build:genvs2022"
+    "build": "jake -f ./Scripts/Bootstrap.js",
+    "build:vs2015": "node ./Scripts/Bootstrap.js --task=build:genvs2015",
+    "build:vs2017": "node ./Scripts/Bootstrap.js --task=build:genvs2017",
+    "build:vs2022": "node ./Scripts/Bootstrap.js --task=build:genvs2022",
+    "editor:build": "node ./Scripts/Bootstrap.js --task=editor:build",
+    "editor:gen": "node ./Scripts/Bootstrap.js --task=editor:gen",
+    "editor:firstphase": "node ./Scripts/Bootstrap.js --task=editor:firstphase",
+    "editor:secondphase": "node ./Scripts/Bootstrap.js --task=editor:secondphase",
+    "editor:cpybins": "node ./Scripts/Bootstrap.js --task=editor:cpybins",
+    "editor:pkg": "node ./Scripts/Bootstrap.js --task=editor:pkg",
+    "editor:clean" : "node ./Scripts/Bootstrap.js --task=editor:clean",
+    "android:gen": "node ./Scripts/Bootstrap.js --task=android:gen",
+    "android:genproj": "jake -f ./Scripts/Bootstrap.js android:genproj",
+    "android:build": "node ./Scripts/Bootstrap.js --task=android:build",
+    "android:buildres": "node ./Scripts/Bootstrap.js --task=android:buildres",
+    "android:clrlibs": "node ./Scripts/Bootstrap.js --task=android:clrlibs",
+    "android:cpylibs": "node ./Scripts/Bootstrap.js --task=android:cpylibs",
+    "android:full": "node ./Scripts/Bootstrap.js --task=android:full",
+    "pkg": "node ./Scripts/PackageToolCommand.js",
+    "win:setupvsenvs": "node ./Scripts/Bootstrap.js --task=win:setupvsenvs"
   },
   "dependencies": {
+    "archiver": "^7.0.1",
     "dts-generator": "^2.0.0",
     "fs-extra": "^11.2.0",
-    "glob": "^6.0.3",
+    "glob": "^10.3.12",
     "jake": "^10.8.7",
     "monaco-editor": "^0.9.0",
     "tslint": "^3.2.0",
-    "typescript": "^2.4.1"
+    "typescript": "^2.4.1",
+    "uuid": "^9.0.1"
   },
   "devDependencies": {}
 }

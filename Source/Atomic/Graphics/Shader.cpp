@@ -99,12 +99,6 @@ bool Shader::BeginLoad(Deserializer& source)
     CommentOutFunction(vsSourceCode_, "void PS(");
     CommentOutFunction(psSourceCode_, "void VS(");
 
-    // OpenGL: rename either VS() or PS() to main()
-#ifdef ATOMIC_OPENGL
-    vsSourceCode_.Replace("void VS(", "void main(");
-    psSourceCode_.Replace("void PS(", "void main(");
-#endif
-
     RefreshMemoryUse();
     return true;
 }

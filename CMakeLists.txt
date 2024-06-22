@@ -1,7 +1,9 @@
+set(CMAKE_OSX_DEPLOYMENT_TARGET "10.13" CACHE STRING "Minimum OS X deployment version")
+set (CMAKE_CXX_STANDARD 20)
 
 project(Atomic)
 
-cmake_minimum_required(VERSION 3.3)
+cmake_minimum_required(VERSION 3.22.1)
 
 set(ATOMIC_SOURCE_DIR ${Atomic_SOURCE_DIR})
 set(CMAKE_MODULE_PATH ${ATOMIC_SOURCE_DIR}/Build/CMake/Modules)
@@ -9,6 +11,7 @@ set(CMAKE_MODULE_PATH ${ATOMIC_SOURCE_DIR}/Build/CMake/Modules)
 include(AtomicGit)
 include(AtomicUtils)
 include(AtomicCommon)
+include(EngineOptions)
 
 if ("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
     set (ATOMIC_RELEASE_OFF OFF)
@@ -20,13 +23,15 @@ endif ()
 
 add_definitions(-DATOMIC_ROOT_SOURCE_DIR="${ATOMIC_SOURCE_DIR}" -DATOMIC_ROOT_BUILD_DIR="${CMAKE_BINARY_DIR}")
 
-if (NOT DEFINED ATOMIC_DEV_BUILD)
-    set(ATOMIC_DEV_BUILD 1)
-ENDIF ()
-
-if (ATOMIC_DEV_BUILD)
-    add_definitions("-DATOMIC_DEV_BUILD=1")
+if (RENGINE_DEV_BUILD)
+    add_definitions("-DATOMIC_DEV_BUILD=1 -DRENGINE_DEV_BUILD=1")
 endif ()
+
+if(NOT DEFINED ENV{VULKAN_SDK})
+    message(FATAL_ERROR "VULKAN_SDK environment variable is required to build REngine.")
+endif()
+
+set(VULKAN_SDK $ENV{VULKAN_SDK})
 
 include(AtomicPlatform)
 
@@ -36,19 +41,15 @@ if (CLDOC)
 endif ()
 
 if (ATOMIC_WEBVIEW)
-
     if (APPLE)
         if (POLICY CMP0037)
             # new cmake doesn't like creating framework whose name has spaces
             # which CEF3 scripts (including shell) currently require on OSX
             cmake_policy(SET CMP0037 OLD)
         endif ()
-        set(CEF_ROOT "${ATOMIC_SOURCE_DIR}/Submodules/CEF/MacOSX")
+        set(CEF_ROOT "${ATOMIC_SOURCE_DIR}/Submodules/CEF/MacOSX/${PROJECT_ARCH}")
     elseif (WIN32)
-        if (ATOMIC_PROJECT_ARCH STREQUAL "x86")
-        else ()
-            set(CEF_ROOT "${ATOMIC_SOURCE_DIR}/Submodules/CEF/Windows/64bit")
-        endif ()
+        set(CEF_ROOT "${ATOMIC_SOURCE_DIR}/Submodules/CEF/Windows")
     else ()
         set(CEF_ROOT "${ATOMIC_SOURCE_DIR}/Submodules/CEF/Linux")
     endif ()
@@ -62,14 +63,14 @@ endif ()
 
 add_subdirectory(Source)
 
-if (ATOMIC_DESKTOP AND ATOMIC_DEV_BUILD)
+if (ATOMIC_DEV_BUILD)
     if (NOT DEFINED ATOMIC_CPLUSPLUS_EXAMPLES)
         set(ATOMIC_CPLUSPLUS_EXAMPLES 1)
     endif ()
     if (ATOMIC_CPLUSPLUS_EXAMPLES)
-        initialize_submodule(${ATOMIC_SOURCE_DIR}/Submodules/AtomicExamples ATOMIC_CPLUSPLUS_EXAMPLES)
+        initialize_submodule(${ATOMIC_SOURCE_DIR}/Submodules/EngineExamples ATOMIC_CPLUSPLUS_EXAMPLES)
         if (ATOMIC_CPLUSPLUS_EXAMPLES)
-            add_subdirectory(Submodules/AtomicExamples/FeatureExamples/CPlusPlus)
+            add_subdirectory(Submodules/EngineExamples/FeatureExamples/CPlusPlus)
         endif ()
     endif ()
 endif ()

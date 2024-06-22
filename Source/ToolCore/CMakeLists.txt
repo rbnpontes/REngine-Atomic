@@ -7,6 +7,7 @@ if (APPLE)
     set (SOURCE_FILES ${SOURCE_FILES} ${OBJC_FILES})
 endif()
 
+set(CMAKE_CXX_STANDARD 20)
 add_library(ToolCore ${SOURCE_FILES})
 
 target_link_libraries(ToolCore Assimp Poco Atomic)

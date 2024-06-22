@@ -14,7 +14,7 @@ varying vec2 vTexCoord;
     };
 #endif
 
-#ifndef GL_ES
+#ifndef RENGINE_IS_GLES
 varying vec2 vDetailTexCoord;
 #else
 varying mediump vec2 vDetailTexCoord;
@@ -24,7 +24,7 @@ varying vec3 vNormal;
 varying vec4 vWorldPos;
 #ifdef PERPIXEL
     #ifdef SHADOW
-        #ifndef GL_ES
+        #ifndef RENGINE_IS_GLES
             varying vec4 vShadowPos[NUMCASCADES];
         #else
             varying highp vec4 vShadowPos[NUMCASCADES];

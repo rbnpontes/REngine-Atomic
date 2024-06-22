@@ -112,23 +112,25 @@ void ShaderPrecache::LoadShaders(Graphics* graphics, Deserializer& source)
     xmlFile.Load(source);
 
     XMLElement shader = xmlFile.GetRoot().GetChild("shader");
+    const auto backend = graphics->GetBackend();
     while (shader)
     {
         String vsDefines = shader.GetAttribute("vsdefines");
         String psDefines = shader.GetAttribute("psdefines");
 
         // Check for illegal variations on OpenGL ES and skip them
-#ifdef GL_ES_VERSION_2_0
-        if (
+        if(backend == GraphicsBackend::OpenGLES)
+        {
+	        if(
 #ifndef __EMSCRIPTEN__
             vsDefines.Contains("INSTANCED") ||
 #endif
             (psDefines.Contains("POINTLIGHT") && psDefines.Contains("SHADOW")))
-        {
-            shader = shader.GetNext("shader");
-            continue;
+	        {
+                shader = shader.GetNext("shader");
+                continue;
+	        }
         }
-#endif
 
         ShaderVariation* vs = graphics->GetShader(VS, shader.GetAttribute("vs"), vsDefines);
         ShaderVariation* ps = graphics->GetShader(PS, shader.GetAttribute("ps"), psDefines);

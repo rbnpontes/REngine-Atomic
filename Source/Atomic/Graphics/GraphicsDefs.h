@@ -26,9 +26,7 @@
 #include "../Math/StringHash.h"
 #include "../Math/MathDefs.h"
 
-#if RENGINE_DILIGENT
 #include <DiligentCore/Graphics/GraphicsEngine/interface/GraphicsTypes.h>
-#endif
 
 namespace Atomic
 {
@@ -42,18 +40,15 @@ class Vector3;
 #define DESKTOP_GRAPHICS
 #endif
 
-#if RENGINE_DILIGENT
-    typedef Diligent::TEXTURE_FORMAT TextureFormat;
-#else
-    typedef unsigned TextureFormat;
-#endif
+typedef Diligent::TEXTURE_FORMAT TextureFormat;
 
 enum class GraphicsBackend : uint8_t
 {
     D3D11,
     D3D12,
     Vulkan,
-    OpenGL
+    OpenGL,
+    OpenGLES
 };
 
 enum GraphicsClearFlags
@@ -64,12 +59,14 @@ enum GraphicsClearFlags
     GRAPHICS_CLEAR_SCRATCH_BUFFERS = 1 << 4,
     GRAPHICS_CLEAR_VERTEX_DECLARATIONS = 1 << 5,
     GRAPHICS_CLEAR_CONSTANT_BUFFERS = 1 << 6,
+    GRAPHICS_CLEAR_TEXTURES = 1 << 7,
     GRAPHICS_CLEAR_ALL = GRAPHICS_CLEAR_SHADER_PROGRAMS
 	| GRAPHICS_CLEAR_PIPELINES
 	| GRAPHICS_CLEAR_SRB
 	| GRAPHICS_CLEAR_SCRATCH_BUFFERS
     | GRAPHICS_CLEAR_VERTEX_DECLARATIONS
     | GRAPHICS_CLEAR_CONSTANT_BUFFERS
+    | GRAPHICS_CLEAR_TEXTURES
 };
     
 /// Primitive type.
@@ -356,7 +353,6 @@ enum TextureUnit
     TU_SPECULAR,
     TU_EMISSIVE,
     TU_ENVIRONMENT,
-#ifdef DESKTOP_GRAPHICS
     TU_VOLUMEMAP,
     TU_CUSTOM1,
     TU_CUSTOM2,
@@ -370,19 +366,10 @@ enum TextureUnit
     TU_ZONE,
     TU_ALBEDOBUFFER,
     TU_NORMALBUFFER,
-#else
-    TU_LIGHTRAMP,
-    TU_LIGHTSHAPE,
-    TU_SHADOWMAP,
-#endif
     MAX_TEXTURE_UNITS,
 };
 
-#ifdef DESKTOP_GRAPHICS
-    #define MAX_MATERIAL_TEXTURE_UNITS 8
-#else
-    #define MAX_MATERIAL_TEXTURE_UNITS 5
-#endif
+#define MAX_MATERIAL_TEXTURE_UNITS 8
 
 /// Billboard camera facing modes.
 enum FaceCameraMode
@@ -536,7 +523,7 @@ static const unsigned MASK_INSTANCEMATRIX2 = 0x800;
 static const unsigned MASK_INSTANCEMATRIX3 = 0x1000;
 static const unsigned MASK_OBJECTINDEX = 0x2000;
 
-static const int MAX_RENDERTARGETS = 4;
+static const u8 MAX_RENDERTARGETS = 4;
 static const int MAX_VERTEX_STREAMS = 4;
 static const int MAX_CONSTANT_REGISTERS = 256;
 static const int MAX_IMMUTABLE_SAMPLERS = 16;

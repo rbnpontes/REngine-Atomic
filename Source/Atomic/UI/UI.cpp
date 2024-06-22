@@ -104,16 +104,6 @@ using namespace tb;
 #include "SystemUI/Console.h"
 #include "SystemUI/MessageBox.h"
 
-namespace tb
-{
-
-void TBSystem::RescheduleTimer(double fire_time)
-{
-
-}
-
-}
-
 namespace Atomic
 {
 
@@ -228,9 +218,8 @@ void UI::Initialize(const String& languageFile)
 
     rootWidget_ = new TBWidget();
 
-    int width = graphics_->GetWidth();
-    int height = graphics_->GetHeight();
-    rootWidget_->SetSize(width, height);
+    const auto size = graphics_->GetRenderSize();
+    rootWidget_->SetSize(size.x_, size.y_);
     rootWidget_->SetVisibilility(tb::WIDGET_VISIBILITY_VISIBLE);
 
     SubscribeToEvent(E_UPDATE, ATOMIC_HANDLER(UI, HandleUpdate));
@@ -368,6 +357,8 @@ void UI::SetFocusedView(UIView* uiView)
 
 void UI::Render(bool resetRenderTargets)
 {
+    const auto command = graphics_->GetDrawCommand();
+    command->BeginDebug("UI Pass", Color::BLUE);
     Vector<SharedPtr<UIView>>::Iterator itr = uiViews_.Begin();
 
     while (itr != uiViews_.End())
@@ -376,7 +367,7 @@ void UI::Render(bool resetRenderTargets)
 
         itr++;
     }
-
+    command->EndDebug();
 }
 
 
@@ -469,7 +460,9 @@ bool UI::LoadResourceFile(TBWidget* widget, const String& filename)
 void UI::HandleScreenMode(StringHash eventType, VariantMap& eventData)
 {
     using namespace ScreenMode;
-    rootWidget_->SetSize(eventData[P_WIDTH].GetInt(), eventData[P_HEIGHT].GetInt());
+    const auto width = eventData[P_RENDER_WIDTH].GetInt();
+    const auto height = eventData[P_RENDER_HEIGHT].GetInt();
+    rootWidget_->SetSize(width, height);
 }
 
 void UI::HandleUpdate(StringHash eventType, VariantMap& eventData)

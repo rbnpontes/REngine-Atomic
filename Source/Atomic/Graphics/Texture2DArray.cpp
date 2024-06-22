@@ -47,13 +47,6 @@ Texture2DArray::Texture2DArray(Context* context) :
     Texture(context),
     layers_(0)
 {
-#ifdef ATOMIC_OPENGL
-#ifndef GL_ES_VERSION_2_0
-    target_ = GL_TEXTURE_2D_ARRAY;
-#else
-    target_ = 0;
-#endif
-#endif
 }
 
 Texture2DArray::~Texture2DArray()
