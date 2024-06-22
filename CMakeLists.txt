@@ -40,27 +40,6 @@ if (CLDOC)
     add_custom_target(docs DEPENDS AtomicEngineDocs)
 endif ()
 
-if (ATOMIC_WEBVIEW)
-    if (APPLE)
-        if (POLICY CMP0037)
-            # new cmake doesn't like creating framework whose name has spaces
-            # which CEF3 scripts (including shell) currently require on OSX
-            cmake_policy(SET CMP0037 OLD)
-        endif ()
-        set(CEF_ROOT "${ATOMIC_SOURCE_DIR}/Submodules/CEF/MacOSX/${PROJECT_ARCH}")
-    elseif (WIN32)
-        set(CEF_ROOT "${ATOMIC_SOURCE_DIR}/Submodules/CEF/Windows")
-    else ()
-        set(CEF_ROOT "${ATOMIC_SOURCE_DIR}/Submodules/CEF/Linux")
-    endif ()
-
-    set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CEF_ROOT}/cmake")
-    find_package(CEF REQUIRED)
-    include_directories(${CEF_ROOT})
-
-    add_subdirectory(${CEF_LIBCEF_DLL_WRAPPER_PATH} libcef_dll_wrapper)
-endif ()
-
 add_subdirectory(Source)
 
 if (ATOMIC_DEV_BUILD)
