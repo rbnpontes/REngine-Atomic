@@ -20,7 +20,7 @@
     "editor:secondphase": "node ./Scripts/Bootstrap.js --task=editor:secondphase",
     "editor:cpybins": "node ./Scripts/Bootstrap.js --task=editor:cpybins",
     "editor:pkg": "node ./Scripts/Bootstrap.js --task=editor:pkg",
-    "editor:clean" : "node ./Scripts/Bootstrap.js --task=editor:clean",
+    "editor:clean": "node ./Scripts/Bootstrap.js --task=editor:clean",
     "android:gen": "node ./Scripts/Bootstrap.js --task=android:gen",
     "android:genproj": "jake -f ./Scripts/Bootstrap.js android:genproj",
     "android:build": "node ./Scripts/Bootstrap.js --task=android:build",
@@ -33,6 +33,7 @@
   },
   "dependencies": {
     "archiver": "^7.0.1",
+    "axios": "^1.7.2",
     "dts-generator": "^2.0.0",
     "fs-extra": "^11.2.0",
     "glob": "^10.3.12",
