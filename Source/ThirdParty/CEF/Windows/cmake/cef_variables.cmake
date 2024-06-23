@@ -231,10 +231,10 @@ if(OS_WINDOWS)
     )
 
   # CEF directory paths.
-  set(CEF_RESOURCE_DIR        "${ATOMIC_SOURCE_DIR}/Artifacts/CEF/Windows/Resources")
-  set(CEF_BINARY_DIR          "${ATOMIC_SOURCE_DIR}/Artifacts/CEF/Windows/Libs")
-  set(CEF_BINARY_DIR_DEBUG    "${ATOMIC_SOURCE_DIR}/Artifacts/CEF/Windows/Libs")
-  set(CEF_BINARY_DIR_RELEASE  "${ATOMIC_SOURCE_DIR}/Artifacts/CEF/Windows/Libs")
+  set(CEF_RESOURCE_DIR        "${ATOMIC_SOURCE_DIR}/Artifacts/CEF/Resources")
+  set(CEF_BINARY_DIR          "${ATOMIC_SOURCE_DIR}/Artifacts/CEF/Windows")
+  set(CEF_BINARY_DIR_DEBUG    "${ATOMIC_SOURCE_DIR}/Artifacts/CEF/Windows")
+  set(CEF_BINARY_DIR_RELEASE  "${ATOMIC_SOURCE_DIR}/Artifacts/CEF/Windows")
 
   # CEF library paths.
   set(CEF_LIB_DEBUG   "${CEF_BINARY_DIR_DEBUG}/libcef.lib")

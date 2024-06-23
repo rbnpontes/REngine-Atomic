@@ -1,6 +1,7 @@
 const path = require('path');
 const axios = require('axios');
 const fs = require('fs-extra');
+const seven = require('node-7z');
 const { engineGetRoot, engineGetArtifactsRoot } = require('../Utils/EngineUtils');
 /**
  * @typedef {Object} CefBinInfoBinaries
@@ -12,6 +13,8 @@ const { engineGetRoot, engineGetArtifactsRoot } = require('../Utils/EngineUtils'
  * @typedef {Object} CefBinInfo
  * @property {string} resources
  * @property {CefBinInfoBinaries} binaries
+ * 
+ * @typedef {'Windows' | 'Linux' | 'MacOS_arm64' | 'MacOS_x86_64'} CefPlatformType
  */
 
 /**
@@ -75,7 +78,7 @@ async function _downloadData(identifier, url, target_path, noclean) {
 
 /**
  * Download CEF Binaries
- * @param {'Windows' | 'Linux' | 'MacOS_arm64' | 'MacOS_x86_64'} platform 
+ * @param {CefPlatformType} platform 
  * @param {Boolean} noclean
  */
 async function fetchCefBinaries(platform, noclean) {
@@ -99,7 +102,40 @@ async function fetchCefResources(noclean) {
     await _downloadData(filename, bin_info.resources, output_path, noclean);
 }
 
+/**
+ * Extract CEF binaries
+ * @param {CefPlatformType} platform 
+ * @returns 
+ */
+async function extractCefBinaries(platform) {
+    const archive_name = platform + '.7zip';
+    const output_path = path.resolve(engineGetArtifactsRoot(), 'CEF', platform);
+    const target_path = path.resolve(engineGetArtifactsRoot(), 'CEF', archive_name);
+
+    if(fs.existsSync(output_path)) {
+        console.log(`- ${archive_name} is already extracted. Skipping!!!`);
+        return;
+    }
+
+    seven.extractFull(target_path, output_path);
+}
+
+async function extractCefResources() {
+    const archive_name = 'Resources.7zip';
+    const output_path = path.resolve(engineGetArtifactsRoot(), 'CEF', 'Resources');
+    const target_path = path.resolve(engineGetArtifactsRoot(), 'CEF', archive_name);
+
+    if(fs.existsSync(output_path)) {
+        console.log(`- ${archive_name} is already extracted. Skipping!!!`);
+        return;
+    }
+
+    seven.extractFull(target_path, output_path);
+}
+
 module.exports = {
     fetchCefBinaries,
-    fetchCefResources
+    fetchCefResources,
+    extractCefBinaries,
+    extractCefResources
 };

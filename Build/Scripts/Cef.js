@@ -1,4 +1,4 @@
-const { fetchCefBinaries, fetchCefResources } = require("./Tasks/CefTask");
+const { fetchCefBinaries, fetchCefResources, extractCefBinaries, extractCefResources } = require("./Tasks/CefTask");
 /** @type {Boolean} */
 const noclean = require('./BuildConfig')['noclean'];
 namespace('cef', ()=> {
@@ -17,6 +17,23 @@ namespace('cef', ()=> {
         });
         task('resources', async ()=> {
             await fetchCefResources(noclean);
+        });
+    });
+    namespace('extract', ()=> {
+        task('windows', async ()=> {
+            await extractCefBinaries('Windows');
+        });
+        task('linux', async ()=> {
+            await extractCefBinaries('Linux');
+        });
+        task('macosx-arm64', async ()=> {
+            await extractCefBinaries('MacOS_arm64');
+        });
+        task('macosx-x86-64', async ()=> {
+            await extractCefBinaries('MacOS_x86_64');
+        });
+        task('resources', async ()=> {
+            await extractCefResources();
         });
     });
 });
