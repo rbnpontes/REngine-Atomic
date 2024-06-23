@@ -1,39 +1,49 @@
-const { fetchCefBinaries, fetchCefResources, extractCefBinaries, extractCefResources } = require("./Tasks/CefTask");
+const { 
+    cefFetchBinaries,
+    cefFetchResources,
+    cefExtractBinaries,
+    cefExtractResources,
+    cefPrepare
+} = require("./Tasks/CefTask");
 /** @type {Boolean} */
 const noclean = require('./BuildConfig')['noclean'];
 namespace('cef', ()=> {
-    namespace('download', ()=> {
-        task('windows', async ()=> {
-            await fetchCefBinaries('Windows', noclean);
+    [
+        ['windows', 'Windows'],
+        ['linux', 'Linux'],
+        ['macos-arm64', 'MacOS_arm64'],
+        ['macos-x86-64', 'MacOS_x86_64'],
+    ].forEach(x => {
+        const [task_name, platform] = x;
+
+        namespace('prepare', ()=> {
+            task(task_name, async ()=> {
+                await cefPrepare(platform);
+            });
         });
-        task('linux', async ()=> {
-            await fetchCefBinaries('Linux', noclean);
+
+        namespace('download', ()=> {
+            task(task_name, async ()=> {
+                await cefFetchBinaries(platform, noclean);
+            });
         });
-        task('macosx-arm64', async ()=> {
-            await fetchCefBinaries('MacOS_arm64', noclean);
-        });
-        task('macosx-x86-64', async ()=> {
-            await fetchCefBinaries('MacOS_x86_64', noclean);
-        });
-        task('resources', async ()=> {
-            await fetchCefResources(noclean);
+
+        namespace('extract', ()=> {
+            task(task_name, async ()=> {
+                await cefExtractBinaries(platform);
+            });
         });
     });
-    namespace('extract', ()=> {
-        task('windows', async ()=> {
-            await extractCefBinaries('Windows');
-        });
-        task('linux', async ()=> {
-            await extractCefBinaries('Linux');
-        });
-        task('macosx-arm64', async ()=> {
-            await extractCefBinaries('MacOS_arm64');
-        });
-        task('macosx-x86-64', async ()=> {
-            await extractCefBinaries('MacOS_x86_64');
-        });
+
+    namespace('download', ()=> {
         task('resources', async ()=> {
-            await extractCefResources();
+            await cefFetchResources(noclean);
+        });
+    });
+
+    namespace('extract', ()=> {
+        task('resources', async ()=> {
+            await cefExtractResources();
         });
     });
 });

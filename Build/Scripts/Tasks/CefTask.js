@@ -81,7 +81,7 @@ async function _downloadData(identifier, url, target_path, noclean) {
  * @param {CefPlatformType} platform 
  * @param {Boolean} noclean
  */
-async function fetchCefBinaries(platform, noclean) {
+async function cefFetchBinaries(platform, noclean) {
     const filename = platform+'.7zip';
     const output_path = path.resolve(engineGetArtifactsRoot(), 'CEF', filename);
     const bin_info = _getCefBinInfo();
@@ -95,7 +95,7 @@ async function fetchCefBinaries(platform, noclean) {
  * Download CEF Resources
  * @param {Boolean} noclean 
  */
-async function fetchCefResources(noclean) {
+async function cefFetchResources(noclean) {
     const filename = 'Resources.7zip';
     const output_path = path.resolve(engineGetArtifactsRoot(), 'CEF', filename);
     const bin_info = _getCefBinInfo();
@@ -107,7 +107,8 @@ async function fetchCefResources(noclean) {
  * @param {CefPlatformType} platform 
  * @returns 
  */
-async function extractCefBinaries(platform) {
+async function cefExtractBinaries(platform) {
+    console.log('- Extracting Binaries of '+platform);
     const archive_name = platform + '.7zip';
     const output_path = path.resolve(engineGetArtifactsRoot(), 'CEF', platform);
     const target_path = path.resolve(engineGetArtifactsRoot(), 'CEF', archive_name);
@@ -118,9 +119,14 @@ async function extractCefBinaries(platform) {
     }
 
     seven.extractFull(target_path, output_path);
-}
 
-async function extractCefResources() {
+    console.log(`- ${platform} binaries has been extracted with success!`);
+}
+/**
+ * Extract CEF resources
+ */
+async function cefExtractResources() {
+    console.log('- Extracing CEF Resources');
     const archive_name = 'Resources.7zip';
     const output_path = path.resolve(engineGetArtifactsRoot(), 'CEF', 'Resources');
     const target_path = path.resolve(engineGetArtifactsRoot(), 'CEF', archive_name);
@@ -131,11 +137,51 @@ async function extractCefResources() {
     }
 
     seven.extractFull(target_path, output_path);
+
+    console.log('- CEF Resources has been extrated with success!');
+}
+
+/**
+ * Validate CEF resources
+ * @param {CefPlatformType} platform
+ */
+async function cefPrepare(platform) {
+    const artifacts_cef_root = path.join(engineGetArtifactsRoot(), 'CEF');
+    const has_downloaded_bin = ()=> {
+        return fs.existsSync(path.resolve(artifacts_cef_root, platform + '.7zip'));
+    };
+    const has_downloaded_res = ()=> {
+        // On MacOS, we must skip resource download
+        if(process.platform == 'darwin')
+            return true;
+        return fs.existsSync(path.resolve(artifacts_cef_root, 'Resources.7zip'));
+    };
+    const has_extracted_bin = ()=> {
+        return fs.existsSync(path.resolve(artifacts_cef_root, platform));
+    };
+    const has_extracted_res = ()=> {
+        if(process.platform == 'darwin')
+            return true;
+        return fs.existsSync(path.resolve(artifacts_cef_root, 'Resources'));
+    };
+
+    console.log('- Preparing CEF Dependencies');
+    if(!has_downloaded_bin())
+        await cefFetchBinaries(platform);
+    if(!has_downloaded_res())
+        await cefFetchResources(platform);
+    if(!has_extracted_bin())
+        await cefExtractBinaries(platform);
+    if(!has_extracted_res())
+        await cefExtractResources(platform);
+
+    console.log('- Finished CEF Dependencies');
 }
 
 module.exports = {
-    fetchCefBinaries,
-    fetchCefResources,
-    extractCefBinaries,
-    extractCefResources
+    cefFetchBinaries,
+    cefFetchResources,
+    cefExtractBinaries,
+    cefExtractResources,
+    cefPrepare
 };
