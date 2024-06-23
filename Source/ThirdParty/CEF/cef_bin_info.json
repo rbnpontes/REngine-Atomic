@@ -2,8 +2,8 @@
     "binaries" : {
         "Windows" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/cef%2FWindows.7z?alt=media",
         "Linux" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/cef%2FLinux.7z?alt=media",
-        "MacOS-arm64" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/cef%2FMacOSX-arm64.7z?alt=media",
-        "MacOS-x86_64" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/cef%2FMacOSX-x86_64.7z?alt=media&token=7780beab-87a6-4c3e-b2fc-29b754c1c0ff"
+        "MacOS_arm64" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/cef%2FMacOSX-arm64.7z?alt=media",
+        "MacOS_x86_64" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/cef%2FMacOSX-x86_64.7z?alt=media&token=7780beab-87a6-4c3e-b2fc-29b754c1c0ff"
     },
     "resources" : "https://firebasestorage.googleapis.com/v0/b/rengine-libs.appspot.com/o/cef%2FResources.7z?alt=media"
 }

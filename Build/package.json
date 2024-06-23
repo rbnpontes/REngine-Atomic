@@ -29,7 +29,12 @@
     "android:cpylibs": "node ./Scripts/Bootstrap.js --task=android:cpylibs",
     "android:full": "node ./Scripts/Bootstrap.js --task=android:full",
     "pkg": "node ./Scripts/PackageToolCommand.js",
-    "win:setupvsenvs": "node ./Scripts/Bootstrap.js --task=win:setupvsenvs"
+    "win:setupvsenvs": "node ./Scripts/Bootstrap.js --task=win:setupvsenvs",
+    "cef:download:windows" : "node ./Scripts/Bootstrap.js --task=cef:download:windows",
+    "cef:download:linux" : "node ./Scripts/Bootstrap.js --task=cef:download:linux",
+    "cef:download:macosx-arm64" : "node ./Scripts/Bootstrap.js --task=cef:download:macos-arm64",
+    "cef:download:macosx-x86-64" : "node ./Scripts/Bootstrap.js --task=cef:download:macos-x86-64",
+    "cef:download:resources" : "node ./Scripts/Bootstrap.js --task=cef:download:resources"
   },
   "dependencies": {
     "archiver": "^7.0.1",
