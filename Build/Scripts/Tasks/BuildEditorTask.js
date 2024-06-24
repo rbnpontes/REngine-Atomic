@@ -77,9 +77,9 @@ async function editorBuildFirstPhase() {
     const build_func_tbl = {
         win32: async () => {
             // Execute Build Windows
-            await visualStudioDefineVsToolsEnv();
+            const vs_tools_path = await visualStudioDefineVsToolsEnv();
             const compile_script = path.resolve(__dirname, '../Windows/CompileAtomicEditorPhase1.bat');
-            return await execAsync(compile_script, [config.config], { cwd: build_dir });
+            return await execAsync(compile_script, [config.config, vs_tools_path], { cwd: build_dir });
         },
         linux: async () => {
             // Execute Build Linux
@@ -119,9 +119,9 @@ async function editorBuildSecondPhase() {
     const build_dir = editorGetBuildDirectory();
     const build_func_tbl = {
         win32: async () => {
-            await visualStudioDefineVsToolsEnv();
+            const vs_tools_path = await visualStudioDefineVsToolsEnv();
             const compile_script = path.resolve(__dirname, '../Windows/CompileAtomicEditorPhase2.bat');
-            return await execAsync(compile_script, [config.config], { cwd: build_dir });
+            return await execAsync(compile_script, [config.config, vs_tools_path], { cwd: build_dir });
         },
         linux: async () => {
             return await execAsync(

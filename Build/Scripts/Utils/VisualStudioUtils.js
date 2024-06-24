@@ -91,11 +91,16 @@ async function visualStudioGetToolsRoot() {
     return tools_dir;
 }
 
+/**
+ * Setup VS_TOOLS environment path.
+ * @returns current VS_TOOLS env value
+ */
 async function visualStudioDefineVsToolsEnv() {
     const tools_root = await visualStudioGetToolsRoot();
     await execAsync('setx', ['VS_TOOLS', tools_root], { noLogs: true });
     console.log('- Set VS_TOOLS: '+tools_root);
     process.env.TOOLS_ROOT = tools_root;
+    return tools_root;
 }
 
 module.exports = {
