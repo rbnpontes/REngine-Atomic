@@ -2,6 +2,8 @@
 # reserved. Use of this source code is governed by a BSD-style license that
 # can be found in the LICENSE file.
 
+add_definitions(-DUSING_CEF_SHARED)
+
 # Append platform specific sources to a list of sources.
 macro(LIBCEF_APPEND_PLATFORM_SOURCES name_of_list)
   if("${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin" AND ${name_of_list}_MAC)
