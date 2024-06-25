@@ -31,16 +31,12 @@ jobs:
       - run: npm i yarn -g
         name: Install Yarn
       - name: Install Project Dependencies
-        shell: cmd
         run: |
-          cd .\Build
+          cd Build
           yarn
       - name: Generate Project
-        shell: cmd
         run: yarn --cwd Build editor:gen
       - name: Build First Phase
-        shell: cmd
         run: yarn --cwd Build editor:firstphase
       - name: Build Second Phase
-        shell: cmd
         run: yarn --cwd Build editor:secondphase
