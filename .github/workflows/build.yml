@@ -34,7 +34,7 @@ jobs:
         run: |
           cd Build
           yarn
-      - if: inputs.run_on == 'ubuntu-latest'
+      - if: inputs.runs_on == 'ubuntu-latest'
         name: Install Additional Linux Dependencies
         run: |
           sudo apt-get update
