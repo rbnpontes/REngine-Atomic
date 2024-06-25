@@ -12,16 +12,23 @@ function jakeExecAsync(cmds) {
  */
 /**
  * Execute process
- * @param {string} procName Process name, Executable name or Batch name
+ * @param {string} proc_name Process name, Executable name or Batch name
  * @param {string[]} args Arguments
  * @param {ProcessExecuteOptions?} options
  * @return {Promise<number>} returns a promise, when their is fullfiled a error code will provided.
  */
-function execAsync(procName, args, options) {
+function execAsync(proc_name, args, options) {
     const { spawn } = require('child_process');
     return new Promise((resolve) => {
-        console.log(`- Initializing Process: ${procName}`);
-        const proc = spawn(procName, args, { cwd: options?.cwd, shell: true });
+        console.log(`- Initializing Process: ${proc_name}`);
+        const proc_args = args.map(x => {
+            const has_quotes = x.startsWith('"') && x.endsWith('"');
+            const has_empty_spaces = x.indexOf(' ') != -1;
+            if(!has_quotes && has_empty_spaces)
+                return ['"', x, '"'].join('');
+            return x;
+        });
+        const proc = spawn(proc_name, proc_args, { cwd: options?.cwd, shell: true });
         if(!options?.noLogs) {
             proc.stdout.on('data', data => console.log(data.toString()));
             proc.stderr.on('data', data => console.error(data.toString()));
