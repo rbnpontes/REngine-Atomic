@@ -21,7 +21,7 @@ function execAsync(procName, args, options) {
     const { spawn } = require('child_process');
     return new Promise((resolve) => {
         console.log(`- Initializing Process: ${procName}`);
-        const proc = spawn(procName, args, { cwd: options?.cwd });
+        const proc = spawn(procName, args, { cwd: options?.cwd, shell: true });
         if(!options?.noLogs) {
             proc.stdout.on('data', data => console.log(data.toString()));
             proc.stderr.on('data', data => console.error(data.toString()));
