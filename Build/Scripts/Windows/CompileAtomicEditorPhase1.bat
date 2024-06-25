@@ -4,6 +4,9 @@ REM they call vs tools vars to start developer command
 REM on any terminal.
 
 set VS_TOOLS=%2
+
+echo VS_TOOLS: %VS_TOOLS%
+
 set last_path=%cd%
 cd %VS_TOOLS%
 
