@@ -197,7 +197,7 @@ endmacro()
 
 # Set common target properties. Use SET_LIBRARY_TARGET_PROPERTIES() or
 # SET_EXECUTABLE_TARGET_PROPERTIES() instead of calling this macro directly.
-macro(SET_COMMON_TARGET_PROPERTIES target)
+macro(_SET_COMMON_TARGET_PROPERTIES target)
   # Compile flags.
   target_compile_options(${target} PRIVATE ${CEF_COMPILER_FLAGS} ${CEF_CXX_COMPILER_FLAGS})
   target_compile_options(${target} PRIVATE $<$<CONFIG:Debug>:${CEF_COMPILER_FLAGS_DEBUG} ${CEF_CXX_COMPILER_FLAGS_DEBUG}>)
@@ -228,7 +228,7 @@ endmacro()
 
 # Set library-specific properties.
 macro(SET_LIBRARY_TARGET_PROPERTIES target)
-  SET_COMMON_TARGET_PROPERTIES(${target})
+  _SET_COMMON_TARGET_PROPERTIES(${target})
 
   # Shared library linker flags.
   if(CEF_SHARED_LINKER_FLAGS)
@@ -247,7 +247,7 @@ endmacro()
 
 # Set executable-specific properties.
 macro(SET_EXECUTABLE_TARGET_PROPERTIES target)
-  SET_COMMON_TARGET_PROPERTIES(${target})
+  _SET_COMMON_TARGET_PROPERTIES(${target})
 
   # Executable linker flags.
   if(CEF_EXE_LINKER_FLAGS)

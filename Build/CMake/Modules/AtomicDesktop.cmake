@@ -19,3 +19,4 @@ set(YARN_ARGS "cef:prepare:${CEF_PREPARE_PLATFORM}")
 execute_yarn()
 
 include(${ATOMIC_SOURCE_DIR}/Source/ThirdParty/CEF/CEF.cmake)
+PRINT_CEF_CONFIG()

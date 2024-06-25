@@ -180,19 +180,19 @@ endmacro()
 
 # Set common target properties. Use SET_LIBRARY_TARGET_PROPERTIES() or
 # SET_EXECUTABLE_TARGET_PROPERTIES() instead of calling this macro directly.
-macro(SET_COMMON_TARGET_PROPERTIES target)
+macro(_SET_COMMON_TARGET_PROPERTIES target)
   # Compile flags.
-  target_compile_options(${target} PRIVATE ${CEF_COMPILER_FLAGS} ${CEF_CXX_COMPILER_FLAGS})
-  target_compile_options(${target} PRIVATE $<$<CONFIG:Debug>:${CEF_COMPILER_FLAGS_DEBUG} ${CEF_CXX_COMPILER_FLAGS_DEBUG}>)
-  target_compile_options(${target} PRIVATE $<$<CONFIG:Release>:${CEF_COMPILER_FLAGS_RELEASE} ${CEF_CXX_COMPILER_FLAGS_RELEASE}>)
+  target_compile_options(${target} PUBLIC ${CEF_COMPILER_FLAGS} ${CEF_CXX_COMPILER_FLAGS})
+  target_compile_options(${target} PUBLIC $<$<CONFIG:Debug>:${CEF_COMPILER_FLAGS_DEBUG} ${CEF_CXX_COMPILER_FLAGS_DEBUG}>)
+  target_compile_options(${target} PUBLIC $<$<CONFIG:Release>:${CEF_COMPILER_FLAGS_RELEASE} ${CEF_CXX_COMPILER_FLAGS_RELEASE}>)
 
   # Compile definitions.
-  target_compile_definitions(${target} PRIVATE ${CEF_COMPILER_DEFINES})
-  target_compile_definitions(${target} PRIVATE $<$<CONFIG:Debug>:${CEF_COMPILER_DEFINES_DEBUG}>)
-  target_compile_definitions(${target} PRIVATE $<$<CONFIG:Release>:${CEF_COMPILER_DEFINES_RELEASE}>)
+  target_compile_definitions(${target} PUBLIC ${CEF_COMPILER_DEFINES})
+  target_compile_definitions(${target} PUBLIC $<$<CONFIG:Debug>:${CEF_COMPILER_DEFINES_DEBUG}>)
+  target_compile_definitions(${target} PUBLIC $<$<CONFIG:Release>:${CEF_COMPILER_DEFINES_RELEASE}>)
 
   # Include directories.
-  target_include_directories(${target} PRIVATE ${CEF_INCLUDE_PATH})
+  target_include_directories(${target} PUBLIC ${CEF_INCLUDE_PATH})
 
   # Linker flags.
   if(CEF_LINKER_FLAGS)
@@ -211,7 +211,7 @@ endmacro()
 
 # Set library-specific properties.
 macro(SET_LIBRARY_TARGET_PROPERTIES target)
-  SET_COMMON_TARGET_PROPERTIES(${target})
+  _SET_COMMON_TARGET_PROPERTIES(${target})
 
   # Shared library linker flags.
   if(CEF_SHARED_LINKER_FLAGS)
@@ -230,7 +230,7 @@ endmacro()
 
 # Set executable-specific properties.
 macro(SET_EXECUTABLE_TARGET_PROPERTIES target)
-  SET_COMMON_TARGET_PROPERTIES(${target})
+  _SET_COMMON_TARGET_PROPERTIES(${target})
 
   # Executable linker flags.
   if(CEF_EXE_LINKER_FLAGS)

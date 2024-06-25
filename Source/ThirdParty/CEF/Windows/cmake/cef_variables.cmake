@@ -118,7 +118,7 @@ list(APPEND CEF_COMPILER_FLAGS_RELEASE
   /GF           # Enable string pooling
   )
 list(APPEND CEF_CXX_COMPILER_FLAGS
-  /std:c++20    # Use the C++17 language standard
+  /std:c++20    # Use the C++20 language standard
   )
 list(APPEND CEF_LINKER_FLAGS_DEBUG
   /DEBUG        # Generate debug information
