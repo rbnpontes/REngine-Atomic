@@ -7,6 +7,6 @@ set VS_TOOLS=%2
 
 echo Initializing Vs Dev Command
 call %VS_TOOLS%\VsDevCmd.bat
-
+echo Start Building
 :: Note, we're building LibCpuId as it uses masm as getting XamlFactory load errors if delayed
 msbuild /m Atomic.sln /t:LibCpuId /t:AtomicNETNative /p:Configuration=%1 /p:Platform=x64
