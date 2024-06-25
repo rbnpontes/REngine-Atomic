@@ -75,7 +75,6 @@ list(APPEND CEF_COMPILER_FLAGS
   -pipe                           # Use pipes rather than temporary files for communication between build stages
   -pthread                        # Use the pthread library
   -Wall                           # Enable all warnings
-  -Werror                         # Treat warnings as errors
   -Wno-missing-field-initializers # Don't warn about missing field initializers
   -Wno-unused-parameter           # Don't warn about unused parameters
   -Wno-error=comment              # Don't warn about code in comments
@@ -87,7 +86,6 @@ list(APPEND CEF_C_COMPILER_FLAGS
   )
 list(APPEND CEF_CXX_COMPILER_FLAGS
   -fexceptions                    # Enable exceptions
-  -fno-rtti                       # Disable real-time type information
   -fno-threadsafe-statics         # Don't generate thread-safe statics
   -fvisibility-inlines-hidden     # Give hidden visibility to inlined class member functions
   -std=c++2a                      # Use the C++20 language standard
@@ -192,10 +190,10 @@ set(CEF_STANDARD_LIBS
   )
 
 # CEF directory paths.
-set(CEF_RESOURCE_DIR        "${ATOMIC_SOURCE_DIR}/Artifacts/CEF/Linux/Resources")
-set(CEF_BINARY_DIR          "${ATOMIC_SOURCE_DIR}/Artifacts/CEF/Linux/Libs")
-set(CEF_BINARY_DIR_DEBUG    "${ATOMIC_SOURCE_DIR}/Artifacts/CEF/Linux/Libs")
-set(CEF_BINARY_DIR_RELEASE  "${ATOMIC_SOURCE_DIR}/Artifacts/CEF/Linux/Libs")
+set(CEF_RESOURCE_DIR        "${ATOMIC_SOURCE_DIR}/Artifacts/CEF/Resources")
+set(CEF_BINARY_DIR          "${ATOMIC_SOURCE_DIR}/Artifacts/CEF/Linux")
+set(CEF_BINARY_DIR_DEBUG    "${ATOMIC_SOURCE_DIR}/Artifacts/CEF/Linux")
+set(CEF_BINARY_DIR_RELEASE  "${ATOMIC_SOURCE_DIR}/Artifacts/CEF/Linux")
 
 # CEF library paths.
 set(CEF_LIB_DEBUG   "${CEF_BINARY_DIR_DEBUG}/libcef.so")
@@ -203,7 +201,6 @@ set(CEF_LIB_RELEASE "${CEF_BINARY_DIR_RELEASE}/libcef.so")
 
 # List of CEF binary files.
 set(CEF_BINARY_FILES
-  chrome-sandbox
   libcef.so
   libEGL.so
   libGLESv2.so

@@ -73,7 +73,6 @@ list(APPEND CEF_COMPILER_FLAGS
   -funwind-tables                 # Support stack unwinding for backtrace()
   -fvisibility=hidden             # Give hidden visibility to declarations that are not explicitly marked as visible
   -Wall                           # Enable all warnings
-  -Werror                         # Treat warnings as errors
   -Wextra                         # Enable additional warnings
   -Wendif-labels                  # Warn whenever an #else or an #endif is followed by text
   -Wnewline-eof                   # Warn about no newline at end of file
@@ -84,8 +83,7 @@ list(APPEND CEF_C_COMPILER_FLAGS
   -std=c99                        # Use the C99 language standard
   )
 list(APPEND CEF_CXX_COMPILER_FLAGS
-  -fno-exceptions                 # Disable exceptions
-  -fno-rtti                       # Disable real-time type information
+  -fexceptions                    # Enable exceptions
   -fno-threadsafe-statics         # Don't generate thread-safe statics
   -fobjc-call-cxx-cdtors          # Call the constructor/destructor of C++ instance variables in ObjC objects
   -fvisibility-inlines-hidden     # Give hidden visibility to inlined class member functions
