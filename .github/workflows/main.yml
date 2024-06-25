@@ -2,42 +2,10 @@ name: Build Engine Action
 on: [push]
 jobs:
   Build-Windows:
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: 'recursive'
-          lfs: true
-      - name: Install Vulkan SDK
-        uses: humbletim/setup-vulkan-sdk@v1.2.0
-        with:
-         vulkan-query-version: 1.3.204.0
-         vulkan-components: Vulkan-Headers, Vulkan-Loader
-         vulkan-use-cache: true
-      - uses: lukka/get-cmake@latest  
-        name: Install CMake
-        with:
-          cmakeVersion: "3.27.3"
-          useLocalCache: false
-          useCloudCache: false 
-      - uses: actions/setup-node@v4.0.0
-        name: Install NodeJS
-        with:
-          node-version: 18
-      - run: npm i yarn -g
-        name: Install Yarn
-      - name: Install Project Dependencies
-        shell: cmd
-        run: |
-          cd .\Build
-          yarn
-      - name: Generate Project
-        shell: cmd
-        run: yarn --cwd Build editor:gen
-      - name: Build First Phase
-        shell: cmd
-        run: yarn --cwd Build editor:firstphase
-      - name: Build Second Phase
-        shell: cmd
-        run: yarn --cwd Build editor:secondphase
-        
+    uses: ./.github/workflows/build.yml
+    with:
+      runs_on: 'windows-latest'
+  Build-Linux:
+    uses: ./.github/workflows/build.yml
+    with:
+      runs_on: 'ubuntu-latest'
