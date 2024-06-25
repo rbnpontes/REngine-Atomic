@@ -5,19 +5,8 @@ REM on any terminal.
 
 set VS_TOOLS=%2
 
-echo VS_TOOLS: %VS_TOOLS%
-
-set last_path=%cd%
-
-echo Switching to VS TOOLS
-cd %VS_TOOLS%
-echo Error Level: %errorlevel%
-echo Executing Dir
-Dir
-echo Finish Dir Execution
-
-call VsDevCmd.bat
-cd %last_path%
+echo Initializing Vs Dev Command
+call %VS_TOOLS%\VsDevCmd.bat
 
 :: Note, we're building LibCpuId as it uses masm as getting XamlFactory load errors if delayed
 msbuild /m Atomic.sln /t:LibCpuId /t:AtomicNETNative /p:Configuration=%1 /p:Platform=x64
