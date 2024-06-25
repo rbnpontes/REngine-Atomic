@@ -1,6 +1,3 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:905f340cb85914b775fb6940599a5ab858b794c6235adea1fe23919f3423ad3f
-size 8949
 # Copyright (c) 2016 The Chromium Embedded Framework Authors. All rights
 # reserved. Use of this source code is governed by a BSD-style license that
 # can be found in the LICENSE file.
