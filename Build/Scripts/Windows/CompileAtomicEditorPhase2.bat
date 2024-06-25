@@ -6,6 +6,6 @@ REM on any terminal.
 set VS_TOOLS=%2
 
 echo Initializing Vs Dev Command
-call %VS_TOOL%\VsDevCmd.bat
+call %VS_TOOLS%\VsDevCmd.bat
 echo Start Building
 msbuild /m Atomic.sln /t:AtomicEditor /t:AtomicPlayer /p:Configuration=%1 /p:Platform=x64
