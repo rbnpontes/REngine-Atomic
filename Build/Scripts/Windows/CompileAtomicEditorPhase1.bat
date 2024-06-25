@@ -10,6 +10,8 @@ echo VS_TOOLS: %VS_TOOLS%
 set last_path=%cd%
 cd %VS_TOOLS%
 
+dir
+
 call VsDevCmd.bat
 cd %last_path%
 
