@@ -12,6 +12,9 @@ set last_path=%cd%
 echo Switching to VS TOOLS
 cd %VS_TOOLS%
 echo Error Level: %errorlevel%
+echo Executing Dir
+Dir
+echo Finish Dir Execution
 
 call VsDevCmd.bat
 cd %last_path%
