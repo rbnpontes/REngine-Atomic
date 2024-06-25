@@ -85,7 +85,7 @@ async function editorBuildFirstPhase() {
             // Execute Build Linux
             return await execAsync(
                 'make',
-                [constants.engine_native_lib, '-j8'],
+                [constants.engine_native_lib, '-j2'],
                 { cwd: build_dir }
             );
         },
@@ -126,7 +126,7 @@ async function editorBuildSecondPhase() {
         linux: async () => {
             return await execAsync(
                 'make',
-                [constants.engine_editor_name, constants.engine_player_name, '-j8'],
+                [constants.engine_editor_name, constants.engine_player_name, '-j2'],
                 { cwd: build_dir }
             );
         },
