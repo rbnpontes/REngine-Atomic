@@ -8,9 +8,10 @@ set VS_TOOLS=%2
 echo VS_TOOLS: %VS_TOOLS%
 
 set last_path=%cd%
-cd %VS_TOOLS%
 
-dir
+echo Switching to VS TOOLS
+cd %VS_TOOLS%
+echo Error Level: %errorlevel%
 
 call VsDevCmd.bat
 cd %last_path%
