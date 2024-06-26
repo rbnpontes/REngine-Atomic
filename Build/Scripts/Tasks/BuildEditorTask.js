@@ -1,24 +1,24 @@
-const path      = require('path');
-const config    = require('../BuildConfig');
-const fs        = require('fs-extra');
-const host      = require('../Host');
-const os        = require('os');
-const archiver  = require('archiver');
+const path = require('path');
+const config = require('../BuildConfig');
+const fs = require('fs-extra');
+const host = require('../Host');
+const os = require('os');
+const archiver = require('archiver');
 const constants = require('../Constants');
 
-const { 
-    visualStudioGetCmakeGenerator, 
-    visualStudioDefineVsToolsEnv 
+const {
+    visualStudioGetCmakeGenerator,
+    visualStudioDefineVsToolsEnv
 } = require('../Utils/VisualStudioUtils');
-const { 
-    cmakeGenerate 
+const {
+    cmakeGenerate
 } = require('../Utils/CmakeUtils');
-const { 
-    engineGetRoot, 
+const {
+    engineGetRoot,
     engineGetArtifactsRoot
 } = require('../Utils/EngineUtils');
-const { 
-    execAsync 
+const {
+    execAsync
 } = require('../Utils/ProcessUtils');
 const { getUnsupportedEnvironmentError } = require('../Exceptions');
 
@@ -82,12 +82,27 @@ async function editorBuildFirstPhase() {
             return await execAsync(compile_script, [config.config, vs_tools_path], { cwd: build_dir });
         },
         linux: async () => {
-            // Execute Build Linux
-            return await execAsync(
-                'make',
-                [constants.engine_native_lib, '-j2'],
-                { cwd: build_dir }
-            );
+            let errors = [];
+            while (errors.length < 3) {
+                try {
+
+                    // Execute Build Linux
+                    return await execAsync(
+                        'make',
+                        [constants.engine_native_lib, '-j2'],
+                        { cwd: build_dir }
+                    );
+                }
+                catch (e) {
+                    errors.push(e);
+                    console.log('- Build failed. Retrying...');
+                }
+            } 
+
+            const msg = errors.map(x => {
+                return JSON.stringify(x);
+            }).join('\n');
+            throw new Error(msg);
         },
         darwin: async () => {
             // Execute Build MacOS
@@ -100,7 +115,7 @@ async function editorBuildFirstPhase() {
                     '-parallelizeTargets',
                     '-jobs', '4'
                 ],
-                { cwd : build_dir }
+                { cwd: build_dir }
             );
         }
     }
@@ -110,8 +125,8 @@ async function editorBuildFirstPhase() {
         return;
 
     const exit_code = await build_func();
-    if(exit_code != 0)
-        throw new Error('Build has failed with exit code '+exit_code);
+    if (exit_code != 0)
+        throw new Error('Build has failed with exit code ' + exit_code);
     console.log('- First phase has been completed with success!!!');
 }
 async function editorBuildSecondPhase() {
@@ -150,8 +165,8 @@ async function editorBuildSecondPhase() {
         return;
 
     const exit_code = await build_func();
-    if(exit_code != 0)
-        throw new Error('Build has failed with exit code '+exit_code);
+    if (exit_code != 0)
+        throw new Error('Build has failed with exit code ' + exit_code);
     console.log('- Second phase has been completed with success!!!');
 }
 async function editorGenerate() {
@@ -176,11 +191,11 @@ async function editorGenerate() {
     if (!config.noclean) {
         console.log('- Cleaning files');
         dirs_2_create.forEach(x => {
-            if(!fs.existsSync(x))
+            if (!fs.existsSync(x))
                 fs.mkdirSync(x, { recursive: true });
         });
         dirs_2_remove.forEach(x => {
-            if(fs.existsSync(x))
+            if (fs.existsSync(x))
                 fs.rmSync(x, { recursive: true, force: true });
         });
     }
@@ -256,8 +271,8 @@ async function editorCopyBinaries() {
     const build_dir = await editorGetBuildDirectory();
 
     //const editor_build_dir = path.resolve(build_dir, 'Source', constants.engine_editor_name, config.config);
-    const editor_build_dir = (()=> {
-        switch(os.platform()) {
+    const editor_build_dir = (() => {
+        switch (os.platform()) {
             case 'win32':
             case 'linux':
                 return path.resolve(build_dir, 'Source', constants.engine_editor_name, config.config);
@@ -267,8 +282,8 @@ async function editorCopyBinaries() {
                 throw getUnsupportedEnvironmentError();
         }
     })();
-    const editor_output_dir = (()=> {
-        switch(os.platform()){
+    const editor_output_dir = (() => {
+        switch (os.platform()) {
             case 'win32':
             case 'linux':
                 return path.resolve(artifacts_root, constants.engine_editor_name);
@@ -367,14 +382,14 @@ async function editorCopyBinaries() {
 }
 async function editorPackage() {
     console.log('- Packing Editor to Shipping');
-    const pkg_output_path = path.join(editor_app_folder, constants.engine_name+'.zip');
+    const pkg_output_path = path.join(editor_app_folder, constants.engine_name + '.zip');
 
-    if(fs.existsSync(pkg_output_path) && !config.noclean)
+    if (fs.existsSync(pkg_output_path) && !config.noclean)
         fs.unlinkSync(pkg_output_path);
-    
-    const archive_task = new Promise((resolve, reject)=> {
-        const final_name = (()=> {
-            switch(os.platform()){
+
+    const archive_task = new Promise((resolve, reject) => {
+        const final_name = (() => {
+            switch (os.platform()) {
                 case 'win32':
                     return constants.engine_name + '-Windows.zip';
                 case 'linux':
@@ -385,31 +400,31 @@ async function editorPackage() {
                     throw new Error('Not supported on this platform');
             }
         })();
-        const write_stream  = fs.createWriteStream(path.join(artifacts_root, final_name));
+        const write_stream = fs.createWriteStream(path.join(artifacts_root, final_name));
         const archive = archiver('zip', {
             zlib: { level: 9 },
         });
-        archive.on('warning', e=> {
-            if(e.code == 'ENOENT')
+        archive.on('warning', e => {
+            if (e.code == 'ENOENT')
                 console.log(e);
             else
                 reject(e);
         });
         archive.on('error', e => reject(e));
-        archive.on('end', ()=> resolve());
+        archive.on('end', () => resolve());
         archive.pipe(write_stream);
 
         archive.directory(editor_app_folder, false);
         archive.finalize();
     });
     await archive_task;
-    console.log('- Editor was packed with success at '+pkg_output_path);
+    console.log('- Editor was packed with success at ' + pkg_output_path);
 }
 
 async function editorBuild() {
     console.log(`- Building ${constants.engine_name} Editor`);
 
-    if(!config.noclean)
+    if (!config.noclean)
         editorCleanArtifacts();
 
     try {
@@ -422,7 +437,7 @@ async function editorBuild() {
     await editorBuildFirstPhase();
     await editorBuildSecondPhase();
     await editorCopyBinaries();
-    if(config.package)
+    if (config.package)
         editorPackage();
     console.log(`- Finished. ${constants.engine_name} Editor built to ${editor_app_folder}`);
 }
