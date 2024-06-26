@@ -85,7 +85,6 @@ async function editorBuildFirstPhase() {
             let errors = [];
             while (errors.length < 3) {
                 try {
-
                     // Execute Build Linux
                     return await execAsync(
                         'make',
@@ -96,13 +95,11 @@ async function editorBuildFirstPhase() {
                 catch (e) {
                     errors.push(e);
                     console.log('- Build failed. Retrying...');
+                    console.error(e);
                 }
             } 
 
-            const msg = errors.map(x => {
-                return JSON.stringify(x);
-            }).join('\n');
-            throw new Error(msg);
+            throw new Error(`Build failed. Retried ${errors.length} times.`);
         },
         darwin: async () => {
             // Execute Build MacOS
