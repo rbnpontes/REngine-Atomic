@@ -82,24 +82,22 @@ async function editorBuildFirstPhase() {
             return await execAsync(compile_script, [config.config, vs_tools_path], { cwd: build_dir });
         },
         linux: async () => {
-            let errors = [];
-            while (errors.length < 3) {
-                try {
-                    // Execute Build Linux
-                    return await execAsync(
-                        'make',
-                        [constants.engine_native_lib, '-j2'],
-                        { cwd: build_dir }
-                    );
-                }
-                catch (e) {
-                    errors.push(e);
-                    console.log('- Build failed. Retrying...');
-                    console.error(e);
-                }
+            let retries = 0;
+            while (retries < 3) {
+                // Execute Build Linux
+                const err_code = await execAsync(
+                    'make',
+                    [constants.engine_native_lib, '-j2'],
+                    { cwd: build_dir }
+                );
+
+                if(err_code == 0)
+                    return err_code;
+                ++retries;
+                console.log('- Build failed. Retrying...');
             } 
 
-            throw new Error(`Build failed. Retried ${errors.length} times.`);
+            throw new Error(`Build failed. Retried ${retries} times.`);
         },
         darwin: async () => {
             // Execute Build MacOS
