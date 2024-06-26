@@ -21,7 +21,7 @@ jobs:
       - uses: lukka/get-cmake@latest  
         name: Install CMake
         with:
-          cmakeVersion: "3.27.3"
+          cmakeVersion: "3.27.6"
           useLocalCache: false
           useCloudCache: false 
       - uses: actions/setup-node@v4.0.0
