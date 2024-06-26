@@ -1,0 +1,11 @@
+name: Build Engine Action
+on: [push]
+jobs:
+  Build-Windows:
+    uses: ./.github/workflows/build.yml
+    with:
+      runs_on: 'windows-latest'
+  Build-Linux:
+    uses: ./.github/workflows/build.yml
+    with:
+      runs_on: 'ubuntu-latest'

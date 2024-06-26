@@ -3,11 +3,10 @@ REM this script is used by the build system
 REM they call vs tools vars to start developer command
 REM on any terminal.
 
-set last_path=%cd%
-cd %VS_TOOLS%
+set VS_TOOLS=%2
 
-call VsDevCmd.bat
-cd %last_path%
-
+echo Initializing Vs Dev Command
+call %VS_TOOLS%\VsDevCmd.bat
+echo Start Building
 :: Note, we're building LibCpuId as it uses masm as getting XamlFactory load errors if delayed
 msbuild /m Atomic.sln /t:LibCpuId /t:AtomicNETNative /p:Configuration=%1 /p:Platform=x64

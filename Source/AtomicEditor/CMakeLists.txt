@@ -136,9 +136,6 @@ if (ATOMIC_WEBVIEW)
         # Copy binary and resource files to the target output directory.
         COPY_FILES("${CEF_TARGET}" "${CEF_BINARY_FILES}" "${CEF_BINARY_DIR}" "${CEF_TARGET_OUT_DIR}")
         COPY_FILES("${CEF_TARGET}" "${CEF_RESOURCE_FILES}" "${CEF_RESOURCE_DIR}" "${CEF_TARGET_OUT_DIR}")
-
-        # Set SUID permissions on the chrome-sandbox target.
-        SET_LINUX_SUID_PERMISSIONS("${CEF_TARGET}" "${CEF_TARGET_OUT_DIR}/chrome-sandbox")
     endif ()
 endif (ATOMIC_WEBVIEW)
 

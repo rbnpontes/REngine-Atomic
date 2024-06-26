@@ -100,3 +100,7 @@ add_subdirectory(libshaderc_util)
 add_subdirectory(libshaderc)
 
 add_subdirectory(DiligentCore)
+
+if (ATOMIC_WEBVIEW)
+    add_subdirectory(${CEF_LIBCEF_DLL_WRAPPER_PATH} libcef_dll_wrapper)
+endif()
