@@ -270,7 +270,6 @@ function(create_package resource_dir output_path)
     set (YARN_ARGS "pkg" "${resource_dir}" "${output_path}" "${pak_endianess}")
     execute_yarn()
 endfunction()
-
 # Macro for setting msvc runtime flags globally.
 # Macro arguments:
 #  runtime_flag - release build runtime flag, /MT or /MD. Debug flag will be deduced automatically by appending 'd'.
