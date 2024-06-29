@@ -27,11 +27,17 @@ if (ATOMIC_JAVASCRIPT OR ATOMIC_DOTNET)
     #                     COMMAND "${YARN_CMD}" "build" "build:genscripts[false]")
     # else ()
     # endif()
+
+    set (TOOL_CHECK_SCRIPTS ${YARN_CMD} "build" "build:genscripts[false]")
+    if(APPLE)
+        set(TOOL_CHECK_SCRIPTS ${YARN_CMD} "build build:genscripts[false]")
+    endif()
+
     add_custom_target(AtomicToolCheckScripts
                     WORKING_DIRECTORY "${ATOMIC_SOURCE_DIR}"
                     COMMAND "${CMAKE_COMMAND}" -E make_directory \"${ATOMIC_SOURCE_DIR}/Artifacts/Build/AtomicTool\"
                     COMMAND "${CMAKE_COMMAND}" -E copy_if_different \"$<TARGET_FILE:AtomicTool>\" \"${ATOMIC_SOURCE_DIR}/Artifacts/Build/AtomicTool/\"
-                    COMMAND "${YARN_CMD}" "--cwd" "Build" "build" "build:genscripts[false]")
+                    COMMAND ${TOOL_CHECK_SCRIPTS})
 
     add_dependencies (AtomicToolCheckScripts AtomicTool)
 
@@ -43,15 +49,25 @@ if (ATOMIC_JAVASCRIPT OR ATOMIC_DOTNET)
                         ARGS -E copy_if_different \"$<TARGET_FILE:AtomicTool>\" \"${ATOMIC_SOURCE_DIR}/Artifacts/Build/AtomicTool/\"
                         COMMENT "Copying AtomicTool to Build Artifacts" )
 
+    set(GENERATE_SCRIPTS_BINDINGS ${YARN_CMD} "build" "build:genscripts[true];--trace")
+    if(APPLE)
+        set(GENERATE_SCRIPTS_BINDINGS ${YARN_CMD} "build build:genscripts[true];--trace")
+    endif()
+
     add_custom_target ( GenerateScriptBindings
                         WORKING_DIRECTORY "${ATOMIC_SOURCE_DIR}"
-                        COMMAND "${YARN_CMD}" "--cwd" "Build" "build" "build:genscripts[true];--trace"
+                        COMMAND ${GENERATE_SCRIPTS_BINDINGS}
                         DEPENDS AtomicTool )
 
     if (ATOMIC_DOTNET)
+        set(GENERATE_ENGINE_NET ${YARN_CMD} "build" build:genAtomicNET[desktop,$<$<CONFIG:debug>:"Debug">$<$<CONFIG:release>:"Release">];--trace)
+        if(APPLE)
+            set(GENERATE_ENGINE_NET ${YARN_CMD} "build build:genAtomicNET[desktop,$<$<CONFIG:debug>:\"Debug\">$<$<CONFIG:release>:\"Release\">];--trace")
+        endif()
+
         add_custom_target ( GenerateAtomicNET
                             WORKING_DIRECTORY "${ATOMIC_SOURCE_DIR}"
-                            COMMAND "${YARN_CMD}" "--cwd" "Build" "build" build:genAtomicNET[desktop,$<$<CONFIG:debug>:"Debug">$<$<CONFIG:release>:"Release">];--trace
+                            COMMAND ${GENERATE_ENGINE_NET}
                             DEPENDS AtomicTool )
     endif()
 endif ()

@@ -11,6 +11,7 @@ else()
     set(CEF_ROOT "${ATOMIC_SOURCE_DIR}/Source/ThirdParty/CEF/Linux")
 endif()
 
+message(STATUS "CEF_ROOT: ${CEF_ROOT}")
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CEF_ROOT}/cmake")
 find_package(CEF REQUIRED)
 include_directories(${CEF_ROOT})

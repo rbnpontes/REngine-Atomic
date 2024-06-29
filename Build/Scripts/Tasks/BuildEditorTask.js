@@ -158,7 +158,7 @@ async function editorGenerate() {
     // Remove editor directory always
     if (fs.existsSync(editor_app_folder))
         fs.rmSync(editor_app_folder, { recursive: true, force: true });
-    fs.mkdirSync(editor_app_folder);
+    fs.mkdirSync(editor_app_folder, { recursive: true});
 
     const build_dir = editorGetBuildDirectory();
     const dirs_2_create = [
@@ -223,30 +223,6 @@ function editorCopyNETBinaries() {
     ].forEach(x => {
         const [src, dst] = x;
         fs.copySync(src, dst);
-    });
-}
-function editorCopyCEFBinaries() {
-    console.log('- Copying CEF binaries')
-    const bin_path = path.join(engine_root, 'Submodules/CEF/Linux/Release');
-    const res_path = path.join(engine_root, 'Submodules/CEF/Linux/Resources');
-
-    const bin_files = fs.readdirSync(
-        bin_path
-    ).map(x => [path.join(bin_path, x), x]);
-    const res_files = fs.readdirSync(
-        res_path
-    ).map(x => [path.join(res_path, x), x]);
-
-
-    [
-        ...bin_files,
-        ...res_files
-    ].forEach(x => {
-        const [filepath, filename] = x;
-        fs.copySync(
-            filepath,
-            path.join(resources_dest, filename)
-        );
     });
 }
 async function editorCopyBinaries() {

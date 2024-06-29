@@ -488,7 +488,7 @@ set_option(SDL_ASAN                "Use AddressSanitizer to detect memory errors
 option_string(SDL_VENDOR_INFO      "Vendor name and/or version to add to SDL_REVISION" "")
 set_option(SDL_CCACHE              "Use Ccache to speed up build" ON)
 
-option(SDL_WERROR "Enable -Werror" OFF)
+set(SDL_WERROR FALSE)
 
 set(SDL_SHARED OFF)
 set(SDL_STATIC ON)

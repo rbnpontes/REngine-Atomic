@@ -82,9 +82,6 @@ if (ATOMIC_WEBVIEW)
             MACOSX_BUNDLE_INFO_PLIST "${ATOMIC_SOURCE_DIR}/Build/CMake/Modules/AtomicEditor-HelperInfo.plist.template"
         )
 
-        # Fix the framework link in the helper executable.
-        FIX_MACOSX_HELPER_FRAMEWORK_LINK(${CEF_HELPER_TARGET} ${CEF_HELPER_APP})
-
         # Main executable target.
         add_executable(${CEF_TARGET} ${EXE_TYPE} ${SOURCE_FILES} ${ATOMIC_EDITOR_ICON})
 
@@ -106,13 +103,10 @@ if (ATOMIC_WEBVIEW)
             "${CEF_APP}/Contents/Frameworks/${CEF_HELPER_TARGET}.app"
             # Copy the CEF framework into the Frameworks directory.
             COMMAND ${CMAKE_COMMAND} -E copy_directory
-            "${CEF_BINARY_DIR}/CEF.framework"
+            "${CEF_BINARY_DIR}/Chromium Embedded Framework.framework"
             "${CEF_APP}/Contents/Frameworks/CEF.framework"
             VERBATIM
         )
-
-        # Fix the framework link in the main executable.
-        FIX_MACOSX_MAIN_FRAMEWORK_LINK(${CEF_TARGET} ${CEF_APP})
 
         if (NOT ${CMAKE_GENERATOR} STREQUAL "Xcode")
             # Manually process and copy over resource files.

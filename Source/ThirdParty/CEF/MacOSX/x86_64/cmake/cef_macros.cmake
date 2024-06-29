@@ -246,16 +246,16 @@ macro(_SET_COMMON_TARGET_PROPERTIES target)
     XCODE_ATTRIBUTE_GCC_C_LANGUAGE_STANDARD                     "c99"       # -std=c99
     XCODE_ATTRIBUTE_GCC_CW_ASM_SYNTAX                           NO          # No -fasm-blocks
     XCODE_ATTRIBUTE_GCC_DYNAMIC_NO_PIC                          NO
-    XCODE_ATTRIBUTE_GCC_ENABLE_CPP_EXCEPTIONS                   NO          # -fno-exceptions
-    XCODE_ATTRIBUTE_GCC_ENABLE_CPP_RTTI                         NO          # -fno-rtti
+    XCODE_ATTRIBUTE_GCC_ENABLE_CPP_EXCEPTIONS                   YES          # -fno-exceptions
+    XCODE_ATTRIBUTE_GCC_ENABLE_CPP_RTTI                         YES          # -fno-rtti
     XCODE_ATTRIBUTE_GCC_ENABLE_PASCAL_STRINGS                   NO          # No -mpascal-strings
     XCODE_ATTRIBUTE_GCC_INLINES_ARE_PRIVATE_EXTERN              YES         # -fvisibility-inlines-hidden
     XCODE_ATTRIBUTE_GCC_OBJC_CALL_CXX_CDTORS                    YES         # -fobjc-call-cxx-cdtors
     XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN                  YES         # -fvisibility=hidden
     XCODE_ATTRIBUTE_GCC_THREADSAFE_STATICS                      NO          # -fno-threadsafe-statics
-    XCODE_ATTRIBUTE_GCC_TREAT_WARNINGS_AS_ERRORS                YES         # -Werror
+    XCODE_ATTRIBUTE_GCC_TREAT_WARNINGS_AS_ERRORS                NO         # -Werror
     XCODE_ATTRIBUTE_GCC_VERSION                                 "com.apple.compilers.llvm.clang.1_0"
-    XCODE_ATTRIBUTE_GCC_WARN_ABOUT_MISSING_NEWLINE              YES         # -Wnewline-eof
+    XCODE_ATTRIBUTE_GCC_WARN_ABOUT_MISSING_NEWLINE              NO         # -Wnewline-eof
     XCODE_ATTRIBUTE_USE_HEADERMAP                               NO
     OSX_ARCHITECTURES_DEBUG                                     "${CMAKE_OSX_ARCHITECTURES}"
     OSX_ARCHITECTURES_RELEASE                                   "${CMAKE_OSX_ARCHITECTURES}"

@@ -73,25 +73,23 @@ list(APPEND CEF_COMPILER_FLAGS
   -funwind-tables                 # Support stack unwinding for backtrace()
   -fvisibility=hidden             # Give hidden visibility to declarations that are not explicitly marked as visible
   -Wall                           # Enable all warnings
-  -Werror                         # Treat warnings as errors
   -Wextra                         # Enable additional warnings
   -Wendif-labels                  # Warn whenever an #else or an #endif is followed by text
-  -Wnewline-eof                   # Warn about no newline at end of file
   -Wno-missing-field-initializers # Don't warn about missing field initializers
   -Wno-unused-parameter           # Don't warn about unused parameters
   )
-list(APPEND CEF_C_COMPILER_FLAGS
+  list(APPEND CEF_C_COMPILER_FLAGS
   -std=c99                        # Use the C99 language standard
   )
-list(APPEND CEF_CXX_COMPILER_FLAGS
-  -fno-exceptions                 # Disable exceptions
-  -fno-rtti                       # Disable real-time type information
+  list(APPEND CEF_CXX_COMPILER_FLAGS
+  -Wno-sign-compare               # Don't warn about mixed signed/unsigned type comparisons
+  -frtti
+  -fexceptions
   -fno-threadsafe-statics         # Don't generate thread-safe statics
   -fobjc-call-cxx-cdtors          # Call the constructor/destructor of C++ instance variables in ObjC objects
   -fvisibility-inlines-hidden     # Give hidden visibility to inlined class member functions
-  -std=c++17                      # Use the C++17 language standard
+  -std=c++20                      # Use the C++17 language standard
   -Wno-narrowing                  # Don't warn about type narrowing
-  -Wsign-compare                  # Warn about mixed signed/unsigned type comparisons
   )
 list(APPEND CEF_COMPILER_FLAGS_DEBUG
   -O0                             # Disable optimizations
@@ -158,6 +156,9 @@ set(CMAKE_XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "")
 set(CEF_BINARY_DIR          "${ATOMIC_SOURCE_DIR}/Artifacts/CEF/MacOS_${PROJECT_ARCH}")
 set(CEF_BINARY_DIR_DEBUG    "${ATOMIC_SOURCE_DIR}/Artifacts/CEF/MacOS_${PROJECT_ARCH}")
 set(CEF_BINARY_DIR_RELEASE  "${ATOMIC_SOURCE_DIR}/Artifacts/CEF/MacOS_${PROJECT_ARCH}")
+# CEF library paths.
+set(CEF_LIB_DEBUG   "${CEF_BINARY_DIR_DEBUG}/Chromium Embedded Framework.framework/Chromium Embedded Framework")
+set(CEF_LIB_RELEASE "${CEF_BINARY_DIR_RELEASE}/Chromium Embedded Framework.framework/Chromium Embedded Framework")
 
 if(USE_SANDBOX)
   list(APPEND CEF_COMPILER_DEFINES

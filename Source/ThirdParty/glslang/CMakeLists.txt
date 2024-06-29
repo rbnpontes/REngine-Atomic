@@ -190,15 +190,6 @@ elseif(MSVC)
     endif()
 endif()
 
-# NOTE we could potentially replace this logic with COMPILE_WARNING_AS_ERROR if cmake minimum is bumped to >= 3.24
-if (BUILD_WERROR)
-    if (NOT MSVC)
-        add_compile_options(-Werror)
-    else()
-        add_compile_options(/WX)
-    endif()
-endif()
-
 if(ENABLE_GLSLANG_JS)
     if(MSVC)
         add_compile_options(/Os /GR-)

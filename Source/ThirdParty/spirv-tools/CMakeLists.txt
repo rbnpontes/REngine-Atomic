@@ -131,10 +131,6 @@ if(${COMPILER_IS_LIKE_GNU})
                      "so SPIRV_WARN_EVERYTHING has no effect")
     endif()
   endif()
-
-  if(${SPIRV_WERROR})
-    set(SPIRV_WARNINGS ${SPIRV_WARNINGS} -Werror)
-  endif()
 elseif(MSVC)
   set(SPIRV_WARNINGS -D_CRT_SECURE_NO_WARNINGS -D_SCL_SECURE_NO_WARNINGS /wd4800 /wd4819)
 
