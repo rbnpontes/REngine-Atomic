@@ -224,7 +224,7 @@ function(yarn_get_command)
     elseif(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Darwin")
         set(YARN_CMD "sh" "${ATOMIC_SOURCE_DIR}/Build/Mac/yarn-forward.sh" PARENT_SCOPE)
     else()
-        set(YARN_CMD "yarn" "--cwd" "${ATOMIC_SOURCE_DIR}" PARENT_SCOPE)
+        set(YARN_CMD "yarn" "--cwd" "${ATOMIC_SOURCE_DIR}/Build" PARENT_SCOPE)
     endif()
 endfunction()
 
