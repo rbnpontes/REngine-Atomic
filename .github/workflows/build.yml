@@ -34,11 +34,15 @@ jobs:
         run: |
           cd Build
           yarn
-      - if: inputs.runs_on != 'windows-latest'
+      - if: inputs.runs_on == 'ubuntu-latest'
         name: Install Additional Linux Dependencies
         run: |
           sudo apt-get update
           sudo apt-get -y install libgtk-3-dev libgl1-mesa-dev libglu1-mesa-dev
+      - if: inputs.runs_on == 'macos-latest'
+        name: Install Additional MacOS Dependencies
+        run: |
+          sudo brew install p7zip
       - name: Generate Project
         run: yarn --cwd Build editor:gen
       - name: Build First Phase
