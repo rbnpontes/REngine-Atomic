@@ -116,12 +116,10 @@ WeakPtr<WebBrowserHost> WebBrowserHost::instance_;
 String WebBrowserHost::rootCacheFolder_;
 String WebBrowserHost::cacheName_;
 String WebBrowserHost::userAgent_;
-String WebBrowserHost::productVersion_;
 String WebBrowserHost::jsMessageQueryFunctionName_ = "atomicQuery";
 String WebBrowserHost::jsMessageQueryCancelFunctionName_ = "atomicQueryCancel";
 
 int WebBrowserHost::debugPort_ = 3335;
-bool WebBrowserHost::webSecurity_ = true;
 
 
 WebBrowserHost::WebBrowserHost(Context* context) : Object (context)
@@ -150,7 +148,7 @@ WebBrowserHost::WebBrowserHost(Context* context) : Object (context)
 #endif
 
     CefSettings settings;
-    settings.windowless_rendering_enabled = 1;    
+    settings.windowless_rendering_enabled = 1;
 
     FileSystem* fs = GetSubsystem<FileSystem>();
 
@@ -178,11 +176,6 @@ WebBrowserHost::WebBrowserHost(Context* context) : Object (context)
 
     // default background is white, add a setting
     // settings.background_color = 0;
-
-    if (productVersion_.Length())
-    {
-        CefString(&settings.product_version).FromASCII(productVersion_.CString());
-    }
 
     if (userAgent_.Length())
     {

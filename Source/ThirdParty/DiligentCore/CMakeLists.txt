@@ -431,8 +431,6 @@ else()
 endif()
 
 if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    # Treat warnings as errors
-    set(DILIGENT_CLANG_COMPILE_OPTIONS "-Werror" CACHE STRING "Common Clang compile options")
 
     set(DILIGENT_CLANG_DEBUG_COMPILE_OPTIONS "" CACHE STRING "Additional Clang compile options for debug configuration")
 

@@ -24,6 +24,7 @@
 #include "./RenderCommand.h"
 #include "./VertexDeclaration.h"
 #include "./DiligentUtils.h"
+#include "./TextureManager.h"
 // RHI END
 
 #include <DiligentCore/Graphics/GraphicsEngine/interface/GraphicsTypes.h>
@@ -283,7 +284,8 @@ namespace Atomic
 #if RENGINE_PLATFORM_WINDOWS
         result->native_window.hWnd = sys_info.info.win.window;
 #elif RENGINE_PLATFORM_LINUX
-        throw std::runtime_error("Not implemented Linux Window");
+		result->native_window.pDisplay = sys_info.info.x11.display;
+    	result->native_window.WindowId = sys_info.info.x11.window;
 #elif RENGINE_PLATFORM_MACOS
         result->native_window.pNSView = result->metal_view.get();
 #elif RENGINE_PLATFORM_IOS
@@ -670,89 +672,92 @@ namespace Atomic
 
 	bool Graphics::TakeScreenShot(Image* destImage_)
 	{
-		throw std::runtime_error("Not implemented");
-		//     ATOMIC_PROFILE(TakeScreenShot);
-		//
-		//     if (!impl_->device_)
-		//         return false;
-		//
-		// // ATOMIC BEGIN
-		//     if (!destImage_)
-		//         return false;
-		//     Image& destImage = *destImage_;
-		// // ATOMIC END
-		//
-		//     D3D11_TEXTURE2D_DESC textureDesc;
-		//     memset(&textureDesc, 0, sizeof textureDesc);
-		//     textureDesc.Width = (UINT)width_;
-		//     textureDesc.Height = (UINT)height_;
-		//     textureDesc.MipLevels = 1;
-		//     textureDesc.ArraySize = 1;
-		//     textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-		//     textureDesc.SampleDesc.Count = 1;
-		//     textureDesc.SampleDesc.Quality = 0;
-		//     textureDesc.Usage = D3D11_USAGE_STAGING;
-		//     textureDesc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
-		//
-		//     ID3D11Texture2D* stagingTexture = 0;
-		//     HRESULT hr = impl_->device_->CreateTexture2D(&textureDesc, 0, &stagingTexture);
-		//     if (FAILED(hr))
-		//     {
-		//         ATOMIC_SAFE_RELEASE(stagingTexture);
-		//         ATOMIC_LOGD3DERROR("Could not create staging texture for screenshot", hr);
-		//         return false;
-		//     }
-		//
-		//     ID3D11Resource* source = 0;
-		//     impl_->defaultRenderTargetView_->GetResource(&source);
-		//
-		//     if (multiSample_ > 1)
-		//     {
-		//         // If backbuffer is multisampled, need another DEFAULT usage texture to resolve the data to first
-		//         CreateResolveTexture();
-		//
-		//         if (!impl_->resolveTexture_)
-		//         {
-		//             stagingTexture->Release();
-		//             source->Release();
-		//             return false;
-		//         }
-		//
-		//         impl_->deviceContext_->ResolveSubresource(impl_->resolveTexture_, 0, source, 0, DXGI_FORMAT_R8G8B8A8_UNORM);
-		//         impl_->deviceContext_->CopyResource(stagingTexture, impl_->resolveTexture_);
-		//     }
-		//     else
-		//         impl_->deviceContext_->CopyResource(stagingTexture, source);
-		//
-		//     source->Release();
-		//
-		//     D3D11_MAPPED_SUBRESOURCE mappedData;
-		//     mappedData.pData = 0;
-		//     hr = impl_->deviceContext_->Map(stagingTexture, 0, D3D11_MAP_READ, 0, &mappedData);
-		//     if (FAILED(hr) || !mappedData.pData)
-		//     {
-		//         ATOMIC_LOGD3DERROR("Could not map staging texture for screenshot", hr);
-		//         stagingTexture->Release();
-		//         return false;
-		//     }
-		//
-		//     destImage.SetSize(width_, height_, 3);
-		//     unsigned char* destData = destImage.GetData();
-		//     for (int y = 0; y < height_; ++y)
-		//     {
-		//         unsigned char* src = (unsigned char*)mappedData.pData + y * mappedData.RowPitch;
-		//         for (int x = 0; x < width_; ++x)
-		//         {
-		//             *destData++ = *src++;
-		//             *destData++ = *src++;
-		//             *destData++ = *src++;
-		//             ++src;
-		//         }
-		//     }
-		//
-		//     impl_->deviceContext_->Unmap(stagingTexture, 0);
-		//     stagingTexture->Release();
-		//     return true;
+		ATOMIC_PROFILE(TakeScreenShot);
+		
+		if (!IsInitialized())
+		    return false;
+		
+		// ATOMIC BEGIN
+		if (!destImage_)
+		    return false;
+
+		Image& destImage = *destImage_;
+		// ATOMIC END
+
+		const auto size = GetRenderSize();
+
+		REngine::TextureManagerCreateInfo tex_ci;
+		tex_ci.name = "Screenshot";
+		tex_ci.width = size.x_;
+		tex_ci.height = size.y_;
+		tex_ci.format = TextureFormat::TEX_FORMAT_RGBA8_UNORM;
+		tex_ci.driver = impl_;
+
+		const auto stg_tex = REngine::texture_manager_tex2d_get_stg(tex_ci);
+
+		if (!stg_tex)
+			return false;
+
+		const auto ctx = impl_->GetDeviceContext();
+		Diligent::CopyTextureAttribs cpy_attribs = {};
+		cpy_attribs.DstTextureTransitionMode = cpy_attribs.SrcTextureTransitionMode = Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION;
+		
+		if (multiSample_ > 1)
+		{
+		    // If backbuffer is multisampled, need another DEFAULT usage texture to resolve the data to first
+			const auto resolve_tex = REngine::texture_manager_tex2d_get_resolve(tex_ci);
+			if (!resolve_tex)
+				return false;
+
+			Diligent::ResolveTextureSubresourceAttribs attribs = {};
+			attribs.Format = tex_ci.format;
+			attribs.DstTextureTransitionMode = attribs.SrcTextureTransitionMode = Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION;
+			ctx->ResolveTextureSubresource(impl_->GetSwapChain()->GetCurrentBackBufferRTV()->GetTexture(), resolve_tex, attribs);
+
+			cpy_attribs.pSrcTexture = resolve_tex;
+			cpy_attribs.pDstTexture = stg_tex;
+
+			ctx->CopyTexture(cpy_attribs);
+		}
+		else
+		{
+			cpy_attribs.pSrcTexture = impl_->GetSwapChain()->GetCurrentBackBufferRTV()->GetTexture();
+			cpy_attribs.pDstTexture = stg_tex;
+
+			ctx->CopyTexture(cpy_attribs);
+		}
+
+		Diligent::MappedTextureSubresource mapped_data;
+		ctx->MapTextureSubresource(stg_tex, 
+			0, 
+			0, 
+			Diligent::MAP_READ, 
+			Diligent::MAP_FLAG_DO_NOT_WAIT, 
+			nullptr, 
+			mapped_data);
+
+		if(!mapped_data.pData)
+		{
+			ATOMIC_LOGERROR("Failed to map staging texture for screenshot");
+			return false;
+		}
+		
+		destImage.SetSize(width_, height_, 3);
+		unsigned char* destData = destImage.GetData();
+		for (int y = 0; y < height_; ++y)
+		{
+		    unsigned char* src = static_cast<unsigned char*>(mapped_data.pData) + y * mapped_data.Stride;
+		    for (int x = 0; x < width_; ++x)
+		    {
+		        *destData++ = *src++;
+		        *destData++ = *src++;
+		        *destData++ = *src++;
+		        ++src;
+		    }
+		}
+
+		ctx->UnmapTextureSubresource(stg_tex, 0, 0);
+		return true;
 	}
 
 	bool Graphics::BeginFrame()
@@ -796,7 +801,7 @@ namespace Atomic
 		}
 
 		// Clean up too large scratch buffers
-		Cleanup(GRAPHICS_CLEAR_SCRATCH_BUFFERS);
+		Cleanup(GRAPHICS_CLEAR_SCRATCH_BUFFERS | GRAPHICS_CLEAR_TEXTURES);
 	}
 
 	void Graphics::Clear(unsigned flags, const Color& color, float depth, unsigned stencil) const
@@ -1512,33 +1517,33 @@ namespace Atomic
 		// No-op on Diligent
 	}
 
-	void Graphics::Cleanup(GraphicsClearFlags flags)
+	void Graphics::Cleanup(u32 cleanup_flags)
 	{
-		if (flags & GRAPHICS_CLEAR_SRB)
+		if (cleanup_flags & GRAPHICS_CLEAR_SRB)
 		{
 			const auto cache_count = REngine::srb_cache_items_count();
 			REngine::srb_cache_release();
 			ATOMIC_LOGINFOF("Released (%d) Shader Resource Bindings", cache_count);
 		}
-		if (flags & GRAPHICS_CLEAR_PIPELINES)
+		if (cleanup_flags & GRAPHICS_CLEAR_PIPELINES)
 		{
 			const auto cache_count = REngine::pipeline_state_builder_items_count();
 			REngine::pipeline_state_builder_release();
 			ATOMIC_LOGINFOF("Released (%d) Pipeline States", cache_count);
 		}
-		if (flags & GRAPHICS_CLEAR_SHADER_PROGRAMS)
+		if (cleanup_flags & GRAPHICS_CLEAR_SHADER_PROGRAMS)
 		{
 			const auto cache_count = REngine::graphics_state_shader_programs_count();
 			REngine::graphics_state_release_shader_programs();
 			ATOMIC_LOGINFOF("Released (%d) Shader Programs", cache_count);
 		}
-		if (flags & GRAPHICS_CLEAR_VERTEX_DECLARATIONS)
+		if (cleanup_flags & GRAPHICS_CLEAR_VERTEX_DECLARATIONS)
 		{
 			const auto cache_count = REngine::graphics_state_vertex_declarations_count();
 			REngine::graphics_state_release_vertex_declarations();
 			ATOMIC_LOGINFOF("Released (%d) Vertex Declarations", cache_count);
 		}
-		if (flags & GRAPHICS_CLEAR_CONSTANT_BUFFERS)
+		if (cleanup_flags & GRAPHICS_CLEAR_CONSTANT_BUFFERS)
 		{
 			const uint32_t cache_count = static_cast<uint32_t>(MAX_SHADER_PARAMETER_GROUPS) * static_cast<uint32_t>(MAX_SHADER_TYPES) + REngine::graphics_state_constant_buffers_count();
 			impl_->ClearConstantBuffers();
@@ -1546,8 +1551,16 @@ namespace Atomic
 			ATOMIC_LOGINFOF("Released (%d) Constant Buffers", cache_count);
 		}
 
-		if (flags & GRAPHICS_CLEAR_SCRATCH_BUFFERS)
+		if (cleanup_flags & GRAPHICS_CLEAR_SCRATCH_BUFFERS)
 			CleanupScratchBuffers();
+
+		if(cleanup_flags & GRAPHICS_CLEAR_TEXTURES)
+		{
+			const auto cache_count = REngine::texture_manager_tmp_textures_count();
+			REngine::texture_manager_clear_tmp_textures();
+			if(cache_count > 0)
+				ATOMIC_LOGINFOF("Released (%d) Temporary Textures", cache_count);
+		}
 	}
 
 	ConstantBuffer* Graphics::GetOrCreateConstantBuffer(ShaderType type, unsigned index, unsigned size) const

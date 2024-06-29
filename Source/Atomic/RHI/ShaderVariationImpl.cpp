@@ -265,10 +265,10 @@ namespace Atomic
             defines.push_back("RENGINE_PLATFORM_MACOS");
         #endif
         #ifdef RENGINE_PLATFORM_IOS
-            define.push_back("RENGINE_PLATFORM_IOS");
+            defines.push_back("RENGINE_PLATFORM_IOS");
         #endif
         #ifdef RENGINE_PLATFORM_APPLE
-            define.push_back("RENGINE_PLATFORM_APPLE");
+            defines.push_back("RENGINE_PLATFORM_APPLE");
         #endif
         #ifdef RENGINE_PLATFORM_ANDROID
             defines.push_back("RENGINE_PLATFORM_ANDROID");

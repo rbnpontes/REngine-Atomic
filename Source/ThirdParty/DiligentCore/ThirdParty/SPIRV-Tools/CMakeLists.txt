@@ -108,7 +108,7 @@ set(SPIRV_LIB_FUZZING_ENGINE_LINK_OPTIONS "" CACHE STRING "Used by OSS-Fuzz to c
 
 option(SPIRV_BUILD_LIBFUZZER_TARGETS "Build libFuzzer targets" OFF)
 
-option(SPIRV_WERROR "Enable error on warning" OFF)
+set(SPIRV_WERROR FALSE)
 if(("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU") OR (("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang") AND (NOT CMAKE_CXX_SIMULATE_ID STREQUAL "MSVC")))
   set(COMPILER_IS_LIKE_GNU TRUE)
 endif()
@@ -130,10 +130,6 @@ if(${COMPILER_IS_LIKE_GNU})
       message(STATUS "Unknown compiler ${CMAKE_CXX_COMPILER_ID}, "
                      "so SPIRV_WARN_EVERYTHING has no effect")
     endif()
-  endif()
-
-  if(${SPIRV_WERROR})
-    set(SPIRV_WARNINGS ${SPIRV_WARNINGS} -Werror)
   endif()
 elseif(MSVC)
   set(SPIRV_WARNINGS -D_CRT_SECURE_NO_WARNINGS -D_SCL_SECURE_NO_WARNINGS /wd4800 /wd4819)

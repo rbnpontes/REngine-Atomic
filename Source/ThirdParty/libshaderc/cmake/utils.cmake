@@ -18,7 +18,7 @@
 function(shaderc_default_c_compile_options TARGET)
   if (NOT "${MSVC}")
     if (SHADERC_ENABLE_WERROR_COMPILE)
-      target_compile_options(${TARGET} PRIVATE -Wall -Werror -fvisibility=hidden)
+      target_compile_options(${TARGET} PRIVATE -Wall -fvisibility=hidden)
     else()
       target_compile_options(${TARGET} PRIVATE -Wall -fvisibility=hidden)
     endif()

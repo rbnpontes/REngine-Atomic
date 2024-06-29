@@ -1,2 +1,6 @@
 @echo OFF
-Build\Windows\node\node.exe ./Build/Scripts/Bootstrap.js buildeditor %*
+
+REM Install Dependencies
+yarn --cwd Build
+REM Build Editor
+yarn --cwd Build editor:build %*

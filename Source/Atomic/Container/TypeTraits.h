@@ -1,15 +1,15 @@
 #pragma once
 
-#include <eastl/string.h>
-#include <eastl/unordered_map.h>
-#include <eastl/unordered_set.h>
-#include <eastl/vector.h>
-#include <eastl/fixed_vector.h>
-#include <eastl/array.h>
-#include <eastl/shared_ptr.h>
-#include <eastl/shared_array.h>
-#include <eastl/queue.h>
-#include <eastl/functional.h>
+#include <EASTL/string.h>
+#include <EASTL/unordered_map.h>
+#include <EASTL/unordered_set.h>
+#include <EASTL/vector.h>
+#include <EASTL/fixed_vector.h>
+#include <EASTL/array.h>
+#include <EASTL/shared_ptr.h>
+#include <EASTL/shared_array.h>
+#include <EASTL/queue.h>
+#include <EASTL/functional.h>
 #include <stdint.h>
 
 namespace ea = eastl;

@@ -4,7 +4,7 @@ file(GLOB_RECURSE SOURCE_FILES *.cpp *.h)
 list(REMOVE_ITEM SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/WebView/WebProcessHelperMac.cpp)
 file(GLOB JAVASCRIPT_BINDINGS_SOURCE ${ATOMIC_SOURCE_DIR}/Artifacts/Build/Source/Generated/Javascript/Packages/Editor/*.cpp)
 set(SOURCE_FILES ${SOURCE_FILES} ${JAVASCRIPT_BINDINGS_SOURCE})
-#set (SOURCE_FILES ${SOURCE_FILES} ${CSHARP_BINDINGS_SOURCE} ${CSHARPATOMICPLAYER_BINDINGS_SOURCE} ${CSHARPATOMICNET_BINDINGS_SOURCE})
+set(SOURCE_FILES ${SOURCE_FILES} ${CSHARP_BINDINGS_SOURCE} ${CSHARPATOMICPLAYER_BINDINGS_SOURCE} ${CSHARPATOMICNET_BINDINGS_SOURCE})
 
 if (APPLE)
     file(GLOB_RECURSE OBJC_FILES *.mm *.h)
@@ -16,7 +16,7 @@ if (APPLE)
     set_source_files_properties(${ATOMIC_EDITOR_ICON} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
 else ()
     # We want a console for development builds
-    if (${ATOMIC_DEV_BUILD} EQUAL 1)
+    if (RENGINE_DEV_BUILD AND WIN32)
         add_definitions(-DATOMIC_WIN32_CONSOLE)
     else ()
         set(EXE_TYPE WIN32)
@@ -54,7 +54,7 @@ if (ATOMIC_WEBVIEW)
         endif ()
 
         # Add the custom manifest files to the executable.
-        ADD_WINDOWS_MANIFEST("${CMAKE_CURRENT_SOURCE_DIR}/Windows" "${CEF_TARGET}")
+        ADD_WINDOWS_MANIFEST("${CMAKE_CURRENT_SOURCE_DIR}/Windows" "${CEF_TARGET}" "exe")
 
         # Copy binary and resource files to the target output directory.
         COPY_FILES("${CEF_TARGET}" "${CEF_BINARY_FILES}" "${CEF_BINARY_DIR}" "${CEF_TARGET_OUT_DIR}")
@@ -82,9 +82,6 @@ if (ATOMIC_WEBVIEW)
             MACOSX_BUNDLE_INFO_PLIST "${ATOMIC_SOURCE_DIR}/Build/CMake/Modules/AtomicEditor-HelperInfo.plist.template"
         )
 
-        # Fix the framework link in the helper executable.
-        FIX_MACOSX_HELPER_FRAMEWORK_LINK(${CEF_HELPER_TARGET} ${CEF_HELPER_APP})
-
         # Main executable target.
         add_executable(${CEF_TARGET} ${EXE_TYPE} ${SOURCE_FILES} ${ATOMIC_EDITOR_ICON})
 
@@ -106,13 +103,10 @@ if (ATOMIC_WEBVIEW)
             "${CEF_APP}/Contents/Frameworks/${CEF_HELPER_TARGET}.app"
             # Copy the CEF framework into the Frameworks directory.
             COMMAND ${CMAKE_COMMAND} -E copy_directory
-            "${CEF_BINARY_DIR}/CEF.framework"
+            "${CEF_BINARY_DIR}/Chromium Embedded Framework.framework"
             "${CEF_APP}/Contents/Frameworks/CEF.framework"
             VERBATIM
         )
-
-        # Fix the framework link in the main executable.
-        FIX_MACOSX_MAIN_FRAMEWORK_LINK(${CEF_TARGET} ${CEF_APP})
 
         if (NOT ${CMAKE_GENERATOR} STREQUAL "Xcode")
             # Manually process and copy over resource files.
@@ -136,13 +130,18 @@ if (ATOMIC_WEBVIEW)
         # Copy binary and resource files to the target output directory.
         COPY_FILES("${CEF_TARGET}" "${CEF_BINARY_FILES}" "${CEF_BINARY_DIR}" "${CEF_TARGET_OUT_DIR}")
         COPY_FILES("${CEF_TARGET}" "${CEF_RESOURCE_FILES}" "${CEF_RESOURCE_DIR}" "${CEF_TARGET_OUT_DIR}")
-
-        # Set SUID permissions on the chrome-sandbox target.
-        SET_LINUX_SUID_PERMISSIONS("${CEF_TARGET}" "${CEF_TARGET_OUT_DIR}/chrome-sandbox")
     endif ()
 endif (ATOMIC_WEBVIEW)
 
-target_link_libraries(${CEF_TARGET} ToolCore AtomicApp AtomicWebView AtomicJS AtomicPlayerJS ToolCoreJS AtomicNETScriptBindings AtomicNETScript Poco nativefiledialog Atomic)
+target_link_libraries(${CEF_TARGET} ToolCore AtomicWebView AtomicJS AtomicPlayerJS ToolCoreJS Poco nativefiledialog Atomic EASTL)
+
+if(ATOMIC_JAVASCRIPT OR ATOMIC_DOTNET)
+    target_link_libraries(${CEF_TARGET} AtomicApp)
+endif()
+
+if(ATOMIC_DOTNET)
+    target_link_libraries(${CEF_TARGET} AtomicNETScriptBindings AtomicNETScript)
+endif()
 
 if (APPLE)
     set(TARGET_PROPERTIES MACOSX_BUNDLE_INFO_PLIST "${ATOMIC_SOURCE_DIR}/Build/CMake/Modules/AtomicEditorInfo.plist.template")

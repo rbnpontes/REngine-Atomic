@@ -80,6 +80,9 @@ GroupSources("BuildInfo")
 GroupSources("IK")
 GroupSources("RHI")
 
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 # Handle Git Revision
 include(GetGitRevisionDescription)
 get_git_head_revision(GIT_REFSPEC GIT_SHA1)
@@ -94,6 +97,8 @@ else ()
 endif ()
 
 add_library(Atomic ${ATOMIC_LIBRARY_TYPE} ${SOURCE_FILES})
+set_target_properties(Atomic PROPERTIES CXX_STANDARD 20 CXX_STANDARD_REQUIRED ON)
+
 if (NOT RENGINE_SHARED)
     target_compile_definitions (Atomic PUBLIC -DATOMIC_STATIC_DEFINE=1 -DATOMIC_API=)
 else ()
@@ -153,7 +158,7 @@ elseif (APPLE)
     endif ()
 elseif (LINUX)
     list(APPEND PUBLIC_THIRD_PARTY_DEPS pthread dl)
-    target_compile_definitions(Atomic PUBLIC -DATOMIC_PLATFORM_LINUX=1)
+    target_compile_definitions(Atomic PUBLIC -DATOMIC_PLATFORM_LINUX=1 -DRENGINE_PLATFORM_LINUX=1)
 elseif (WIN32)
     target_compile_definitions (Atomic PUBLIC -DATOMIC_PLATFORM_WINDOWS=1 -DRENGINE_PLATFORM_WINDOWS=1)
     list(APPEND PUBLIC_THIRD_PARTY_DEPS user32 gdi32 winmm imm32 ole32 oleaut32 version uuid Ws2_32)
@@ -199,7 +204,7 @@ if (NOT WEB)
     list(APPEND PUBLIC_THIRD_PARTY_DEPS Civetweb kNet)
 endif()
 
-if (ATOMIC_PROFILING)
+if (RENGINE_PROFILING)
     target_compile_definitions(Atomic PUBLIC -DATOMIC_PROFILING=1 -DRENGINE_PROFILER_TRACY=1)
     list(APPEND PUBLIC_THIRD_PARTY_DEPS TracyClient)
 endif ()
@@ -269,7 +274,3 @@ endif ()
 target_link_libraries(Atomic 
     PUBLIC ${PUBLIC_THIRD_PARTY_DEPS}
     PRIVATE ${PRIVATE_THIRD_PARTY_DEPS})
-
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set_target_properties(Atomic PROPERTIES CXX_STANDARD 20 CXX_STANDARD_REQUIRED ON)

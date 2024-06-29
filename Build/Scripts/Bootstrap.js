@@ -105,37 +105,6 @@ if (cmd == "buildeditor") {
         }
     }
 
-    if (config["d3d9"] && config["opengl"]) {
-
-        if (os.platform() == "win32") {
-            console.log("\nBoth DirectX 9 and OpenGL flags specified. Please choose only one at a time.\nExiting...\n");
-            process.exit(1);
-        }
-    }
-
-    if (config["d3d9"]) {
-
-        if (os.platform() != "win32") {
-            console.log("\nDirectX 9 build requires Windows, exiting\n");
-            process.exit(1);
-        }
-        else {
-            console.log("\nDirectX 9 build selected.\n");
-        }
-    }
-
-
-    if (config["opengl"]) {
-
-        if (os.platform() != "win32") {
-            console.log("\nOpenGL flag ignored, OpenGL is default on non-Windows platforms anyway.\nContinuing...\n");
-        }
-        else {
-            console.log("\nOpenGL build selected.\n");
-        }
-    }
-
-
     buildTask.invoke();
 
 }

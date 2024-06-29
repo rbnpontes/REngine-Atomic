@@ -46,7 +46,7 @@ class WebTexture2DPrivate : public CefRenderHandler
 
 public:
 
-    IMPLEMENT_REFCOUNTING(WebTexture2DPrivate)
+    IMPLEMENT_REFCOUNTING(WebTexture2DPrivate);
 
     WebTexture2DPrivate(WebTexture2D* webTexture2D)
     {
@@ -55,7 +55,7 @@ public:
         ClearPopupRects();
     }
 
-    void OnPopupShow(CefRefPtr<CefBrowser> browser, bool show) OVERRIDE
+    void OnPopupShow(CefRefPtr<CefBrowser> browser, bool show) override
     {
         if (!show)
         {
@@ -64,7 +64,7 @@ public:
         }
     }
 
-    void OnPopupSize(CefRefPtr<CefBrowser> browser, const CefRect& rect) OVERRIDE
+    void OnPopupSize(CefRefPtr<CefBrowser> browser, const CefRect& rect) override
     {
         if (rect.width <= 0 || rect.height <= 0)
         {
@@ -107,10 +107,9 @@ public:
         popupRectOriginal_.Set(0, 0, 0, 0);
     }
 
-    bool GetViewRect(CefRefPtr<CefBrowser> browser, CefRect &rect) OVERRIDE
+    void GetViewRect(CefRefPtr<CefBrowser> browser, CefRect &rect) override
     {
         rect = CefRect(0, 0, webTexture2D_->GetWidth(), webTexture2D_->GetHeight());
-        return true;
     }
 
     // Diligent blitting
@@ -149,7 +148,7 @@ public:
     }
 
     void OnPaint(CefRefPtr<CefBrowser> browser, PaintElementType type, const RectList &dirtyRects,
-        const void *buffer, int width, int height) OVERRIDE
+        const void *buffer, int width, int height) override
     {
         if (type == PET_VIEW)
         {

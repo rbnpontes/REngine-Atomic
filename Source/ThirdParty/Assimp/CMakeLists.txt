@@ -764,4 +764,7 @@ list (APPEND TARGET_PROPERTIES XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH YES)   # Since w
 # ATOMIC BEGIN
 set (INCLUDE_DIRS include)
 # ATOMIC END
+set (CMAKE_CXX_STANDARD 14)
 setup_library ()
+#Set default C++ standard
+set (CMAKE_CXX_STANDARD 20)

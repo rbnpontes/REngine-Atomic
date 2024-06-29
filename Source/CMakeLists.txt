@@ -1,19 +1,3 @@
-option(ATOMIC_JAVASCRIPT "Build JS Bindings" ON)
-if (WEB)
-    set(ATOMIC_DOTNET OFF)
-else ()
-    option(ATOMIC_DOTNET "Build .NET Bindings" ON)
-endif ()
-option(ATOMIC_EDITOR "Build Editor" ON)
-option(ATOMIC_DATABASE_SQLITE "Enable SQLite database subsystem" OFF)
-option(ATOMIC_DATABASE_ODBC "Enable ODBC database subsystem" OFF)
-option(ATOMIC_IK "Enable inverse kinematics subsystem" OFF)
-option(ATOMIC_PROFILING "Enable profiler" ${ATOMIC_RELEASE_OFF})
-option(RENGINE_SHARED "Enable Shared Libs" OFF)
-set (RENGINE_PROFILER "tracy")
-
-message(STATUS "Renderer: Diligent Core")
-
 add_subdirectory(ThirdParty)
 add_subdirectory(Atomic)
 
@@ -27,9 +11,11 @@ if (ATOMIC_WEBVIEW)
     add_subdirectory(AtomicWebView)
 endif ()
 
-if (ATOMIC_DOTNET)
+if (ATOMIC_JAVASCRIPT OR ATOMIC_DOTNET)
     add_subdirectory(AtomicApp)
-    add_subdirectory(AtomicNET)
+    if (ATOMIC_DOTNET)
+        add_subdirectory(AtomicNET)
+    endif()
 endif ()
 
 if (ATOMIC_DESKTOP)

@@ -221,8 +221,10 @@ endmacro()
 function(yarn_get_command)
     if(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
         set(YARN_CMD "${ATOMIC_SOURCE_DIR}/Build/Windows/yarn-forward.bat" PARENT_SCOPE)
+    elseif(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Darwin")
+        set(YARN_CMD "sh" "${ATOMIC_SOURCE_DIR}/Build/Mac/yarn-forward.sh" PARENT_SCOPE)
     else()
-        set(YARN_CMD "yarn" PARENT_SCOPE)
+        set(YARN_CMD "yarn" "--cwd" "${ATOMIC_SOURCE_DIR}/Build" PARENT_SCOPE)
     endif()
 endfunction()
 
@@ -260,7 +262,6 @@ function(create_package resource_dir output_path)
     set (YARN_ARGS "pkg" "${resource_dir}" "${output_path}" "${pak_endianess}")
     execute_yarn()
 endfunction()
-
 # Macro for setting msvc runtime flags globally.
 # Macro arguments:
 #  runtime_flag - release build runtime flag, /MT or /MD. Debug flag will be deduced automatically by appending 'd'.
