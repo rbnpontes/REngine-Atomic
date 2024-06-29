@@ -42,7 +42,7 @@ jobs:
       - if: inputs.runs_on == 'macos-latest'
         name: Install Additional MacOS Dependencies
         run: |
-          sudo brew install p7zip
+          brew install p7zip
       - name: Generate Project
         run: yarn --cwd Build editor:gen
       - name: Build First Phase

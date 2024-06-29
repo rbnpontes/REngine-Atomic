@@ -240,8 +240,16 @@ macro(execute_yarn)
         set(YARN_ARGS ${YARN_CMD})
     endif()
 
+    set(_FINAL_YARN_ARGS ${YARN_ARGS})
+    if(LINUX)
+        set(_FINAL_YARN_ARGS "")
+        foreach(YARN_ARG in YARN_ARGS)
+            set(_FINAL_YARN_ARGS "${_FINAL_YARN_ARGS} ${YARN_ARG}")
+        endforeach()
+    endif()
+
     execute_process(
-        COMMAND ${YARN_ARGS}
+        COMMAND ${_FINAL_YARN_ARGS}
         WORKING_DIRECTORY "${YARN_WORKING_DIR}"
         RESULTS_VARIABLE YARN_RESULT
     )
