@@ -235,7 +235,7 @@ macro(execute_yarn)
 
     yarn_get_command()
     if(DEFINED YARN_ARGS)
-    l   list(APPEND YARN_ARGS ${YARN_CMD})
+        list(APPEND YARN_ARGS ${YARN_CMD})
     else()
         set(YARN_ARGS ${YARN_CMD})
     endif()
