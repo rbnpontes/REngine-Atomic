@@ -9,3 +9,7 @@ jobs:
     uses: ./.github/workflows/build.yml
     with:
       runs_on: 'ubuntu-latest'
+  Build-MacOS:
+    uses: ./.github/workflows/build.yml
+    with:
+      runs_on: 'macos-latest'
