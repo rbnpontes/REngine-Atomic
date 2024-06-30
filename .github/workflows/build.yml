@@ -4,6 +4,12 @@ on:
       runs_on:
         required: true
         type: string
+      publish_artifact:
+        type: boolean
+        default: false
+      artifact_name:
+        type: string
+        default: ''
 jobs:
   build_job:
     runs-on: ${{ inputs.runs_on }}
@@ -43,9 +49,33 @@ jobs:
         name: Install Additional MacOS Dependencies
         run: |
           brew install p7zip
+      # Generate CMake Project
       - name: Generate Project
         run: yarn --cwd Build editor:gen
+      # Execute First Build. This is required because CMake
+      # requires some tools to exist before build second phase
       - name: Build First Phase
         run: yarn --cwd Build editor:firstphase
+      # Finally. Execute Second Phase, this phase
+      # creates our editor executable
       - name: Build Second Phase
         run: yarn --cwd Build editor:secondphase
+      # If publish_artifact is enabled, then the above
+      # steps will be run
+      # Copying binaries is required to place all Tools, Native Libs
+      # and resources into editor directory
+      - if: inputs.publish_artifact
+        name: Copying Binaries
+        run: yarn --cwd Build editor:cpybins
+      # After copy binaries, we must generate our .zip
+      # and upload into github artifacts
+      - if: inputs.publish_artifact
+        name: Building Artifacts
+        run: yarn --cwd Build editor:pkg
+      # Publish artifact
+      - if: inputs.publish_artifact && inputs.artifact_name != ''
+        name: Upload Build Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ inputs.artifact_name }}
+          path: ${{ github.workspace }}/Build/${{ inputs.artifact_name }}
