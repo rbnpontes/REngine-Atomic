@@ -37,8 +37,15 @@ const resources_dest = (() => {
 
 function editorCleanArtifacts() {
     console.log('- Clearing artifacts directory');
+    const exclusion_list = [
+        '.gitkeep',
+        'CEF'
+    ];
     fs.readdirSync(artifacts_root)
-        .filter(x => !x.endsWith('.gitkeep'))
+        .filter(x => {
+            const has_excluded_item = exclusion_list.findIndex(y => x.endsWith(y)) == -1;
+            return has_excluded_item;
+        })
         .forEach(x => {
             x = path.join(artifacts_root, x);
             fs.removeSync(x);
@@ -202,13 +209,10 @@ async function editorGenerate() {
     console.log('- Editor Project was generated with success.');
 }
 function editorCopyNETBinaries() {
-    // TODO: refactor this condition
-    if (!config['with-atomic-net'])
-        return;
-
+    console.log(`- Copying ${constants.engine_name} .NET binaries`);
     const engine_lib_path = path.resolve(engine_root, 'Artifacts', constants.engine_net_name, config.config);
     const engine_lib_out_path = path.resolve(resources_dest, 'Resources/ToolData', constants.engine_net_name, config.config);
-    const engine_proj_path = path.resolve(engine_root, constants.engine_net_name, constants.engine_project_json);
+    const engine_proj_path = path.resolve(engine_root, 'Script', constants.engine_net_name, constants.engine_project_json);
     const engine_proj_out_path = path.resolve(
         resources_dest,
         'Resources/ToolData',
@@ -222,6 +226,7 @@ function editorCopyNETBinaries() {
         [engine_proj_path, engine_proj_out_path]
     ].forEach(x => {
         const [src, dst] = x;
+        console.log(`- Copying. From: ${src} - To: ${dst}`);
         fs.copySync(src, dst);
     });
 }
@@ -230,14 +235,13 @@ async function editorCopyBinaries() {
 
     const build_dir = await editorGetBuildDirectory();
 
-    //const editor_build_dir = path.resolve(build_dir, 'Source', constants.engine_editor_name, config.config);
     const editor_build_dir = (() => {
         switch (os.platform()) {
             case 'win32':
             case 'linux':
                 return path.resolve(build_dir, 'Source', constants.engine_editor_name, config.config);
             case 'darwin':
-                return path.resolve(build_dir, 'Source', constants.engine_editor_name, constants.engine_editor_name);
+                return path.resolve(build_dir, 'Source', constants.engine_editor_name, config.config, constants.engine_editor_name + '.app');
             default:
                 throw getUnsupportedEnvironmentError();
         }
@@ -248,7 +252,7 @@ async function editorCopyBinaries() {
             case 'linux':
                 return path.resolve(artifacts_root, constants.engine_editor_name);
             case 'darwin':
-                return path.resolve(artifacts_root, constants.engine_editor_name, constants.engine_editor_name);
+                return path.resolve(artifacts_root, constants.engine_editor_name, constants.engine_editor_name + '.app');
             default:
                 throw getUnsupportedEnvironmentError();
         }
@@ -342,27 +346,28 @@ async function editorCopyBinaries() {
 }
 async function editorPackage() {
     console.log('- Packing Editor to Shipping');
-    const pkg_output_path = path.join(editor_app_folder, constants.engine_name + '.zip');
+    const pkg_name = (()=> {
+        switch(os.platform()) {
+            case 'win32':
+                return constants.engine_name + '-Windows.zip';
+            case 'linux':
+                return constants.engine_name + '-Linux.zip';
+            case 'darwin':
+                return constants.engine_name + '-MacOS.zip';
+            default:
+                throw new Error('Not supported on this platform');
+        }
+    })();
+    const pkg_output_path = path.join(artifacts_root, pkg_name);
+    const target_path = path.join(artifacts_root, constants.engine_editor_name);
 
     if (fs.existsSync(pkg_output_path) && !config.noclean)
         fs.unlinkSync(pkg_output_path);
 
-    const archive_task = new Promise((resolve, reject) => {
-        const final_name = (() => {
-            switch (os.platform()) {
-                case 'win32':
-                    return constants.engine_name + '-Windows.zip';
-                case 'linux':
-                    return constants.engine_name + '-Linux.zip';
-                case 'darwin':
-                    return constants.engine_name + '-MacOS.zip';
-                default:
-                    throw new Error('Not supported on this platform');
-            }
-        })();
-        const write_stream = fs.createWriteStream(path.join(artifacts_root, final_name));
+    const archive_task = new Promise((resolve, reject)=> {
+        const write_stream = fs.createWriteStream(pkg_output_path);
         const archive = archiver('zip', {
-            zlib: { level: 9 },
+            zlib: { level : 9}
         });
         archive.on('warning', e => {
             if (e.code == 'ENOENT')
@@ -374,7 +379,7 @@ async function editorPackage() {
         archive.on('end', () => resolve());
         archive.pipe(write_stream);
 
-        archive.directory(editor_app_folder, false);
+        archive.directory(target_path, false);
         archive.finalize();
     });
     await archive_task;

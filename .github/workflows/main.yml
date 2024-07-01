@@ -1,5 +1,16 @@
 name: Build Engine Action
-on: [push]
+on:
+  # push:
+  #   branches:
+  #     - '*'
+  #   branches-ignore:
+  #     - master
+  #   tags-ignore:
+  #     - v*
+  pull_request:
+    types: [opened, synchronize]
+    tags-ignore:
+      - v*
 jobs:
   Build-Windows:
     uses: ./.github/workflows/build.yml
