@@ -83,4 +83,4 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: ${{ inputs.artifact_name }}
-          path: ${{ github.workspace }}/Build/${{ inputs.artifact_name }}
+          path: ${{ github.workspace }}/${{ github.repository }}/Artifacts/${{ inputs.artifact_name }}

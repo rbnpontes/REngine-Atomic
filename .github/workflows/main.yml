@@ -1,11 +1,8 @@
 name: Build Engine Action
 on:
+  push:
   pull_request:
-    types:
-      - opened
-  pull_request_review:
-    types: 
-      - submitted
+    types: [opened]
 jobs:
   Build-Windows:
     uses: ./.github/workflows/build.yml
