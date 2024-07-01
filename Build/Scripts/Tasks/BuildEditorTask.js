@@ -37,8 +37,15 @@ const resources_dest = (() => {
 
 function editorCleanArtifacts() {
     console.log('- Clearing artifacts directory');
+    const exclusion_list = [
+        '.gitkeep',
+        'CEF'
+    ];
     fs.readdirSync(artifacts_root)
-        .filter(x => !x.endsWith('.gitkeep'))
+        .filter(x => {
+            const has_excluded_item = exclusion_list.findIndex(y => x.endsWith(y)) == -1;
+            return has_excluded_item;
+        })
         .forEach(x => {
             x = path.join(artifacts_root, x);
             fs.removeSync(x);
