@@ -37,7 +37,7 @@ jobs:
       - uses: actions/cache@v4
         with: 
           path: |
-            '${{ env.GITHUB_WORKFLOW }}/${{ env.GITHUB_REPOSITORY }}/Artifacts/CEF'
+            '${{ github.workspace }}/Artifacts/CEF'
           key: ${{ runner.os }}-${{ hashFiles('**/cef_bin_info.json') }}
       - run: npm i yarn -g
         name: Install Yarn
@@ -83,4 +83,4 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: ${{ inputs.artifact_name }}
-          path: ${{ env.GITHUB_WORKSPACE }}/${{ env.GITHUB_REPOSITORY }}/Artifacts/${{ inputs.artifact_name }}
+          path: ${{ github.workspace}}/Artifacts/${{ inputs.artifact_name }}
