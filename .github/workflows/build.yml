@@ -34,6 +34,11 @@ jobs:
         name: Install NodeJS
         with:
           node-version: 18
+      - uses: actions/cache@v4
+        with: 
+          path: |
+            '${{ env.GITHUB_WORKFLOW }}/${{ env.GITHUB_REPOSITORY }}/Artifacts/CEF'
+          key: ${{ runner.os }}-${{ hashFiles('${{ env.GITHUB_WORKFLOW }}/${{ env.GITHUB_REPOSITORY }}/Source/ThirdParty/CEF/cef_bin_info.json') }}
       - run: npm i yarn -g
         name: Install Yarn
       - name: Install Project Dependencies
