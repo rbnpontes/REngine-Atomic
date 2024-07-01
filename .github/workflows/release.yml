@@ -28,6 +28,11 @@ jobs:
     steps:
       - name: Downloading Artifacts
         uses: actions/download-artifact@v4
+        with:
+          path: ${{ github.workspace }}
+          pattern: '*.zip'
+          merge-multiple: true
+          github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Create release
         id: create_release
         uses: actions/create-release@v1
@@ -48,7 +53,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ${{ env.GITHUB_WORKSPACE }}/REngine-Windows.zip
+          asset_path: ${{ github.workspace }}/REngine-Windows.zip
           asset_name: REngine-Windows.zip
           asset_content_type: application/zip
       - name: Upload Linux release asset
@@ -57,7 +62,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ${{ env.GITHUB_WORKSPACE }}/REngine-Linux.zip
+          asset_path: ${{ github.workspace }}/REngine-Linux.zip
           asset_name: REngine-Linux.zip
           asset_content_type: application/zip
       - name: Upload MacOS release asset
@@ -66,7 +71,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ${{ env.GITHUB_WORKSPACE }}/REngine-MacOS.zip
+          asset_path: ${{ github.workspace }}/REngine-MacOS.zip
           asset_name: REngine-MacOS.zip
           asset_content_type: application/zip
   
