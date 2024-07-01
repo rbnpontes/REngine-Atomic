@@ -234,7 +234,7 @@ async function editorCopyBinaries() {
             case 'linux':
                 return path.resolve(build_dir, 'Source', constants.engine_editor_name, config.config);
             case 'darwin':
-                return path.resolve(build_dir, 'Source', constants.engine_editor_name, constants.engine_editor_name);
+                return path.resolve(build_dir, 'Source', constants.engine_editor_name, config.config, constants.engine_editor_name + '.app');
             default:
                 throw getUnsupportedEnvironmentError();
         }
@@ -245,7 +245,7 @@ async function editorCopyBinaries() {
             case 'linux':
                 return path.resolve(artifacts_root, constants.engine_editor_name);
             case 'darwin':
-                return path.resolve(artifacts_root, constants.engine_editor_name, constants.engine_editor_name);
+                return path.resolve(artifacts_root, constants.engine_editor_name, constants.engine_editor_name + '.app');
             default:
                 throw getUnsupportedEnvironmentError();
         }
