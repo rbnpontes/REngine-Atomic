@@ -36,8 +36,8 @@ if (APPLE)
     else()
         set_target_properties(AtomicNETNative PROPERTIES
             FRAMEWORK TRUE
-            MACOSX_FRAMEWORK_IDENTIFIER com.atomicgameengine.atomicnetframework
-            MACOSX_FRAMEWORK_INFO_PLIST ${ATOMIC_SOURCE_DIR}/Build/CMake/IOS/AtomicNET.framework.plist
+            MACOSX_FRAMEWORK_IDENTIFIER com.rengine.netframework
+            MACOSX_FRAMEWORK_INFO_PLIST ${ATOMIC_SOURCE_DIR}/Build/CMake/IOS/EngineNET.framework.plist
             # PUBLIC_HEADER dynamicFramework.h
             XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "iPhone Developer"
         )
