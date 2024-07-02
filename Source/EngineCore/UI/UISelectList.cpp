@@ -22,8 +22,8 @@
 
 #include <TurboBadger/tb_select.h>
 
-#include "../Atomic/IO/Log.h"
-#include "../Atomic/Input/Input.h"
+#include "../IO/Log.h"
+#include "../Input/Input.h"
 
 #include "UI.h"
 #include "UIEvents.h"

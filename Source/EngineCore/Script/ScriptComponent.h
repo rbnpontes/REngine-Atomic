@@ -23,7 +23,7 @@
 
 #pragma once
 
-#include <Atomic/Scene/Component.h>
+#include "../Scene/Component.h"
 
 namespace Atomic
 {

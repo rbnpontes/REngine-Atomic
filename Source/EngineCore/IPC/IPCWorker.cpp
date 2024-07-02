@@ -27,7 +27,7 @@
 #include "IPCMessage.h"
 
 
-#ifdef ATOMIC_PLATFORM_WINDOWS
+#ifdef ENGINE_PLATFORM_WINDOWS
 #include "IPCWindows.h"
 #else
 #include "IPCUnix.h"
@@ -39,7 +39,7 @@ namespace Atomic
 
 IPCWorker::IPCWorker(Context* context, IPCHandle clientRead, IPCHandle clientWrite, unsigned id) : IPCChannel(context, id)
 {
-#ifndef ATOMIC_PLATFORM_WINDOWS
+#ifndef ENGINE_PLATFORM_WINDOWS
     assert(0); // wrong constructor
 #else
     otherProcess_ = new IPCProcess(context_, clientRead, clientWrite, INVALID_IPCHANDLE_VALUE);
@@ -62,7 +62,7 @@ IPCWorker::IPCWorker(Context* context, IPCHandle fd, unsigned id) : IPCChannel(c
     clientWrite_(fd)
 {
 
-#ifdef ATOMIC_PLATFORM_WINDOWS
+#ifdef ENGINE_PLATFORM_WINDOWS
     assert(0); // wrong constructor
 #else
     otherProcess_ = new IPCProcess(context_, -1, clientRead_, getppid());
@@ -105,7 +105,7 @@ void IPCWorker::ThreadFunction()
 // On windows we use a job object to control process lifetime, we don't have a 
 // parent pid (these change and are reused on Windows, so we would need to DuplicateHandle and pass
 // to child on command line
-#ifndef ATOMIC_PLATFORM_WINDOWS
+#ifndef ENGINE_PLATFORM_WINDOWS
         if (!otherProcess_->IsRunning())
         {
             break;

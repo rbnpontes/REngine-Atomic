@@ -20,7 +20,7 @@
 // THE SOFTWARE.
 //
 
-#ifndef ATOMIC_PLATFORM_WINDOWS
+#ifndef ENGINE_PLATFORM_WINDOWS
 #include <unistd.h>
 #endif
 
@@ -78,7 +78,7 @@ bool IPCBroker::Update()
     if (!shouldRun_)
     {
         Stop();
-#ifndef ATOMIC_PLATFORM_WINDOWS
+#ifndef ENGINE_PLATFORM_WINDOWS
         close(pp_.fd1());
 #endif
         return false;
@@ -91,7 +91,7 @@ bool IPCBroker::SpawnWorker(const String& command, const Vector<String>& args, c
 {
     Vector<String> pargs;
 
-#ifdef ATOMIC_PLATFORM_WINDOWS
+#ifdef ENGINE_PLATFORM_WINDOWS
     otherProcess_ = new IPCProcess(context_, pp_.clientRead(), pp_.clientWrite());
     transport_.OpenServer(pp_.serverRead(), pp_.serverWrite());
 #else
@@ -103,7 +103,7 @@ bool IPCBroker::SpawnWorker(const String& command, const Vector<String>& args, c
     for (unsigned i = 0; i < args.Size(); i++)
         pargs.Push(args[i]);
 
-#ifdef ATOMIC_PLATFORM_WINDOWS
+#ifdef ENGINE_PLATFORM_WINDOWS
 
     wchar_t pipe_num[10];
     _i64tow_s(reinterpret_cast<__int64>(pp_.clientWrite()), pipe_num, sizeof(pipe_num)/sizeof(pipe_num[0]), 10);
@@ -132,7 +132,7 @@ bool IPCBroker::SpawnWorker(const String& command, const Vector<String>& args, c
     if (!otherProcess_->Launch(command, pargs, initialDirectory))
         return false;
 
-#ifndef ATOMIC_PLATFORM_WINDOWS
+#ifndef ENGINE_PLATFORM_WINDOWS
     close(pp_.fd2());
 #endif
 

@@ -20,7 +20,7 @@
 // THE SOFTWARE.
 //
 
-#include <Atomic/IO/Log.h>
+#include "../IO/Log.h"
 #include "JSONValue.h"
 #include "JSONFile.h"
 #include "ResourceCache.h"

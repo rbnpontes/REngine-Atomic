@@ -20,16 +20,16 @@
 // THE SOFTWARE.
 //
 
-#include <Atomic/IO/Log.h>
-#include <Atomic/IO/FileSystem.h>
+#include "../IO/Log.h"
+#include "../IO/FileSystem.h"
 
-#include <Atomic/IPC/IPC.h>
-#include <Atomic/IPC/IPCEvents.h>
-#include <Atomic/IPC/IPCBroker.h>
+#include "../IPC/IPC.h"
+#include "../IPC/IPCEvents.h"
+#include "../IPC/IPCBroker.h"
 
-#include <Atomic/Core/CoreEvents.h>
+#include "../Core/CoreEvents.h"
 
-#include "IPCServer.h"
+#include "./IPCServer.h"
 
 namespace Atomic
 {

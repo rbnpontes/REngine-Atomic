@@ -23,11 +23,9 @@
 #pragma once
 
 #include "./TypeTraits.h"
-#include "Atomic/Atomic.h"
+#include "../EngineCore.h"
 
-#if ATOMIC_CXX11
-#include <initializer_list>
-#endif
+#include <EASTL/initializer_list.h>
 
 namespace Atomic
 {
@@ -54,7 +52,6 @@ public:
         head_(0)
     {
     }
-#if ATOMIC_CXX11
     /// Aggregate initialization constructor.
     LinkedList(const std::initializer_list<T>& list) : LinkedList()
     {
@@ -63,7 +60,6 @@ public:
             Insert(*it);
         }
     }
-#endif
     /// Destruct.
     ~LinkedList()
     {

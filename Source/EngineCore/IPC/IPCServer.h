@@ -22,8 +22,8 @@
 
 #pragma once
 
-#include <Atomic/Core/Object.h>
-#include <Atomic/Container/List.h>
+#include "../Core/Object.h"
+#include "../Container/List.h"
 
 namespace Atomic
 {

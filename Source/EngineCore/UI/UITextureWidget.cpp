@@ -23,9 +23,9 @@
 #include <TurboBadger/tb_widgets.h>
 #include <TurboBadger/tb_widgets_common.h>
 
-#include <Atomic/IO/Log.h>
-#include <Atomic/UI/UIView.h>
-#include <Atomic/Graphics/Texture.h>
+#include "../IO/Log.h"
+#include "../UI/UIView.h"
+#include "../Graphics/Texture.h"
 
 #include "UIEvents.h"
 #include "UI.h"

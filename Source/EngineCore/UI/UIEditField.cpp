@@ -28,7 +28,7 @@
 #include "UIEvents.h"
 #include "UIEditField.h"
 
-#include "../Atomic/Input/Input.h"
+#include "../Input/Input.h"
 
 using namespace tb;
 

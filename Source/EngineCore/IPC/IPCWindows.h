@@ -20,9 +20,8 @@
 // THE SOFTWARE.
 //
 
-#ifdef ATOMIC_PLATFORM_WINDOWS
-
 #pragma once
+#ifdef ENGINE_PLATFORM_WINDOWS
 
 #include "../Core/Mutex.h"
 #include "../Core/Thread.h"

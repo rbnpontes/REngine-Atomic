@@ -24,8 +24,8 @@
 
 // ATOMIC BEGIN
 
-#include <Atomic/Core/Context.h>
-#include <Atomic/Core/Variant.h>
+#include "../Core/Context.h"
+#include "../Core/Variant.h"
 
 // ATOMIC END
 

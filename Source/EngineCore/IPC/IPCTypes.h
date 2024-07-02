@@ -25,7 +25,7 @@
 namespace Atomic
 {
 
-#ifdef ATOMIC_PLATFORM_WINDOWS
+#ifdef ENGINE_PLATFORM_WINDOWS
 
 // avoid needing to include <windows.h>
 

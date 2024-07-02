@@ -21,10 +21,10 @@
 //
 
 
-#include <Atomic/IO/MemoryBuffer.h>
-#include <Atomic/Physics/PhysicsEvents.h>
-#include <Atomic/Scene/Node.h>
-#include "ScriptPhysics.h"
+#include "../IO/MemoryBuffer.h"
+#include "../Physics/PhysicsEvents.h"
+#include "../Scene/Node.h"
+#include "./ScriptPhysics.h"
 
 
 namespace Atomic

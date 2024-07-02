@@ -1,11 +1,11 @@
 
-#include <Atomic/Core/Context.h>
-#include <Atomic/Scene/Node.h>
-#include <Atomic/Resource/XMLFile.h>
-#include <Atomic/Resource/ResourceCache.h>
-#include <Atomic/Resource/ResourceEvents.h>
+#include "../Core/Context.h"
+#include "../Scene/Node.h"
+#include "../Resource/XMLFile.h"
+#include "../Resource/ResourceCache.h"
+#include "../Resource/ResourceEvents.h"
 
-#include <Atomic/Physics/RigidBody.h>
+#include "../Physics/RigidBody.h"
 
 #include "PrefabEvents.h"
 #include "PrefabComponent.h"

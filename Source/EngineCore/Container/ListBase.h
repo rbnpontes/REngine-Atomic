@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include "Atomic/Atomic.h"
+#include "../EngineCore.h"
 
 #include "../Container/Allocator.h"
 #include "../Container/Swap.h"

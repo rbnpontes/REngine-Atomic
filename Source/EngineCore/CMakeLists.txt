@@ -217,7 +217,7 @@ if (ENGINE_2D_ONLY)
 else ()
     target_compile_definitions ("${ENGINE_CORE_LIB_TARGET}" PUBLIC -DENGINE_3D=1)
 
-    if (ENGINE_ATOMIC2D)
+    if (ENGINE_2D)
         target_compile_definitions ("${ENGINE_CORE_LIB_TARGET}" PUBLIC -DENGINE_2D=1)
     endif ()
 
@@ -245,20 +245,20 @@ elseif (ENGINE_DATABASE_ODBC)
     target_compile_definitions("${ENGINE_CORE_LIB_TARGET}" PUBLIC -DENGINE_DATABASE=1 -DENGINE_DATABASE_ODBC=1)
 endif ()
 
-if (ATOMIC_IK)
+if (ENGINE_IK)
     list(APPEND PUBLIC_THIRD_PARTY_DEPS ik)
-    target_compile_definitions("${ENGINE_CORE_LIB_TARGET}" PUBLIC -DATOMIC_IK=1)
+    target_compile_definitions("${ENGINE_CORE_LIB_TARGET}" PUBLIC -DENGINE_IK=1)
 endif ()
 
 target_include_directories ("${ENGINE_CORE_LIB_TARGET}" PUBLIC
-    ${ATOMIC_SOURCE_DIR}/Source
-    ${ATOMIC_SOURCE_DIR}/Source/ThirdParty
+    ${ENGINE_SOURCE_DIR}/Source
+    ${ENGINE_SOURCE_DIR}/Source/ThirdParty
 )
 
 include(EngineDoc)
 
-if ($ENV{ATOMIC_BUILD_DIST})
-    target_compile_definitions("${ENGINE_CORE_LIB_TARGET}" PUBLIC -DATOMIC_BUILD_DIST=1)
+if ($ENV{ENGINE_BUILD_DIST})
+    target_compile_definitions("${ENGINE_CORE_LIB_TARGET}" PUBLIC -DENGINE_BUILD_DIST=1)
 endif ()
 
 if (MSVC)

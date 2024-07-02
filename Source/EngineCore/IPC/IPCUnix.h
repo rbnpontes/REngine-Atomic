@@ -20,7 +20,7 @@
 // THE SOFTWARE.
 //
 
-#ifndef ATOMIC_PLATFORM_WINDOWS
+#ifndef ENGINE_PLATFORM_WINDOWS
 
 #pragma once
 

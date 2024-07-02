@@ -34,7 +34,7 @@
 #include "TargetConditionals.h"
 #endif
 
-#if RENGINE_PLATFORM_IOS
+#if ENGINE_PLATFORM_IOS
 #include <mach/mach_host.h>
 #elif defined(TVOS)
 extern "C" unsigned SDL_TVOS_GetActiveProcessorCount();
@@ -162,7 +162,7 @@ static void GetCPUData(struct CpuCoreCount* data)
         }
     }
 }
-#elif !defined(__EMSCRIPTEN__) && !defined(TVOS) && (defined(RENGINE_PLATFORM_IOS) && !defined(__arm64__))
+#elif !defined(__EMSCRIPTEN__) && !defined(TVOS) && (defined(ENGINE_PLATFORM_IOS) && !defined(__arm64__))
 static void GetCPUData(struct cpu_id_t* data)
 {
     if (cpu_identify(0, data) < 0)
@@ -454,7 +454,7 @@ unsigned GetNumPhysicalCPUs()
 #else
     return 1; // Targeting a single-threaded Emscripten build.
 #endif
-#elif RENGINE_PLATFORM_MACOS && defined(__arm64__)
+#elif ENGINE_PLATFORM_MACOS && defined(__arm64__)
     int mib[2];
     size_t len;
 
@@ -465,7 +465,7 @@ unsigned GetNumPhysicalCPUs()
     // Get the number of available CPUs
     sysctl(mib, 2, NULL, &len, NULL, 0);
     return len / sizeof(int);
-#elif RENGINE_PLATFORM_WINDOWS
+#elif ENGINE_PLATFORM_WINDOWS
     DWORD buffer_size = 0;
     int cpu_count = 0;
     GetLogicalProcessorInformation(nullptr, &buffer_size);
@@ -519,7 +519,7 @@ unsigned GetNumLogicalCPUs()
 #else
     return 1; // Targeting a single-threaded Emscripten build.
 #endif
-#elif RENGINE_PLATFORM_MACOS && defined(__arm64__)
+#elif ENGINE_PLATFORM_MACOS && defined(__arm64__)
     int mib[2];
     size_t len;
 
@@ -530,7 +530,7 @@ unsigned GetNumLogicalCPUs()
     // Get the number of available CPUs
     sysctl(mib, 2, NULL, &len, NULL, 0);
     return len / sizeof(int);
-#elif RENGINE_PLATFORM_WINDOWS
+#elif ENGINE_PLATFORM_WINDOWS
     return std::thread::hardware_concurrency();
 #else
     struct cpu_id_t data;

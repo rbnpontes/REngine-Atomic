@@ -28,10 +28,9 @@
 #include <cassert>
 #include <cstring>
 #include <new>
-#if ATOMIC_CXX11
-#include <initializer_list>
-#endif
-#include <functional>
+
+#include <EASTL/functional.h>
+#include <EASTL/initializer_list.h>
 
 #ifdef _MSC_VER
 #pragma warning(push)
@@ -79,7 +78,6 @@ public:
     {
         *this = vector;
     }
-#if ATOMIC_CXX11
     /// Aggregate initialization constructor.
     Vector(const std::initializer_list<T>& list) : Vector()
     {
@@ -88,7 +86,6 @@ public:
             Push(*it);
         }
     }
-#endif
     /// Destruct.
     ~Vector()
     {
@@ -646,7 +643,6 @@ public:
     {
         *this = vector;
     }
-#if ATOMIC_CXX11
     /// Aggregate initialization constructor.
     PODVector(const std::initializer_list<T>& list) : PODVector()
     {
@@ -655,7 +651,6 @@ public:
             Push(*it);
         }
     }
-#endif
     /// Destruct.
     ~PODVector()
     {

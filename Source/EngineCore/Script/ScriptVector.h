@@ -20,12 +20,13 @@
 // THE SOFTWARE.
 //
 
-#include "../Atomic/IO/Log.h"
+#pragma once
+
+#include "../IO/Log.h"
 
 #include "ScriptSystem.h"
 #include "ScriptVariant.h"
 
-#pragma once
 
 namespace Atomic
 {

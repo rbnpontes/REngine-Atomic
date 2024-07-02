@@ -2,7 +2,7 @@
 
 add_executable(PackageTool PackageTool.cpp)
 
-target_link_libraries(PackageTool Atomic)
+target_link_libraries(PackageTool ${ENGINE_CORE_LIB_TARGET})
 
 
 file (GLOB_RECURSE EDITORDATA_FILES ${ENGINE_SOURCE_DIR}/Data/AtomicEditor/Resources/EditorData/*)
@@ -53,6 +53,6 @@ elseif (LINUX)
 
 endif()
 
-add_custom_target(BuildEditorFiles ALL DEPENDS AtomicEditor "${EDITORDATA_PAK}" "${COREDATA_PAK}")
+add_custom_target(BuildEditorFiles ALL DEPENDS ${ENGINE_EDITOR_TARGET} "${EDITORDATA_PAK}" "${COREDATA_PAK}")
 
 endif()

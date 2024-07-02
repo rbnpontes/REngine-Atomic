@@ -22,8 +22,8 @@
 
 #pragma once
 
-#include <Atomic/Core/Variant.h>
-#include <Atomic/Resource/ResourceCache.h>
+#include "../Core/Variant.h"
+#include "../Resource/ResourceCache.h"
 
 #include "ScriptSystem.h"
 

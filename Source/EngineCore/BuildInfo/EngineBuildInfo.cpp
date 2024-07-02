@@ -1,7 +1,7 @@
 
-#include <Atomic/Core/StringUtils.h>
-#include "AtomicGitSHA.h"
-#include "AtomicBuildInfo.h"
+#include <EngineCore/Core/StringUtils.h>
+#include "EngineGitSHA.h"
+#include "EngineBuildInfo.h"
 
 namespace Atomic
 {

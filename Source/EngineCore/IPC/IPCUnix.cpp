@@ -20,7 +20,7 @@
 // THE SOFTWARE.
 //
 
-#ifndef ATOMIC_PLATFORM_WINDOWS
+#ifndef ENGINE_PLATFORM_WINDOWS
 
 #include "IPCUnix.h"
 
@@ -29,11 +29,11 @@
 #include <sys/socket.h>
 #include <errno.h>
 
-#ifdef ATOMIC_PLATFORM_OSX
+#ifdef ENGINE_PLATFORM_MACOS
 #include <libproc.h>
 #endif
 
-#ifdef ATOMIC_PLATFORM_LINUX
+#ifdef ENGINE_PLATFORM_LINUX
 #include <sys/wait.h>
 #endif
 
@@ -50,7 +50,7 @@ namespace Atomic
 
 bool SilenceSocket(int fd) {
 
-#ifdef ATOMIC_PLATFORM_OSX
+#ifdef ENGINE_PLATFORM_MACOS
     int nosigpipe = 1;
     // On OSX an attempt to read or write to a closed socket may generate a
     // SIGPIPE rather than returning -1.  setsockopt will shut this off.
@@ -180,14 +180,14 @@ bool IPCProcess::IsRunning()
     if (pid_ == -1)
         return false;
 
-#if defined(ATOMIC_PLATFORM_OSX)
+#if defined(ENGINE_PLATFORM_MACOS)
     char pathbuf[PROC_PIDPATHINFO_MAXSIZE];
     int ret = proc_pidpath (pid_, pathbuf, sizeof(pathbuf));
     if ( ret > 0 )
     {
         return true;
     }
-#elif defined(ATOMIC_PLATFORM_LINUX)
+#elif defined(ENGINE_PLATFORM_LINUX)
     int status;
     pid_t childPid = waitpid( pid_, &status, WNOHANG );
     bool childRunning = !WIFEXITED( status ) && !WIFSIGNALED( status ) && !WIFSTOPPED( status );

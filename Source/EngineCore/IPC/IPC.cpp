@@ -20,7 +20,7 @@
 // THE SOFTWARE.
 //
 
-#if defined(ATOMIC_PLATFORM_OSX) || defined(ATOMIC_PLATFORM_LINUX)
+#if defined(ENGINE_PLATFORM_MACOS) || defined(ENGINE_PLATFORM_LINUX)
 #include <unistd.h>
 #endif
 
@@ -35,7 +35,7 @@
 #include "IPC.h"
 #include "IPCEvents.h"
 
-#if defined(ATOMIC_PLATFORM_WINDOWS)
+#if defined(ENGINE_PLATFORM_WINDOWS)
 
 #include <windows.h>
 #undef PostMessage
@@ -50,7 +50,7 @@ IPC::IPC(Context* context) : Object(context),
 {
     SubscribeToEvent(E_BEGINFRAME, ATOMIC_HANDLER(IPC, HandleBeginFrame));
 
-#ifdef ATOMIC_PLATFORM_WINDOWS
+#ifdef ENGINE_PLATFORM_WINDOWS
 
     jobHandle_ = CreateJobObject(NULL, NULL);
     if (!jobHandle_)
@@ -90,7 +90,7 @@ bool IPC::InitWorker(unsigned id, IPCHandle fd1, IPCHandle fd2)
 {
     workerChannelID_ = id;
 
-#ifndef ATOMIC_PLATFORM_WINDOWS
+#ifndef ENGINE_PLATFORM_WINDOWS
     // close server fd
     close(fd1);
     worker_ = new IPCWorker(context_, fd2, id);
@@ -135,7 +135,7 @@ bool IPC::ProcessArguments(const Vector<String>& arguments, int& id, IPCHandle& 
                 {
                     if (argument.StartsWith("--ipc-server="))
                     {
-#ifdef ATOMIC_PLATFORM_WINDOWS
+#ifdef ENGINE_PLATFORM_WINDOWS
                         // clientRead
                         WString wipc(ipc[1]);
                         HANDLE pipe = reinterpret_cast<HANDLE>(_wtoi64(wipc.CString()));
@@ -147,7 +147,7 @@ bool IPC::ProcessArguments(const Vector<String>& arguments, int& id, IPCHandle& 
                     }
                     else
                     {
-#ifdef ATOMIC_PLATFORM_WINDOWS
+#ifdef ENGINE_PLATFORM_WINDOWS
                         // clientWrite
                         WString wipc(ipc[1]);
                         HANDLE pipe = reinterpret_cast<HANDLE>(_wtoi64(wipc.CString()));

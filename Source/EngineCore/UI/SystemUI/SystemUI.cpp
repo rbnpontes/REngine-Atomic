@@ -32,6 +32,7 @@
 #include "../../UI/SystemUI/SystemUI.h"
 #include "../../UI/SystemUI/Console.h"
 #include "../../UI/SystemUI/DebugHud.h"
+#include <functional>
 #include <SDL.h>
 
 

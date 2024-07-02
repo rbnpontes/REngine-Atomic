@@ -22,8 +22,8 @@
 
 #pragma once
 
-#include <ThirdParty/TurboBadger/tb_widgets.h>
-#include <Atomic/Container/RefCounted.h>
+#include <TurboBadger/tb_widgets.h>
+#include "../Container/RefCounted.h"
 
 namespace tb
 {

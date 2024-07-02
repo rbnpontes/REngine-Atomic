@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include "Atomic/Atomic.h"
+#include "../EngineCore.h"
 
 #ifndef _WIN32
 #include <pthread.h>

@@ -31,7 +31,7 @@
 #include "IPCMessage.h"
 #include "IPCUnix.h"
 
-#ifdef ATOMIC_PLATFORM_WINDOWS
+#ifdef ENGINE_PLATFORM_WINDOWS
 
 // Windows defines PostMessage as PostMessgeA/W
 #undef PostMessage

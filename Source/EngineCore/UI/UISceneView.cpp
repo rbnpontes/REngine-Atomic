@@ -21,16 +21,16 @@
 // THE SOFTWARE.
 //
 
-#include <Atomic/UI/UI.h>
-#include <Atomic/UI/UIBatch.h>
-#include <Atomic/UI/UIView.h>
-#include <Atomic/IO/Log.h>
-#include <Atomic/Engine/Engine.h>
-#include <Atomic/Graphics/Graphics.h>
-#include <Atomic/Graphics/Camera.h>
-#include <Atomic/Graphics/RenderPath.h>
-#include <Atomic/Graphics/Renderer.h>
-#include <Atomic/Core/CoreEvents.h>
+#include "../UI/UI.h"
+#include "../UI/UIBatch.h"
+#include "../UI/UIView.h"
+#include "../IO/Log.h"
+#include "../Engine/Engine.h"
+#include "../Graphics/Graphics.h"
+#include "../Graphics/Camera.h"
+#include "../Graphics/RenderPath.h"
+#include "../Graphics/Renderer.h"
+#include "../Core/CoreEvents.h"
 
 #include "UIRenderer.h"
 #include "UISceneView.h"

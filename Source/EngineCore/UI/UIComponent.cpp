@@ -40,10 +40,10 @@
 #include "UIView.h"
 #include "UIComponent.h"
 
-#include <Atomic/Input/Input.h>
-#include <Atomic/Input/InputEvents.h>
-#include <Atomic/UI/UI.h>
-#include <Atomic/UI/UIEvents.h>
+#include "../Input/Input.h"
+#include "../Input/InputEvents.h"
+#include "../UI/UI.h"
+#include "../UI/UIEvents.h"
 
 namespace Atomic
 {
