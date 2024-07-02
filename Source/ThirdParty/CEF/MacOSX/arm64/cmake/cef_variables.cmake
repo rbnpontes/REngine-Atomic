@@ -153,9 +153,9 @@ endif()
 set(CMAKE_XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "")
 
 # CEF directory paths.
-set(CEF_BINARY_DIR          "${ATOMIC_SOURCE_DIR}/Artifacts/CEF/MacOS_${PROJECT_ARCH}")
-set(CEF_BINARY_DIR_DEBUG    "${ATOMIC_SOURCE_DIR}/Artifacts/CEF/MacOS_${PROJECT_ARCH}")
-set(CEF_BINARY_DIR_RELEASE  "${ATOMIC_SOURCE_DIR}/Artifacts/CEF/MacOS_${PROJECT_ARCH}")
+set(CEF_BINARY_DIR          "${ENGINE_SOURCE_DIR}/Artifacts/CEF/MacOS_${PROJECT_ARCH}")
+set(CEF_BINARY_DIR_DEBUG    "${ENGINE_SOURCE_DIR}/Artifacts/CEF/MacOS_${PROJECT_ARCH}")
+set(CEF_BINARY_DIR_RELEASE  "${ENGINE_SOURCE_DIR}/Artifacts/CEF/MacOS_${PROJECT_ARCH}")
 # CEF library paths.
 set(CEF_LIB_DEBUG   "${CEF_BINARY_DIR_DEBUG}/Chromium Embedded Framework.framework/Chromium Embedded Framework")
 set(CEF_LIB_RELEASE "${CEF_BINARY_DIR_RELEASE}/Chromium Embedded Framework.framework/Chromium Embedded Framework")

@@ -5,19 +5,19 @@ file (GLOB SOURCE_FILES *.cpp *.h )
 
 if (WIN32)
     set (EXE_TYPE WIN32)
-    set (SOURCE_FILES ${SOURCE_FILES} ${ATOMIC_SOURCE_DIR}/Build/CMake/Modules/Engine.rc)
+    set (SOURCE_FILES ${SOURCE_FILES} ${ENGINE_SOURCE_DIR}/Build/CMake/Modules/Engine.rc)
 elseif(APPLE)
     #ICNS
     set(MACOSX_BUNDLE_ICON_FILE Engine.icns)
 if (NOT IOS)
-    set(ATOMIC_PLAYER_ICON ${ATOMIC_SOURCE_DIR}/Build/CMake/Modules/Engine.icns)
+    set(ATOMIC_PLAYER_ICON ${ENGINE_SOURCE_DIR}/Build/CMake/Modules/Engine.icns)
 endif()
     set_source_files_properties(${ATOMIC_PLAYER_ICON} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
     set (EXE_TYPE MACOSX_BUNDLE)
 endif()
 
 if (ANDROID)
-	add_library(AtomicPlayer SHARED ${SOURCE_FILES} ${ATOMIC_SOURCE_DIR}/Source/ThirdParty/SDL/src/main/android/SDL_android_main.c)
+	add_library(AtomicPlayer SHARED ${SOURCE_FILES} ${ENGINE_SOURCE_DIR}/Source/ThirdParty/SDL/src/main/android/SDL_android_main.c)
 else()
 
 # iOS AtomicPlayer currently disabled
@@ -27,7 +27,7 @@ endif()
 endif()
 
 if (NOT IOS)
-    target_link_libraries(AtomicPlayer AtomicJS AtomicPlayerLib AtomicPlayerJS Atomic)
+    target_link_libraries(AtomicPlayer AtomicJS AtomicPlayerLib AtomicPlayerJS ${ENGINE_CORE_LIB_TARGET})
 endif()
 
 if (APPLE)
@@ -48,7 +48,7 @@ if (APPLE)
 #      XCODE_ATTRIBUTE_COMBINE_HIDPI_IMAGES NO
 #    )
 
-#    set (TARGET_PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${ATOMIC_SOURCE_DIR}/Build/CMake/Modules/iOSBundleInfo.plist.template)
+#    set (TARGET_PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${ENGINE_SOURCE_DIR}/Build/CMake/Modules/iOSBundleInfo.plist.template)
 
   endif()
 

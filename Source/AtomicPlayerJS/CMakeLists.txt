@@ -1,8 +1,8 @@
-include_directories (${ATOMIC_SOURCE_DIR}/Source/ThirdParty)
+include_directories (${ENGINE_SOURCE_DIR}/Source/ThirdParty)
 
 file (GLOB_RECURSE SOURCE_FILES *.cpp *.h)
 
-file (GLOB JAVASCRIPT_BINDINGS_SOURCE ${ATOMIC_SOURCE_DIR}/Artifacts/Build/Source/Generated/Javascript/Packages/AtomicPlayer/*.cpp)
+file (GLOB JAVASCRIPT_BINDINGS_SOURCE ${ENGINE_SOURCE_DIR}/Artifacts/Build/Source/Generated/Javascript/Packages/AtomicPlayer/*.cpp)
 
 set (SOURCE_FILES ${SOURCE_FILES} ${JAVASCRIPT_BINDINGS_SOURCE} )
 
@@ -10,6 +10,6 @@ add_library(AtomicPlayerJS ${SOURCE_FILES})
 
 target_link_libraries(AtomicPlayerJS AtomicPlayerLib)
 
-if (ATOMIC_DESKTOP)
+if (ENGINE_DESKTOP)
     add_dependencies(AtomicPlayerJS AtomicToolCheckScripts)
 endif ()

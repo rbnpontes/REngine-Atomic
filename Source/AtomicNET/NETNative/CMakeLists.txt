@@ -4,7 +4,7 @@
 #    set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fapplication-extension")
 #endif()
 
-set (CSATOMICDIR "${ATOMIC_SOURCE_DIR}/Artifacts/Build/Source/Generated/CSharp/Packages/")
+set (CSATOMICDIR "${ENGINE_SOURCE_DIR}/Artifacts/Build/Source/Generated/CSharp/Packages/")
 
 file (GLOB CSHARP_BINDINGS_SOURCE ${CSATOMICDIR}/Atomic/Native/*.cpp ${CSATOMICDIR}/Atomic/Native/*.h
                                   ${CSATOMICDIR}/AtomicNETNative/Native/*.cpp ${CSATOMICDIR}/AtomicNETNative/Native/*.h
@@ -20,14 +20,14 @@ if (NOT IOS AND NOT ANDROID AND NOT WEB)
 endif()
 
 if (ANDROID)
-	set (SOURCE_FILES ${SOURCE_FILES} ${ATOMIC_SOURCE_DIR}/Source/ThirdParty/SDL/src/main/android/SDL_android_main.c)
+	set (SOURCE_FILES ${SOURCE_FILES} ${ENGINE_SOURCE_DIR}/Source/ThirdParty/SDL/src/main/android/SDL_android_main.c)
 endif()
 
 add_library(AtomicNETNative SHARED ${SOURCE_FILES} ${CSHARP_BINDINGS_SOURCE})
-if (ATOMIC_DESKTOP)
+if (ENGINE_DESKTOP)
     add_dependencies(AtomicNETNative AtomicToolCheckScripts)
 endif ()
-target_link_libraries(AtomicNETNative AtomicApp AtomicNETScriptBindings AtomicNETScript AtomicJS AtomicPlayerLib AtomicPlayerJS Atomic)
+target_link_libraries(AtomicNETNative AtomicApp AtomicNETScriptBindings AtomicNETScript AtomicJS AtomicPlayerLib AtomicPlayerJS ${ENGINE_CORE_LIB_TARGET})
 target_include_directories(AtomicNETNative PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 if (APPLE)
@@ -37,7 +37,7 @@ if (APPLE)
         set_target_properties(AtomicNETNative PROPERTIES
             FRAMEWORK TRUE
             MACOSX_FRAMEWORK_IDENTIFIER com.rengine.netframework
-            MACOSX_FRAMEWORK_INFO_PLIST ${ATOMIC_SOURCE_DIR}/Build/CMake/IOS/EngineNET.framework.plist
+            MACOSX_FRAMEWORK_INFO_PLIST ${ENGINE_SOURCE_DIR}/Build/CMake/IOS/EngineNET.framework.plist
             # PUBLIC_HEADER dynamicFramework.h
             XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "iPhone Developer"
         )
@@ -59,7 +59,7 @@ elseif(ANDROID)
     set (ATOMICNET_NATIVE_PLATFORM Android)
 endif()
 
-set (ATOMICNET_NATIVE_DIR "${ATOMIC_SOURCE_DIR}/Artifacts/AtomicNET/$<$<CONFIG:debug>:Debug>$<$<CONFIG:release>:Release>/Native/${ATOMICNET_NATIVE_PLATFORM}")
+set (ATOMICNET_NATIVE_DIR "${ENGINE_SOURCE_DIR}/Artifacts/AtomicNET/$<$<CONFIG:debug>:Debug>$<$<CONFIG:release>:Release>/Native/${ATOMICNET_NATIVE_PLATFORM}")
 
 if (NOT IOS)
     add_custom_command( TARGET AtomicNETNative POST_BUILD

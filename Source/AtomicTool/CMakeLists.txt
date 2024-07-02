@@ -2,31 +2,22 @@ set (ATOMIC_TOOL_SOURCES AtomicTool.cpp AtomicTool.h)
 
 if (WIN32)
     add_definitions(-DATOMIC_WIN32_CONSOLE)
-endif(WIN32)
+endif()
 
 add_executable(AtomicTool ${ATOMIC_TOOL_SOURCES})
 
-target_link_libraries(AtomicTool ToolCore Poco Atomic)
+target_link_libraries(AtomicTool ToolCore Poco ${ENGINE_CORE_LIB_TARGET})
 
 if (WIN32)
     target_link_libraries(AtomicTool Iphlpapi Wldap32)
 endif()
 
-if (ATOMIC_JAVASCRIPT OR ATOMIC_DOTNET)
-    if(ATOMIC_DOTNET)
+if (ENGINE_JAVASCRIPT OR ENGINE_DOTNET)
+    if(ENGINE_DOTNET)
         target_link_libraries(AtomicTool AtomicNETScript)
     endif()
 
     yarn_get_command()
-    # Custom target which is always considered out of date, checks for zero size/missing script bindings and generates
-    # if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    #     add_custom_target(AtomicToolCheckScripts
-    #                     WORKING_DIRECTORY "${ATOMIC_SOURCE_DIR}"
-    #                     COMMAND "${CMAKE_COMMAND}" -E make_directory \"${ATOMIC_SOURCE_DIR}/Artifacts/Build/AtomicTool\"
-    #                     COMMAND "${CMAKE_COMMAND}" -E copy_if_different \"$<TARGET_FILE:AtomicTool>\" \"${ATOMIC_SOURCE_DIR}/Artifacts/Build/AtomicTool/\"
-    #                     COMMAND "${YARN_CMD}" "build" "build:genscripts[false]")
-    # else ()
-    # endif()
 
     set (TOOL_CHECK_SCRIPTS ${YARN_CMD} "build" "build:genscripts[false]")
     if(APPLE)
@@ -34,9 +25,9 @@ if (ATOMIC_JAVASCRIPT OR ATOMIC_DOTNET)
     endif()
 
     add_custom_target(AtomicToolCheckScripts
-                    WORKING_DIRECTORY "${ATOMIC_SOURCE_DIR}"
-                    COMMAND "${CMAKE_COMMAND}" -E make_directory \"${ATOMIC_SOURCE_DIR}/Artifacts/Build/AtomicTool\"
-                    COMMAND "${CMAKE_COMMAND}" -E copy_if_different \"$<TARGET_FILE:AtomicTool>\" \"${ATOMIC_SOURCE_DIR}/Artifacts/Build/AtomicTool/\"
+                    WORKING_DIRECTORY "${ENGINE_SOURCE_DIR}"
+                    COMMAND "${CMAKE_COMMAND}" -E make_directory \"${ENGINE_SOURCE_DIR}/Artifacts/Build/AtomicTool\"
+                    COMMAND "${CMAKE_COMMAND}" -E copy_if_different \"$<TARGET_FILE:AtomicTool>\" \"${ENGINE_SOURCE_DIR}/Artifacts/Build/AtomicTool/\"
                     COMMAND ${TOOL_CHECK_SCRIPTS})
 
     add_dependencies (AtomicToolCheckScripts AtomicTool)
@@ -44,9 +35,9 @@ if (ATOMIC_JAVASCRIPT OR ATOMIC_DOTNET)
     # Copy AtomicTool to Artifacts
     add_custom_command( TARGET AtomicTool POST_BUILD
                         COMMAND "${CMAKE_COMMAND}"
-                        ARGS -E make_directory \"${ATOMIC_SOURCE_DIR}/Artifacts/Build/AtomicTool\"
+                        ARGS -E make_directory \"${ENGINE_SOURCE_DIR}/Artifacts/Build/AtomicTool\"
                         COMMAND "${CMAKE_COMMAND}"
-                        ARGS -E copy_if_different \"$<TARGET_FILE:AtomicTool>\" \"${ATOMIC_SOURCE_DIR}/Artifacts/Build/AtomicTool/\"
+                        ARGS -E copy_if_different \"$<TARGET_FILE:AtomicTool>\" \"${ENGINE_SOURCE_DIR}/Artifacts/Build/AtomicTool/\"
                         COMMENT "Copying AtomicTool to Build Artifacts" )
 
     set(GENERATE_SCRIPTS_BINDINGS ${YARN_CMD} "build" "build:genscripts[true];--trace")
@@ -55,18 +46,18 @@ if (ATOMIC_JAVASCRIPT OR ATOMIC_DOTNET)
     endif()
 
     add_custom_target ( GenerateScriptBindings
-                        WORKING_DIRECTORY "${ATOMIC_SOURCE_DIR}"
+                        WORKING_DIRECTORY "${ENGINE_SOURCE_DIR}"
                         COMMAND ${GENERATE_SCRIPTS_BINDINGS}
                         DEPENDS AtomicTool )
 
-    if (ATOMIC_DOTNET)
+    if (ENGINE_DOTNET)
         set(GENERATE_ENGINE_NET ${YARN_CMD} "build" build:genAtomicNET[desktop,$<$<CONFIG:debug>:"Debug">$<$<CONFIG:release>:"Release">];--trace)
         if(APPLE)
             set(GENERATE_ENGINE_NET ${YARN_CMD} "build build:genAtomicNET[desktop,$<$<CONFIG:debug>:\"Debug\">$<$<CONFIG:release>:\"Release\">];--trace")
         endif()
 
         add_custom_target ( GenerateAtomicNET
-                            WORKING_DIRECTORY "${ATOMIC_SOURCE_DIR}"
+                            WORKING_DIRECTORY "${ENGINE_SOURCE_DIR}"
                             COMMAND ${GENERATE_ENGINE_NET}
                             DEPENDS AtomicTool )
     endif()

@@ -8,12 +8,12 @@ if (NOT WIN32)
     add_definitions (-DUNIX)
 endif()
 
-file (GLOB JAVASCRIPT_BINDINGS_SOURCE ${ATOMIC_SOURCE_DIR}/Artifacts/Build/Source/Generated/Javascript/Packages/Atomic/*.cpp)
+file (GLOB JAVASCRIPT_BINDINGS_SOURCE ${ENGINE_SOURCE_DIR}/Artifacts/Build/Source/Generated/Javascript/Packages/Atomic/*.cpp)
 
 set (SOURCE_FILES ${JAVASCRIPT_SOURCE} ${JAVASCRIPT_BINDINGS_SOURCE})
 
 add_library(AtomicJS ${SOURCE_FILES})
-target_link_libraries(AtomicJS Atomic)
-if (ATOMIC_DESKTOP)
+target_link_libraries(AtomicJS ${ENGINE_CORE_LIB_TARGET})
+if (ENGINE_DESKTOP)
     add_dependencies(AtomicJS AtomicToolCheckScripts)
 endif ()

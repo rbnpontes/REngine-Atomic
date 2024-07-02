@@ -220,10 +220,10 @@ set(CEF_STANDARD_LIBS
   )
 
 # CEF directory paths.
-set(CEF_RESOURCE_DIR        "${ATOMIC_SOURCE_DIR}/Artifacts/CEF/Resources")
-set(CEF_BINARY_DIR          "${ATOMIC_SOURCE_DIR}/Artifacts/CEF/Windows")
-set(CEF_BINARY_DIR_DEBUG    "${ATOMIC_SOURCE_DIR}/Artifacts/CEF/Windows")
-set(CEF_BINARY_DIR_RELEASE  "${ATOMIC_SOURCE_DIR}/Artifacts/CEF/Windows")
+set(CEF_RESOURCE_DIR        "${ENGINE_SOURCE_DIR}/Artifacts/CEF/Resources")
+set(CEF_BINARY_DIR          "${ENGINE_SOURCE_DIR}/Artifacts/CEF/Windows")
+set(CEF_BINARY_DIR_DEBUG    "${ENGINE_SOURCE_DIR}/Artifacts/CEF/Windows")
+set(CEF_BINARY_DIR_RELEASE  "${ENGINE_SOURCE_DIR}/Artifacts/CEF/Windows")
 
 # CEF library paths.
 set(CEF_LIB_DEBUG   "${CEF_BINARY_DIR_DEBUG}/libcef.lib")

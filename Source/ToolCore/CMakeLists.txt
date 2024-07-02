@@ -10,10 +10,10 @@ endif()
 set(CMAKE_CXX_STANDARD 20)
 add_library(ToolCore ${SOURCE_FILES})
 
-target_link_libraries(ToolCore Assimp Poco Atomic)
+target_link_libraries(ToolCore Assimp Poco ${ENGINE_CORE_LIB_TARGET})
 
-if (ATOMIC_XCODE)
-    target_compile_definitions(ToolCore PRIVATE -DATOMIC_XCODE)
+if (ENGINE_XCODE)
+    target_compile_definitions(ToolCore PRIVATE -DENGINE_XCODE)
 endif ()
 
 GroupSources("Assets")
