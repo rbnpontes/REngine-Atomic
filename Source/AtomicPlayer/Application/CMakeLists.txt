@@ -30,15 +30,6 @@ if (NOT IOS)
     target_link_libraries(AtomicPlayer AtomicJS AtomicPlayerLib AtomicPlayerJS Atomic)
 endif()
 
-if (WIN32)
-  # pre-Windows 8 can't count on D3DCompiler_47.dll being on system
-  add_custom_command (TARGET AtomicPlayer POST_BUILD
-  COMMAND ${CMAKE_COMMAND}
-  ARGS -E copy_if_different \"${D3DCOMPILER_47_DLL}\" \"$<TARGET_FILE_DIR:AtomicPlayer>/D3DCompiler_47.dll\")
-
-endif(WIN32)
-
-
 if (APPLE)
 
   if (NOT IOS)

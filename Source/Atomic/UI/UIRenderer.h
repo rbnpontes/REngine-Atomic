@@ -63,6 +63,8 @@ private:
     PODVector<UIBatch>* batches_;
     PODVector<float>* vertexData_;
     IntRect currentScissor_;
+
+    Graphics* graphics_;
 };
 
 }

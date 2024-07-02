@@ -182,9 +182,11 @@ if (WIN32)  # ATOMIC FIX
     set (SOURCE_FILES ${SOURCE_FILES} Foundation/src/WinRegistryKey.cpp )
 endif()
 
+set (CMAKE_CXX_STANDARD 14)
 add_library(Poco ${SOURCE_FILES})
 
 # ATOMIC BEGIN
 target_compile_definitions(Poco PUBLIC -DPOCO_NO_AUTOMATIC_LIBS=1 -DPOCO_STATIC=1)
 target_include_directories(Poco SYSTEM BEFORE PUBLIC Foundation/include)
 # ATOMIC END
+set (CMAKE_CXX_STANDARD 20)

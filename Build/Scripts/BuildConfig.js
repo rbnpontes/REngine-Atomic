@@ -56,7 +56,7 @@ function processOptions(config) {
     config.atomicRoot = path.resolve(__dirname, "../..") + "/";
     config.artifactsRoot = config.atomicRoot + "Artifacts/";
 
-    config.editorAppFolder = (os.platform() == "darwin") ? config.artifactsRoot + "/AtomicEditor/AtomicEditor.app/" : config.artifactsRoot + "AtomicEditor/";
+    config.editorAppFolder = (os.platform() == "darwin") ? path.join(config.artifactsRoot, "AtomicEditor/AtomicEditor.app/") : config.artifactsRoot + "AtomicEditor/";
     config.toolDataFolder = config.editorAppFolder + (os.platform() == "darwin" ? "Contents/Resources/ToolData/" : "Resources/ToolData/");
 
     // jenkins, TODO: abstract anything that requires jenkins

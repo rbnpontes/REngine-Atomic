@@ -338,6 +338,7 @@ public:
     /// Return a transform for deferred fullscreen quad (directional light) rendering.
     static Matrix3x4 GetFullscreenQuadTransform(Camera* camera);
 
+    Graphics* GetGraphics() const { return graphics_; }
 protected:
     /// Recalculate the world-space bounding box.
     virtual void OnWorldBoundingBoxUpdate();
@@ -393,6 +394,8 @@ private:
     bool perVertex_;
     /// Use physical light values flag.
     bool usePhysicalValues_;
+
+    Graphics* graphics_;
 };
 
 inline bool CompareLights(Light* lhs, Light* rhs)

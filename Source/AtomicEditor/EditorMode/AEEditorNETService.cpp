@@ -47,6 +47,7 @@ namespace AtomicEditor
 
     bool EditorNETService::Initialize()
     {
+#ifdef ATOMIC_DOTNET
         RegisterNETScriptLibrary(context_);
 
         context_->RegisterSubsystem(new NETProjectSystem(context_));
@@ -63,6 +64,9 @@ namespace AtomicEditor
         context_->RegisterSubsystem(netService_);
 
         return true;
+#else
+        return false;
+#endif
     }
 
 }

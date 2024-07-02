@@ -32,6 +32,7 @@
 #include "../IO/Log.h"
 
 #include <cstdio>
+#include <iostream>
 
 #ifdef __ANDROID__
 #include <android/log.h>
@@ -57,6 +58,8 @@ const char* logLevelPrefixes[] =
 static Log* logInstance = 0;
 static bool threadErrorDisplayed = false;
 
+static ea::queue<StoredLogMessage> s_log_tmp_messages;
+
 Log::Log(Context* context) :
     Object(context),
 #ifdef _DEBUG
@@ -69,8 +72,13 @@ Log::Log(Context* context) :
     quiet_(false)
 {
     logInstance = this;
-
     SubscribeToEvent(E_ENDFRAME, ATOMIC_HANDLER(Log, HandleEndFrame));
+
+    while(!s_log_tmp_messages.empty()) {
+        const auto& stored = s_log_tmp_messages.front();
+        DigestStoredLog(stored);
+        s_log_tmp_messages.pop();
+    }
 }
 
 Log::~Log()
@@ -136,6 +144,15 @@ void Log::SetQuiet(bool quiet)
 
 void Log::Write(int level, const String& message)
 {
+    // Sometimes a log can occur before log initialization.
+    // In this case, we must store logs then when log starts
+    // they will digest queued messages.
+    if(!logInstance) 
+    {
+        s_log_tmp_messages.push(StoredLogMessage(message, level, false));
+        return;
+    }
+
     // Special case for LOG_RAW level
     if (level == LOG_RAW)
     {
@@ -160,7 +177,7 @@ void Log::Write(int level, const String& message)
     }
 
     // Do not log if message level excluded or if currently sending a log event
-    if (!logInstance || logInstance->level_ > level || logInstance->inWrite_)
+    if (logInstance->level_ > level || logInstance->inWrite_) 
         return;
 
     String formattedMessage = logLevelPrefixes[level];
@@ -282,14 +299,17 @@ void Log::HandleEndFrame(StringHash eventType, VariantMap& eventData)
     while (!threadMessages_.Empty())
     {
         const StoredLogMessage& stored = threadMessages_.Front();
-
-        if (stored.level_ != LOG_RAW)
-            Write(stored.level_, stored.message_);
-        else
-            WriteRaw(stored.message_, stored.error_);
-
+        DigestStoredLog(stored);
         threadMessages_.PopFront();
     }
+}
+
+void Log::DigestStoredLog(const StoredLogMessage& log_msg) 
+{
+    if (log_msg.level_ != LOG_RAW)
+        Write(log_msg.level_, log_msg.message_);
+    else
+        WriteRaw(log_msg.message_, log_msg.error_);
 }
 
 }

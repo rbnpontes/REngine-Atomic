@@ -24,6 +24,8 @@
 
 #include "WebAppBrowser.h"
 #include "../WebBrowserHost.h"
+#include "include/wrapper/cef_helpers.h"
+#include "./WebUtils.h"
 
 namespace Atomic
 {
@@ -44,6 +46,9 @@ void WebAppBrowser::OnBeforeCommandLineProcessing(const CefString& process_type,
     command_line->AppendSwitch("--off-screen-rendering-enabled");
     command_line->AppendSwitch("--transparent-painting-enabled");
 
+    // disable cors
+    command_line->AppendSwitch("--disable-web-security");
+
 #ifdef ATOMIC_PLATFORM_LINUX
     // Issues with GPU acceleration (and possibly offscreen rendering)
     // https://github.com/AtomicGameEngine/AtomicGameEngine/issues/924
@@ -57,6 +62,16 @@ void WebAppBrowser::OnBeforeCommandLineProcessing(const CefString& process_type,
 void WebAppBrowser::OnContextInitialized()
 {
     CefBrowserProcessHandler::OnContextInitialized();
+}
+
+void WebAppBrowser::OnRegisterCustomSchemes(CefRawPtr<CefSchemeRegistrar> registrar)
+{
+	constexpr auto default_flags = CEF_SCHEME_OPTION_FETCH_ENABLED
+        | CEF_SCHEME_OPTION_SECURE
+        | CEF_SCHEME_OPTION_CORS_ENABLED;
+
+    registrar->AddCustomScheme("atomic", default_flags);
+    registrar->AddCustomScheme("rengine", default_flags);
 }
 
 bool WebAppBrowser::CreateGlobalProperties(CefRefPtr<CefDictionaryValue>& globalProps)
@@ -112,25 +127,45 @@ bool WebAppBrowser::CreateGlobalProperties(CefRefPtr<CefDictionaryValue>& global
 
 }
 
-void WebAppBrowser::OnRenderProcessThreadCreated(CefRefPtr<CefListValue> extra_info)
+void WebAppBrowser::OnBrowserCreated(CefRefPtr<CefBrowser> browser, CefRefPtr<CefDictionaryValue> extra_info)
 {
+    if (!extra_info)
+        return;
     // We're not on main thread here, we're on IO thread
-    CefRefPtr<CefDictionaryValue> globalProps;
-
-    if (CreateGlobalProperties(globalProps))
-    {
-        extra_info->SetDictionary(0, globalProps);
-    }
-    else
-    {
-        extra_info->SetNull(0);
-    }
-
-    extra_info->SetString(1, WebBrowserHost::GetJSMessageQueryFunctionName().CString());
-    extra_info->SetString(2, WebBrowserHost::GetJSMessageQueryCancelFunctionName().CString());
-
-
+    CEF_REQUIRE_IO_THREAD();
+    FillExtraInfo(extra_info);
 }
 
+void WebAppBrowser::FillExtraInfo(CefRefPtr<CefDictionaryValue>& extra_info)
+{
+	extra_info = CefDictionaryValue::Create();
 
+    CefRefPtr<CefDictionaryValue> globals_data;
+    if (CreateGlobalProperties(globals_data))
+        extra_info->SetDictionary("0", globals_data);
+    else
+        extra_info->SetNull("0");
+
+    extra_info->SetString("1", WebBrowserHost::GetJSMessageQueryFunctionName().CString());
+    extra_info->SetString("2", WebBrowserHost::GetJSMessageQueryCancelFunctionName().CString());
+}
+
+void WebAppBrowser::OnUncaughtException(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame,
+	CefRefPtr<CefV8Context> context, CefRefPtr<CefV8Exception> exception, CefRefPtr<CefV8StackTrace> stackTrace)
+{
+    String source_line;
+    String err_msg;
+
+    REngine::web_utils_convert_cef_str(exception->GetSourceLine().ToString(), source_line);
+    REngine::web_utils_convert_cef_str(exception->GetMessage().ToString(), err_msg);
+
+    ATOMIC_LOGERRORF("ERROR [%d-%d, %d-%d]: %s %s",
+        exception->GetStartPosition(),
+        exception->GetEndPosition(),
+        exception->GetStartColumn(),
+        exception->GetEndColumn(),
+        source_line.CString(),
+        err_msg.CString()
+    );
+}
 }

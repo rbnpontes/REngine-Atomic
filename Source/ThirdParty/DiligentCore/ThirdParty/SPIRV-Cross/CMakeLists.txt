@@ -57,7 +57,7 @@ option(SPIRV_CROSS_FORCE_STL_TYPES "Force use of STL types instead of STL replac
 
 option(SPIRV_CROSS_SKIP_INSTALL "Skips installation targets." OFF)
 
-option(SPIRV_CROSS_WERROR "Fail build on warnings." OFF)
+set(SPIRV_CROSS_WERROR FALSE)
 option(SPIRV_CROSS_MISC_WARNINGS "Misc warnings useful for Travis runs." OFF)
 
 option(SPIRV_CROSS_FORCE_PIC "Force position-independent code for all targets." OFF)
@@ -112,9 +112,6 @@ if (CMAKE_COMPILER_IS_GNUCXX OR ((${CMAKE_CXX_COMPILER_ID} MATCHES "Clang") AND 
 		if (${CMAKE_CXX_COMPILER_ID} MATCHES "Clang")
 			set(spirv-compiler-options ${spirv-compiler-options} -Wshorten-64-to-32)
 		endif()
-	endif()
-	if (SPIRV_CROSS_WERROR)
-		set(spirv-compiler-options ${spirv-compiler-options} -Werror)
 	endif()
 
 	if (SPIRV_CROSS_EXCEPTIONS_TO_ASSERTIONS)

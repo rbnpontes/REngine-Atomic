@@ -49,7 +49,7 @@
         // OpenGL ES does not support textureLod without extensions and does not have the sZoneCubeMap sampler,
         // so for now, sample without explicit LOD, and from the environment sampler, where the zone texture will be put
         // on mobile hardware
-        #ifndef GL_ES
+        #ifndef RENGINE_IS_GLES
             vec3 cube = textureLod(sZoneCubeMap, FixCubeLookup(reflectVec), mipSelect).rgb;
             vec3 cubeD = textureLod(sZoneCubeMap, FixCubeLookup(wsNormal), 9.0).rgb;
         #else

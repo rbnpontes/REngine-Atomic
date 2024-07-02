@@ -234,11 +234,11 @@ void JSModuleWriter::WriteModulePreInit(String& source)
         {
             source.Append("duk_push_object(ctx);\n");
             source.Append("duk_dup(ctx, -1);\n");
-            source.AppendWithFormat("duk_put_prop_string(ctx, -3 \"%s\");\n", jenum->GetName().CString());
+            source.AppendWithFormat("duk_put_prop_string(ctx, -3, \"%s\");\n", jenum->GetName().CString());
             while(itr != values.End())
             {
                 String name = (*itr).first_;
-                source.AppendWithFormat("duk_push_number(ctx, %s::%s);\n", jenum->GetName().CString(), name.CString());
+                source.AppendWithFormat("duk_push_number(ctx, static_cast<duk_double_t>(%s::%s));\n", jenum->GetName().CString(), name.CString());
                 source.AppendWithFormat("duk_put_prop_string(ctx, -2, \"%s\");\n", name.CString());
                 itr++;
             }

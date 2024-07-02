@@ -24,6 +24,7 @@
 
 #include "Atomic/Atomic.h"
 
+#include "./TypeTraits.h"
 #include "../Container/Allocator.h"
 #include "../Container/Hash.h"
 #include "../Container/Swap.h"

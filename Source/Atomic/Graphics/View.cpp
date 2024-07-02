@@ -262,8 +262,7 @@ void UpdateDrawableGeometriesWork(const WorkItem* item, unsigned threadIndex)
 void SortBatchQueueFrontToBackWork(const WorkItem* item, unsigned threadIndex)
 {
     BatchQueue* queue = reinterpret_cast<BatchQueue*>(item->start_);
-
-    queue->SortFrontToBack();
+    queue->SortFrontToBack(queue->backend_);
 }
 
 void SortBatchQueueBackToFrontWork(const WorkItem* item, unsigned threadIndex)
@@ -276,15 +275,15 @@ void SortBatchQueueBackToFrontWork(const WorkItem* item, unsigned threadIndex)
 void SortLightQueueWork(const WorkItem* item, unsigned threadIndex)
 {
     LightBatchQueue* start = reinterpret_cast<LightBatchQueue*>(item->start_);
-    start->litBaseBatches_.SortFrontToBack();
-    start->litBatches_.SortFrontToBack();
+    start->litBaseBatches_.SortFrontToBack(start->backend_);
+    start->litBatches_.SortFrontToBack(start->backend_);
 }
 
 void SortShadowQueueWork(const WorkItem* item, unsigned threadIndex)
 {
     LightBatchQueue* start = reinterpret_cast<LightBatchQueue*>(item->start_);
     for (unsigned i = 0; i < start->shadowSplits_.Size(); ++i)
-        start->shadowSplits_[i].shadowBatches_.SortFrontToBack();
+        start->shadowSplits_[i].shadowBatches_.SortFrontToBack(start->backend_);
 }
 
 StringHash ParseTextureTypeXml(ResourceCache* cache, String filename);
@@ -326,8 +325,9 @@ bool View::Define(RenderSurface* renderTarget, Viewport* viewport)
     drawDebug_ = viewport->GetDrawDebug();
 
     // Validate the rect and calculate size. If zero rect, use whole rendertarget size
-    int rtWidth = renderTarget ? renderTarget->GetWidth() : graphics_->GetWidth();
-    int rtHeight = renderTarget ? renderTarget->GetHeight() : graphics_->GetHeight();
+    const auto render_size = graphics_->GetRenderSize();
+    int rtWidth = renderTarget ? renderTarget->GetWidth() : render_size.x_;
+    int rtHeight = renderTarget ? renderTarget->GetHeight() : render_size.y_;
     const IntRect& rect = viewport->GetRect();
 
     if (rect != IntRect::ZERO)
@@ -343,14 +343,14 @@ bool View::Define(RenderSurface* renderTarget, Viewport* viewport)
     viewSize_ = viewRect_.Size();
     rtSize_ = IntVector2(rtWidth, rtHeight);
 
-    // On OpenGL flip the viewport if rendering to a texture for consistent UV addressing with Direct3D9
-#ifdef ATOMIC_OPENGL
-    if (renderTarget_)
+    // On OpenGL flip the viewport if rendering to a texture for consistent UV addressing
+    const auto backend = graphics_->GetBackend();
+    const auto is_opengl = backend == GraphicsBackend::OpenGL || backend == GraphicsBackend::OpenGLES;
+    if (renderTarget_ && is_opengl)
     {
         viewRect_.bottom_ = rtHeight - viewRect_.top_;
         viewRect_.top_ = viewRect_.bottom_ - viewSize_.y_;
     }
-#endif
 
     scene_ = viewport->GetScene();
     cullCamera_ = viewport->GetCullCamera();
@@ -400,27 +400,26 @@ bool View::Define(RenderSurface* renderTarget, Viewport* viewport)
     scenePasses_.Clear();
     geometriesUpdated_ = false;
 
-#ifdef ATOMIC_OPENGL
-#ifdef GL_ES_VERSION_2_0
     // On OpenGL ES we assume a stencil is not available or would not give a good performance, and disable light stencil
     // optimizations in any case
-    noStencil_ = true;
-#else
-    for (unsigned i = 0; i < renderPath_->commands_.Size(); ++i)
+    if(backend == GraphicsBackend::OpenGLES)
+	    noStencil_ = true;
+    if(backend == GraphicsBackend::OpenGL)
     {
-        const RenderPathCommand& command = renderPath_->commands_[i];
-        if (!command.enabled_)
-            continue;
-        if (command.depthStencilName_.Length())
+        for (unsigned i = 0; i < renderPath_->commands_.Size(); ++i)
         {
-            // Using a readable depth texture will disable light stencil optimizations on OpenGL, as for compatibility reasons
-            // we are using a depth format without stencil channel
-            noStencil_ = true;
-            break;
+            const RenderPathCommand& command = renderPath_->commands_[i];
+            if (!command.enabled_)
+                continue;
+            if (command.depthStencilName_.Length())
+            {
+                // Using a readable depth texture will disable light stencil optimizations on OpenGL, as for compatibility reasons
+                // we are using a depth format without stencil channel
+                noStencil_ = true;
+                break;
+            }
         }
     }
-#endif
-#endif
 
     // Make sure that all necessary batch queues exist
     for (unsigned i = 0; i < renderPath_->commands_.Size(); ++i)
@@ -469,7 +468,7 @@ bool View::Define(RenderSurface* renderTarget, Viewport* viewport)
             lightPassIndex_ = command.passIndex_ = Technique::GetPassIndex(command.pass_);
     }
 
-    octree_ = 0;
+    octree_ = nullptr;
     // Get default zone first in case we do not have zones defined
     cameraZone_ = farClipZone_ = renderer_->GetDefaultZone();
 
@@ -587,6 +586,7 @@ void View::Update(const FrameInfo& frame)
 
 void View::Render()
 {
+    const auto backend = graphics_->GetBackend();
     SendViewEvent(E_BEGINVIEWRENDER);
 
     if (hasScenePasses_ && (!octree_ || !camera_))
@@ -613,22 +613,18 @@ void View::Render()
         camera_->SetAspectRatioInternal((float)(viewSize_.x_) / (float)(viewSize_.y_));
 
     // Bind the face selection and indirection cube maps for point light shadows
-#ifndef GL_ES_VERSION_2_0
-    if (renderer_->GetDrawShadows())
+    if (renderer_->GetDrawShadows() && backend != GraphicsBackend::OpenGLES)
     {
         graphics_->SetTexture(TU_FACESELECT, renderer_->GetFaceSelectCubeMap());
         graphics_->SetTexture(TU_INDIRECTION, renderer_->GetIndirectionCubeMap());
     }
-#endif
 
     if (renderTarget_)
     {
         // On OpenGL, flip the projection if rendering to a texture so that the texture can be addressed in the same way
-        // as a render texture produced on Direct3D9
-#ifdef ATOMIC_OPENGL
-        if (camera_)
+        // as a render texture produced on D3D and Vulkan
+        if((backend == GraphicsBackend::OpenGL || backend == GraphicsBackend::OpenGLES) && camera_)
             camera_->SetFlipVertical(true);
-#endif
     }
 
     // Render
@@ -675,10 +671,8 @@ void View::Render()
         }
     }
 
-#ifdef ATOMIC_OPENGL
-    if (camera_)
+    if (camera_ && (backend == GraphicsBackend::OpenGL || backend == GraphicsBackend::OpenGLES))
         camera_->SetFlipVertical(false);
-#endif
 
     // Run framebuffer blitting if necessary. If scene was resolved from backbuffer, do not touch depth
     // (backbuffer should contain proper depth already)
@@ -738,15 +732,19 @@ void View::SetCameraShaderParameters(Camera* camera)
     graphics_->SetShaderParameter(PSP_FARCLIP, farClip);
 
     Vector4 depthMode = Vector4::ZERO;
+    const auto backend = graphics_->GetBackend();
+    const auto is_opengl = backend == GraphicsBackend::OpenGL || backend == GraphicsBackend::OpenGLES;
+
     if (camera->IsOrthographic())
     {
         depthMode.x_ = 1.0f;
-#ifdef ATOMIC_OPENGL
-        depthMode.z_ = 0.5f;
-        depthMode.w_ = 0.5f;
-#else
-        depthMode.z_ = 1.0f;
-#endif
+        if(is_opengl)
+        {
+            depthMode.z_ = 0.5f;
+            depthMode.w_ = 0.5f;
+        }
+    	else
+            depthMode.z_ = 1.0f;
     }
     else
         depthMode.w_ = 1.0f / camera->GetFarClip();
@@ -763,12 +761,13 @@ void View::SetCameraShaderParameters(Camera* camera)
     graphics_->SetShaderParameter(VSP_FRUSTUMSIZE, farVector);
 
     Matrix4 projection = camera->GetGPUProjection();
-#ifdef ATOMIC_OPENGL
     // Add constant depth bias manually to the projection matrix due to glPolygonOffset() inconsistency
-    float constantBias = 2.0f * graphics_->GetDepthConstantBias();
-    projection.m22_ += projection.m32_ * constantBias;
-    projection.m23_ += projection.m33_ * constantBias;
-#endif
+    if(is_opengl)
+    {
+	    float constantBias = 2.0f * graphics_->GetDepthConstantBias();
+        projection.m22_ += projection.m32_ * constantBias;
+        projection.m23_ += projection.m33_ * constantBias;
+    }
 
     graphics_->SetShaderParameter(VSP_VIEWPROJ, projection * camera->GetView());
 
@@ -786,20 +785,25 @@ void View::SetCommandShaderParameters(const RenderPathCommand& command)
 
 void View::SetGBufferShaderParameters(const IntVector2& texSize, const IntRect& viewRect)
 {
+    const auto backend = graphics_->GetBackend();
     float texWidth = (float)texSize.x_;
     float texHeight = (float)texSize.y_;
     float widthRange = 0.5f * viewRect.Width() / texWidth;
     float heightRange = 0.5f * viewRect.Height() / texHeight;
 
-#ifdef ATOMIC_OPENGL
-    Vector4 bufferUVOffset(((float)viewRect.left_) / texWidth + widthRange,
-        1.0f - (((float)viewRect.top_) / texHeight + heightRange), widthRange, heightRange);
-#else
-    const Vector2& pixelUVOffset = Graphics::GetPixelUVOffset();
-    Vector4 bufferUVOffset((pixelUVOffset.x_ + (float)viewRect.left_) / texWidth + widthRange,
-        (pixelUVOffset.y_ + (float)viewRect.top_) / texHeight + heightRange, widthRange, heightRange);
-#endif
-    graphics_->SetShaderParameter(VSP_GBUFFEROFFSETS, bufferUVOffset);
+    if(backend == GraphicsBackend::OpenGL || backend == GraphicsBackend::OpenGLES)
+    {
+        Vector4 bufferUVOffset(((float)viewRect.left_) / texWidth + widthRange,
+            1.0f - (((float)viewRect.top_) / texHeight + heightRange), widthRange, heightRange);
+        graphics_->SetShaderParameter(VSP_GBUFFEROFFSETS, bufferUVOffset);
+    }
+    else
+    {
+        const Vector2& pixelUVOffset = Graphics::GetPixelUVOffset();
+        Vector4 bufferUVOffset((pixelUVOffset.x_ + (float)viewRect.left_) / texWidth + widthRange,
+            (pixelUVOffset.y_ + (float)viewRect.top_) / texHeight + heightRange, widthRange, heightRange);
+        graphics_->SetShaderParameter(VSP_GBUFFEROFFSETS, bufferUVOffset);
+    }
 
     float invSizeX = 1.0f / texWidth;
     float invSizeY = 1.0f / texHeight;
@@ -1321,13 +1325,18 @@ void View::UpdateGeometries()
                 item->priority_ = M_MAX_UNSIGNED;
                 item->workFunction_ =
                     command.sortMode_ == SORT_FRONTTOBACK ? SortBatchQueueFrontToBackWork : SortBatchQueueBackToFrontWork;
-                item->start_ = &batchQueues_[command.passIndex_];
+
+            	auto& batch_it = batchQueues_[command.passIndex_];
+                batch_it.backend_ = graphics_->GetBackend();
+            	item->start_ = &batch_it;
+                
                 queue->AddWorkItem(item);
             }
         }
 
         for (Vector<LightBatchQueue>::Iterator i = lightQueues_.Begin(); i != lightQueues_.End(); ++i)
         {
+            i.ptr_->backend_ = graphics_->GetBackend();
             SharedPtr<WorkItem> lightItem = queue->GetFreeItem();
             lightItem->priority_ = M_MAX_UNSIGNED;
             lightItem->workFunction_ = SortLightQueueWork;
@@ -1567,11 +1576,11 @@ void View::ExecuteRenderPathCommands()
                     // If the render path ends into a quad, it can be redirected to the final render target
                     // However, on OpenGL we can not reliably do this in case the final target is the backbuffer, and we want to
                     // render depth buffer sensitive debug geometry afterward (backbuffer and textures can not share depth)
-#ifndef ATOMIC_OPENGL
-                    if (i == lastCommandIndex && command.type_ == CMD_QUAD)
-#else
-                    if (i == lastCommandIndex && command.type_ == CMD_QUAD && renderTarget_)
-#endif
+                    const auto backend = graphics_->GetBackend();
+                	const auto is_opengl = backend == GraphicsBackend::OpenGL || backend == GraphicsBackend::OpenGLES;
+
+                    if((is_opengl && i == lastCommandIndex && command.type_ == CMD_QUAD && renderTarget_) 
+                        || (!is_opengl && i == lastCommandIndex && command.type_ == CMD_QUAD))
                         currentRenderTarget_ = renderTarget_;
                 }
                 else
@@ -1583,13 +1592,15 @@ void View::ExecuteRenderPathCommands()
             case CMD_CLEAR:
                 {
                     ATOMIC_PROFILE(ClearRenderTarget);
-
+                    const auto draw_command = graphics_->GetDrawCommand();
+                    draw_command->BeginDebug("Clear Pass");
                     Color clearColor = command.clearColor_;
                     if (command.useFogColor_)
                         clearColor = actualView->farClipZone_->GetFogColor();
 
                     SetRenderTargets(command);
                     graphics_->Clear(command.clearFlags_, clearColor, command.clearDepth_, command.clearStencil_);
+                    draw_command->EndDebug();
                 }
                 break;
 
@@ -1599,6 +1610,8 @@ void View::ExecuteRenderPathCommands()
                     if (!queue.IsEmpty())
                     {
                         ATOMIC_PROFILE(RenderScenePass);
+                        const auto draw_command = graphics_->GetDrawCommand();
+                        draw_command->BeginDebug("Scene Pass", Color::CYAN);
 
                         SetRenderTargets(command);
                         bool allowDepthWrite = SetTextures(command);
@@ -1616,6 +1629,8 @@ void View::ExecuteRenderPathCommands()
                         queue.Draw(this, camera_, command.markToStencil_, false, allowDepthWrite);
 
                         passCommand_ = 0;
+
+                        draw_command->EndDebug();
                     }
                 }
                 break;
@@ -1623,10 +1638,12 @@ void View::ExecuteRenderPathCommands()
             case CMD_QUAD:
                 {
                     ATOMIC_PROFILE(RenderQuad);
-
+                    const auto draw_command = graphics_->GetDrawCommand();
+                    draw_command->BeginDebug("Quad Pass");
                     SetRenderTargets(command);
                     SetTextures(command);
                     RenderQuad(command);
+                    draw_command->EndDebug();
                 }
                 break;
 
@@ -1635,7 +1652,9 @@ void View::ExecuteRenderPathCommands()
                 if (!actualView->lightQueues_.Empty())
                 {
                     ATOMIC_PROFILE(RenderLights);
+                    const auto draw_command = graphics_->GetDrawCommand();
 
+                    draw_command->BeginDebug("ForwardLights Pass", Color::YELLOW);
                     SetRenderTargets(command);
 // ATOMIC BEGIN
                     graphics_->SetNumPasses(0);
@@ -1680,6 +1699,7 @@ void View::ExecuteRenderPathCommands()
 
                     graphics_->SetScissorTest(false);
                     graphics_->SetStencilTest(false);
+                    draw_command->EndDebug();
                 }
                 break;
 
@@ -1688,6 +1708,8 @@ void View::ExecuteRenderPathCommands()
                 if (!actualView->lightQueues_.Empty())
                 {
                     ATOMIC_PROFILE(RenderLightVolumes);
+                    const auto draw_command = graphics_->GetDrawCommand();
+                    draw_command->BeginDebug("LightVolumes Pass", Color::YELLOW);
 
                     SetRenderTargets(command);
                     for (Vector<LightBatchQueue>::Iterator i = actualView->lightQueues_.Begin(); i != actualView->lightQueues_.End(); ++i)
@@ -1718,6 +1740,7 @@ void View::ExecuteRenderPathCommands()
 
                     graphics_->SetScissorTest(false);
                     graphics_->SetStencilTest(false);
+                    draw_command->EndDebug();
                 }
                 break;
 
@@ -2003,17 +2026,21 @@ void View::AllocateScreenBuffers()
         }
     }
 
-#ifdef ATOMIC_OPENGL
     // Due to FBO limitations, in OpenGL deferred modes need to render to texture first and then blit to the backbuffer
     // Also, if rendering to a texture with full deferred rendering, it must be RGBA to comply with the rest of the buffers,
     // unless using OpenGL 3
-    if (((deferred_ || hasScenePassToRTs) && !renderTarget_) || (!Graphics::GetGL3Support() && deferredAmbient_ && renderTarget_
-        && renderTarget_->GetParentTexture()->GetFormat() != Graphics::GetRGBAFormat()))
+    const auto backend = graphics_->GetBackend();
+    const auto is_opengl = backend == GraphicsBackend::OpenGL || backend == GraphicsBackend::OpenGLES;
+    if(is_opengl)
+    {
+        if (((deferred_ || hasScenePassToRTs) && !renderTarget_) || (backend == GraphicsBackend::OpenGLES && deferredAmbient_ && renderTarget_
+            && renderTarget_->GetParentTexture()->GetFormat() != Graphics::GetRGBAFormat()))
+                needSubstitute = true;
+        // Also need substitute if rendering to backbuffer using a custom (readable) depth buffer
+        if (!renderTarget_ && hasCustomDepth)
             needSubstitute = true;
-    // Also need substitute if rendering to backbuffer using a custom (readable) depth buffer
-    if (!renderTarget_ && hasCustomDepth)
-        needSubstitute = true;
-#endif
+    }
+
     // If backbuffer is antialiased when using deferred rendering, need to reserve a buffer
     if (deferred_ && !renderTarget_ && graphics_->GetMultiSample() > 1)
         needSubstitute = true;
@@ -2035,11 +2062,9 @@ void View::AllocateScreenBuffers()
         needSubstitute = true;
     }
 
-#ifdef ATOMIC_OPENGL
     // On OpenGL 2 ensure that all MRT buffers are RGBA in deferred rendering
-    if (deferred_ && !renderer_->GetHDRRendering() && !Graphics::GetGL3Support())
+    if (deferred_ && !renderer_->GetHDRRendering() && backend == GraphicsBackend::OpenGLES)
         format = Graphics::GetRGBAFormat();
-#endif
 
     if (hasViewportRead)
     {
@@ -2047,10 +2072,9 @@ void View::AllocateScreenBuffers()
 
         // If OpenGL ES, use substitute target to avoid resolve from the backbuffer, which may be slow. However if multisampling
         // is specified, there is no choice
-#ifdef GL_ES_VERSION_2_0
-        if (!renderTarget_ && graphics_->GetMultiSample() < 2)
-            needSubstitute = true;
-#endif
+        // TODO: revisit this. Does this makes sense ?
+        /*if (!renderTarget_ && graphics_->GetMultiSample() < 2 && backend == GraphicsBackend::OpenGLES)
+            needSubstitute = true;*/
 
         // If we have viewport read and target is a cube map, must allocate a substitute target instead as BlitFramebuffer()
         // does not support reading a cube map
@@ -2124,8 +2148,9 @@ void View::BlitFramebuffer(Texture* source, RenderSurface* destination, bool dep
     // If blitting to the destination rendertarget, use the actual viewport. Intermediate textures on the other hand
     // are always viewport-sized
     IntVector2 srcSize(source->GetWidth(), source->GetHeight());
+    const auto size = graphics_->GetRenderSize();
     IntVector2 destSize = destination ? IntVector2(destination->GetWidth(), destination->GetHeight()) : IntVector2(
-        graphics_->GetWidth(), graphics_->GetHeight());
+        size.x_, size.y_);
 
     IntRect srcRect = (GetRenderSurfaceFromTexture(source) == renderTarget_) ? viewRect_ : IntRect(0, 0, srcSize.x_, srcSize.y_);
     IntRect destRect = (destination == renderTarget_) ? viewRect_ : IntRect(0, 0, destSize.x_, destSize.y_);
@@ -2155,8 +2180,9 @@ void View::BlitFramebuffer(Texture* source, RenderSurface* destination, bool dep
 
 void View::DrawFullscreenQuad(bool setIdentityProjection)
 {
+    const auto backend = graphics_->GetBackend();
+    const auto is_opengl = backend == GraphicsBackend::OpenGL || backend == GraphicsBackend::OpenGLES;
     Geometry* geometry = renderer_->GetQuadGeometry();
-
     // If no camera, no choice but to use identity projection
     if (!camera_)
         setIdentityProjection = true;
@@ -2165,13 +2191,14 @@ void View::DrawFullscreenQuad(bool setIdentityProjection)
     {
         Matrix3x4 model = Matrix3x4::IDENTITY;
         Matrix4 projection = Matrix4::IDENTITY;
-#ifdef ATOMIC_OPENGL
-        if (camera_ && camera_->GetFlipVertical())
-            projection.m11_ = -1.0f;
-        model.m23_ = 0.0f;
-#else
-        model.m23_ = 0.5f;
-#endif
+        if(is_opengl)
+        {
+            if (camera_ && camera_->GetFlipVertical())
+                projection.m11_ = -1.0f;
+            model.m23_ = 0.0f;
+        }
+    	else
+            model.m23_ = 0.5f;
 
         graphics_->SetShaderParameter(VSP_MODEL, model);
         graphics_->SetShaderParameter(VSP_VIEWPROJ, projection);
@@ -2302,11 +2329,11 @@ void View::ProcessLight(LightQueryResult& query, unsigned threadIndex)
     // If shadow distance non-zero, check it
     if (isShadowed && light->GetShadowDistance() > 0.0f && light->GetDistance() > light->GetShadowDistance())
         isShadowed = false;
+
+    // TODO: move the condition above to graphics capabilities
     // OpenGL ES can not support point light shadows
-#ifdef GL_ES_VERSION_2_0
-    if (isShadowed && type == LIGHT_POINT)
+    if (isShadowed && type == LIGHT_POINT && graphics_->GetBackend() == GraphicsBackend::OpenGLES)
         isShadowed = false;
-#endif
     // Get lit geometries. They must match the light mask and be inside the main camera frustum to be considered
     PODVector<Drawable*>& tempDrawables = tempDrawables_[threadIndex];
     query.litGeometries_.Clear();
@@ -2685,6 +2712,8 @@ void View::SetupDirLightShadowCamera(Camera* shadowCamera, Light* light, float n
 void View::FinalizeShadowCamera(Camera* shadowCamera, Light* light, const IntRect& shadowViewport,
     const BoundingBox& shadowCasterBox)
 {
+    const auto backend = graphics_->GetBackend();
+    const auto is_opengl = backend == GraphicsBackend::OpenGL || backend == GraphicsBackend::OpenGLES;
     const FocusParameters& parameters = light->GetShadowFocus();
     float shadowMapWidth = (float)(shadowViewport.Width());
     LightType type = light->GetLightType();
@@ -2724,11 +2753,10 @@ void View::FinalizeShadowCamera(Camera* shadowCamera, Light* light, const IntRec
             shadowCamera->SetZoom(shadowCamera->GetZoom() * ((shadowMapWidth - 2.0f) / shadowMapWidth));
         else
         {
-#ifdef ATOMIC_OPENGL
-            shadowCamera->SetZoom(shadowCamera->GetZoom() * ((shadowMapWidth - 3.0f) / shadowMapWidth));
-#else
-            shadowCamera->SetZoom(shadowCamera->GetZoom() * ((shadowMapWidth - 4.0f) / shadowMapWidth));
-#endif
+            if(is_opengl)
+                shadowCamera->SetZoom(shadowCamera->GetZoom() * ((shadowMapWidth - 3.0f) / shadowMapWidth));
+            else
+                shadowCamera->SetZoom(shadowCamera->GetZoom() * ((shadowMapWidth - 4.0f) / shadowMapWidth));
         }
     }
 }
@@ -3066,9 +3094,12 @@ bool View::NeedRenderShadowMap(const LightBatchQueue& queue)
 void View::RenderShadowMap(const LightBatchQueue& queue)
 {
     ATOMIC_PROFILE(RenderShadowMap);
+    const auto backend = graphics_->GetBackend();
+    const auto command = graphics_->GetDrawCommand();
+    command->BeginDebug("ShadowMap Pass", Color::BLACK);
 
     Texture2D* shadowMap = queue.shadowMap_;
-    graphics_->SetTexture(TU_SHADOWMAP, 0);
+    graphics_->ResetTexture(TU_SHADOWMAP);
 
     graphics_->SetFillMode(FILL_SOLID);
     graphics_->SetClipPlane(false);
@@ -3080,7 +3111,7 @@ void View::RenderShadowMap(const LightBatchQueue& queue)
     // The shadow map is a depth stencil texture
     if (shadowMap->GetUsage() == TEXTURE_DEPTHSTENCIL)
     {
-        ATOMIC_PROFILE(RenderShadowMap_Clear);
+        ATOMIC_PROFILE(RenderShadowMap::Clear);
         graphics_->SetColorWrite(false);
         graphics_->SetDepthStencil(shadowMap);
         graphics_->SetRenderTarget(0, shadowMap->GetRenderSurface()->GetLinkedRenderTarget());
@@ -3092,7 +3123,7 @@ void View::RenderShadowMap(const LightBatchQueue& queue)
     }
     else // if the shadow map is a color rendertarget
     {
-        ATOMIC_PROFILE(RenderShadowMap_Clear);
+        ATOMIC_PROFILE(RenderShadowMap::Clear);
         graphics_->SetColorWrite(true);
         graphics_->SetRenderTarget(0, shadowMap);
         // Disable other render targets
@@ -3125,10 +3156,11 @@ void View::RenderShadowMap(const LightBatchQueue& queue)
 
         // Perform further modification of depth bias on OpenGL ES, as shadow calculations' precision is limited
         float addition = 0.0f;
-#ifdef GL_ES_VERSION_2_0
-        multiplier *= renderer_->GetMobileShadowBiasMul();
-        addition = renderer_->GetMobileShadowBiasAdd();
-#endif
+        if(backend == GraphicsBackend::OpenGLES)
+        {
+            multiplier *= renderer_->GetMobileShadowBiasMul();
+            addition = renderer_->GetMobileShadowBiasAdd();
+        }
 
         graphics_->SetDepthBias(multiplier * parameters.constantBias_ + addition, multiplier * parameters.slopeScaledBias_);
 
@@ -3152,6 +3184,8 @@ void View::RenderShadowMap(const LightBatchQueue& queue)
     // reset some parameters
     graphics_->SetColorWrite(true);
     graphics_->SetDepthBias(0.0f, 0.0f);
+
+    command->EndDebug();
 }
 
 RenderSurface* View::GetDepthStencil(RenderSurface* renderTarget)

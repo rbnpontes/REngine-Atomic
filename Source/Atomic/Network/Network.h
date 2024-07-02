@@ -27,6 +27,7 @@
 #include "../IO/VectorBuffer.h"
 #include "../Network/Connection.h"
 
+#undef u64
 #include <kNet/IMessageHandler.h>
 #include <kNet/INetworkServerListener.h>
 #include <kNet/Socket.h>
@@ -63,7 +64,7 @@ public:
     virtual void HandleMessage
         (kNet::MessageConnection* source, kNet::packet_id_t packetId, kNet::message_id_t msgId, const char* data, size_t numBytes);
     /// Compute the content ID for a message.
-    virtual u32 ComputeContentID(kNet::message_id_t msgId, const char* data, size_t numBytes);
+    virtual kNet::u32 ComputeContentID(kNet::message_id_t msgId, const char* data, size_t numBytes);
     /// Handle a new client connection.
     virtual void NewConnectionEstablished(kNet::MessageConnection* connection);
     /// Handle a client disconnection.

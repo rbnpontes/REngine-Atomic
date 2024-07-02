@@ -20,14 +20,23 @@ namespace REngine
     {
         Atomic::ShaderVariation* vertex_shader{nullptr};
         Atomic::ShaderVariation* pixel_shader{nullptr};
+        Atomic::ShaderVariation* geometry_shader{nullptr};
+        Atomic::ShaderVariation* hull_shader{nullptr};
+        Atomic::ShaderVariation* domain_shader{nullptr};
 
-        uint32_t ToHash() const
+        u32 ToHash() const
         {
-	        uint32_t hash = 0;
+	        u32 hash = 0;
             if(vertex_shader)
 	            Atomic::CombineHash(hash, vertex_shader->ToHash());
             if(pixel_shader)
 			    Atomic::CombineHash(hash, pixel_shader->ToHash());
+            if(geometry_shader)
+                Atomic::CombineHash(hash, geometry_shader->ToHash());
+            if(hull_shader)
+                Atomic::CombineHash(hash, hull_shader->ToHash());
+            if (domain_shader)
+                Atomic::CombineHash(hash, domain_shader->ToHash());
 			return hash;
 		}
     };
@@ -62,6 +71,4 @@ namespace REngine
     void graphics_state_set_vertex_declaration(const uint32_t id, const Atomic::SharedPtr<VertexDeclaration>& declaration);
     void graphics_state_release_vertex_declarations();
     uint32_t graphics_state_vertex_declarations_count();
-
-    RenderCommandState* default_render_command_get();
 }

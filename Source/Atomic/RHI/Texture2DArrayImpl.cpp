@@ -32,7 +32,7 @@ void Texture2DArray::OnDeviceReset()
 
 void Texture2DArray::Release()
 {
-    throw std::exception("Not implemented");
+    throw std::runtime_error("Not implemented");
     // if (graphics_)
     // {
     //     for (unsigned i = 0; i < MAX_TEXTURE_UNITS; ++i)
@@ -54,7 +54,7 @@ void Texture2DArray::Release()
 
 bool Texture2DArray::SetData(unsigned layer, unsigned level, int x, int y, int width, int height, const void* data)
 {
-    throw std::exception("Not implemented");
+    throw std::runtime_error("Not implemented");
     // ATOMIC_PROFILE(SetTextureData);
     //
     // if (!object_.ptr_)
@@ -158,7 +158,7 @@ bool Texture2DArray::SetData(unsigned layer, Deserializer& source)
 
 bool Texture2DArray::SetData(unsigned layer, Image* image, bool useAlpha)
 {
-    throw std::exception("Not implemented");
+    throw std::runtime_error("Not implemented");
     // if (!image)
     // {
     //     ATOMIC_LOGERROR("Null image, can not set data");
@@ -331,7 +331,7 @@ bool Texture2DArray::SetData(unsigned layer, Image* image, bool useAlpha)
 
 bool Texture2DArray::GetData(unsigned layer, unsigned level, void* dest) const
 {
-    throw std::exception("Not implemented");
+    throw std::runtime_error("Not implemented");
     // if (!object_.ptr_)
     // {
     //     ATOMIC_LOGERROR("Texture array not created, can not get data");
@@ -415,7 +415,7 @@ bool Texture2DArray::GetData(unsigned layer, unsigned level, void* dest) const
 
 bool Texture2DArray::Create()
 {
-    throw std::exception("Not implemented");
+    throw std::runtime_error("Not implemented");
     // Release();
     //
     // if (!graphics_ || !width_ || !height_ || !layers_)

@@ -1,0 +1,19 @@
+package com.rengine
+
+import android.os.Environment
+import org.libsdl.app.SDL
+
+class FileOperations {
+    companion object {
+        @JvmStatic
+        fun fileExists(filePath : String) : Boolean {
+            val file = java.io.File(filePath)
+            return file.exists()
+        }
+        @JvmStatic
+        fun getDocumentsDir() : String {
+            val dir = SDL.getContext().getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS)
+            return dir?.absolutePath ?: ""
+        }
+    }
+}

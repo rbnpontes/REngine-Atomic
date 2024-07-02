@@ -1,5 +1,4 @@
 set (ATOMIC_TOOL_SOURCES AtomicTool.cpp AtomicTool.h)
-set (RENGINE_GEN_COMMAND yarn --cwd ${ATOMIC_SOURCE_DIR}/Build build)
 
 if (WIN32)
     add_definitions(-DATOMIC_WIN32_CONSOLE)
@@ -12,16 +11,33 @@ target_link_libraries(AtomicTool ToolCore Poco Atomic)
 if (WIN32)
     target_link_libraries(AtomicTool Iphlpapi Wldap32)
 endif()
-target_link_libraries(AtomicTool libcurl)
 
 if (ATOMIC_JAVASCRIPT OR ATOMIC_DOTNET)
-    target_link_libraries(AtomicTool AtomicNETScript)
+    if(ATOMIC_DOTNET)
+        target_link_libraries(AtomicTool AtomicNETScript)
+    endif()
+
+    yarn_get_command()
     # Custom target which is always considered out of date, checks for zero size/missing script bindings and generates
-    add_custom_target( AtomicToolCheckScripts
+    # if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    #     add_custom_target(AtomicToolCheckScripts
+    #                     WORKING_DIRECTORY "${ATOMIC_SOURCE_DIR}"
+    #                     COMMAND "${CMAKE_COMMAND}" -E make_directory \"${ATOMIC_SOURCE_DIR}/Artifacts/Build/AtomicTool\"
+    #                     COMMAND "${CMAKE_COMMAND}" -E copy_if_different \"$<TARGET_FILE:AtomicTool>\" \"${ATOMIC_SOURCE_DIR}/Artifacts/Build/AtomicTool/\"
+    #                     COMMAND "${YARN_CMD}" "build" "build:genscripts[false]")
+    # else ()
+    # endif()
+
+    set (TOOL_CHECK_SCRIPTS ${YARN_CMD} "build" "build:genscripts[false]")
+    if(APPLE)
+        set(TOOL_CHECK_SCRIPTS ${YARN_CMD} "build build:genscripts[false]")
+    endif()
+
+    add_custom_target(AtomicToolCheckScripts
                     WORKING_DIRECTORY "${ATOMIC_SOURCE_DIR}"
                     COMMAND "${CMAKE_COMMAND}" -E make_directory \"${ATOMIC_SOURCE_DIR}/Artifacts/Build/AtomicTool\"
                     COMMAND "${CMAKE_COMMAND}" -E copy_if_different \"$<TARGET_FILE:AtomicTool>\" \"${ATOMIC_SOURCE_DIR}/Artifacts/Build/AtomicTool/\"
-                    COMMAND ${RENGINE_GEN_COMMAND} build:genscripts[false])
+                    COMMAND ${TOOL_CHECK_SCRIPTS})
 
     add_dependencies (AtomicToolCheckScripts AtomicTool)
 
@@ -33,26 +49,25 @@ if (ATOMIC_JAVASCRIPT OR ATOMIC_DOTNET)
                         ARGS -E copy_if_different \"$<TARGET_FILE:AtomicTool>\" \"${ATOMIC_SOURCE_DIR}/Artifacts/Build/AtomicTool/\"
                         COMMENT "Copying AtomicTool to Build Artifacts" )
 
-    if (WIN32 AND NOT RENGINE_DILIGENT)
-
-    # Copy the D3D shader compiler (for pre-Windows 8)
-    add_custom_command( TARGET AtomicTool POST_BUILD
-                        COMMAND ${CMAKE_COMMAND}
-                        ARGS -E copy_if_different \"${D3DCOMPILER_47_DLL}\" \"$<TARGET_FILE_DIR:AtomicTool>/D3DCompiler_47.dll\"
-                        COMMAND "${CMAKE_COMMAND}"
-                        ARGS -E make_directory \"${ATOMIC_SOURCE_DIR}/Artifacts/Build/AtomicTool\"
-                        COMMAND ${CMAKE_COMMAND}
-                        ARGS -E copy_if_different \"${D3DCOMPILER_47_DLL}\" \"${ATOMIC_SOURCE_DIR}/Artifacts/Build/AtomicTool/D3DCompiler_47.dll\"
-                        COMMENT "Copying D3DShader compiler to Build Artifacts" )
+    set(GENERATE_SCRIPTS_BINDINGS ${YARN_CMD} "build" "build:genscripts[true];--trace")
+    if(APPLE)
+        set(GENERATE_SCRIPTS_BINDINGS ${YARN_CMD} "build build:genscripts[true];--trace")
     endif()
 
     add_custom_target ( GenerateScriptBindings
                         WORKING_DIRECTORY "${ATOMIC_SOURCE_DIR}"
-                        COMMAND ${RENGINE_GEN_COMMAND} build:genscripts[true];--trace
+                        COMMAND ${GENERATE_SCRIPTS_BINDINGS}
                         DEPENDS AtomicTool )
 
-    add_custom_target ( GenerateAtomicNET
-                        WORKING_DIRECTORY "${ATOMIC_SOURCE_DIR}"
-                        COMMAND ${RENGINE_GEN_COMMAND} build:genAtomicNET[desktop,$<$<CONFIG:debug>:"Debug">$<$<CONFIG:release>:"Release">];--trace
-                        DEPENDS AtomicTool )
+    if (ATOMIC_DOTNET)
+        set(GENERATE_ENGINE_NET ${YARN_CMD} "build" build:genAtomicNET[desktop,$<$<CONFIG:debug>:"Debug">$<$<CONFIG:release>:"Release">];--trace)
+        if(APPLE)
+            set(GENERATE_ENGINE_NET ${YARN_CMD} "build build:genAtomicNET[desktop,$<$<CONFIG:debug>:\"Debug\">$<$<CONFIG:release>:\"Release\">];--trace")
+        endif()
+
+        add_custom_target ( GenerateAtomicNET
+                            WORKING_DIRECTORY "${ATOMIC_SOURCE_DIR}"
+                            COMMAND ${GENERATE_ENGINE_NET}
+                            DEPENDS AtomicTool )
+    endif()
 endif ()

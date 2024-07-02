@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include "./TypeTraits.h"
 #include "Atomic/Atomic.h"
 
 #if ATOMIC_CXX11

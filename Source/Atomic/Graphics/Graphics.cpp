@@ -49,6 +49,7 @@
 #include "../Graphics/Texture3D.h"
 #include "../Graphics/TextureCube.h"
 #include "../Graphics/Zone.h"
+#include "../Graphics/DrawCommandQueue.h"
 #include "../IO/FileSystem.h"
 #include "../IO/Log.h"
 
@@ -58,8 +59,8 @@
 #include "Text3D/Text3DText.h"
 #include "Text3D/Text3D.h"
 
-#include <SDL/include/SDL.h>
-#include <SDL/include/SDL_syswm.h>
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_syswm.h>
 // ATOMIC END
 
 #include "../DebugNew.h"
@@ -84,7 +85,7 @@ void Graphics::SetWindowTitle(const String& windowTitle)
 {
     windowTitle_ = windowTitle;
     if (window_)
-        SDL_SetWindowTitle(window_, windowTitle_.CString());
+        SDL_SetWindowTitle(window_.get(), windowTitle.CString());
 }
 
 void Graphics::SetWindowIcon(Image* windowIcon)
@@ -97,7 +98,7 @@ void Graphics::SetWindowIcon(Image* windowIcon)
 void Graphics::SetWindowPosition(const IntVector2& position)
 {
     if (window_)
-        SDL_SetWindowPosition(window_, position.x_, position.y_);
+        SDL_SetWindowPosition(window_.get(), position.x_, position.y_);
     else
         position_ = position; // Sets as initial position for OpenWindow()
 }
@@ -120,61 +121,9 @@ bool Graphics::ToggleFullscreen()
 
 void Graphics::SetShaderParameter(StringHash param, const Variant& value)
 {
-    switch (value.GetType())
-    {
-    case VAR_BOOL:
-        SetShaderParameter(param, value.GetBool());
-        break;
-
-    case VAR_INT:
-        SetShaderParameter(param, value.GetInt());
-        break;
-
-    case VAR_FLOAT:
-    case VAR_DOUBLE:
-        SetShaderParameter(param, value.GetFloat());
-        break;
-
-    case VAR_VECTOR2:
-        SetShaderParameter(param, value.GetVector2());
-        break;
-
-    case VAR_VECTOR3:
-        SetShaderParameter(param, value.GetVector3());
-        break;
-
-    case VAR_VECTOR4:
-        SetShaderParameter(param, value.GetVector4());
-        break;
-
-    case VAR_COLOR:
-        SetShaderParameter(param, value.GetColor());
-        break;
-
-    case VAR_MATRIX3:
-        SetShaderParameter(param, value.GetMatrix3());
-        break;
-
-    case VAR_MATRIX3X4:
-        SetShaderParameter(param, value.GetMatrix3x4());
-        break;
-
-    case VAR_MATRIX4:
-        SetShaderParameter(param, value.GetMatrix4());
-        break;
-
-    case VAR_BUFFER:
-        {
-            const PODVector<unsigned char>& buffer = value.GetBuffer();
-            if (buffer.Size() >= sizeof(float))
-                SetShaderParameter(param, reinterpret_cast<const float*>(&buffer[0]), buffer.Size() / sizeof(float));
-        }
-        break;
-
-    default:
-        // Unsupported parameter type, do nothing
-        break;
-    }
+    if (!draw_command_)
+        return;
+    draw_command_->SetShaderParameter(param, value);
 }
 
 IntVector2 Graphics::GetWindowPosition() const
@@ -240,7 +189,7 @@ void Graphics::Maximize()
     if (!window_)
         return;
 
-    SDL_MaximizeWindow(window_);
+    SDL_MaximizeWindow(window_.get());
 }
 
 void Graphics::Minimize()
@@ -248,7 +197,7 @@ void Graphics::Minimize()
     if (!window_)
         return;
 
-    SDL_MinimizeWindow(window_);
+    SDL_MinimizeWindow(window_.get());
 }
 
 void Graphics::BeginDumpShaders(const String& fileName)
@@ -373,7 +322,7 @@ void Graphics::CreateWindowIcon()
         SDL_Surface* surface = windowIcon_->GetSDLSurface();
         if (surface)
         {
-            SDL_SetWindowIcon(window_, surface);
+            SDL_SetWindowIcon(window_.get(), surface);
             SDL_FreeSurface(surface);
         }
     }
@@ -432,7 +381,7 @@ bool Graphics::GetMaximized()
     if (!window_)
         return false;
 
-    return SDL_GetWindowFlags(window_) & SDL_WINDOW_MAXIMIZED;
+    return SDL_GetWindowFlags(window_.get()) & SDL_WINDOW_MAXIMIZED;
 }
 IntVector2 Graphics::GetMonitorResolution(int monitorId) const
 {
@@ -444,7 +393,7 @@ IntVector2 Graphics::GetMonitorResolution(int monitorId) const
 void Graphics::RaiseWindow()
 {
     if (window_)
-        SDL_RaiseWindow(window_);
+        SDL_RaiseWindow(window_.get());
 }
 
 

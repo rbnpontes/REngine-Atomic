@@ -28,7 +28,7 @@ void Texture3D::OnDeviceReset()
 
 void Texture3D::Release()
 {
-    throw std::exception("Not implemented");
+    throw std::runtime_error("Not implemented");
     // if (graphics_ && object_.ptr_)
     // {
     //     for (unsigned i = 0; i < MAX_TEXTURE_UNITS; ++i)
@@ -45,7 +45,7 @@ void Texture3D::Release()
 
 bool Texture3D::SetData(unsigned level, int x, int y, int z, int width, int height, int depth, const void* data)
 {
-    throw std::exception("Not implemented");
+    throw std::runtime_error("Not implemented");
     // ATOMIC_PROFILE(SetTextureData);
     //
     // if (!object_.ptr_)
@@ -146,7 +146,7 @@ bool Texture3D::SetData(unsigned level, int x, int y, int z, int width, int heig
 
 bool Texture3D::SetData(Image* image, bool useAlpha)
 {
-    throw std::exception("Not implemented");
+    throw std::runtime_error("Not implemented");
     // if (!image)
     // {
     //     ATOMIC_LOGERROR("Null image, can not load texture");
@@ -274,7 +274,7 @@ bool Texture3D::SetData(Image* image, bool useAlpha)
 
 bool Texture3D::GetData(unsigned level, void* dest) const
 {
-    throw std::exception("Not implemented");
+    throw std::runtime_error("Not implemented");
     // if (!object_.ptr_)
     // {
     //     ATOMIC_LOGERROR("No texture created, can not get data");
@@ -357,7 +357,7 @@ bool Texture3D::GetData(unsigned level, void* dest) const
 
 bool Texture3D::Create()
 {
-    throw std::exception("Not implemented");
+    throw std::runtime_error("Not implemented");
     // Release();
     //
     // if (!graphics_ || !width_ || !height_ || !depth_)

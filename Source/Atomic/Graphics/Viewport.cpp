@@ -148,8 +148,9 @@ Ray Viewport::GetScreenRay(int x, int y) const
     if (rect_ == IntRect::ZERO)
     {
         Graphics* graphics = GetSubsystem<Graphics>();
-        screenX = (float)x / (float)graphics->GetWidth();
-        screenY = (float)y / (float)graphics->GetHeight();
+        const auto size = graphics->GetRenderSize();
+        screenX = (float)x / (float)size.x_;
+        screenY = (float)y / (float)size.y_;
     }
     else
     {
@@ -173,8 +174,9 @@ IntVector2 Viewport::WorldToScreenPoint(const Vector3& worldPos) const
     {
         /// \todo This is incorrect if the viewport is used on a texture rendertarget instead of the backbuffer, as it may have different dimensions.
         Graphics* graphics = GetSubsystem<Graphics>();
-        x = (int)(screenPoint.x_ * graphics->GetWidth());
-        y = (int)(screenPoint.y_ * graphics->GetHeight());
+        const auto size = graphics->GetSize();
+        x = (int)(screenPoint.x_ * size.x_);
+        y = (int)(screenPoint.y_ * size.y_);
     }
     else
     {
@@ -197,8 +199,9 @@ Vector3 Viewport::ScreenToWorldPoint(int x, int y, float depth) const
     {
         /// \todo This is incorrect if the viewport is used on a texture rendertarget instead of the backbuffer, as it may have different dimensions.
         Graphics* graphics = GetSubsystem<Graphics>();
-        screenX = (float)x / (float)graphics->GetWidth();
-        screenY = (float)y / (float)graphics->GetHeight();
+        const auto size = graphics->GetRenderSize();
+        screenX = (float)x / size.x_;
+        screenY = (float)y / size.y_;
     }
     else
     {

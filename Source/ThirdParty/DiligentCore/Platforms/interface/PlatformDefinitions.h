@@ -54,7 +54,6 @@
 #    include "../UWP/interface/UWPDefinitions.h"
 
 #elif PLATFORM_ANDROID
-
 #    if PLATFORM_WIN32 || PLATFORM_UNIVERSAL_WINDOWS || PLATFORM_LINUX || PLATFORM_MACOS || PLATFORM_IOS || PLATFORM_TVOS || PLATFORM_EMSCRIPTEN
 #        error Conflicting platform macros
 #    endif

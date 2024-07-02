@@ -20,7 +20,7 @@ set(SOURCE
     ../Linux/src/LinuxFileSystem.cpp
 )
 
-add_library(Diligent-AndroidPlatform ${SOURCE} ${INTERFACE} ${PLATFORM_INTERFACE_HEADERS})
+add_library(Diligent-AndroidPlatform STATIC ${SOURCE} ${INTERFACE} ${PLATFORM_INTERFACE_HEADERS})
 set_common_target_properties(Diligent-AndroidPlatform)
 
 target_include_directories(Diligent-AndroidPlatform

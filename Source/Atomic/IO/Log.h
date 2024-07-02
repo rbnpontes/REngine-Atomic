@@ -117,6 +117,8 @@ public:
 private:
     /// Handle end of frame. Process the threaded log messages.
     void HandleEndFrame(StringHash eventType, VariantMap& eventData);
+    /// Execute Stored Log Message.
+    void DigestStoredLog(const StoredLogMessage& log_msg);
 
     /// Mutex for threaded operation.
     Mutex logMutex_;

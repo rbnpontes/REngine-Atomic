@@ -22,6 +22,7 @@
 
 #include "../IO/Log.h"
 #include "../Input/InputEvents.h"
+#include "../Graphics/Graphics.h"
 
 #include "UIEvents.h"
 #include "UI.h"
@@ -41,18 +42,27 @@ UIWidget::UIWidget(Context* context, bool createWidget) : Object(context),
     preferredSize_(new UIPreferredSize()),
     multiTouch_(false)
 {
+    graphics_ = GetSubsystem<Graphics>();
     if (createWidget)
     {
         widget_ = new TBWidget();
         widget_->SetDelegate(this);
         GetSubsystem<UI>()->WrapWidget(this, widget_);
-    }    
+    }
 
 }
 
 UIWidget::~UIWidget()
 {
 
+}
+
+Vector2 UIWidget::GetDownscaleFactor() 
+{
+    auto scale = graphics_->GetScale();
+    scale.x_ = 1.0f / scale.x_;
+    scale.y_ = 1.0f / scale.y_;
+    return scale;
 }
 
 void UIWidget::SetIsFocusable(bool value)
@@ -290,15 +300,31 @@ bool UIWidget::IsAncestorOf(UIWidget* widget)
 
 void UIWidget::SetPosition(int x, int y)
 {
+    const auto scale = graphics_->GetScale();
+    SetPositionInPixels(x * scale.x_, y * scale.y_);
+}
+
+void UIWidget::SetPositionInPixels(int x, int y) {
     if (!widget_)
         return;
 
     widget_->SetPosition(TBPoint(x, y));
-
 }
 
 IntRect UIWidget::GetRect()
 {
+    auto scale = GetDownscaleFactor();
+
+    IntRect rect = GetRectInPixels();
+    rect.left_ *= scale.x_;
+    rect.top_ *= scale.y_;
+    rect.right_ *= scale.x_;
+    rect.bottom_ *= scale.y_;
+    
+    return rect;
+}
+
+IntRect UIWidget::GetRectInPixels() {
     IntRect rect(0, 0, 0, 0);
 
     if (!widget_)
@@ -316,22 +342,39 @@ IntRect UIWidget::GetRect()
 
 void UIWidget::SetRect(IntRect rect)
 {
+    // Apply DPI Scalling 
+    const auto scale = graphics_->GetScale();
+    rect.left_ *= scale.x_;
+    rect.right_ *= scale.y_;
+    rect.top_ *= scale.y_;
+    rect.bottom_ *= scale.y_;
+    
+    SetRectInPixels(rect);
+}
+
+void UIWidget::SetRectInPixels(IntRect rect)
+{
     if (!widget_)
         return;
 
     tb::TBRect tbrect;
-
+    
     tbrect.y = rect.top_;
     tbrect.x = rect.left_;
     tbrect.w = rect.right_ - rect.left_;
     tbrect.h = rect.bottom_ - rect.top_;
 
     widget_->SetRect(tbrect);
-
 }
 
 
 bool UIWidget::SetSize(int width, int height)
+{
+    const auto scale = graphics_->GetScale();
+    return SetSizeInPixels(width * scale.x_, height * scale.y_);
+}
+
+bool UIWidget::SetSizeInPixels(int width, int height)
 {
     if (!widget_)
         return false;
@@ -339,6 +382,64 @@ bool UIWidget::SetSize(int width, int height)
     widget_->SetSize(width, height);
 
     return true;
+}
+
+void UIWidget::SetX(int x)
+{
+    const auto scale = graphics_->GetScale();
+    x *= scale.x_;
+    
+    SetXInPixels(x);
+}
+
+void UIWidget::SetXInPixels(int x) 
+{
+    IntRect r = GetRectInPixels();
+    r.right_ = x + r.Width();
+    r.left_ = x;
+    
+    SetRectInPixels(r);
+}
+
+void UIWidget::SetY(int y) 
+{
+    const auto scale = graphics_->GetScale();
+    y *= scale.y_;
+    SetYInPixels(y);
+}
+
+void UIWidget::SetYInPixels(int y)
+{
+    IntRect r = GetRectInPixels();
+    r.bottom_ = y + r.Height();
+    r.top_ = y;
+    
+    SetRectInPixels(r);
+}
+
+void UIWidget::SetWidth(int width) 
+{
+    const auto scale = graphics_->GetScale();
+    SetWidthInPixels(width * scale.y_);
+}
+
+void UIWidget::SetWidthInPixels(int width) 
+{
+    IntRect r = GetRectInPixels();
+    r.right_ = r.left_ + width;
+    SetRectInPixels(r);
+}
+
+void UIWidget::SetHeight(int height) 
+{
+    const auto scale = graphics_->GetScale();
+    SetHeightInPixels(height * scale.y_);
+}
+void UIWidget::SetHeightInPixels(int height)
+{
+    IntRect r = GetRectInPixels();
+    r.bottom_ = r.top_ + height;
+    SetRectInPixels(r);
 }
 
 void UIWidget::Invalidate()
@@ -545,6 +646,13 @@ String UIWidget::GetFontId()
 
 void UIWidget::SetFontSize(int size)
 {
+    const auto scale = graphics_->GetRenderSize();
+    const auto factor = (scale.x_ + scale.y_) / 2.0f;
+    return SetFontSizeInPixels(size * factor);
+}
+
+void UIWidget::SetFontSizeInPixels(int size)
+{
     if (!widget_)
         return;
 
@@ -554,6 +662,13 @@ void UIWidget::SetFontSize(int size)
 }
 
 int UIWidget::GetFontSize()
+{
+    const auto scale = graphics_->GetRenderSize();
+    const auto dowscale_factor = 1.0f / ((scale.x_ + scale.y_) / 2.0f);
+    return GetFontSizeInPixels() * dowscale_factor;
+}
+
+int UIWidget::GetFontSizeInPixels()
 {
     if (!widget_)
         return 0;

@@ -1,8 +1,10 @@
 #include "./PipelineStateBuilder.h"
 #include "./DiligentUtils.h"
+#include "./DriverInstance.h"
 #include "../Container/HashMap.h"
 #include "../Container/Hash.h"
 #include "../IO/Log.h"
+#include "../Graphics/ShaderVariation.h"
 
 #include <DiligentCore/Common/interface/RefCntAutoPtr.hpp>
 
@@ -166,6 +168,62 @@ namespace REngine
     static Diligent::LayoutElement s_tmp_layout_elements[Diligent::MAX_LAYOUT_ELEMENTS] = {};
     static Diligent::ImmutableSamplerDesc s_tmp_immutable_samplers[Atomic::MAX_IMMUTABLE_SAMPLERS] = {};
 
+    union number_convert_helper
+    {
+        float f;
+        u32 i;
+    };
+
+    uint32_t PipelineStateInfo::ToHash() const
+    {
+	    uint32_t hash = Atomic::StringHash::Calculate(debug_name.CString());
+        number_convert_helper number_convert;
+        Atomic::CombineHash(hash, color_write_enabled ? 1u : 0u);
+        Atomic::CombineHash(hash, static_cast<uint32_t>(blend_mode));
+        Atomic::CombineHash(hash, alpha_to_coverage_enabled ? 1u : 0u);
+
+        Atomic::CombineHash(hash, static_cast<uint32_t>(fill_mode));
+        Atomic::CombineHash(hash, static_cast<uint32_t>(cull_mode));
+        number_convert.f = constant_depth_bias;
+        Atomic::CombineHash(hash, number_convert.i);
+        number_convert.f = slope_scaled_depth_bias;
+        Atomic::CombineHash(hash, number_convert.i);
+        Atomic::CombineHash(hash, scissor_test_enabled ? 1u : 0u);
+        Atomic::CombineHash(hash, line_anti_alias ? 1u : 0u);
+
+        Atomic::CombineHash(hash, depth_write_enabled ? 1u : 0u);
+        Atomic::CombineHash(hash, stencil_test_enabled ? 1u : 0u);
+        Atomic::CombineHash(hash, static_cast<uint32_t>(depth_cmp_function));
+        Atomic::CombineHash(hash, static_cast<uint32_t>(stencil_cmp_function));
+        Atomic::CombineHash(hash, static_cast<uint32_t>(stencil_op_on_passed));
+        Atomic::CombineHash(hash, static_cast<uint32_t>(stencil_op_on_stencil_failed));
+        Atomic::CombineHash(hash, static_cast<uint32_t>(stencil_op_depth_failed));
+        Atomic::CombineHash(hash, stencil_cmp_mask);
+        Atomic::CombineHash(hash, stencil_write_mask);
+
+        Atomic::CombineHash(hash, input_layout.ToHash());
+        Atomic::CombineHash(hash, static_cast<uint32_t>(primitive_type));
+        Atomic::CombineHash(hash, output.ToHash());
+
+        Atomic::CombineHash(hash, num_samplers);
+        for(uint8_t i = 0; i < num_samplers; ++i)
+            Atomic::CombineHash(hash, immutable_samplers[i].ToHash());
+
+        if(vs_shader)
+			Atomic::CombineHash(hash, vs_shader->ToHash());
+        if(ps_shader)
+            Atomic::CombineHash(hash, ps_shader->ToHash());
+        if(ds_shader)
+			Atomic::CombineHash(hash, ds_shader->ToHash());
+        if(hs_shader)
+            Atomic::CombineHash(hash, hs_shader->ToHash());
+        if(gs_shader)
+			Atomic::CombineHash(hash, gs_shader->ToHash());
+
+        return hash;
+    }
+
+
     Diligent::RefCntAutoPtr<Diligent::IPipelineState> pipeline_state_builder_acquire(
         DriverInstance* driver, const PipelineStateInfo& info,
         unsigned& hash)
@@ -173,6 +231,7 @@ namespace REngine
         if (hash == 0)
             hash = info.ToHash();
 
+        const auto backend = driver->GetBackend();
         // If hash matches from previous stored pipeline state
         // then return it instead.
         const auto pipeline_it = s_pipelines.Find(hash);
@@ -232,7 +291,7 @@ namespace REngine
             const auto& item = info.immutable_samplers[i];
             auto shadow_cmp = item.sampler.shadow_compare ? 1 : 0;
 
-            immutable_sampler.SamplerOrTextureName = item.name.CString();
+            immutable_sampler.SamplerOrTextureName = item.name;
             immutable_sampler.ShaderStages = Diligent::SHADER_TYPE_VS_PS;
             immutable_sampler.Desc.MinFilter = s_min_mag_filters_tbl[item.sampler.filter_mode][shadow_cmp];
             immutable_sampler.Desc.MagFilter = s_min_mag_filters_tbl[item.sampler.filter_mode][shadow_cmp];
@@ -256,6 +315,8 @@ namespace REngine
         for (unsigned i = 0; i < info.output.num_rts; ++i)
             ci.GraphicsPipeline.RTVFormats[i] = info.output.render_target_formats[i];
         ci.GraphicsPipeline.DSVFormat = info.output.depth_stencil_format;
+        //assert(ci.GraphicsPipeline.DSVFormat != Diligent::TEX_FORMAT_UNKNOWN);
+
         ci.GraphicsPipeline.SmplDesc.Count = info.output.multi_sample;
 
         ci.GraphicsPipeline.BlendDesc.AlphaToCoverageEnable = info.alpha_to_coverage_enabled;
@@ -297,24 +358,27 @@ namespace REngine
             stencil_cmp_function];
 
         unsigned depth_bits = 24;
-        auto is_not_opengl = driver->GetBackend() != Atomic::GraphicsBackend::OpenGL;
+        auto is_opengl = backend == Atomic::GraphicsBackend::OpenGL || backend == Atomic::GraphicsBackend::OpenGLES;
         if (info.output.depth_stencil_format == Diligent::TEX_FORMAT_D16_UNORM)
             depth_bits = 16;
-    	const int scaled_depth_bias = is_not_opengl
-                                          ? static_cast<int>(info.constant_depth_bias * static_cast<float>((1 <<
-                                              depth_bits)))
-                                          : 0;
+        
+        const int scaled_depth_bias = is_opengl
+                    ? 0
+                    : static_cast<int>(info.constant_depth_bias * static_cast<float>(1 << depth_bits));
 
         ci.GraphicsPipeline.RasterizerDesc.FillMode = s_fill_mode_tbl[info.fill_mode];
         ci.GraphicsPipeline.RasterizerDesc.CullMode = s_cull_mode_tbl[info.cull_mode];
     	ci.GraphicsPipeline.RasterizerDesc.FrontCounterClockwise = false;
         ci.GraphicsPipeline.RasterizerDesc.DepthBias = scaled_depth_bias;
-        ci.GraphicsPipeline.RasterizerDesc.DepthBiasClamp = M_INFINITY;
-        ci.GraphicsPipeline.RasterizerDesc.SlopeScaledDepthBias = info.slope_scaled_depth_bias;
+        if(is_opengl || backend == GraphicsBackend::Vulkan)
+            ci.GraphicsPipeline.RasterizerDesc.DepthBiasClamp = 0;
+        else
+            ci.GraphicsPipeline.RasterizerDesc.DepthBiasClamp = M_INFINITY;
+    	ci.GraphicsPipeline.RasterizerDesc.SlopeScaledDepthBias = info.slope_scaled_depth_bias;
         ci.GraphicsPipeline.RasterizerDesc.DepthClipEnable = true;
         ci.GraphicsPipeline.RasterizerDesc.ScissorEnable = info.scissor_test_enabled;
         //ci.GraphicsPipeline.RasterizerDesc.ScissorEnable = false;
-        ci.GraphicsPipeline.RasterizerDesc.AntialiasedLineEnable = is_not_opengl && info.line_anti_alias;
+        ci.GraphicsPipeline.RasterizerDesc.AntialiasedLineEnable = !is_opengl && info.line_anti_alias;
 
         ci.PSODesc.ResourceLayout.DefaultVariableType = Diligent::SHADER_RESOURCE_VARIABLE_TYPE_DYNAMIC;
 
@@ -348,71 +412,16 @@ namespace REngine
 	    return s_pipelines.Size();
 	}
 
-    unsigned pipeline_state_builder_build_hash(const PipelineStateInfo& info)
-    {
-        unsigned hash = Atomic::StringHash::Calculate(info.debug_name.CString());
-        // Blend State
-        Atomic::CombineHash(hash, info.color_write_enabled);
-        Atomic::CombineHash(hash, info.blend_mode);
-        Atomic::CombineHash(hash, info.alpha_to_coverage_enabled);
-        // Rasterizer State
-        Atomic::CombineHash(hash, info.fill_mode);
-        Atomic::CombineHash(hash, info.cull_mode);
-        Atomic::CombineHash(hash, static_cast<unsigned>(info.constant_depth_bias));
-        Atomic::CombineHash(hash, static_cast<unsigned>(info.slope_scaled_depth_bias));
-        Atomic::CombineHash(hash, info.line_anti_alias);
-        // Depth Stencil
-        Atomic::CombineHash(hash, info.depth_write_enabled);
-        Atomic::CombineHash(hash, info.stencil_test_enabled);
-        Atomic::CombineHash(hash, info.depth_cmp_function);
-        Atomic::CombineHash(hash, info.stencil_cmp_function);
-        Atomic::CombineHash(hash, info.stencil_op_on_passed);
-        Atomic::CombineHash(hash, info.stencil_op_on_stencil_failed);
-        Atomic::CombineHash(hash, info.stencil_op_depth_failed);
-        Atomic::CombineHash(hash, info.stencil_cmp_mask);
-        Atomic::CombineHash(hash, info.stencil_write_mask);
-        // Input Layout
-        for (unsigned i = 0; i < info.input_layout.num_elements; ++i)
-        {
-            const auto& element = info.input_layout.elements[i];
-            Atomic::CombineHash(hash, element.buffer_index);
-            Atomic::CombineHash(hash, element.buffer_stride);
-            Atomic::CombineHash(hash, element.element_offset);
-            Atomic::CombineHash(hash, element.instance_step_rate);
-        }
-        // Primitive Type
-        Atomic::CombineHash(hash, info.primitive_type);
-        // Immutable Samplers
-        for (unsigned i = 0; i < info.num_samplers; ++i)
-        {
-            const auto& item = info.immutable_samplers[i];
-            Atomic::CombineHash(hash, Atomic::StringHash::Calculate(item.name.CString()));
-            Atomic::CombineHash(hash, item.sampler.filter_mode);
-            Atomic::CombineHash(hash, item.sampler.anisotropy);
-            Atomic::CombineHash(hash, item.sampler.shadow_compare);
-            Atomic::CombineHash(hash, item.sampler.address_u);
-            Atomic::CombineHash(hash, item.sampler.address_v);
-            Atomic::CombineHash(hash, item.sampler.address_w);
-        }
-
-        Atomic::CombineHash(hash, info.read_only_depth);
-
-        // Shaders
-        Atomic::CombineHash(hash, Atomic::MakeHash(info.vs_shader.ToHash()));
-        Atomic::CombineHash(hash, Atomic::MakeHash(info.ps_shader.ToHash()));
-        Atomic::CombineHash(hash, Atomic::MakeHash(info.ds_shader.ToHash()));
-        Atomic::CombineHash(hash, Atomic::MakeHash(info.hs_shader.ToHash()));
-        Atomic::CombineHash(hash, Atomic::MakeHash(info.gs_shader.ToHash()));
-
-        return hash;
-    }
-
     Diligent::RefCntAutoPtr<Diligent::IShaderResourceBinding> pipeline_state_builder_get_or_create_srb(const ShaderResourceBindingCreateDesc& desc)
     {
-        unsigned key = desc.pipeline_hash;
+        u32 key = desc.pipeline_hash;
         // build key from resource pointers
         for (const auto& it : *desc.resources)
-            Atomic::CombineHash(key, Atomic::MakeHash(it.second_));
+        {
+	        if(!it.texture)
+                continue;
+            Atomic::CombineHash(key, Atomic::MakeHash(it.texture.ConstPtr()));
+        }
 
         if(s_srb.Contains(key))
         {
@@ -434,10 +443,10 @@ namespace REngine
 
         s_srb[key] = srb;
 
-
-        for(uint8_t type = 0; type < MAX_SHADER_TYPES; ++type)
+        // Bind Constant Buffers
+        for(u8 type = 0; type < MAX_SHADER_TYPES; ++type)
         {
-	        for(uint8_t grp = 0; grp < MAX_SHADER_PARAMETER_GROUPS; ++grp)
+	        for(u8 grp = 0; grp < MAX_SHADER_PARAMETER_GROUPS; ++grp)
 			{
 				const auto shader_type = static_cast<ShaderType>(type);
                 const auto d_shader_type = utils_get_shader_type(shader_type);
@@ -452,12 +461,14 @@ namespace REngine
 
         for(const auto& it : *desc.resources)
         {
-            for(uint8_t type = 0; type < MAX_SHADER_TYPES; ++type)
+            if(!it.texture || !it.name)
+				continue;
+            for(u8 type = 0; type < MAX_SHADER_TYPES; ++type)
             {
                 const auto shader_type = utils_get_shader_type(static_cast<Atomic::ShaderType>(type));
-                const auto var = srb->GetVariableByName(shader_type, it.first_.CString());
+                const auto var = srb->GetVariableByName(shader_type, it.name);
                 if(var)
-                    var->Set(it.second_);
+                    var->Set(it.texture);
             }
         }
         return srb;

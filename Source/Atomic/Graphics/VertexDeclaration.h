@@ -21,13 +21,4 @@
 //
 
 #pragma once
-
-#if defined(ATOMIC_OPENGL)
-//#error OpenGL Graphics API does not have VertexDeclaration class, remove this header file in your build to fix this error
-#elif defined(ATOMIC_D3D11)
-#include "Direct3D11/D3D11VertexDeclaration.h"
-#elif defined(RENGINE_DILIGENT)
 #include "../RHI/VertexDeclaration.h"
-#else
-#include "Direct3D9/D3D9VertexDeclaration.h"
-#endif

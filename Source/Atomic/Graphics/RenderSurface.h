@@ -25,10 +25,8 @@
 #include "../Graphics/GraphicsDefs.h"
 #include "../Graphics/Viewport.h"
 
-#ifdef RENGINE_DILIGENT
 #include <DiligentCore/Graphics/GraphicsEngine/interface/Texture.h>
 #include <DiligentCore/Common/interface/RefCntAutoPtr.hpp>
-#endif
 
 namespace Atomic
 {
@@ -108,25 +106,10 @@ public:
     /// Return parent texture.
     Texture* GetParentTexture() const { return parentTexture_; }
 
-#if RENGINE_DILIGENT
+    /// Return rendertarget or depth-stencil view.
     Diligent::RefCntAutoPtr<Diligent::ITextureView> GetRenderTargetView() const { return view_; }
+    /// Return read-only depth-stencil view. May be null if not applicable.
     Diligent::RefCntAutoPtr<Diligent::ITextureView> GetReadOnlyView() const { return read_only_view_; }
-#else
-    /// Return Direct3D9 surface.
-    void* GetSurface() const { return surface_; }
-
-    /// Return Direct3D11 rendertarget or depth-stencil view. Not valid on OpenGL.
-    void* GetRenderTargetView() const { return renderTargetView_; }
-
-    /// Return Direct3D11 read-only depth-stencil view. May be null if not applicable. Not valid on OpenGL.
-    void* GetReadOnlyView() const { return readOnlyView_; }
-
-    /// Return surface's OpenGL target.
-    unsigned GetTarget() const { return target_; }
-
-    /// Return OpenGL renderbuffer if created.
-    unsigned GetRenderBuffer() const { return renderBuffer_; }
-#endif
     /// Return whether multisampled rendertarget needs resolve.
     bool IsResolveDirty() const { return resolveDirty_; }
 
@@ -143,28 +126,10 @@ private:
 
     // ATOMIC_END
 
-#if RENGINE_DILIGENT
+    /// Direct3D11 rendertarget or depth-stencil view.
     Diligent::RefCntAutoPtr<Diligent::ITextureView> view_;
+    /// Direct3D11 read-only depth-stencil view. Present only on depth-stencil surfaces.
     Diligent::RefCntAutoPtr<Diligent::ITextureView> read_only_view_;
-#else
-    union
-    {
-        /// Direct3D9 surface.
-        void* surface_;
-        /// Direct3D11 rendertarget or depth-stencil view.
-        void* renderTargetView_;
-        /// OpenGL renderbuffer name.
-        unsigned renderBuffer_;
-    };
-
-    union
-    {
-        /// Direct3D11 read-only depth-stencil view. Present only on depth-stencil surfaces.
-        void* readOnlyView_;
-        /// OpenGL target.
-        unsigned target_;
-    };
-#endif
 
     /// Viewports.
     Vector<SharedPtr<Viewport> > viewports_;

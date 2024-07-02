@@ -7,6 +7,7 @@
 #include "../IO/Log.h"
 #include "../Resource/ResourceCache.h"
 #include "./DiligentUtils.h"
+#include "./DriverInstance.h"
 
 #include "../DebugNew.h"
 
@@ -33,7 +34,7 @@ namespace Atomic
             for (unsigned i = 0; i < MAX_TEXTURE_UNITS; ++i)
             {
                 if (graphics_->GetTexture(i) == this)
-                    graphics_->SetTexture(i, nullptr);
+                    graphics_->ResetTexture(i);
             }
         }
 
@@ -440,11 +441,9 @@ namespace Atomic
         texture_desc.Format = sRGB_ ? GetSRGBFormat(format_) : format_;
         
         // Disable multisampling if not supported
-        if (multiSample_ > 1 && !graphics_->GetImpl()->CheckMultiSampleSupport(multiSample_, texture_desc.Format, TextureFormat::TEX_FORMAT_UNKNOWN))
-        {
-            multiSample_ = 1;
+        multiSample_ = graphics_->GetImpl()->GetSupportedMultiSample(texture_desc.Format, multiSample_);
+        if (multiSample_ == 1)
             autoResolve_ = false;
-        }
         
         // Set mipmapping
         if (usage_ == TEXTURE_RENDERTARGET && levels_ != 1 && multiSample_ == 1)

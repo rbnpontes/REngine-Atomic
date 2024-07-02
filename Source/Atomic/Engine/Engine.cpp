@@ -35,6 +35,7 @@
 #include "../Engine/EngineDefs.h"
 #include "../Graphics/Graphics.h"
 #include "../Graphics/Renderer.h"
+#include "../Graphics/DrawCommandQueue.h"
 #include "../Input/Input.h"
 #include "../IO/FileSystem.h"
 #include "../IO/Log.h"
@@ -58,7 +59,7 @@
 #endif
 // ATOMIC BEGIN
 #ifdef ATOMIC_WEB
-#include "../Web/Web.h"
+//#include "../Web/Web.h"
 #endif
 // ATOMIC END
 #ifdef ATOMIC_DATABASE
@@ -159,7 +160,7 @@ Engine::Engine(Context* context) :
 #endif
     // ATOMIC BEGIN
 #ifdef ATOMIC_WEB
-    context_->RegisterSubsystem(new Web(context_));
+    //context_->RegisterSubsystem(new Web(context_));
 #endif
     // ATOMIC END
 #ifdef ATOMIC_DATABASE
@@ -168,6 +169,8 @@ Engine::Engine(Context* context) :
     context_->RegisterSubsystem(new Input(context_));
     context_->RegisterSubsystem(new Audio(context_));
     context_->RegisterSubsystem(new UI(context_));
+    // Draw Command Queue must be registered before Graphics
+    DrawCommandQueue::RegisterObject(context_);
 
     // Register object factories for libraries which are not automatically registered along with subsystem creation
     RegisterSceneLibrary(context_);
@@ -205,7 +208,7 @@ Engine::Engine(Context* context) :
     context_->network_ = context_->GetSubsystem<Network>();
 #endif
 #ifdef ATOMIC_WEB
-    context_->web_ = context_->GetSubsystem<Web>();
+    //context_->web_ = context_->GetSubsystem<Web>();
 #endif
 #ifdef ATOMIC_DATABASE
     context_->db_ = context_->GetSubsystem<Database>();
@@ -313,11 +316,8 @@ bool Engine::Initialize(const VariantMap& parameters)
             graphics->SetWindowPosition(GetParameter(parameters, EP_WINDOW_POSITION_X).GetInt(),
                 GetParameter(parameters, EP_WINDOW_POSITION_Y).GetInt());
 
-#ifdef ATOMIC_OPENGL
-        if (HasParameter(parameters, EP_FORCE_GL2))
-            graphics->SetForceGL2(GetParameter(parameters, EP_FORCE_GL2).GetBool());
-#endif
-
+        graphics->SetBackend(
+             static_cast<GraphicsBackend>(GetParameter(parameters, EP_GRAPHICS_BACKEND, (int)GraphicsBackend::OpenGL).GetInt()));
         if (!graphics->SetMode(
 // ATOMIC BEGIN
             GetParameter(parameters, EP_WINDOW_MAXIMIZED, false).GetBool() ? 0 : GetParameter(parameters, EP_WINDOW_WIDTH, 0).GetInt(),
@@ -628,6 +628,9 @@ void Engine::RunFrame()
         fpsFramesSinceUpdate_ = 0;
         fpsTimeSinceUpdate_ = 0;
     }
+
+    ATOMIC_PROFILE_PLOT("FPS", static_cast<i64>(fps_));
+
     Render();
     ATOMIC_PROFILE_END();
     ApplyFrameLimit();
@@ -1067,6 +1070,26 @@ VariantMap Engine::ParseParameters(const Vector<String>& arguments)
 	            ret[EP_PROFILER_LISTEN] = true;
             }
 #endif
+            else if(argument == "-backend" && !value.Empty())
+            {
+                static const ea::hash_map<u32, GraphicsBackend> s_backend_tbl = {
+                    { StringHash("d3d").ToHash(), GraphicsBackend::D3D11 },
+                    { StringHash("d3d11").ToHash(), GraphicsBackend::D3D11 },
+                    { StringHash("d3d12").ToHash(), GraphicsBackend::D3D12 },
+                    { StringHash("vulkan").ToHash(), GraphicsBackend::Vulkan },
+                    { StringHash("vk").ToHash(), GraphicsBackend::Vulkan },
+                    { StringHash("opengl").ToHash(), GraphicsBackend::OpenGL },
+                    { StringHash("gl").ToHash(), GraphicsBackend::OpenGL },
+                    { StringHash("opengles").ToHash(), GraphicsBackend::OpenGLES },
+                    { StringHash("gles").ToHash(), GraphicsBackend::OpenGLES },
+                    { StringHash("egl").ToHash(), GraphicsBackend::OpenGLES },
+                };
+                
+                const auto it = s_backend_tbl.find_as(value.ToHash());
+                if(it != s_backend_tbl.end())
+                    ret[EP_GRAPHICS_BACKEND] = static_cast<int>(it->second);
+                ++i;
+            }
         }
     }
 

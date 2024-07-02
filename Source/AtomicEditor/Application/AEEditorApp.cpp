@@ -42,13 +42,19 @@
 #include "AEEditorPrefs.h"
 #include "AEEditorApp.h"
 
+#include <Atomic/Web/Web.h>
+
 using namespace ToolCore;
 
 // Fix these externs
 namespace Atomic
 {
+#ifdef ATOMIC_WEBVIEW
     void jsapi_init_webview(JSVM* vm, const VariantMap& engineParameters);
+#endif
+#ifdef ATOMIC_DOTNET
     extern void jsb_package_atomicnetscript_init(JSVM* vm);
+#endif
 }
 
 namespace ToolCore
@@ -62,6 +68,28 @@ namespace AtomicEditor
 {
 
     extern void jsapi_init_editor(JSVM* vm);
+
+    void rengine_declare_features(duk_context* ctx)
+    {
+        bool dotnet_enabled = false;
+        bool webview_enabled = false;
+#ifdef ATOMIC_DOTNET
+        dotnet_enabled = true;
+#endif
+#ifdef ATOMIC_WEBVIEW
+        webview_enabled = true;
+#endif
+
+        duk_push_object(ctx);
+        // features.dotnet
+    	duk_push_boolean(ctx, dotnet_enabled);
+        duk_put_prop_string(ctx, -2, "dotnet");
+        // features.webview
+    	duk_push_boolean(ctx, webview_enabled);
+        duk_put_prop_string(ctx, -2, "webview");
+
+        duk_put_global_string(ctx, "features");
+    }
 
     AEEditorApp::AEEditorApp(Context* context) :
         AppBase(context)
@@ -107,24 +135,28 @@ namespace AtomicEditor
         engineParameters_["WindowIcon"] = "Images/AtomicLogo32.png";
 #endif
 
+        String resource_prefix_paths;
+        String resource_paths;
 #ifdef ATOMIC_DEV_BUILD
-        engineParameters_["ResourcePrefixPaths"] = "";
-        String resourcePaths = env->GetCoreDataDir() + ";" + env->GetEditorDataDir();
+        resource_paths = env->GetCoreDataDir() + ";" + env->GetEditorDataDir();
         // for dev builds, add the compile editor scripts from artifacts
-        resourcePaths += ";" + env->GetRootSourceDir() + "Artifacts/Build/Resources/EditorData/";
-        engineParameters_["ResourcePaths"] = resourcePaths;
+        resource_paths += ";" + env->GetRootSourceDir() + "Artifacts/Build/Resources/EditorData/;";
 #else
+        resource_paths += "CoreData;EditorData";
 
-#ifdef ATOMIC_PLATFORM_OSX
-        engineParameters_["ResourcePrefixPaths"] = filesystem->GetProgramDir() + "../Resources";
-
-#else
-        engineParameters_["ResourcePrefixPaths"] = filesystem->GetProgramDir() + "Resources";
-#endif
-
-        engineParameters_["ResourcePaths"] = "CoreData;EditorData";
-
+    #ifdef ATOMIC_PLATFORM_OSX
+        resource_prefix_paths = filesystem->GetProgramDir() + "../Resources";
+    #else
+        resource_prefix_paths = filesystem->GetProgramDir() + "Resources";
+    #endif
 #endif // ATOMIC_DEV_BUILD
+
+        engineParameters_["ResourcePaths"] = resource_paths;
+        engineParameters_["ResourcePrefixPaths"] = resource_prefix_paths;
+
+        ATOMIC_LOGINFOF("ResourcePaths: %s", resource_paths.CString());
+        ATOMIC_LOGINFOF("ResourcePrefixPaths: %s", resource_prefix_paths.CString());
+
         engineParameters_[EP_PROFILER_LISTEN] = false;
 
         GetSubsystem<AEEditorPrefs>()->ReadPreferences(engineParameters_);
@@ -133,8 +165,9 @@ namespace AtomicEditor
 
         JSVM::RegisterPackage(jsapi_init_toolcore);
         JSVM::RegisterPackage(jsapi_init_editor);
+#ifdef ATOMIC_DOTNET
         JSVM::RegisterPackage(jsb_package_atomicnetscript_init);
-
+#endif
 #ifdef ATOMIC_WEBVIEW
         JSVM::RegisterPackage(jsapi_init_webview, engineParameters_);
 #endif
@@ -146,7 +179,9 @@ namespace AtomicEditor
         GetSubsystem<AEEditorPrefs>()->ValidateWindow();
 
         context_->RegisterSubsystem(new EditorMode(context_));
+#ifdef ATOMIC_DOTNET
         context_->RegisterSubsystem(new NETBuildSystem(context_));
+#endif
         context_->RegisterSubsystem(new EditorNETService(context_));        
 
         AppBase::Start();
@@ -157,6 +192,7 @@ namespace AtomicEditor
         UI* ui = GetSubsystem<UI>();
         ui->Initialize("AtomicEditor/resources/language/lng_en.tb.txt");        
 
+        rengine_declare_features(vm_->GetJSContext());
         duk_get_global_string(vm_->GetJSContext(), "require");
         duk_push_string(vm_->GetJSContext(), "main");
         if (duk_pcall(vm_->GetJSContext(), 1) != 0)

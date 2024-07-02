@@ -139,7 +139,7 @@ bool ConvertTextInputEvent(StringHash eventType, VariantMap& eventData, CefKeyEv
         }
     }
 
-    keyEvent.character = (char16) keyCode;
+    keyEvent.character = (i16) keyCode;
     keyEvent.type = KEYEVENT_CHAR;
 
     return true;

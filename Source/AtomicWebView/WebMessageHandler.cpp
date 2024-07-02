@@ -70,10 +70,10 @@ public:
     // Called due to atomicQuery execution.
     bool OnQuery(CefRefPtr<CefBrowser> browser,
                  CefRefPtr<CefFrame> frame,
-                 int64 query_id,
+                 i64 query_id,
                  const CefString& request,
                  bool persistent,
-                 CefRefPtr<Callback> callback) OVERRIDE
+                 CefRefPtr<Callback> callback) override
     {
         currentCallback_ = callback;
 
@@ -89,8 +89,8 @@ public:
         eventData[P_REQUEST] = request_;
         eventData[P_PERSISTENT] = persistent;
 
-        eventData[P_CEFBROWSER] = (void*) browser;
-        eventData[P_CEFFRAME] = (void*) frame;
+        eventData[P_CEFBROWSER] = (void*)browser.get();
+        eventData[P_CEFFRAME] = (void*) frame.get();
 
         // defaults to not being deferred
         eventData[P_DEFERRED] = false;
@@ -167,7 +167,7 @@ private:
     {
         CefRefPtr<CefBrowser> browser_;
         CefRefPtr<CefFrame> frame_;
-        int64 queryID_;
+        i64 queryID_;
         String request_;
         bool persistent_;
         CefRefPtr<Callback> callback_;

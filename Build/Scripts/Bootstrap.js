@@ -1,3 +1,4 @@
+console.log("Starting Bootstrap...");
 var os = require('os');
 var path = require('path');
 
@@ -14,9 +15,8 @@ var fs = require('fs-extra');
 require('../node_modules/jake/lib/jake');
 
 var config = require('./BuildConfig');
-var host = require('./Host');
-require('./BuildCommon');
-
+// load build and cmake gen tasks
+require('./CMakeTasks');
 var cmd = config._[0];
 
 // Check that we're in a local repo and not a downloaded zip
@@ -41,13 +41,10 @@ function printHelp() {
     console.log("--noexamples    : Don't include examples with editor");
     console.log("--task=name     : Build the specified task (for development)");
     console.log("--package       : packages the editor to Artifacts/Dist");
-    console.log("--diligent      : Enable Diligent Core renderer");
     if (os.platform() == "win32") {
       console.log("--vs2015        : Build with VS2015");
       console.log("--vs2017        : Build with VS2017");
       console.log("--vs2022        : Build with VS2022");
-      console.log("--opengl        : Enable OpenGL renderer");
-      console.log("--d3d9          : Enable DirectX 9 renderer");
     }
 
     console.log("--------------------------")
@@ -107,37 +104,6 @@ if (cmd == "buildeditor") {
             process.exit(1);
         }
     }
-
-    if (config["d3d9"] && config["opengl"]) {
-
-        if (os.platform() == "win32") {
-            console.log("\nBoth DirectX 9 and OpenGL flags specified. Please choose only one at a time.\nExiting...\n");
-            process.exit(1);
-        }
-    }
-
-    if (config["d3d9"]) {
-
-        if (os.platform() != "win32") {
-            console.log("\nDirectX 9 build requires Windows, exiting\n");
-            process.exit(1);
-        }
-        else {
-            console.log("\nDirectX 9 build selected.\n");
-        }
-    }
-
-
-    if (config["opengl"]) {
-
-        if (os.platform() != "win32") {
-            console.log("\nOpenGL flag ignored, OpenGL is default on non-Windows platforms anyway.\nContinuing...\n");
-        }
-        else {
-            console.log("\nOpenGL build selected.\n");
-        }
-    }
-
 
     buildTask.invoke();
 

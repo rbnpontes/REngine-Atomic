@@ -1,3 +1,17 @@
+include(CheckCXXSourceRuns)
+
+set(CMAKE_REQUIRED_FLAGS "-msse2")
+
+# If this compile check fails, we will not be able to use SSE2 instructions
+check_cxx_source_runs("
+    #include <emmintrin.h>
+    int main() {
+        __m128d x;
+        x = _mm_set1_pd(0);
+        return 0;
+    }
+" RENGINE_SSE)
+
 macro(GroupSources curdir)
     if (WIN32)
         file(GLOB children RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}/${curdir} ${CMAKE_CURRENT_SOURCE_DIR}/${curdir}/*)
@@ -19,3 +33,4 @@ endmacro()
 if (NOT CMAKE_CROSSCOMPILING AND ${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     set(LINUX TRUE CACHE BOOL "Indicates if host is Linux.")
 endif ()
+

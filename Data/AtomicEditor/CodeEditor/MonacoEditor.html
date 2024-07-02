@@ -52,7 +52,7 @@
 
         var setupEditor = new Promise((resolve, reject) => {
             require(['vs/editor/editor.main'], function() {
-                var editor = monaco.editor.create(document.getElementById('editor'));
+                var editor = monaco.editor.create(document.getElementById('editor'), { theme : 'vs-dark' });
 
                 // Make sure the editor resizes when the window resizes
                 window.onresize = ()=>{

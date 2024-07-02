@@ -180,7 +180,7 @@ inline int	btGetVersion()
 
 // Urho3D - allow to disable SSE/NEON and let Linux, MinGW, & Android platforms in besides Apple
 #if (!defined (BT_USE_DOUBLE_PRECISION))
-    #if defined(__SSE__)
+    #if defined(__SSE__) && !defined(__APPLE__)
 		#define BT_USE_SIMD_VECTOR3
 		#define BT_USE_SSE
 		//BT_USE_SSE_IN_API is enabled on Mac OSX by default, because memory is automatically aligned on 16-byte boundaries

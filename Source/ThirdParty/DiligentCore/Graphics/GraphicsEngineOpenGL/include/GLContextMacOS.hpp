@@ -41,6 +41,8 @@ public:
               const struct SwapChainDesc*      pSCDesc);
 
     NativeGLContextType GetCurrentNativeGLContext();
+private:
+    NativeGLContextType context;
 };
 
 } // namespace Diligent

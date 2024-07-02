@@ -29,7 +29,7 @@
 
 #include "../Graphics/Graphics.h"
 #include "../Graphics/Texture2D.h"
-#include "UIRenderer.h"
+#include "./UIRenderer.h"
 
 namespace Atomic
 {
@@ -63,6 +63,7 @@ TBUIBitmap::TBUIBitmap(UIRenderer *renderer)
 UIRenderer::UIRenderer(Context* context)
 {
     context_ = context;
+    graphics_ = context->GetSubsystem<Graphics>();
 }
 
 UIRenderer::~UIRenderer()
@@ -106,7 +107,7 @@ void UIRenderer::RenderBatch(Batch *batch)
         texture = tbuibitmap->texture_;
     }
 
-    UIBatch b(BLEND_ALPHA , currentScissor_, texture, vertexData_);
+    UIBatch b(graphics_->GetBackend(), BLEND_ALPHA , currentScissor_, texture, vertexData_);
 
     unsigned begin = b.vertexData_->Size();
     b.vertexData_->Resize(begin + batch->vertex_count * UI_VERTEX_SIZE);

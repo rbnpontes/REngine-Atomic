@@ -21,7 +21,7 @@
 //
 
 #pragma once
-
+#include "../Container/TypeTraits.h"
 #include "../Container/LinkedList.h"
 #include "../Core/Variant.h"
 

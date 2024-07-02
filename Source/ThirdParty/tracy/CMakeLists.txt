@@ -7,5 +7,3 @@ FetchContent_Declare(
 )
 
 FetchContent_MakeAvailable(tracy)
-
-set(TRACY_ON_DEMAND TRUE)

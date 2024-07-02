@@ -3537,6 +3537,8 @@ struct EngineGLCreateInfo DILIGENT_DERIVE(EngineCreateInfo)
     WebGLContextAttribs WebGLAttribs;
 #endif
 
+    void* GLContext DEFAULT_INITIALIZER(nullptr);
+
 #if DILIGENT_CPP_INTERFACE
     EngineGLCreateInfo() noexcept : EngineGLCreateInfo{EngineCreateInfo{}}
     {}

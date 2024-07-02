@@ -42,9 +42,6 @@ namespace Atomic
 Texture2D::Texture2D(Context* context) :
     Texture(context)
 {
-#ifdef ATOMIC_OPENGL
-    target_ = GL_TEXTURE_2D;
-#endif
 }
 
 Texture2D::~Texture2D()

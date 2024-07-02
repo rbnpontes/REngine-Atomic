@@ -42,9 +42,14 @@ class ATOMIC_API UIBatch
 {
 public:
     /// Construct with defaults.
-    UIBatch();
+    UIBatch(GraphicsBackend backend);
     /// Construct.
-    UIBatch(BlendMode blendMode, const IntRect& scissor, Texture* texture, PODVector<float>* vertexData);
+    UIBatch(
+        GraphicsBackend backend,
+        BlendMode blendMode, 
+        const IntRect& scissor, 
+        Texture* texture, 
+        PODVector<float>* vertexData);
 
     /// Set new color for the batch. Overrides gradient.
     void SetColor(const Color& color, bool overrideAlpha = false);
@@ -80,6 +85,8 @@ public:
     unsigned vertexEnd_;
     /// Gradient flag.
     bool useGradient_;
+
+    GraphicsBackend backend_;
 };
 
 }

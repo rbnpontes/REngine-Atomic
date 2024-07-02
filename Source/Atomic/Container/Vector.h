@@ -23,6 +23,7 @@
 #pragma once
 
 #include "../Container/VectorBase.h"
+#include "./TypeTraits.h"
 
 #include <cassert>
 #include <cstring>
@@ -471,7 +472,7 @@ public:
     /// Return the buffer with right type.
     T* Buffer() const { return reinterpret_cast<T*>(buffer_); }
 
-    Vector Filter(std::function<bool(T)> callback)
+    Vector Filter(ea::function<bool(T)> callback)
     {
         Vector copy;
         for(unsigned i =0; i < Size(); ++i)
@@ -489,7 +490,7 @@ public:
             return {};
         return At(0);
     }
-    T FirstOrDefault(std::function<bool(T)> callback)
+    T FirstOrDefault(ea::function<bool(T)> callback)
     {
         for(unsigned i = 0; i < Size(); ++i)
         {

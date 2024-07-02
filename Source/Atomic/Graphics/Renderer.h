@@ -430,6 +430,7 @@ public:
     void ReloadTextures();
 // ATOMIC END
 
+    Graphics* GetGraphics() const { return graphics_.Get(); }
 private:
     /// Initialize when screen mode initially set.
     void Initialize();

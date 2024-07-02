@@ -32,6 +32,7 @@
 #include <include/base/cef_bind.h>
 #include <include/wrapper/cef_closure_task.h>
 #include "include/wrapper/cef_message_router.h"
+#include <include/base/cef_callback.h>
 
 #include <Atomic/Core/ProcessUtils.h>
 #include <Atomic/Core/CoreEvents.h>
@@ -49,6 +50,12 @@
 #include "WebViewEvents.h"
 #include "WebString.h"
 
+#include "./WebSchemeHandler.h"
+
+#include "./Internal/WebInternalStorage.h"
+#include "./Internal/WebClientKeyboardHandler.h"
+#include "./Internal/WebClientLoadHandler.h"
+
 #include <SDL/include/SDL.h>
 
 #ifdef ATOMIC_PLATFORM_LINUX
@@ -59,6 +66,8 @@
 
 #include <ThirdParty/SDL/include/SDL_syswm.h>
 
+#include "Internal/WebClientRequestHandler.h"
+
 namespace Atomic
 {
 
@@ -68,10 +77,7 @@ void* GetNSWindowContentView(void* window);
 
 class WebClientPrivate : public CefClient,
         public CefLifeSpanHandler,
-        public CefLoadHandler,
-        public CefDisplayHandler,
-        public CefRequestHandler,
-        public CefKeyboardHandler
+        public CefDisplayHandler
 {
     friend class WebClient;
 
@@ -81,20 +87,24 @@ public:
     {
 
         webClient_ = client;
-        webBrowserHost_ = webClient_->GetSubsystem<WebBrowserHost>();
 
         CefMessageRouterConfig config;
         config.js_query_function = WebBrowserHost::GetJSMessageQueryFunctionName().CString();
         config.js_cancel_function = WebBrowserHost::GetJSMessageQueryCancelFunctionName().CString();
         browserSideRouter_ = CefMessageRouterBrowserSide::Create(config);
 
+        webBrowserHost_ = webClient_->GetSubsystem<WebBrowserHost>();
+        keyboard_handler_ = new REngine::WebClientKeyboardHandler();
+        request_handler_ = new REngine::WebClientRequestHandler(browserSideRouter_.get());
+        load_handler_ = new REngine::WebClientLoadHandler(WeakPtr(client));
     }
 
-    virtual ~WebClientPrivate()
+    ~WebClientPrivate() override
     {
+        REngine::Web::internal_storage_clear(true);
     }
 
-    CefRefPtr<CefRenderHandler> GetRenderHandler() OVERRIDE
+    CefRefPtr<CefRenderHandler> GetRenderHandler() override
     {
 
         if (webClient_.Null() || webClient_->renderHandler_.Null())
@@ -104,67 +114,37 @@ public:
 
     }
 
-    CefRefPtr<CefLifeSpanHandler> GetLifeSpanHandler() OVERRIDE
+    CefRefPtr<CefLifeSpanHandler> GetLifeSpanHandler() override
     {
         return this;
     }
 
-    CefRefPtr<CefLoadHandler> GetLoadHandler() OVERRIDE
+    CefRefPtr<CefLoadHandler> GetLoadHandler() override
+    {
+        return load_handler_;
+    }
+
+    CefRefPtr<CefDisplayHandler> GetDisplayHandler() override
     {
         return this;
     }
 
-    CefRefPtr<CefDisplayHandler> GetDisplayHandler() OVERRIDE
+    CefRefPtr<CefRequestHandler> GetRequestHandler() override
     {
-        return this;
+        return request_handler_;
     }
 
-    CefRefPtr<CefRequestHandler> GetRequestHandler() OVERRIDE
+    CefRefPtr<CefKeyboardHandler> GetKeyboardHandler() override
     {
-        return this;
+        return keyboard_handler_;
     }
 
-    CefRefPtr<CefKeyboardHandler> GetKeyboardHandler() OVERRIDE
-    {
-        return this;
-    }
-
-
-    // CefKeyboardHandler
-
-    virtual bool OnPreKeyEvent(CefRefPtr<CefBrowser> browser,
-                               const CefKeyEvent& event,
-                               CefEventHandle os_event,
-                               bool* is_keyboard_shortcut) OVERRIDE
-    {
-        return false;
-    }
-
-
-
-    // CefRequestHandler methods
-
-    void OnRenderViewReady(CefRefPtr<CefBrowser> browser) OVERRIDE
-    {
-    }
-
-    bool OnBeforeBrowse(CefRefPtr<CefBrowser> browser,
-                        CefRefPtr<CefFrame> frame,
-                        CefRefPtr<CefRequest> request,
-                        bool is_redirect) OVERRIDE
-    {
-        CEF_REQUIRE_UI_THREAD();
-
-        browserSideRouter_->OnBeforeBrowse(browser, frame);
-
-        return false;
-
-    }
-
+    // CefClient methods
     bool OnProcessMessageReceived(
             CefRefPtr<CefBrowser> browser,
+            CefRefPtr<CefFrame> frame,
             CefProcessId source_process,
-            CefRefPtr<CefProcessMessage> message) OVERRIDE
+            CefRefPtr<CefProcessMessage> message) override
     {
 
         CEF_REQUIRE_UI_THREAD();
@@ -186,97 +166,13 @@ public:
             return true;
         }
 
-
-        if (browserSideRouter_->OnProcessMessageReceived(browser, source_process, message))
-        {
-            return true;
-        }
-
-        return false;
-    }
-
-
-    void OnRenderProcessTerminated(CefRefPtr<CefBrowser> browser,
-                                   TerminationStatus status) OVERRIDE
-    {
-        CEF_REQUIRE_UI_THREAD();
-        browserSideRouter_->OnRenderProcessTerminated(browser);
-    }
-
-    // CefLoadHandler
-
-    void OnLoadStart(CefRefPtr<CefBrowser> browser,
-                     CefRefPtr<CefFrame> frame, TransitionType transition_type) OVERRIDE
-    {
-        if (webClient_.Null() || !frame->IsMain())
-            return;
-
-        VariantMap eventData;
-        eventData[WebViewLoadStart::P_CLIENT] = webClient_;
-
-        CefString cefURL = frame->GetURL();
-        String url;
-        ConvertCEFString(cefURL, url);
-        eventData[WebViewLoadStart::P_URL] = url;
-
-        webClient_->SendEvent(E_WEBVIEWLOADSTART, eventData);
-
-    }
-
-    void OnLoadEnd(CefRefPtr<CefBrowser> browser,
-                   CefRefPtr<CefFrame> frame,
-                   int httpStatusCode) OVERRIDE
-    {
-        if (webClient_.Null() || !frame->IsMain())
-            return;
-
-        VariantMap eventData;
-        eventData[WebViewLoadEnd::P_CLIENT] = webClient_;
-
-        CefString cefURL = frame->GetURL();
-        String url;
-        ConvertCEFString(cefURL, url);
-        eventData[WebViewLoadEnd::P_URL] = url;
-
-        webClient_->SendEvent(E_WEBVIEWLOADEND, eventData);
-
-    }
-
-    void OnLoadError(CefRefPtr<CefBrowser> browser,
-                     CefRefPtr<CefFrame> frame,
-                     ErrorCode errorCode,
-                     const CefString& errorText,
-                     const CefString& failedUrl) OVERRIDE
-    {
-        if (webClient_.Null())
-            return;
-
-    }
-
-    void OnLoadingStateChange(CefRefPtr<CefBrowser> browser,
-                              bool isLoading,
-                              bool canGoBack,
-                              bool canGoForward) OVERRIDE
-    {
-
-        if (webClient_.Null())
-            return;
-
-        VariantMap eventData;
-        eventData[WebViewLoadStateChange::P_CLIENT] = webClient_;
-        eventData[WebViewLoadStateChange::P_LOADING] = isLoading;
-        eventData[WebViewLoadStateChange::P_CANGOBACK] = canGoBack;
-        eventData[WebViewLoadStateChange::P_CANGOFORWARD] = canGoForward;
-
-        webClient_->SendEvent(E_WEBVIEWLOADSTATECHANGE, eventData);
-
+        return browserSideRouter_->OnProcessMessageReceived(browser, frame, source_process, message);
     }
 
     // CefDisplayHandler
-
     void OnAddressChange(CefRefPtr<CefBrowser> browser,
                          CefRefPtr<CefFrame> frame,
-                         const CefString& url) OVERRIDE
+                         const CefString& url) override
     {
         if (webClient_.Null() || !frame->IsMain())
             return;
@@ -293,7 +189,7 @@ public:
     }
 
     void OnTitleChange(CefRefPtr<CefBrowser> browser,
-                       const CefString& title) OVERRIDE
+                       const CefString& title) override
     {
         if (webClient_.Null())
             return;
@@ -315,9 +211,10 @@ public:
     ///
     /*--cef(optional_param=message,optional_param=source)--*/
     virtual bool OnConsoleMessage(CefRefPtr<CefBrowser> browser,
+                                  cef_log_severity_t level,
                                   const CefString& message,
                                   const CefString& source,
-                                  int line) OVERRIDE
+                                  int line) override
     {
         if (webClient_.Null())
             return false;
@@ -327,7 +224,26 @@ public:
         String _source;
         ConvertCEFString(source, _source);
 
-        ATOMIC_LOGINFOF("WebViewJS: %s (%s:%i)", _message.CString(), _source.CString(), line);
+        const auto log_message = ToString("WebViewJS: %s (%s:%i)", _message.CString(), _source.CString(), line);
+        switch (level)
+        {
+        case LOGSEVERITY_DEFAULT:
+        case LOGSEVERITY_INFO:
+            ATOMIC_LOGINFO(log_message);
+            break;
+        case LOGSEVERITY_DEBUG:
+            ATOMIC_LOGWARNING(log_message);
+            break;
+        case LOGSEVERITY_WARNING:
+            ATOMIC_LOGWARNING(log_message);
+            break;
+        case LOGSEVERITY_ERROR:
+        case LOGSEVERITY_FATAL:
+            ATOMIC_LOGERROR(log_message);
+            break;
+        case LOGSEVERITY_DISABLE:
+            break;
+        }
 
         return false;
     }
@@ -350,48 +266,53 @@ public:
         CefBrowserSettings browserSettings;
 
         browserSettings.webgl = STATE_ENABLED;
-        browserSettings.file_access_from_file_urls = STATE_ENABLED;
-        browserSettings.universal_access_from_file_urls = STATE_ENABLED;
-        browserSettings.web_security = WebBrowserHost::GetWebSecurity() ? STATE_ENABLED : STATE_DISABLED;
         browserSettings.javascript_access_clipboard = STATE_ENABLED;
         browserSettings.javascript_dom_paste = STATE_ENABLED;
+        browserSettings.javascript_close_windows = STATE_DISABLED;
+        browserSettings.local_storage = STATE_DISABLED;
 
-        windowInfo.width = width;
-        windowInfo.height = height;        
-        windowInfo.transparent_painting_enabled = 1;
-
-        Graphics* graphics = webClient_->GetSubsystem<Graphics>();
-
-        if (graphics)
-        {
-            SDL_Window* sdlWindow = static_cast<SDL_Window*>(graphics->GetSDLWindow());
-            SDL_SysWMinfo info;
-            SDL_VERSION(&info.version);
-
-            if(SDL_GetWindowWMInfo(sdlWindow, &info))
-            {
-#ifdef ATOMIC_PLATFORM_OSX
-                NSView* view = (NSView*) GetNSWindowContentView(info.info.cocoa.window);
-                windowInfo.SetAsWindowless(view, false);
+#if RENGINE_PLATFORM_WINDOWS
+        windowInfo.SetAsWindowless(nullptr);
+#else
+        windowInfo.SetAsWindowless(0);
 #endif
+        windowInfo.shared_texture_enabled = 0;
+        windowInfo.bounds.width = width;
+        windowInfo.bounds.height = height;
 
-#ifdef ATOMIC_PLATFORM_WINDOWS
-                windowInfo.SetAsWindowless(info.info.win.window, /*transparent*/ true);
-#endif
-#ifdef ATOMIC_PLATFORM_LINUX
-                if ( info.subsystem == SDL_SYSWM_X11 )
-                    windowInfo.SetAsWindowless(info.info.x11.window, true);
-#endif
-            }
 
-        }
-        else
-        {
-#ifndef ATOMIC_PLATFORM_LINUX
-            // headless
-            windowInfo.SetAsWindowless(nullptr, true);
-#endif
-        }
+       // Graphics* graphics = webClient_->GetSubsystem<Graphics>();
+
+//        if (graphics)
+//        {
+//            SDL_Window* sdlWindow = static_cast<SDL_Window*>(graphics->GetSDLWindow());
+//            SDL_SysWMinfo info;
+//            SDL_VERSION(&info.version);
+//
+//            if(SDL_GetWindowWMInfo(sdlWindow, &info))
+//            {
+//#ifdef ATOMIC_PLATFORM_OSX
+//                NSView* view = (NSView*) GetNSWindowContentView(info.info.cocoa.window);
+//                windowInfo.SetAsWindowless(view, false);
+//#endif
+//
+//#ifdef ATOMIC_PLATFORM_WINDOWS
+//                windowInfo.SetAsWindowless(info.info.win.window);
+//#endif
+//#ifdef ATOMIC_PLATFORM_LINUX
+//                if ( info.subsystem == SDL_SYSWM_X11 )
+//                    windowInfo.SetAsWindowless(info.info.x11.window, true);
+//#endif
+//            }
+//
+//        }
+//        else
+//        {
+//#ifndef ATOMIC_PLATFORM_LINUX
+//            // headless
+//            windowInfo.SetAsWindowless(nullptr);
+//#endif
+//        }
 
         // TODO: There seems to be a CEF bug when loading a string into a browser
         // which was created with an empty URL, this workaround gets things going
@@ -400,8 +321,15 @@ public:
         String _initialURL = initialLoadString_.Length() ? "x" : initialURL;
 
         webClient_->renderHandler_->SetSize(width, height);
-        CefRefPtr<CefBrowser> browser = CefBrowserHost::CreateBrowserSync(windowInfo, this,
-                                                                          _initialURL.CString(), browserSettings, nullptr);
+        CefRefPtr<CefDictionaryValue> extra_info;
+        WebAppBrowser::FillExtraInfo(extra_info);
+
+        CefRefPtr<CefBrowser> browser = CefBrowserHost::CreateBrowserSync(windowInfo, 
+            this,
+            _initialURL.CString(), 
+            browserSettings, 
+            extra_info, 
+            nullptr);
 
         if (!browser.get())
             return false;
@@ -419,18 +347,17 @@ public:
     }
 
     // CefLifeSpanHandler methods:
-
-    virtual void OnAfterCreated(CefRefPtr<CefBrowser> browser) OVERRIDE
+    virtual void OnAfterCreated(CefRefPtr<CefBrowser> browser) override
     {
         CEF_REQUIRE_UI_THREAD();
     }
 
-    virtual bool DoClose(CefRefPtr<CefBrowser> browser) OVERRIDE
+    virtual bool DoClose(CefRefPtr<CefBrowser> browser) override
     {
         return false;
     }
 
-    virtual void OnBeforeClose(CefRefPtr<CefBrowser> browser) OVERRIDE
+    virtual void OnBeforeClose(CefRefPtr<CefBrowser> browser) override
     {
         CEF_REQUIRE_UI_THREAD();
 
@@ -448,15 +375,15 @@ public:
                                CefWindowInfo& windowInfo,
                                CefRefPtr<CefClient>& client,
                                CefBrowserSettings& settings,
-                               bool* no_javascript_access)  OVERRIDE
+                               CefRefPtr<CefDictionaryValue>& extra_info,
+                               bool* no_javascript_access) override
     {
         // Called on the IO thread, cancel and convert to popup request
 
         assert(!CefCurrentlyOn(TID_UI));
 
         // Execute on the UI thread.
-        CefPostTask(TID_UI,
-                    base::Bind(&WebClientPrivate::OnPopupRequest, this, target_url));
+        CefPostTask(TID_UI,base::BindOnce(&WebClientPrivate::OnPopupRequest, this, target_url));
 
         return true;
     }
@@ -483,8 +410,7 @@ public:
         {
             // Execute on the UI thread.
             CefPostTask(TID_UI,
-                        base::Bind(&WebClientPrivate::CloseBrowser, this, force_close));
-
+                        base::BindOnce(&WebClientPrivate::CloseBrowser, this, force_close));
             return;
         }
 
@@ -516,7 +442,11 @@ private:
     String initialLoadStringURL_;
 
     CefRefPtr<CefBrowser> browser_;
-    WeakPtr<WebBrowserHost> webBrowserHost_;
+    CefRefPtr<REngine::WebClientKeyboardHandler> keyboard_handler_;
+    CefRefPtr<REngine::WebClientRequestHandler> request_handler_;
+    CefRefPtr<REngine::WebClientLoadHandler> load_handler_;
+
+	WeakPtr<WebBrowserHost> webBrowserHost_;
     WeakPtr<WebClient> webClient_;
     CefRefPtr<CefMessageRouterBrowserSide> browserSideRouter_;
 
@@ -729,7 +659,7 @@ void WebClient::SendFocusEvent(bool focus)
         return;
 
     CefRefPtr<CefBrowserHost> host = d_->browser_->GetHost();
-    host->SendFocusEvent(focus);
+    host->SetFocus(focus);
 }
 
 // Javascript
@@ -758,7 +688,7 @@ void WebClient::EvalJavaScript(unsigned evalID, const String& script)
 
     // Send the process message to the render process.
     // Use PID_BROWSER instead when sending a message to the browser process.
-    d_->browser_->SendProcessMessage(PID_RENDERER, msg);
+    d_->browser_->GetMainFrame()->SendProcessMessage(PID_RENDERER, msg);
 }
 
 void WebClient::EvalJavaScriptResult(unsigned evalID, bool result, const String& value)
@@ -839,8 +769,14 @@ void WebClient::LoadString(const String& source, const String& url)
     // This is handled differently internally then we requests
     UpdateGlobalProperties();
 
-    d_->browser_->GetMainFrame()->LoadString(source.CString(), url.CString());
-
+    // CEF was removed a long time ago string document loading
+    // To do that, we must have a custom scheme to retrieve in memory data.
+    // This is already done by the engine. Basically we must fill a shared internal memory storage
+    // to scheme resource work.
+    // This can be improved by adding some rules to accept custom keys or custom content.
+    REngine::Web::internal_storage_set_item(MEMORY_RESOURCE_KEY_DATA, source.CString());
+    REngine::Web::internal_storage_set_item(MEMORY_RESOURCE_KEY_MIME_TYPE, "text/html");
+    LoadURL(MEMORY_RESOURCE_SCHEME_URL);
 }
 
 
@@ -953,7 +889,7 @@ void WebClient::WasResized()
 bool WebClient::CreateBrowser(const String& initialURL, int width, int height)
 {
     bool result = d_->CreateBrowser(initialURL, width, height);
-
+        
     return result;
 }
 
@@ -962,7 +898,7 @@ void WebClient::UpdateGlobalProperties()
     if (!d_->browser_.get())
         return;
 
-    CefRefPtr<CefDictionaryValue> globalProps;
+    CefRefPtr<CefDictionaryValue> globalProps = CefDictionaryValue::Create();
     if (!WebAppBrowser::CreateGlobalProperties(globalProps))
         return;
 
@@ -975,11 +911,7 @@ void WebClient::UpdateGlobalProperties()
     args->SetDictionary(0, globalProps);
 
     // Send the process message to the render process.
-    if (!d_->browser_->SendProcessMessage(PID_RENDERER, msg))
-    {
-        ATOMIC_LOGERROR("WebClient::UpdateGlobalProperties - Failed to send message");
-    }
-
+    d_->browser_->GetMainFrame()->SendProcessMessage(PID_RENDERER, msg);
 }
 
 void WebClient::HandleWebViewGlobalPropertiesChanged(StringHash eventType, VariantMap& eventData)

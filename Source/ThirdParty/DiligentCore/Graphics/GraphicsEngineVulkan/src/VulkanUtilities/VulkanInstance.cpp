@@ -412,7 +412,7 @@ VulkanInstance::VulkanInstance(const CreateInfo& CI) :
     appInfo.pNext              = nullptr; // Pointer to an extension-specific structure.
     appInfo.pApplicationName   = nullptr;
     appInfo.applicationVersion = 0; // Developer-supplied version number of the application
-    appInfo.pEngineName        = "Diligent Engine";
+    appInfo.pEngineName        = "REngine";
     appInfo.engineVersion      = DILIGENT_API_VERSION; // Developer-supplied version number of the engine used to create the application.
     appInfo.apiVersion         = ApiVersion;
 

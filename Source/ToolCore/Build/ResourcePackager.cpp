@@ -178,7 +178,7 @@ bool ResourcePackager::WritePackageFile(const String& destFilePath)
 
 void ResourcePackager::WriteHeader(File* dest)
 {
-    dest->WriteFileID("ULZ4");
+    dest->WriteFileID("RLZ4");
     dest->WriteUInt(resourceEntries_.Size());
     dest->WriteUInt(checksum_);
 }

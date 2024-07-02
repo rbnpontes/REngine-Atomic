@@ -316,46 +316,14 @@ namespace ToolCore
             Vector<String> args;
 
 #ifdef ATOMIC_PLATFORM_WINDOWS
-
-            // VS2015
-            String vs2015ToolsPath = Poco::Environment::get("VS140COMNTOOLS", "").c_str();
-
-            // validate still installed
-
-            String installCheck = vs2015ToolsPath;
-            installCheck.Replace("Tools\\", "IDE\\devenv.exe");
-
-            if (!fileSystem->FileExists(installCheck))
-                vs2015ToolsPath.Clear();
-
-            // VS2017
-            String vs2017ToolsPath;
-            Poco::WinRegistryKey regKey("HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Microsoft\\VisualStudio\\SxS\\VS7", true);
-            if (regKey.exists() && regKey.exists("15.0"))
-                vs2017ToolsPath = regKey.getString("15.0").c_str();
-
-            if (vs2017ToolsPath.Length())
+            const String vs_tools_path = Poco::Environment::get("VS_TOOLS", "").c_str();
+            if(vs_tools_path.Empty())
             {
-                vs2017ToolsPath += "Common7\\Tools\\";
-            }
-
-            String cmdToolsPath;
-
-            if (!vs2015ToolsPath.Length() || (toolVersion_ == "VS2017" && vs2017ToolsPath.Length()))
-            {
-                cmdToolsPath = vs2017ToolsPath;
-            }
-            else
-            {
-                cmdToolsPath = vs2015ToolsPath;
-            }
-
-            if (!cmdToolsPath.Length())
-            {
-                CurrentBuildError("VS140COMNTOOLS environment variable and VS2017 registry key not found, cannot proceed");
+                CurrentBuildError("VS_TOOLS environment variable is not correct set.");
                 return;
             }
 
+            String cmdToolsPath = vs_tools_path;
             if (!cmdToolsPath.EndsWith("\\"))
             {
                 cmdToolsPath += "\\";

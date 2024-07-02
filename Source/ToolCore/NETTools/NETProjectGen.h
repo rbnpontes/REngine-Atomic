@@ -144,8 +144,9 @@ namespace ToolCore
         Vector<String> libraryProjectZips_;
         Vector<String> transformFiles_;
 
-        String targetFrameworkProfile_;
+        String target_framework_;
         Vector<String> sharedReferences_;
+        Vector<String> projectReferences_;
 
         bool genAssemblyDocFile_;
 

@@ -32,6 +32,8 @@ ATOMIC_EVENT(E_SCREENMODE, ScreenMode)
 {
     ATOMIC_PARAM(P_WIDTH, Width);                  // int
     ATOMIC_PARAM(P_HEIGHT, Height);                // int
+    ATOMIC_PARAM(P_RENDER_WIDTH, RenderWidth);     // int
+    ATOMIC_PARAM(P_RENDER_HEIGHT, RenderHeight);   // int
     ATOMIC_PARAM(P_FULLSCREEN, Fullscreen);        // bool
     ATOMIC_PARAM(P_BORDERLESS, Borderless);        // bool
     ATOMIC_PARAM(P_RESIZABLE, Resizable);          // bool

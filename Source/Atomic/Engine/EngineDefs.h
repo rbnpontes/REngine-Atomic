@@ -79,4 +79,5 @@ static const String EP_AUTO_METRICS = "AutoMetrics";
 static const String EP_PROFILER_LISTEN = "ProfilerListen";
 static const String EP_PROFILER_PORT = "ProfilerPort";
 // ATOMIC END
+static const String EP_GRAPHICS_BACKEND = "GraphicsBackend";
 }

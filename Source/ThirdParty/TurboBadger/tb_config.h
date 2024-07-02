@@ -102,7 +102,7 @@
 #define TB_SYSTEM_WINDOWS
 #endif
 
-#if defined(__linux) || defined(__linux__)
+#if (defined(__linux) || defined(__linux__)) && !defined(__ANDROID__)
 #define TB_FILE_POSIX
 #define TB_TARGET_LINUX
 #define TB_SYSTEM_LINUX
@@ -124,6 +124,7 @@
 #endif
 
 #if defined(ANDROID) || defined(__ANDROID__)
+#define TB_FILE_POSIX
 #define TB_SYSTEM_ANDROID
 #define TB_CLIPBOARD_DUMMY
 #endif

@@ -1,6 +1,7 @@
 /* This file is part of volk library; see volk.h for version/license details */
 /* clang-format off */
 #include "volk.h"
+#include <iostream>
 
 #ifdef _WIN32
 	typedef const char* LPCSTR;
@@ -63,11 +64,19 @@ VkResult volkInitialize(void)
 	// note: function pointer is cast through void function pointer to silence cast-function-type warning on gcc8
 	vkGetInstanceProcAddr = (PFN_vkGetInstanceProcAddr)(void(*)(void))GetProcAddress(module, "vkGetInstanceProcAddr");
 #elif defined(__APPLE__)
-	void* module = dlopen("libvulkan.dylib", RTLD_NOW | RTLD_LOCAL);
-	if (!module)
-		module = dlopen("libvulkan.1.dylib", RTLD_NOW | RTLD_LOCAL);
-	if (!module)
-		module = dlopen("libMoltenVK.dylib", RTLD_NOW | RTLD_LOCAL);
+	void* module = dlopen("libvulkan.dylib", RTLD_NOW | RTLD_LOCAL | RTLD_GLOBAL);
+    if (!module)
+    {
+        std::cout << "Failed to load Vulkan Lib.\n"<< dlerror() << std::endl;
+        module = dlopen("libvulkan.1.dylib", RTLD_NOW | RTLD_LOCAL);
+    }
+    
+    if (!module) 
+    {
+        std::cout << "Failed to load Molten Vulkan Lib.\n"<< dlerror() << std::endl;
+        module = dlopen("libMoltenVK.dylib", RTLD_NOW | RTLD_LOCAL);
+    }
+    
 	if (!module)
 		return VK_ERROR_INITIALIZATION_FAILED;
 
