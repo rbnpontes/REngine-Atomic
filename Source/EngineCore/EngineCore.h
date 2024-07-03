@@ -86,9 +86,9 @@
 
 #endif
 
-#endif
-
 #define RENGINE_API ENGINE_API
 // TODO: remove this when all Atomic brand is removed
 // Don't break current implemenations
 #define ATOMIC_API ENGINE_API
+#endif
+

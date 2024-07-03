@@ -6,7 +6,7 @@
 
 set (CSATOMICDIR "${ENGINE_SOURCE_DIR}/Artifacts/Build/Source/Generated/CSharp/Packages/")
 
-file (GLOB CSHARP_BINDINGS_SOURCE ${CSATOMICDIR}/EngineCore/Native/*.cpp ${CSATOMICDIR}/EngineCore/Native/*.h
+file (GLOB CSHARP_BINDINGS_SOURCE ${CSATOMICDIR}/Atomic/Native/*.cpp ${CSATOMICDIR}/EngineCore/Native/*.h
                                   ${CSATOMICDIR}/AtomicNETNative/Native/*.cpp ${CSATOMICDIR}/AtomicNETNative/Native/*.h
                                   ${CSATOMICDIR}/AtomicNETScript/Native/*.cpp ${CSATOMICDIR}/AtomicNETScript/Native/*.h
                                   ${CSATOMICDIR}/AtomicApp/Native/*.cpp ${CSATOMICDIR}/AtomicApp/Native/*.h

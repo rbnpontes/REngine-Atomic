@@ -524,7 +524,7 @@ endif()
 # General source files
 file(GLOB SOURCE_FILES
   ${SDL2_SOURCE_DIR}/src/*.c
-  ${SDL2_SOURCE_DIR}/src/EngineCore/*.c
+  ${SDL2_SOURCE_DIR}/src/atomic/*.c
   ${SDL2_SOURCE_DIR}/src/audio/*.c
   ${SDL2_SOURCE_DIR}/src/cpuinfo/*.c
   ${SDL2_SOURCE_DIR}/src/dynapi/*.c
@@ -1290,7 +1290,7 @@ if(ANDROID)
   set(CMAKE_REQUIRED_FLAGS "-Werror=unused-command-line-argument")
   check_c_compiler_flag(-marm HAVE_ARM_MODE)
   if(HAVE_ARM_MODE)
-    set_property(SOURCE "${SDL2_SOURCE_DIR}/src/EngineCore/SDL_spinlock.c" APPEND_STRING PROPERTY COMPILE_FLAGS " -marm")
+    set_property(SOURCE "${SDL2_SOURCE_DIR}/src/atomic/SDL_spinlock.c" APPEND_STRING PROPERTY COMPILE_FLAGS " -marm")
   endif()
   cmake_pop_check_state()
 
@@ -2498,7 +2498,7 @@ elseif(VITA)
   set(CMAKE_REQUIRED_FLAGS "-Werror=unused-command-line-argument")
   check_c_compiler_flag(-marm HAVE_ARM_MODE)
   if(HAVE_ARM_MODE)
-    set_property(SOURCE "${SDL2_SOURCE_DIR}/src/EngineCore/SDL_spinlock.c" APPEND_STRING PROPERTY COMPILE_FLAGS " -marm")
+    set_property(SOURCE "${SDL2_SOURCE_DIR}/src/atomic/SDL_spinlock.c" APPEND_STRING PROPERTY COMPILE_FLAGS " -marm")
   endif()
   cmake_pop_check_state()
 
