@@ -62,3 +62,8 @@ if (ENGINE_JAVASCRIPT OR ENGINE_DOTNET)
                             DEPENDS AtomicTool )
     endif()
 endif ()
+
+vs_add_to_grp(AtomicTool "${VS_GRP_ENGINE_TOOLS}")
+vs_add_to_grp(AtomicToolCheckScripts "${VS_GRP_ENGINE_TOOLS}")
+vs_add_to_grp(GenerateScriptBindings "${VS_GRP_ENGINE_TOOLS}")
+vs_add_to_grp(GenerateAtomicNET "${VS_GRP_ENGINE_TOOLS}")

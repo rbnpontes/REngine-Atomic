@@ -172,3 +172,5 @@ GroupSources("Utils")
 GroupSources("Components")
 
 include(EngineDoc)
+
+vs_add_to_grp("${CEF_TARGET}" "${VS_GRP_ENGINE_TOOLS}")

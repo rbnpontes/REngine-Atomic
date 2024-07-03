@@ -11,3 +11,5 @@ if(ENGINE_JAVASCRIPT)
     target_link_libraries(AtomicApp AtomicJS AtomicPlayerJS)
 endif()
 GroupSources("Player")
+
+vs_add_to_grp(AtomicApp "${VS_GRP_ENGINE_SRC}")

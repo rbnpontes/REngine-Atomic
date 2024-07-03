@@ -60,3 +60,5 @@ if (NOT IOS)
     set_target_properties (AtomicPlayer PROPERTIES ${TARGET_PROPERTIES})
 endif()
 endif ()
+
+vs_add_to_grp(AtomicPlayer "${VS_GRP_ENGINE_SRC}")

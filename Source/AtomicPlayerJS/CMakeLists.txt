@@ -13,3 +13,5 @@ target_link_libraries(AtomicPlayerJS AtomicPlayerLib)
 if (ENGINE_DESKTOP)
     add_dependencies(AtomicPlayerJS AtomicToolCheckScripts)
 endif ()
+
+vs_add_to_grp(AtomicPlayerJS "${VS_GRP_ENGINE_SRC}")

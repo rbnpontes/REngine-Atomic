@@ -13,3 +13,5 @@ add_dependencies(ToolCoreJS AtomicToolCheckScripts)
 
 # Put it back C++ version
 set (CMAKE_CXX_STANDARD 20)
+
+vs_add_to_grp(ToolCoreJS "${VS_GRP_ENGINE_TOOLS}")

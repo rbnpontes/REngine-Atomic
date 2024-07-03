@@ -18,3 +18,5 @@ target_link_libraries(AtomicWebView ${ENGINE_CORE_LIB_TARGET})
 if (ENGINE_JAVASCRIPT OR ENGINE_DOTNET)
     add_dependencies(AtomicWebView AtomicToolCheckScripts)
 endif()
+
+vs_add_to_grp(AtomicWebView "${VS_GRP_ENGINE_SRC}")

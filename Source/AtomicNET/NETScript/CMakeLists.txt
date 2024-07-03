@@ -13,3 +13,6 @@ target_link_libraries(AtomicNETScriptBindings ${ENGINE_CORE_LIB_TARGET})
 if (ENGINE_DESKTOP)
     add_dependencies(AtomicNETScriptBindings AtomicToolCheckScripts)
 endif ()
+
+vs_add_to_grp(AtomicNETScript "${VS_GRP_ENGINE_SRC}")
+vs_add_to_grp(AtomicNETScriptBindings "${VS_GRP_ENGINE_SRC}")

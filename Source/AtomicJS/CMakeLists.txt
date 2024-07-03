@@ -17,3 +17,5 @@ target_link_libraries(AtomicJS ${ENGINE_CORE_LIB_TARGET})
 if (ENGINE_DESKTOP)
     add_dependencies(AtomicJS AtomicToolCheckScripts)
 endif ()
+
+vs_add_to_grp(AtomicJS "${VS_GRP_ENGINE_SRC}")

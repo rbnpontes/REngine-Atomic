@@ -27,3 +27,5 @@ GroupSources("Platform")
 GroupSources("Project")
 GroupSources("Subprocess")
 GroupSources("NETTools")
+
+vs_add_to_grp(ToolCore "${VS_GRP_ENGINE_TOOLS}")

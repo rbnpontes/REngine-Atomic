@@ -69,3 +69,5 @@ else()
     # See BuildIOS.js for handling of the AtomicNETNative framework, including install_name_tool modification, etc
     # Handling it here was causing issues with certain builds of XCode and where it thought the TARGET_FILE was...
 endif()
+
+vs_add_to_grp(AtomicNETNative "${VS_GRP_ENGINE_SRC}")

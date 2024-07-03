@@ -279,3 +279,7 @@ macro(msvc_set_runtime runtime_flag)
         set(${var} "${${var}} ${runtime_flag}d")
     endforeach()
 endmacro()
+
+macro(vs_add_to_grp target_name grp_name)
+    set_target_properties("${target_name}" PROPERTIES FOLDER "${grp_name}")
+endmacro()

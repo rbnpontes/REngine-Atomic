@@ -1,3 +1,5 @@
+include(EngineVsGroupNames)
+
 add_subdirectory(ThirdParty)
 add_subdirectory(EngineCore)
 
