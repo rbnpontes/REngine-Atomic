@@ -22,9 +22,9 @@
 
 #pragma once
 
-#include "../../Atomic/Core/Variant.h"
-#include "../../Atomic/Resource/JSONValue.h"
-#include "../../Atomic/Resource/Configuration.h"
+#include <EngineCore/Core/Variant.h>
+#include <EngineCore/Resource/JSONValue.h>
+#include <EngineCore/Resource/Configuration.h>
 
 namespace Atomic
 {

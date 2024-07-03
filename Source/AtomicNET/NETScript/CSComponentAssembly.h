@@ -22,12 +22,11 @@
 
 #pragma once
 
-#include <Atomic/Resource/Resource.h>
-#include <Atomic/Resource/JSONValue.h>
-#include <Atomic/Container/ArrayPtr.h>
-#include <Atomic/Container/List.h>
-
-#include <Atomic/Script/ScriptComponentFile.h>
+#include <EngineCore/Resource/Resource.h>
+#include <EngineCore/Resource/JSONValue.h>
+#include <EngineCore/Container/ArrayPtr.h>
+#include <EngineCore/Container/List.h>
+#include <EngineCore/Script/ScriptComponentFile.h>
 
 namespace Atomic
 {

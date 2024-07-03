@@ -50,11 +50,11 @@ bool ToolEnvironment::InitFromDistribution()
 
     FileSystem* fileSystem = GetSubsystem<FileSystem>();
 
-#ifdef ATOMIC_PLATFORM_WINDOWS
+#ifdef ENGINE_PLATFORM_WINDOWS
     editorBinary_ = fileSystem->GetProgramDir() + "AtomicEditor.exe";
     String resourcesDir = fileSystem->GetProgramDir() + "Resources/";
     playerBinary_ = resourcesDir + "ToolData/Deployment/Windows/x64/AtomicPlayer.exe";
-#elif ATOMIC_PLATFORM_LINUX
+#elif ENGINE_PLATFORM_LINUX
     editorBinary_ = fileSystem->GetProgramDir() + "AtomicEditor";
     String resourcesDir = fileSystem->GetProgramDir() + "Resources/";
     playerBinary_ = resourcesDir + "ToolData/Deployment/Linux/AtomicPlayer";
@@ -80,7 +80,7 @@ bool ToolEnvironment::InitFromDistribution()
     atomicNETRootDir_ = resourcesDir + "ToolData/AtomicNET/";
     atomicNETCoreAssemblyDir_ = atomicNETRootDir_ + config + "/";
 
-#ifdef ATOMIC_PLATFORM_OSX
+#ifdef ENGINE_PLATFORM_MACOS
     monoExecutableDir_ = "/Library/Frameworks/Mono.framework/Versions/Current/Commands/";
     atomicNETNuGetBinary_ = monoExecutableDir_ + "nuget";
 #endif
@@ -97,8 +97,8 @@ bool ToolEnvironment::Initialize(bool cli)
 
 #ifdef ATOMIC_DEV_BUILD
 
-    SetRootSourceDir(ATOMIC_ROOT_SOURCE_DIR);
-    SetRootBuildDir(ATOMIC_ROOT_BUILD_DIR, true);
+    SetRootSourceDir(ENGINE_ROOT_SOURCE_DIR);
+    SetRootBuildDir(ENGINE_ROOT_BUILD_DIR, true);
 
 #else
 
@@ -109,8 +109,8 @@ bool ToolEnvironment::Initialize(bool cli)
     }
     else
     {
-        SetRootSourceDir(ATOMIC_ROOT_SOURCE_DIR);
-        SetRootBuildDir(ATOMIC_ROOT_BUILD_DIR, true);
+        SetRootSourceDir(ENGINE_ROOT_SOURCE_DIR);
+        SetRootBuildDir(ENGINE_ROOT_BUILD_DIR, true);
 
     }
 #endif
@@ -138,11 +138,11 @@ void ToolEnvironment::SetRootSourceDir(const String& sourceDir)
     atomicNETRootDir_ = rootSourceDir_ + "Artifacts/AtomicNET/";
     atomicNETCoreAssemblyDir_ = rootSourceDir_ + "Artifacts/AtomicNET/" + config + "/";
 
-#if defined ATOMIC_PLATFORM_WINDOWS || defined ATOMIC_PLATFORM_LINUX
+#if defined ENGINE_PLATFORM_WINDOWS || defined ENGINE_PLATFORM_LINUX
     atomicNETNuGetBinary_ = ToString("%sBuild/Managed/nuget/nuget.exe", rootSourceDir_.CString());
 #endif
 
-#ifdef ATOMIC_PLATFORM_OSX
+#ifdef ENGINE_PLATFORM_MACOS
     monoExecutableDir_ = "/Library/Frameworks/Mono.framework/Versions/Current/Commands/";
     atomicNETNuGetBinary_ = monoExecutableDir_ + "nuget";
 #endif
@@ -157,7 +157,7 @@ void ToolEnvironment::SetRootBuildDir(const String& buildDir, bool setBinaryPath
 
     if (setBinaryPaths)
     {
-#ifdef ATOMIC_PLATFORM_WINDOWS
+#ifdef ENGINE_PLATFORM_WINDOWS
 
 #ifdef _DEBUG
         playerBinary_ = rootBuildDir_ + "Source/AtomicPlayer/Application/Debug/AtomicPlayer.exe";
@@ -175,7 +175,7 @@ void ToolEnvironment::SetRootBuildDir(const String& buildDir, bool setBinaryPath
 
         playerAppFolder_ = rootSourceDir_ + "Data/AtomicEditor/Deployment/MacOS/AtomicPlayer.app";
 
-#elif ATOMIC_PLATFORM_OSX
+#elif ENGINE_PLATFORM_MACOS
 
 #ifdef ATOMIC_XCODE
         playerBinary_ = rootBuildDir_ + "Source/AtomicPlayer/" + CMAKE_INTDIR + "/AtomicPlayer.app/Contents/MacOS/AtomicPlayer";

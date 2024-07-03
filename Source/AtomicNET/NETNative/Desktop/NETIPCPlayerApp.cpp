@@ -21,19 +21,19 @@
 // THE SOFTWARE.
 //
 
-#include <Atomic/Engine/Engine.h>
-#include <Atomic/IO/FileSystem.h>
+#include <EngineCore/Engine/Engine.h>
+#include <EngineCore/IO/FileSystem.h>
 #include "NETCore.h"
 #include <AtomicNET/NETScript/NETScript.h>
 #include <AtomicNET/NETScript/CSComponentAssembly.h>
 
 #include "NETIPCPlayerApp.h"
 
-#ifdef ATOMIC_PLATFORM_OSX
+#ifdef ENGINE_PLATFORM_MACOS
 #include <unistd.h>
 #endif
 
-#ifdef ATOMIC_PLATFORM_WINDOWS
+#ifdef ENGINE_PLATFORM_WINDOWS
 #include <stdio.h>
 #endif
 

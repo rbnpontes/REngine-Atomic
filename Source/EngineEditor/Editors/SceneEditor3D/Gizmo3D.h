@@ -25,13 +25,13 @@
 
 #pragma once
 
-#include <Atomic/Core/Object.h>
-#include <Atomic/Math/MathDefs.h>
-#include <Atomic/Math/Ray.h>
-#include <Atomic/Scene/Scene.h>
+#include <EngineCore/Core/Object.h>
+#include <EngineCore/Math/MathDefs.h>
+#include <EngineCore/Math/Ray.h>
+#include <EngineCore/Scene/Scene.h>
 
-#include <Atomic/Graphics/StaticModel.h>
-#include <Atomic/Graphics/Camera.h>
+#include <EngineCore/Graphics/StaticModel.h>
+#include <EngineCore/Graphics/Camera.h>
 
 
 #include "SceneView3D.h"

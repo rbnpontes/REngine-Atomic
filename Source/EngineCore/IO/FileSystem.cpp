@@ -1243,7 +1243,7 @@ String GetSanitizedPath(const String& path)
 
     bool hasTrailingSlash = path.EndsWith("/") || path.EndsWith("\\");
 
-#ifndef ATOMIC_PLATFORM_WINDOWS
+#ifndef ENGINE_PLATFORM_WINDOWS
 
     bool absolute = IsAbsolutePath(path);
     sanitized = String::Joined(parts, "/");

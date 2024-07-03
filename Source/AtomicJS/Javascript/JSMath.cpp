@@ -1,6 +1,6 @@
 #include "JSVM.h"
 
-#include <Atomic/Math/Ray.h>
+#include <EngineCore/Math/Ray.h>
 
 namespace Atomic
 {

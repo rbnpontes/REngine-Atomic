@@ -28,11 +28,11 @@
 /*
 // subsystem requires
 
-#include <Atomic/Engine/Engine.h>
-#include <Atomic/Graphics/Graphics.h>
-#include <Atomic/Graphics/Renderer.h>
-#include <Atomic/Input/Input.h>
-#include <Atomic/Resource/ResourceCache.h>
+#include <EngineCore/Engine/Engine.h>
+#include <EngineCore/Graphics/Graphics.h>
+#include <EngineCore/Graphics/Renderer.h>
+#include <EngineCore/Input/Input.h>
+#include <EngineCore/Resource/ResourceCache.h>
 */
 
 #include "JSVM.h"
@@ -179,9 +179,9 @@ namespace Atomic
              String pluginLibrary;
 
              // TODO: proper platform folder detection
-#ifdef ATOMIC_PLATFORM_WINDOWS
+#ifdef ENGINE_PLATFORM_WINDOWS
               pluginLibrary = resourceDirs.At(i) + "Plugins/Windows/x64/" + moduleID + ".dll";
-#elif ATOMIC_PLATFORM_OSX
+#elif ENGINE_PLATFORM_MACOS
              pluginLibrary = resourceDirs.At(i) + "Plugins/Mac/x64/lib" + moduleID + ".dylib";
 #endif
 

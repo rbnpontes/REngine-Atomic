@@ -131,7 +131,7 @@ namespace AtomicEditor
         FileSystem* filesystem = GetSubsystem<FileSystem>();
         engineParameters_["LogName"] = filesystem->GetAppPreferencesDir("AtomicEditor", "Logs") + "AtomicEditor.log";
 
-#ifdef ATOMIC_PLATFORM_OSX
+#ifdef ENGINE_PLATFORM_MACOS
         engineParameters_["WindowIcon"] = "Images/AtomicLogo32.png";
 #endif
 
@@ -144,7 +144,7 @@ namespace AtomicEditor
 #else
         resource_paths += "CoreData;EditorData";
 
-    #ifdef ATOMIC_PLATFORM_OSX
+    #ifdef ENGINE_PLATFORM_MACOS
         resource_prefix_paths = filesystem->GetProgramDir() + "../Resources";
     #else
         resource_prefix_paths = filesystem->GetProgramDir() + "Resources";

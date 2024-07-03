@@ -20,7 +20,7 @@
 // THE SOFTWARE.
 //
 
-#ifdef ATOMIC_PLATFORM_OSX
+#ifdef ENGINE_PLATFORM_MACOS
 
 #include <include/cef_client.h>
 
@@ -28,10 +28,10 @@
 #include <ThirdParty/SDL/include/SDL_syswm.h>
 #include <ThirdParty/SDL/src/events/scancodes_darwin.h>
 
-#include <Atomic/Core/Variant.h>
-#include <Atomic/Input/InputEvents.h>
-#include <Atomic/Input/Input.h>
-#include <Atomic/IO/Log.h>
+#include <EngineCore/Core/Variant.h>
+#include <EngineCore/Input/InputEvents.h>
+#include <EngineCore/Input/Input.h>
+#include <EngineCore/IO/Log.h>
 
 #include "WebKeyboard.h"
 

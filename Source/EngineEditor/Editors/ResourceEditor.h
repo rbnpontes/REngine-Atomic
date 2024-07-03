@@ -22,10 +22,10 @@
 
 #pragma once
 
-#include <Atomic/Core/Object.h>
+#include <EngineCore/Core/Object.h>
 
-#include <Atomic/UI/UIButton.h>
-#include <Atomic/UI/UITabContainer.h>
+#include <EngineCore/UI/UIButton.h>
+#include <EngineCore/UI/UITabContainer.h>
 
 using namespace Atomic;
 using namespace tb;

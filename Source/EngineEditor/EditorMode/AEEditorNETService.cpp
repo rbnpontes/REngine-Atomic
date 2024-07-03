@@ -20,8 +20,8 @@
 // THE SOFTWARE.
 //
 
-#include <Atomic/Core/Context.h>
-#include <Atomic/IO/Log.h>
+#include <EngineCore/Core/Context.h>
+#include <EngineCore/IO/Log.h>
 
 #include <AtomicNET/NETScript/NETScript.h>
 

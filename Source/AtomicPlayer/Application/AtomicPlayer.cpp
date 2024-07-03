@@ -21,22 +21,22 @@
 // THE SOFTWARE.
 //
 
-#include <Atomic/Atomic.h>
-#include <Atomic/Engine/Engine.h>
-#include <Atomic/Engine/EngineConfig.h>
-#include <Atomic/IO/FileSystem.h>
-#include <Atomic/IO/Log.h>
-#include <Atomic/IO/IOEvents.h>
-#include <Atomic/Input/InputEvents.h>
-#include <Atomic/Core/Main.h>
-#include <Atomic/Core/ProcessUtils.h>
-#include <Atomic/Resource/ResourceCache.h>
-#include <Atomic/Resource/ResourceEvents.h>
-#include <Atomic/Script/ScriptSystem.h>
-#include <Atomic/UI/UI.h>
+#include <EngineCore/Atomic.h>
+#include <EngineCore/Engine/Engine.h>
+#include <EngineCore/Engine/EngineConfig.h>
+#include <EngineCore/IO/FileSystem.h>
+#include <EngineCore/IO/Log.h>
+#include <EngineCore/IO/IOEvents.h>
+#include <EngineCore/Input/InputEvents.h>
+#include <EngineCore/Core/Main.h>
+#include <EngineCore/Core/ProcessUtils.h>
+#include <EngineCore/Resource/ResourceCache.h>
+#include <EngineCore/Resource/ResourceEvents.h>
+#include <EngineCore/Script/ScriptSystem.h>
+#include <EngineCore/UI/UI.h>
 
 // Move me
-#include <Atomic/Environment/Environment.h>
+#include <EngineCore/Environment/Environment.h>
 
 #include <AtomicJS/Javascript/Javascript.h>
 
@@ -44,7 +44,7 @@
 
 #include "AtomicPlayer.h"
 
-#include <Atomic/DebugNew.h>
+#include <EngineCore/DebugNew.h>
 
 #ifdef __APPLE__
 #include <unistd.h>
@@ -95,14 +95,14 @@ void AtomicPlayerApp::Setup()
     engineParameters_.InsertNew("ResourcePaths", "AtomicResources");
 #endif
 
-#if ATOMIC_PLATFORM_WINDOWS || ATOMIC_PLATFORM_LINUX
+#if ENGINE_PLATFORM_WINDOWS || ENGINE_PLATFORM_LINUX
 
     engineParameters_.InsertNew("WindowIcon", "Images/AtomicLogo32.png");
     engineParameters_.InsertNew("ResourcePrefixPaths", "AtomicPlayer_Resources");
 
 #elif ATOMIC_PLATFORM_ANDROID
     //engineParameters_.InsertNew("ResourcePrefixPaths"], "assets");
-#elif ATOMIC_PLATFORM_OSX
+#elif ENGINE_PLATFORM_MACOS
     engineParameters_.InsertNew("ResourcePrefixPaths", filesystem->GetProgramDir() + "../Resources");
 #endif
 
@@ -228,7 +228,7 @@ void AtomicPlayerApp::ReadEngineConfig()
 {
     FileSystem* fileSystem = GetSubsystem<FileSystem>();
 
-#ifdef ATOMIC_PLATFORM_OSX
+#ifdef ENGINE_PLATFORM_MACOS
     String filename = fileSystem->GetProgramDir() + "../Resources/Settings/Engine.json";
 #else
     String filename = fileSystem->GetProgramDir() + "Settings/Engine.json";

@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include <Atomic/Container/Str.h>
+#include <EngineCore/Container/Str.h>
 
 #include "../JSBPackageWriter.h"
 

@@ -1,9 +1,9 @@
 
-#include <Atomic/Math/MathDefs.h>
-#include <Atomic/Core/ProcessUtils.h>
-#include <Atomic/Core/Thread.h>
-#include <Atomic/IO/Log.h>
-#include <Atomic/Script/ScriptVariantMap.h>
+#include <EngineCore/Math/MathDefs.h>
+#include <EngineCore/Core/ProcessUtils.h>
+#include <EngineCore/Core/Thread.h>
+#include <EngineCore/IO/Log.h>
+#include <EngineCore/Script/ScriptVariantMap.h>
 
 #include "NETCore.h"
 #include "NETEventDispatcher.h"

@@ -23,7 +23,7 @@
 
 #pragma once
 
-#include <Atomic/Engine/Application.h>
+#include <EngineCore/Engine/Application.h>
 
 namespace Atomic
 {

@@ -26,7 +26,7 @@
 #include "JSNetwork.h"
 #include "JSVM.h"
 
-#include <Atomic/Network/HttpRequest.h>
+#include <EngineCore/Network/HttpRequest.h>
 
 namespace Atomic
 {

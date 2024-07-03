@@ -502,7 +502,7 @@ namespace ToolCore
             if (!GetIsPCL())
                 pgroup.CreateChild("PlatformTarget").SetValue("x64");
 
-#ifndef ATOMIC_PLATFORM_WINDOWS
+#ifndef ENGINE_PLATFORM_WINDOWS
 
             String startArguments;
 
@@ -510,7 +510,7 @@ namespace ToolCore
 
         FileSystem* fileSystem = GetSubsystem<FileSystem>();
 
-        #ifdef ATOMIC_PLATFORM_OSX
+        #ifdef ENGINE_PLATFORM_MACOS
             startArguments += ToString("--resourcePrefix \"%s\" ", (fileSystem->GetProgramDir() + "../Resources/").CString());
         #else
             startArguments += ToString("--resourcePrefix \"%s\" ", (fileSystem->GetProgramDir() + "Resources/").CString());
@@ -608,7 +608,7 @@ namespace ToolCore
             if (!GetIsPCL())
                 pgroup.CreateChild("PlatformTarget").SetValue("x64");
 
-#ifndef ATOMIC_PLATFORM_WINDOWS
+#ifndef ENGINE_PLATFORM_WINDOWS
 
             String startArguments;
 
@@ -616,7 +616,7 @@ namespace ToolCore
 
         FileSystem* fileSystem = GetSubsystem<FileSystem>();
 
-        #ifdef ATOMIC_PLATFORM_OSX
+        #ifdef ENGINE_PLATFORM_MACOS
             startArguments += ToString("--resourcePrefix \"%s\" ", (fileSystem->GetProgramDir() + "../Resources/").CString());
         #else
             startArguments += ToString("--resourcePrefix \"%s\" ", (fileSystem->GetProgramDir() + "Resources/").CString());
@@ -676,13 +676,13 @@ namespace ToolCore
             String config = "Release";
 #endif
 
-#ifdef ATOMIC_PLATFORM_WINDOWS
+#ifdef ENGINE_PLATFORM_WINDOWS
             String platform = "Windows";
             String filename = "AtomicNETNative.dll";
-#elif defined(ATOMIC_PLATFORM_OSX)
+#elif defined(ENGINE_PLATFORM_MACOS)
             String platform = "Mac";
             String filename = "libAtomicNETNative.dylib";
-#elif defined(ATOMIC_PLATFORM_LINUX)
+#elif defined(ENGINE_PLATFORM_LINUX)
             String platform = "Linux";
             String filename = "libAtomicNETNative.so";
 #endif
@@ -933,7 +933,7 @@ namespace ToolCore
 
         String oType = outputType_;
 
-#ifdef ATOMIC_PLATFORM_WINDOWS
+#ifdef ENGINE_PLATFORM_WINDOWS
 #ifndef ATOMIC_DEBUG
 
         if (oType.ToLower() == "exe") 
@@ -1194,7 +1194,7 @@ namespace ToolCore
 
 #ifndef ATOMIC_DEV_BUILD
 
-#ifdef ATOMIC_PLATFORM_OSX
+#ifdef ENGINE_PLATFORM_MACOS
                     startArguments += ToString("--resourcePrefix \"%s\" ", (fileSystem->GetProgramDir() + "../Resources/").CString());
 #else
                     startArguments += ToString("--resourcePrefix \"%s\" ", (fileSystem->GetProgramDir() + "Resources/").CString());
@@ -1285,7 +1285,7 @@ namespace ToolCore
         }
 
 #ifdef ATOMIC_DEV_BUILD
-#ifndef ATOMIC_PLATFORM_WINDOWS
+#ifndef ENGINE_PLATFORM_WINDOWS
 
         // On xbuild, mdb files for references aren't being copied to output folders for desktop
         if (platforms_.Size() == 1 && SupportsDesktop() && outputType_.ToLower() == "exe")

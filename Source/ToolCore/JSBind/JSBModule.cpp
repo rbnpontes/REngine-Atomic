@@ -554,7 +554,7 @@ String JSBModule::GetClassDefineGuard(const String& name, const String& language
             }
             else
             {
-                defines.Push("!defined(ATOMIC_PLATFORM_WINDOWS)");
+                defines.Push("!defined(ENGINE_PLATFORM_WINDOWS)");
             }
             
         }
@@ -567,7 +567,7 @@ String JSBModule::GetClassDefineGuard(const String& name, const String& language
             }
             else
             {
-                defines.Push("!defined(ATOMIC_PLATFORM_OSX)");
+                defines.Push("!defined(ENGINE_PLATFORM_MACOS)");
             }
         }
         else if (platform == "linux")
@@ -579,7 +579,7 @@ String JSBModule::GetClassDefineGuard(const String& name, const String& language
             }
             else
             {
-                defines.Push("!defined(ATOMIC_PLATFORM_LINUX)");
+                defines.Push("!defined(ENGINE_PLATFORM_LINUX)");
             }
         }
         else if (platform == "android")
@@ -648,11 +648,11 @@ String JSBModule::GetModuleDefineGuard() const
             if (modules[i].ToLower() == name_.ToLower())
             {
                 if (platform.ToLower() == "windows")
-                    defines.Push("!defined(ATOMIC_PLATFORM_WINDOWS)");
+                    defines.Push("!defined(ENGINE_PLATFORM_WINDOWS)");
                 else if (platform.ToLower() == "macosx")
-                    defines.Push("!defined(ATOMIC_PLATFORM_OSX)");
+                    defines.Push("!defined(ENGINE_PLATFORM_MACOS)");
                 else if (platform.ToLower() == "linux")
-                    defines.Push("!defined(ATOMIC_PLATFORM_LINUX)");
+                    defines.Push("!defined(ENGINE_PLATFORM_LINUX)");
                 else if (platform.ToLower() == "android")
                     defines.Push("!defined(ATOMIC_PLATFORM_ANDROID)");
                 else if (platform.ToLower() == "ios")

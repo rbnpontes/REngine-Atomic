@@ -49,7 +49,7 @@ void WebAppBrowser::OnBeforeCommandLineProcessing(const CefString& process_type,
     // disable cors
     command_line->AppendSwitch("--disable-web-security");
 
-#ifdef ATOMIC_PLATFORM_LINUX
+#ifdef ENGINE_PLATFORM_LINUX
     // Issues with GPU acceleration (and possibly offscreen rendering)
     // https://github.com/AtomicGameEngine/AtomicGameEngine/issues/924
     command_line->AppendSwitch("--disable-gpu");

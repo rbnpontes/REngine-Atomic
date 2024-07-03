@@ -51,7 +51,7 @@ BuildBase* PlatformAndroid::NewBuild(Project *project)
 
 void PlatformAndroid::PrependAndroidCommandArgs(Vector<String> args)
 {
-#ifdef ATOMIC_PLATFORM_WINDOWS
+#ifdef ENGINE_PLATFORM_WINDOWS
     // android is a batch file on windows, so have to run with cmd /c
     args.Push("/c");
     args.Push("\"" + GetAndroidCommand() + "\"");
@@ -139,13 +139,13 @@ String PlatformAndroid::GetADBCommand() const
 
     String adbCommand = prefs->GetAndroidSDKPath();
 
-#ifdef ATOMIC_PLATFORM_OSX
+#ifdef ENGINE_PLATFORM_MACOS
     adbCommand += "/platform-tools/adb";
 #endif
-#ifdef ATOMIC_PLATFORM_WINDOWS
+#ifdef ENGINE_PLATFORM_WINDOWS
     adbCommand += "/platform-tools/adb.exe";
 #endif
-#ifdef ATOMIC_PLATFORM_LINUX
+#ifdef ENGINE_PLATFORM_LINUX
     adbCommand += "/platform-tools/adb";
 #endif
 
@@ -162,18 +162,18 @@ String PlatformAndroid::GetAndroidCommand() const
     if (!androidCommand.Length())
         return String::EMPTY;
 
-#ifdef ATOMIC_PLATFORM_OSX
+#ifdef ENGINE_PLATFORM_MACOS
     //Vector<String> args = String("list targets").Split(' ');
     androidCommand += "/tools/android";
 #endif
-#ifdef ATOMIC_PLATFORM_WINDOWS
+#ifdef ENGINE_PLATFORM_WINDOWS
 
     // android is a batch file on windows, so have to run with cmd /c
     androidCommand += "\\tools\\android.bat";
 
     //androidCommand = "cmd";
 #endif
-#ifdef ATOMIC_PLATFORM_LINUX
+#ifdef ENGINE_PLATFORM_LINUX
     androidCommand += "/tools/android";
 #endif
     return androidCommand;

@@ -48,7 +48,7 @@ String FileUtils::OpenProjectFileDialog()
 
     String upath;
 
-#ifdef ATOMIC_PLATFORM_LINUX
+#ifdef ENGINE_PLATFORM_LINUX
     upath = GetSubsystem<FileSystem>()->GetUserDocumentsDir();
 #endif
 
@@ -92,7 +92,7 @@ String FileUtils::NewProjectFileDialog()
 
     String upath;
     
-#ifdef ATOMIC_PLATFORM_LINUX
+#ifdef ENGINE_PLATFORM_LINUX
     upath = GetSubsystem<FileSystem>()->GetUserDocumentsDir();
 #endif
 

@@ -23,8 +23,8 @@
 #include "JSAPI.h"
 #include "JSAudio.h"
 
-#include <Atomic/Audio/Sound.h>
-#include <Atomic/Audio/SoundStream.h>
+#include <EngineCore/Audio/Sound.h>
+#include <EngineCore/Audio/SoundStream.h>
 
 namespace Atomic
 {

@@ -80,7 +80,7 @@ static void do_reconnect()
     }
 }
 
-#ifdef ATOMIC_PLATFORM_WINDOWS
+#ifdef ENGINE_PLATFORM_WINDOWS
 
 /*
  *  Example debug transport using a Windows TCP socket

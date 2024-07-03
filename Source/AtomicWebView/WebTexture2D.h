@@ -22,8 +22,8 @@
 
 #pragma once
 
-#include <Atomic/Graphics/Texture2D.h>
-#include <Atomic/Graphics/Material.h>
+#include <EngineCore/Graphics/Texture2D.h>
+#include <EngineCore/Graphics/Material.h>
 
 #include "WebRenderHandler.h"
 

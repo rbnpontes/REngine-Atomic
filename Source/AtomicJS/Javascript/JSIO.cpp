@@ -22,8 +22,8 @@
 
 #include "JSIO.h"
 #include "JSVM.h"
-#include <Atomic/IO/BufferQueue.h>
-#include <Atomic/IO/File.h>
+#include <EngineCore/IO/BufferQueue.h>
+#include <EngineCore/IO/File.h>
 
 namespace Atomic
 {

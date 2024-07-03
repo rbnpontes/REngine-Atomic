@@ -250,7 +250,7 @@ bool EditorMode::PlayProjectInternal(const String &addArgs, bool debug)
         vargs.Insert(0, ToString("\"%s/Resources/\"", tenv->GetRootSourceDir().CString()));
 #else
 
-#ifdef ATOMIC_PLATFORM_OSX
+#ifdef ENGINE_PLATFORM_MACOS
         vargs.Insert(0, ToString("\"%s\"", (fileSystem->GetProgramDir() + "../Resources/").CString()));
 #else
         vargs.Insert(0, ToString("\"%s\"", (fileSystem->GetProgramDir() + "Resources/").CString()));
@@ -284,12 +284,12 @@ bool EditorMode::PlayProjectInternal(const String &addArgs, bool debug)
     if (addArgs.Length() > 0)
         vargs.Insert(0, addArgs.Split(' '));
 
-#ifndef ATOMIC_PLATFORM_WINDOWS
+#ifndef ENGINE_PLATFORM_WINDOWS
     if (managed)
     {
         vargs.Insert(0, playerBinary);
 
-#ifdef ATOMIC_PLATFORM_OSX
+#ifdef ENGINE_PLATFORM_MACOS
         playerBinary = tenv->GetMonoExecutableDir() + "mono64";
 #else
         playerBinary = "mono";

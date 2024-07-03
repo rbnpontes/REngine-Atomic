@@ -24,10 +24,10 @@
 
 #include <TurboBadger/tb_widgets.h>
 
-#include <Atomic/UI/UI.h>
-#include <Atomic/UI/UIWidget.h>
+#include <EngineCore/UI/UI.h>
+#include <EngineCore/UI/UIWidget.h>
 
-#include <Atomic/Graphics/Texture2D.h>
+#include <EngineCore/Graphics/Texture2D.h>
 
 namespace Atomic
 {

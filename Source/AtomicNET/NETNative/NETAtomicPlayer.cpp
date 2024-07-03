@@ -21,20 +21,20 @@
 // THE SOFTWARE.
 //
 
-#include <Atomic/Engine/Engine.h>
-#include <Atomic/Engine/EngineConfig.h>
-#include <Atomic/IO/FileSystem.h>
+#include <EngineCore/Engine/Engine.h>
+#include <EngineCore/Engine/EngineConfig.h>
+#include <EngineCore/IO/FileSystem.h>
 
 #include "NETCore.h"
 #include <AtomicNET/NETScript/NETScript.h>
 
 #include "NETAtomicPlayer.h"
 
-#ifdef ATOMIC_PLATFORM_OSX
+#ifdef ENGINE_PLATFORM_MACOS
 #include <unistd.h>
 #endif
 
-#ifdef ATOMIC_PLATFORM_WINDOWS
+#ifdef ENGINE_PLATFORM_WINDOWS
 #include <stdio.h>
 #endif
 
@@ -120,7 +120,7 @@ namespace Atomic
     {
         FileSystem* fileSystem = GetSubsystem<FileSystem>();
 
-#ifdef ATOMIC_PLATFORM_OSX
+#ifdef ENGINE_PLATFORM_MACOS
         String filename = fileSystem->GetProgramDir() + "../Resources/Settings/Engine.json";
 #else
         String filename = fileSystem->GetProgramDir() + "Settings/Engine.json";

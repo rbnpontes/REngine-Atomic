@@ -20,7 +20,7 @@
 // THE SOFTWARE.
 //
 
-#ifdef ATOMIC_PLATFORM_WINDOWS
+#ifdef ENGINE_PLATFORM_WINDOWS
 
 #define WIN32_LEAN_AND_MEAN
 #define STRICT
@@ -30,11 +30,11 @@
 #undef _WIN32_WINNT
 #define _WIN32_WINNT  0x501   /* Need 0x410 for AlphaBlend() and 0x500 for EnumDisplayDevices(), 0x501 for raw input */
 
-#include <Atomic/IO/Log.h>
-#include <Atomic/Core/Context.h>
-#include <Atomic/Core/CoreEvents.h>
-#include <Atomic/Input/InputEvents.h>
-#include <Atomic/Graphics/Graphics.h>
+#include <EngineCore/IO/Log.h>
+#include <EngineCore/Core/Context.h>
+#include <EngineCore/Core/CoreEvents.h>
+#include <EngineCore/Input/InputEvents.h>
+#include <EngineCore/Graphics/Graphics.h>
 
 #include "UIDragDrop.h"
 #include "UIDragDropMac.h"

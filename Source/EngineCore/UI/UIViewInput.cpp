@@ -92,7 +92,7 @@ void UIView::HandleMouseButtonDown(StringHash eventType, VariantMap& eventData)
     Input* input = GetSubsystem<Input>();
     int qualifiers = input->GetQualifiers();
 
-#ifdef ATOMIC_PLATFORM_OSX
+#ifdef ENGINE_PLATFORM_MACOS
     bool superdown = input->GetKeyDown(KEY_LGUI) || input->GetKeyDown(KEY_RGUI);
 #else
     bool superdown = input->GetKeyDown(KEY_LCTRL) || input->GetKeyDown(KEY_RCTRL);
@@ -136,7 +136,7 @@ void UIView::HandleMouseButtonUp(StringHash eventType, VariantMap& eventData)
     pos = input->GetMousePosition();
     int qualifiers = input->GetQualifiers();
 
-#ifdef ATOMIC_PLATFORM_OSX
+#ifdef ENGINE_PLATFORM_MACOS
     bool superdown = input->GetKeyDown(KEY_LGUI) || input->GetKeyDown(KEY_RGUI);
 #else
     bool superdown = input->GetKeyDown(KEY_LCTRL) || input->GetKeyDown(KEY_RCTRL);
@@ -276,7 +276,7 @@ static bool InvokeShortcut(UI* ui, int key, SPECIAL_KEY special_key, MODIFIER_KE
         id = TBIDC("close");
     else if (upper_key == 'F')
         id = TBIDC("find");
- #ifdef ATOMIC_PLATFORM_OSX
+ #ifdef ENGINE_PLATFORM_MACOS
     else if (upper_key == 'G' && (modifierkeys & TB_SHIFT))
         id = TBIDC("findprev");
     else if (upper_key == 'G')
@@ -340,7 +340,7 @@ void UIView::HandleKey(bool keydown, int keycode, int scancode)
         SendEvent(E_UIWIDGETFOCUSESCAPED);
     }
 
-#ifndef ATOMIC_PLATFORM_OSX
+#ifndef ENGINE_PLATFORM_MACOS
     if (keycode == KEY_LCTRL || keycode == KEY_RCTRL)
         return;
 #else
@@ -351,7 +351,7 @@ void UIView::HandleKey(bool keydown, int keycode, int scancode)
     Input* input = GetSubsystem<Input>();
     int qualifiers = input->GetQualifiers();
 
-#ifndef ATOMIC_PLATFORM_OSX
+#ifndef ENGINE_PLATFORM_MACOS
     bool superdown = input->GetKeyDown(KEY_LCTRL) || input->GetKeyDown(KEY_RCTRL);
 #else
     bool superdown = input->GetKeyDown(KEY_LGUI) || input->GetKeyDown(KEY_RGUI);
@@ -473,7 +473,7 @@ void UIView::HandleKeyDown(StringHash eventType, VariantMap& eventData)
     // Send Global Shortcut
     Input* input = GetSubsystem<Input>();
 
-#ifndef ATOMIC_PLATFORM_OSX
+#ifndef ENGINE_PLATFORM_MACOS
     bool superdown = input->GetKeyDown(KEY_LCTRL) || input->GetKeyDown(KEY_RCTRL);
     if (keycode == KEY_LCTRL || keycode == KEY_RCTRL)
         superdown = false;

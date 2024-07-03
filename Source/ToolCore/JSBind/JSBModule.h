@@ -22,8 +22,8 @@
 
 #pragma once
 
-#include <Atomic/Core/Object.h>
-#include <Atomic/Resource/JSONValue.h>
+#include <EngineCore/Core/Object.h>
+#include <EngineCore/Resource/JSONValue.h>
 #include "JSBindTypes.h"
 
 using namespace Atomic;

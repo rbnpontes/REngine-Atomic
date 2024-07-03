@@ -20,7 +20,7 @@
 // THE SOFTWARE.
 //
 
-#ifdef ATOMIC_PLATFORM_WINDOWS
+#ifdef ENGINE_PLATFORM_WINDOWS
 
 #include <Windows.h>
 #include <Sddl.h>

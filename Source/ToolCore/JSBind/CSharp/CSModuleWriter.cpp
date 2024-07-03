@@ -95,7 +95,7 @@ void CSModuleWriter::WriteIncludes(String& source)
         included.Push(header);
     }
 
-    source += "\n#include <Atomic/Script/ScriptVector.h>\n";
+    source += "\n#include <EngineCore/Script/ScriptVector.h>\n";
 
     source += ToString("\n#include \"CSPackage%s.h\"\n", module_->GetPackage()->GetName().CString());
 
@@ -112,7 +112,7 @@ void CSModuleWriter::GenerateNativeSource()
         source += ToString("\n%s\n", moduleGuard.CString());
     }
 
-    source += "#ifdef ATOMIC_PLATFORM_WINDOWS\n";
+    source += "#ifdef ENGINE_PLATFORM_WINDOWS\n";
 
     source += "#pragma warning(disable: 4244) // possible loss of data\n";
 
@@ -133,8 +133,8 @@ void CSModuleWriter::GenerateNativeSource()
 
     // NOTE: We include Deserializer/Serializer here as they are interfaces
     // If additional interfaces are introduced, consider generalizing this
-    source += "\n#include <Atomic/IO/Deserializer.h>\n";
-    source += "#include <Atomic/IO/Serializer.h>\n";
+    source += "\n#include <EngineCore/IO/Deserializer.h>\n";
+    source += "#include <EngineCore/IO/Serializer.h>\n";
     source += "#include <AtomicNET/NETNative/NETCore.h>\n";
 
     String ns = module_->GetPackage()->GetNamespace();

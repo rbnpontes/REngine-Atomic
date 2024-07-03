@@ -24,9 +24,9 @@
 
 #pragma once
 
-#include <Atomic/Core/Object.h>
+#include <EngineCore/Core/Object.h>
 
-#include <Atomic/UI/UISceneView.h>
+#include <EngineCore/UI/UISceneView.h>
 
 using namespace Atomic;
 

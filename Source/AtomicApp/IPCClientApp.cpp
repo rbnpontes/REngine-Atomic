@@ -29,7 +29,7 @@
 
 #include "IPCClientApp.h"
 
-#ifdef ATOMIC_PLATFORM_WINDOWS
+#ifdef ENGINE_PLATFORM_WINDOWS
 #include <windows.h>
 #endif
 

@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include <Atomic/Graphics/GraphicsDefs.h>
+#include <EngineCore/Graphics/GraphicsDefs.h>
 
 #include "EditorComponent.h"
 

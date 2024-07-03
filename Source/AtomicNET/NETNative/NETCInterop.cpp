@@ -1,39 +1,39 @@
 
-#include <Atomic/Core/Thread.h>
+#include <EngineCore/Core/Thread.h>
 
-#include <Atomic/Resource/ResourceCache.h>
-#include <Atomic/Script/ScriptVariant.h>
-#include <Atomic/Script/ScriptVariantMap.h>
-#include <Atomic/IPC/IPC.h>
+#include <EngineCore/Resource/ResourceCache.h>
+#include <EngineCore/Script/ScriptVariant.h>
+#include <EngineCore/Script/ScriptVariantMap.h>
+#include <EngineCore/IPC/IPC.h>
 
-#include <Atomic/Graphics/VertexBuffer.h>
-#include <Atomic/Graphics/Viewport.h>
-#include <Atomic/Graphics/Graphics.h>
-#include <Atomic/Graphics/RenderPath.h>
-#include <Atomic/Graphics/Camera.h>
-#include <Atomic/Graphics/Light.h>
-#include <Atomic/Graphics/Octree.h>
-#include <Atomic/Graphics/AnimatedModel.h>
-#include <Atomic/Graphics/Material.h>
+#include <EngineCore/Graphics/VertexBuffer.h>
+#include <EngineCore/Graphics/Viewport.h>
+#include <EngineCore/Graphics/Graphics.h>
+#include <EngineCore/Graphics/RenderPath.h>
+#include <EngineCore/Graphics/Camera.h>
+#include <EngineCore/Graphics/Light.h>
+#include <EngineCore/Graphics/Octree.h>
+#include <EngineCore/Graphics/AnimatedModel.h>
+#include <EngineCore/Graphics/Material.h>
 
-#include <Atomic/Navigation/NavigationMesh.h>
-#include <Atomic/Navigation/CrowdManager.h>
+#include <EngineCore/Navigation/NavigationMesh.h>
+#include <EngineCore/Navigation/CrowdManager.h>
 
-#include <Atomic/Physics/PhysicsWorld.h>
+#include <EngineCore/Physics/PhysicsWorld.h>
 
-#include <Atomic/Scene/ValueAnimation.h>
+#include <EngineCore/Scene/ValueAnimation.h>
 
 #include <AtomicNET/NETScript/CSComponent.h>
 
-#include <Atomic/Input/Controls.h>
+#include <EngineCore/Input/Controls.h>
 
-#include <Atomic/Atomic2D/PhysicsWorld2D.h>
-#include <Atomic/Core/Profiler.h>
-#include <Atomic/IO/Log.h>
+#include <EngineCore/Atomic2D/PhysicsWorld2D.h>
+#include <EngineCore/Core/Profiler.h>
+#include <EngineCore/IO/Log.h>
 
 #include "NETCore.h"
 
-#ifdef ATOMIC_PLATFORM_WINDOWS
+#ifdef ENGINE_PLATFORM_WINDOWS
 #define ATOMIC_EXPORT_API __declspec(dllexport)
 #else
 #define ATOMIC_EXPORT_API

@@ -172,7 +172,7 @@ namespace Atomic
         // if we haven't defined any search paths, insert default
         if (!engineConfigSearchPaths_.Size())
         {
-#ifdef ATOMIC_PLATFORM_OSX
+#ifdef ENGINE_PLATFORM_MACOS
         AddEngineConfigSearchPath(fileSystem->GetProgramDir() + "../Resources/Settings/");
 #else
         AddEngineConfigSearchPath(fileSystem->GetProgramDir() + "Settings/");
@@ -245,7 +245,7 @@ namespace Atomic
     bool AppBase::GetDebuggerAttached()
     {
 
-#ifdef ATOMIC_PLATFORM_WINDOWS
+#ifdef ENGINE_PLATFORM_WINDOWS
         return IsDebuggerPresent() ? true : false;
 #else
         return false;

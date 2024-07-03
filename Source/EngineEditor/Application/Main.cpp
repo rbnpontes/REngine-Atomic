@@ -20,7 +20,7 @@
 // THE SOFTWARE.
 //
 
-#if defined(ATOMIC_PLATFORM_WINDOWS) || defined (ATOMIC_PLATFORM_LINUX)
+#if defined(ENGINE_PLATFORM_WINDOWS) || defined (ENGINE_PLATFORM_LINUX)
 #ifdef ATOMIC_WEBVIEW
 #include <AtomicWebView/AtomicWebView.h>
 #endif
@@ -150,7 +150,7 @@ int main(int argc, char** argv)
 {
   Atomic::ParseArguments(argc, argv);
 
-#if defined(ATOMIC_PLATFORM_WINDOWS) || defined (ATOMIC_PLATFORM_LINUX)
+#if defined(ENGINE_PLATFORM_WINDOWS) || defined (ENGINE_PLATFORM_LINUX)
 #ifdef ATOMIC_WEBVIEW
 
     int exit_code = Atomic::WebMain(argc, argv);

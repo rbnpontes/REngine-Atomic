@@ -350,7 +350,7 @@ void UIComponent::HandleMouseButtonDown(StringHash eventType, VariantMap& eventD
 
     int qualifiers = input->GetQualifiers();
 
-#ifdef ATOMIC_PLATFORM_WINDOWS
+#ifdef ENGINE_PLATFORM_WINDOWS
     bool superdown = input->GetKeyDown(KEY_LCTRL) || input->GetKeyDown(KEY_RCTRL);
 #else
     bool superdown = input->GetKeyDown(KEY_LGUI) || input->GetKeyDown(KEY_RGUI);
@@ -393,7 +393,7 @@ void UIComponent::HandleMouseButtonUp(StringHash eventType, VariantMap& eventDat
 
     int qualifiers = input->GetQualifiers();
 
-#ifdef ATOMIC_PLATFORM_WINDOWS
+#ifdef ENGINE_PLATFORM_WINDOWS
     bool superdown = input->GetKeyDown(KEY_LCTRL) || input->GetKeyDown(KEY_RCTRL);
 #else
     bool superdown = input->GetKeyDown(KEY_LGUI) || input->GetKeyDown(KEY_RGUI);

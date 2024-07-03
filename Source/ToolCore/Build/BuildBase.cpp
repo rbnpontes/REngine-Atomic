@@ -70,7 +70,7 @@ BuildBase::~BuildBase()
     delete fileIncludedResourcesLog_;
 }
 
-#ifdef ATOMIC_PLATFORM_WINDOWS
+#ifdef ENGINE_PLATFORM_WINDOWS
 
 bool BuildBase::BuildClean(const String& path)
 {
@@ -217,7 +217,7 @@ bool BuildBase::BuildRemoveDirectory(const String& path)
     if (!fileSystem->DirExists(path))
         return true;
 
-#ifdef ATOMIC_PLATFORM_LINUX
+#ifdef ENGINE_PLATFORM_LINUX
     bool result = true;   // fileSystem->RemoveDir(path, true); crashes on linux
     Poco::File dirs(buildPath_.CString());
     dirs.remove(true);

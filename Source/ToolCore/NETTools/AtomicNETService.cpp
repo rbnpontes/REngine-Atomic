@@ -66,16 +66,16 @@ namespace ToolCore
 
         String netServiceFilename = tenv->GetAtomicNETRootDir() + config + "/AtomicNETService/AtomicNETService.exe";
 
-#ifdef ATOMIC_PLATFORM_WINDOWS        
+#ifdef ENGINE_PLATFORM_WINDOWS        
 
         execPath = netServiceFilename;
 
-#elif defined ATOMIC_PLATFORM_OSX
+#elif defined ENGINE_PLATFORM_MACOS
 
         execPath = tenv->GetMonoExecutableDir() + "mono64";
         args.Push(netServiceFilename);
 
-#elif defined ATOMIC_PLATFORM_LINUX
+#elif defined ENGINE_PLATFORM_LINUX
 
         execPath = "/usr/bin/mono";
         args.Push(netServiceFilename);

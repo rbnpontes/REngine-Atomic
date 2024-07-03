@@ -258,7 +258,7 @@ bool Gizmo3D::MoveEditNodes(Vector3 adjust)
 
     Input* input = GetSubsystem<Input>();
 
-#ifdef ATOMIC_PLATFORM_OSX
+#ifdef ENGINE_PLATFORM_MACOS
     bool moveSnap = input->GetKeyDown(KEY_LGUI) || input->GetKeyDown(KEY_RGUI);
 #else
     bool moveSnap = input->GetKeyDown(KEY_LCTRL) || input->GetKeyDown(KEY_RCTRL);
@@ -311,7 +311,7 @@ bool Gizmo3D::RotateEditNodes(Vector3 adjust)
 
     Input* input = GetSubsystem<Input>();
 
-#ifdef ATOMIC_PLATFORM_OSX
+#ifdef ENGINE_PLATFORM_MACOS
     bool rotateSnap = input->GetKeyDown(KEY_LGUI) || input->GetKeyDown(KEY_RGUI);
 #else
     bool rotateSnap = input->GetKeyDown(KEY_LCTRL) || input->GetKeyDown(KEY_RCTRL);
@@ -361,7 +361,7 @@ bool Gizmo3D::ScaleEditNodes(Vector3 adjust)
 
     Input* input = GetSubsystem<Input>();
 
-#ifdef ATOMIC_PLATFORM_OSX
+#ifdef ENGINE_PLATFORM_MACOS
     bool scaleSnap = input->GetKeyDown(KEY_LGUI) || input->GetKeyDown(KEY_RGUI);
 #else
     bool scaleSnap = input->GetKeyDown(KEY_LCTRL) || input->GetKeyDown(KEY_RCTRL);

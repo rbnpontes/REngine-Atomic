@@ -22,9 +22,9 @@
 
 #pragma once
 
-#include <Atomic/Core/Object.h>
-#include <Atomic/Resource/JSONFile.h>
-#include <Atomic/Scene/Node.h>
+#include <EngineCore/Core/Object.h>
+#include <EngineCore/Resource/JSONFile.h>
+#include <EngineCore/Scene/Node.h>
 
 using namespace Atomic;
 

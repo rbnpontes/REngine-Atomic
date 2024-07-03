@@ -22,10 +22,10 @@
 
 #pragma once
 
-#include <Atomic/Core/Object.h>
+#include <EngineCore/Core/Object.h>
 
-#include <Atomic/Resource/XMLFile.h>
-#include <Atomic/Resource/JSONFile.h>
+#include <EngineCore/Resource/XMLFile.h>
+#include <EngineCore/Resource/JSONFile.h>
 
 using namespace Atomic;
 

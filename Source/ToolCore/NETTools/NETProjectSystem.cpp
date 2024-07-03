@@ -22,12 +22,12 @@
 
 #include <Poco/Environment.h>
 
-#include <Atomic/Core/CoreEvents.h>
-#include <Atomic/Core/ProcessUtils.h>
+#include <EngineCore/Core/CoreEvents.h>
+#include <EngineCore/Core/ProcessUtils.h>
 
-#include <Atomic/IO/Log.h>
-#include <Atomic/IO/FileSystem.h>
-#include <Atomic/Resource/ResourceEvents.h>
+#include <EngineCore/IO/Log.h>
+#include <EngineCore/IO/FileSystem.h>
+#include <EngineCore/Resource/ResourceEvents.h>
 
 #include "../ToolSystem.h"
 #include "../ToolEnvironment.h"
@@ -45,7 +45,7 @@
 #include "NETBuildSystem.h"
 #include "NETProjectSystem.h"
 
-#ifdef ATOMIC_PLATFORM_WINDOWS
+#ifdef ENGINE_PLATFORM_WINDOWS
 #include <Poco/WinRegistryKey.h>
 #endif
 
@@ -102,7 +102,7 @@ namespace ToolCore
             SubprocessSystem* subs = GetSubsystem<SubprocessSystem>();
             ideSubprocess_ = 0;
 
-#ifdef ATOMIC_PLATFORM_OSX
+#ifdef ENGINE_PLATFORM_MACOS
 
             command = "open";
             args.Push("-W");
@@ -115,7 +115,7 @@ namespace ToolCore
             if (sourceFilePath.Length())
                 args.Push(sourceFilePath);
 
-#ifndef ATOMIC_PLATFORM_OSX
+#ifndef ENGINE_PLATFORM_MACOS
             QuoteArguments(args);
 #endif
 
@@ -138,23 +138,23 @@ namespace ToolCore
             {
                 std::vector<std::string> args;
 
-#ifdef ATOMIC_PLATFORM_WINDOWS
+#ifdef ENGINE_PLATFORM_WINDOWS
 
                 args.push_back("/edit");
 
-#elif defined ATOMIC_PLATFORM_OSX
+#elif defined ENGINE_PLATFORM_MACOS
 
                 command = "open";
                 args.push_back("-a");
                 args.push_back(idePath_.CString());
 
-#elif defined ATOMIC_PLATFORM_LINUX
+#elif defined ENGINE_PLATFORM_LINUX
 
                 args.push_back(idePath_.CString());
 
 #endif
 
-#ifdef ATOMIC_PLATFORM_OSX
+#ifdef ENGINE_PLATFORM_MACOS
                 args.push_back(sourceFilePath.CString());
 #else
                 if (sourceFilePath.Contains(" ") && !sourceFilePath.Contains("\""))
@@ -510,7 +510,7 @@ namespace ToolCore
         SubscribeToEvent(E_ASSETMOVED, ATOMIC_HANDLER(NETProjectSystem, HandleAssetMoved));
 
 
-#ifdef ATOMIC_PLATFORM_WINDOWS
+#ifdef ENGINE_PLATFORM_WINDOWS
 
         // On Windows, we first check for VS2015, then VS2017 which
         // at the time of this comment is in RC, refactor once
@@ -550,7 +550,7 @@ namespace ToolCore
             }
         }
 
-#elif defined ATOMIC_PLATFORM_OSX
+#elif defined ENGINE_PLATFORM_MACOS
 
         FileSystem* fileSystem = GetSubsystem<FileSystem>();
 
@@ -569,7 +569,7 @@ namespace ToolCore
 
         }
 
-#elif defined ATOMIC_PLATFORM_LINUX
+#elif defined ENGINE_PLATFORM_LINUX
 
         FileSystem* fileSystem = GetSubsystem<FileSystem>();
 

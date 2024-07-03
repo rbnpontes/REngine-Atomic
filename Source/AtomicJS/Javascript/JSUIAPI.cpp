@@ -25,11 +25,11 @@
 #include "JSUIAPI.h"
 #include "JSVM.h"
 
-#include <Atomic/UI/UI.h>
-#include <Atomic/UI/UISelectItem.h>
-#include <Atomic/UI/UIMenuWindow.h>
-#include <Atomic/UI/UIButton.h>
-#include <Atomic/UI/UIWindow.h>
+#include <EngineCore/UI/UI.h>
+#include <EngineCore/UI/UISelectItem.h>
+#include <EngineCore/UI/UIMenuWindow.h>
+#include <EngineCore/UI/UIButton.h>
+#include <EngineCore/UI/UIWindow.h>
 
 namespace Atomic
 {

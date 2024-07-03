@@ -184,7 +184,7 @@ bool JSResourceEditor::OnEvent(const TBWidgetEvent &ev)
             VariantMap map;
             map[KeyUp::P_KEY] = KEY_Z;
             map[KeyUp::P_SCANCODE] = SCANCODE_Z;
-            #ifdef ATOMIC_PLATFORM_OSX
+            #ifdef ENGINE_PLATFORM_MACOS
             map["ForceSuperDown"] = true;
             #else
             map[KeyUp::P_QUALIFIERS] = QUAL_CTRL;
@@ -198,7 +198,7 @@ bool JSResourceEditor::OnEvent(const TBWidgetEvent &ev)
             VariantMap map;
             map[KeyUp::P_KEY] = KEY_Z;
             map[KeyUp::P_SCANCODE] = SCANCODE_Z;
-            #ifdef ATOMIC_PLATFORM_OSX
+            #ifdef ENGINE_PLATFORM_MACOS
             map[KeyUp::P_QUALIFIERS] = QUAL_SHIFT;
             map["ForceSuperDown"] = true;
             #else

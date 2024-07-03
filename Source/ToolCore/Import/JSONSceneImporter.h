@@ -23,8 +23,8 @@
 #pragma once
 
 #include <rapidjson/document.h>
-#include <Atomic/Container/List.h>
-#include <Atomic/Core/Object.h>
+#include <EngineCore/Container/List.h>
+#include <EngineCore/Core/Object.h>
 
 using namespace Atomic;
 

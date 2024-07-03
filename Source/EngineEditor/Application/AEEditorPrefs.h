@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include <Atomic/Resource/JSONFile.h>
+#include <EngineCore/Resource/JSONFile.h>
 
 using namespace Atomic;
 

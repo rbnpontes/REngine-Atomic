@@ -23,7 +23,7 @@
 #pragma once
 
 #include <Duktape/duktape.h>
-#include <Atomic/Core/Object.h>
+#include <EngineCore/Core/Object.h>
 
 namespace tb
 {

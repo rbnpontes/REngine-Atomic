@@ -367,11 +367,11 @@ String JSBPackage::GetPlatformDefineGuard() const
         const String& platform = platforms_[i];
 
         if (platform.ToLower() == "windows")
-            defines.Push("defined(ATOMIC_PLATFORM_WINDOWS)");
+            defines.Push("defined(ENGINE_PLATFORM_WINDOWS)");
         else if (platform.ToLower() == "macosx")
-            defines.Push("defined(ATOMIC_PLATFORM_OSX)");
+            defines.Push("defined(ENGINE_PLATFORM_MACOS)");
         else if (platform.ToLower() == "linux")
-            defines.Push("defined(ATOMIC_PLATFORM_LINUX)");
+            defines.Push("defined(ENGINE_PLATFORM_LINUX)");
         else if (platform.ToLower() == "android")
             defines.Push("defined(ATOMIC_PLATFORM_ANDROID)");
         else if (platform.ToLower() == "ios")

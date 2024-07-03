@@ -20,7 +20,7 @@
 // THE SOFTWARE.
 //
 
-#ifdef ATOMIC_PLATFORM_WINDOWS
+#ifdef ENGINE_PLATFORM_WINDOWS
 
 #include <include/cef_client.h>
 
@@ -29,10 +29,10 @@
 
 #include <ThirdParty/SDL/src/events/scancodes_windows.h>
 
-#include <Atomic/Core/Variant.h>
-#include <Atomic/Input/InputEvents.h>
-#include <Atomic/Input/Input.h>
-#include <Atomic/IO/Log.h>
+#include <EngineCore/Core/Variant.h>
+#include <EngineCore/Input/InputEvents.h>
+#include <EngineCore/Input/Input.h>
+#include <EngineCore/IO/Log.h>
 
 #include "WebKeyboard.h"
 

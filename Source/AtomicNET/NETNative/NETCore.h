@@ -22,8 +22,8 @@
 
 #pragma once
 
-#include <Atomic/Core/Context.h>
-#include <Atomic/Core/Object.h>
+#include <EngineCore/Core/Context.h>
+#include <EngineCore/Core/Object.h>
 
 namespace Atomic
 {

@@ -271,7 +271,7 @@ void SceneView3D::MoveCamera(float timeStep)
         int mouseWheel = input->GetMouseMoveWheel();
 
         // Apple decided to change the direction of mousewheel input to match touch devices
-#ifdef ATOMIC_PLATFORM_OSX
+#ifdef ENGINE_PLATFORM_MACOS
         mouseWheel = -mouseWheel;
 #endif
 
@@ -281,7 +281,7 @@ void SceneView3D::MoveCamera(float timeStep)
         CheckCameraSpeedBounds();
     }
 
-#ifdef ATOMIC_PLATFORM_OSX
+#ifdef ENGINE_PLATFORM_MACOS
     bool superdown = input->GetKeyDown(KEY_LGUI) || input->GetKeyDown(KEY_RGUI);
 #else
     bool superdown = input->GetKeyDown(KEY_LCTRL) || input->GetKeyDown(KEY_RCTRL);

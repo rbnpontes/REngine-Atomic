@@ -22,8 +22,8 @@
 
 #pragma once
 
-#include <Atomic/Core/Object.h>
-#include <Atomic/Container/List.h>
+#include <EngineCore/Core/Object.h>
+#include <EngineCore/Container/List.h>
 #include "Asset.h"
 
 using namespace Atomic;

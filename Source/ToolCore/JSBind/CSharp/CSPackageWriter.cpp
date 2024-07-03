@@ -102,7 +102,7 @@ void CSPackageWriter::GenerateNativeHeader()
 
     if (package_->name_ != "Atomic")
     {
-        source += "#include \"../../Atomic/Native/CSPackageAtomic.h\"\n";
+        source += "#include \"../../EngineCore/Native/CSPackageAtomic.h\"\n";
         source += "using namespace Atomic;\n";
     }
 

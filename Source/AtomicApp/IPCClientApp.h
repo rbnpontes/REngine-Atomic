@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include <Atomic/IPC/IPC.h>
+#include <EngineCore/IPC/IPC.h>
 
 #include "AppBase.h"
 

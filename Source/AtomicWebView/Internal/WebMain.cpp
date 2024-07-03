@@ -33,10 +33,10 @@ int WebMain(int argc, char* argv[])
     CefRefPtr<CefCommandLine> command_line = CefCommandLine::CreateCommandLine();
 
     // Provide CEF with command-line arguments.
-#ifdef ATOMIC_PLATFORM_WINDOWS
+#ifdef ENGINE_PLATFORM_WINDOWS
     CefMainArgs main_args;
     command_line->InitFromString(::GetCommandLineW());
-#elif ATOMIC_PLATFORM_OSX
+#elif ENGINE_PLATFORM_MACOS
     CefMainArgs main_args(argc, argv);
     command_line->InitFromArgv(argc, argv);
 #else

@@ -37,9 +37,9 @@
 #include "UIDragDrop.h"
 #include "UIDragObject.h"
 
-#ifdef ATOMIC_PLATFORM_OSX
+#ifdef ENGINE_PLATFORM_MACOS
 #include "UIDragDropMac.h"
-#elif ATOMIC_PLATFORM_WINDOWS
+#elif ENGINE_PLATFORM_WINDOWS
 #include "UIDragDropWindows.h"
 #else
 namespace Atomic { void InitDragAndDrop(UIDragDrop *dragAndDrop) {} }

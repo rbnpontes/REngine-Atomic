@@ -83,14 +83,14 @@ namespace Atomic
         engineParameters_.InsertNew("ResourcePaths", "AtomicResources");
 #endif
 
-#if ATOMIC_PLATFORM_WINDOWS || ATOMIC_PLATFORM_LINUX
+#if ENGINE_PLATFORM_WINDOWS || ENGINE_PLATFORM_LINUX
 
         engineParameters_.InsertNew("WindowIcon", "Images/AtomicLogo32.png");
         engineParameters_.InsertNew("ResourcePrefixPaths", "AtomicPlayer_Resources");
 
 #elif ATOMIC_PLATFORM_ANDROID
         //engineParameters_.InsertNew("ResourcePrefixPaths"], "assets");
-#elif ATOMIC_PLATFORM_OSX
+#elif ENGINE_PLATFORM_MACOS
         engineParameters_.InsertNew("ResourcePrefixPaths", filesystem->GetProgramDir() + "../Resources");
 #endif
 

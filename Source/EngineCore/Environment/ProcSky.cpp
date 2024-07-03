@@ -38,7 +38,7 @@
 #include "stdint.h"
 #endif
 
-#if defined(EMSCRIPTEN) || defined(ATOMIC_PLATFORM_LINUX)
+#if defined(EMSCRIPTEN) || defined(ENGINE_PLATFORM_LINUX)
 #include <stdint.h>
 #endif
 

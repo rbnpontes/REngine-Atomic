@@ -257,12 +257,12 @@ void BuildAndroid::RunAntDebug()
         buildApk = "release";
 
 
-#ifdef ATOMIC_PLATFORM_OSX
+#ifdef ENGINE_PLATFORM_MACOS
     String antCommand = tprefs->GetAntPath();
     Vector<String> args;
     args.Push(buildApk);
 #endif
-#ifdef ATOMIC_PLATFORM_WINDOWS
+#ifdef ENGINE_PLATFORM_WINDOWS
     // C:\ProgramData\Oracle\Java\javapath;
     Vector<String> args;
     String antCommand = "cmd";
@@ -273,7 +273,7 @@ void BuildAndroid::RunAntDebug()
     args.Push("\"" + antPath + "\"");
     args.Push(buildApk);
 #endif
-#ifdef ATOMIC_PLATFORM_LINUX 
+#ifdef ENGINE_PLATFORM_LINUX 
 
     String antCommand = tprefs->GetAntPath();
     if ( antCommand.Empty() ) // user didnt fill it out, use installed one

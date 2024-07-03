@@ -22,11 +22,11 @@
 
 #pragma once
 
-#include <Atomic/Core/Object.h>
-#include <Atomic/IPC/IPC.h>
-#include <Atomic/IPC/IPCTypes.h>
+#include <EngineCore/Core/Object.h>
+#include <EngineCore/IPC/IPC.h>
+#include <EngineCore/IPC/IPCTypes.h>
 
-#include <Atomic/UI/SystemUI/MessageBox.h>
+#include <EngineCore/UI/SystemUI/MessageBox.h>
 
 using namespace Atomic;
 

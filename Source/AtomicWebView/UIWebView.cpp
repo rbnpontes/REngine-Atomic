@@ -233,7 +233,7 @@ bool UIWebView::OnEvent(const TBWidgetEvent &ev)
     else if (ev.type == EVENT_TYPE_SHORTCUT)
     {
 
-#ifdef ATOMIC_PLATFORM_OSX
+#ifdef ENGINE_PLATFORM_MACOS
         // On OSX, these shortcuts are not being invoked with key combinations (Handle KeyDown/KeyUp)
         if (ev.ref_id == TBIDC("copy"))
         {

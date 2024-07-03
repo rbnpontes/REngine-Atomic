@@ -372,14 +372,14 @@ void UIFinderWindow::CreateBookmarks()
     String basepath = filesystem->GetUserDocumentsDir();
     UISelectList *bklist = static_cast<UISelectList *>(GetBookmarksWidget());
     
-#if defined(ATOMIC_PLATFORM_LINUX) 
+#if defined(ENGINE_PLATFORM_LINUX) 
     if ( filesystem->DirExists ( basepath )) CreateBookmark ( "Home", basepath );
     if ( filesystem->DirExists ( basepath + "Documents")) CreateBookmark ( "Documents", basepath + "Documents/" );
     if ( filesystem->DirExists ( basepath + "Music")) CreateBookmark ( "Music", basepath + "Music/" );
     if ( filesystem->DirExists ( basepath + "Pictures" )) CreateBookmark ( "Pictures", basepath + "Pictures/" );
     if ( filesystem->DirExists ( basepath + "Videos" )) CreateBookmark ( "Videos", basepath + "Videos/" );
     if ( filesystem->DirExists ( basepath + "Downloads")) CreateBookmark ( "Downloads", basepath + "Downloads/" );
-#elif defined(ATOMIC_PLATFORM_WINDOWS)
+#elif defined(ENGINE_PLATFORM_WINDOWS)
     if ( filesystem->DirExists ( basepath )) CreateBookmark ( "Home", basepath );
     if ( filesystem->DirExists ( basepath + "Desktop")) CreateBookmark ( "Desktop", basepath + "Desktop/" );
     if ( filesystem->DirExists ( basepath + "Documents")) CreateBookmark ( "Documents", basepath + "Documents/" );
@@ -387,7 +387,7 @@ void UIFinderWindow::CreateBookmarks()
     if ( filesystem->DirExists ( basepath + "Music")) CreateBookmark ( "Music", basepath + "Music/" );
     if ( filesystem->DirExists ( basepath + "Pictures" )) CreateBookmark ( "Pictures", basepath + "Pictures/" );
     if ( filesystem->DirExists ( basepath + "Videos" )) CreateBookmark ( "Videos", basepath + "Videos/" );
-#elif defined(ATOMIC_PLATFORM_OSX)
+#elif defined(ENGINE_PLATFORM_MACOS)
     if ( filesystem->DirExists ( basepath )) CreateBookmark ( "Home", basepath );
     if ( filesystem->DirExists ( basepath + "Documents")) CreateBookmark ( "Documents", basepath + "Documents/" );
     if ( filesystem->DirExists ( basepath + "Downloads")) CreateBookmark ( "Downloads", basepath + "Downloads/" );

@@ -20,9 +20,9 @@
 // THE SOFTWARE.
 //
 
-#include <Atomic/Core/CoreEvents.h>
-#include <Atomic/Physics/PhysicsEvents.h>
-#include <Atomic/Script/ScriptPhysics.h>
+#include <EngineCore/Core/CoreEvents.h>
+#include <EngineCore/Physics/PhysicsEvents.h>
+#include <EngineCore/Script/ScriptPhysics.h>
 
 #include "NETCore.h"
 #include "NETEventDispatcher.h"

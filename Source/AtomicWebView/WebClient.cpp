@@ -291,15 +291,15 @@ public:
 //
 //            if(SDL_GetWindowWMInfo(sdlWindow, &info))
 //            {
-//#ifdef ATOMIC_PLATFORM_OSX
+//#ifdef ENGINE_PLATFORM_MACOS
 //                NSView* view = (NSView*) GetNSWindowContentView(info.info.cocoa.window);
 //                windowInfo.SetAsWindowless(view, false);
 //#endif
 //
-//#ifdef ATOMIC_PLATFORM_WINDOWS
+//#ifdef ENGINE_PLATFORM_WINDOWS
 //                windowInfo.SetAsWindowless(info.info.win.window);
 //#endif
-//#ifdef ATOMIC_PLATFORM_LINUX
+//#ifdef ENGINE_PLATFORM_LINUX
 //                if ( info.subsystem == SDL_SYSWM_X11 )
 //                    windowInfo.SetAsWindowless(info.info.x11.window, true);
 //#endif
@@ -308,7 +308,7 @@ public:
 //        }
 //        else
 //        {
-//#ifndef ATOMIC_PLATFORM_LINUX
+//#ifndef ENGINE_PLATFORM_LINUX
 //            // headless
 //            windowInfo.SetAsWindowless(nullptr);
 //#endif
@@ -547,7 +547,7 @@ void WebClient::SendMouseWheelEvent(int x, int y, unsigned modifier,int deltaX, 
 
     deltaY = -deltaY * 5;
 
-#ifndef ATOMIC_PLATFORM_OSX
+#ifndef ENGINE_PLATFORM_MACOS
     deltaY *= 5;
 #endif
 
@@ -587,7 +587,7 @@ void WebClient::SendKeyEvent(const StringHash eventType, VariantMap& eventData)
 
     host->SendKeyEvent(keyEvent);
 
-#ifdef ATOMIC_PLATFORM_WINDOWS
+#ifdef ENGINE_PLATFORM_WINDOWS
 
     // RETURN KEY: We need to send both keydown and char for return key
     // this allows it to be used both to confirm entry on popups,
@@ -600,7 +600,7 @@ void WebClient::SendKeyEvent(const StringHash eventType, VariantMap& eventData)
 
 #endif
 
-#ifdef ATOMIC_PLATFORM_OSX
+#ifdef ENGINE_PLATFORM_MACOS
 
     // RETURN KEY: We need to send both keydown and char for return key
     // this allows it to be used both to confirm entry on popups,
@@ -626,7 +626,7 @@ void WebClient::SendKeyEvent(const StringHash eventType, VariantMap& eventData)
     host->SendKeyEvent(keyEvent);
 #endif
 
-#ifdef ATOMIC_PLATFORM_LINUX
+#ifdef ENGINE_PLATFORM_LINUX
 
     if (keyEvent.windows_key_code == 0x0D)
     {

@@ -23,12 +23,12 @@
 #include "JSMath.h"
 #include "JSGraphics.h"
 
-#include <Atomic/Graphics/Material.h>
-#include <Atomic/Graphics/Light.h>
-#include <Atomic/Graphics/Octree.h>
-#include <Atomic/Graphics/Camera.h>
-#include <Atomic/Scene/Node.h>
-#include <Atomic/Script/ScriptRenderPathCommand.h>
+#include <EngineCore/Graphics/Material.h>
+#include <EngineCore/Graphics/Light.h>
+#include <EngineCore/Graphics/Octree.h>
+#include <EngineCore/Graphics/Camera.h>
+#include <EngineCore/Scene/Node.h>
+#include <EngineCore/Script/ScriptRenderPathCommand.h>
 
 namespace Atomic
 {

@@ -42,7 +42,7 @@
 
 #include "AEPlayerMode.h"
 
-#ifdef ATOMIC_PLATFORM_WINDOWS
+#ifdef ENGINE_PLATFORM_WINDOWS
 #include <windows.h>
 #endif
 
@@ -134,7 +134,7 @@ void PlayerMode::ProcessArguments() {
                 {
                     if (argument.StartsWith("--ipc-server="))
                     {
-#ifdef ATOMIC_PLATFORM_WINDOWS
+#ifdef ENGINE_PLATFORM_WINDOWS
                         // clientRead
                         WString wipc(ipc[1]);
                         HANDLE pipe = reinterpret_cast<HANDLE>(_wtoi64(wipc.CString()));
@@ -146,7 +146,7 @@ void PlayerMode::ProcessArguments() {
                     }
                     else
                     {
-#ifdef ATOMIC_PLATFORM_WINDOWS
+#ifdef ENGINE_PLATFORM_WINDOWS
                         // clientWrite
                         WString wipc(ipc[1]);
                         HANDLE pipe = reinterpret_cast<HANDLE>(_wtoi64(wipc.CString()));

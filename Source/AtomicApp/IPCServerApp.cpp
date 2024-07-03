@@ -101,10 +101,10 @@ namespace Atomic
         vargs = args.Split(' ');
 
 #ifdef ATOMIC_DEV_BUILD
-        vargs.Insert(0, ToString("\"%s/Resources/\"", ATOMIC_ROOT_SOURCE_DIR));
+        vargs.Insert(0, ToString("\"%s/Resources/\"", ENGINE_ROOT_SOURCE_DIR));
 #else
 
-#ifdef ATOMIC_PLATFORM_OSX
+#ifdef ENGINE_PLATFORM_MACOS
         vargs.Insert(0, ToString("\"%s\"", (fileSystem->GetProgramDir() + "../Resources/").CString()));
 #else
         vargs.Insert(0, ToString("\"%s\"", (fileSystem->GetProgramDir() + "Resources/").CString()));
@@ -204,6 +204,6 @@ namespace Atomic
     }
 }
 
-#ifdef ATOMIC_PLATFORM_WINDOWS
+#ifdef ENGINE_PLATFORM_WINDOWS
 #pragma pop_macro("UndefPostMessage")
 #endif

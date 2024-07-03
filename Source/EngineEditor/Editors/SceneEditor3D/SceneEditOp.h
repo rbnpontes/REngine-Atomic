@@ -22,8 +22,8 @@
 
 #pragma once
 
-#include <Atomic/Core/Object.h>
-#include <Atomic/IO/VectorBuffer.h>
+#include <EngineCore/Core/Object.h>
+#include <EngineCore/IO/VectorBuffer.h>
 
 namespace Atomic
 {

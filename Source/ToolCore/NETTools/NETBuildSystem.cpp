@@ -38,7 +38,7 @@
 #include "NETProjectGen.h"
 #include "NETBuildSystem.h"
 
-#ifdef ATOMIC_PLATFORM_WINDOWS
+#ifdef ENGINE_PLATFORM_WINDOWS
 #include <Poco/WinRegistryKey.h>
 #endif
 
@@ -315,7 +315,7 @@ namespace ToolCore
 
             Vector<String> args;
 
-#ifdef ATOMIC_PLATFORM_WINDOWS
+#ifdef ENGINE_PLATFORM_WINDOWS
             const String vs_tools_path = Poco::Environment::get("VS_TOOLS", "").c_str();
             if(vs_tools_path.Empty())
             {
@@ -376,7 +376,7 @@ namespace ToolCore
 
             if (requiresNuGet)
             {
-#ifdef ATOMIC_PLATFORM_OSX
+#ifdef ENGINE_PLATFORM_MACOS
                 compile += ToString("\"%s\" restore \"%s\" && ", nugetBinary.CString(), solutionPath.CString());
 #else
                 compile += ToString("mono \"%s\" restore \"%s\" && ", nugetBinary.CString(), solutionPath.CString());

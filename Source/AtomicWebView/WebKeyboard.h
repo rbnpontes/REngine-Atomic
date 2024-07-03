@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include <Atomic/Core/Variant.h>
+#include <EngineCore/Core/Variant.h>
 
 namespace Atomic
 {
