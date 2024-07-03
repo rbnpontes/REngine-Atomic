@@ -262,6 +262,9 @@ if ($ENV{ENGINE_BUILD_DIST})
 endif ()
 
 if (MSVC)
+    # Becarefull if you change this line
+    # If you put strange properties this can lead to a bug
+    # in msbuild
     target_compile_options("${ENGINE_CORE_LIB_TARGET}" PUBLIC $<$<CONFIG:Debug>:${ENGINE_MSVC_RUNTIME}d> $<$<NOT:$<CONFIG:Debug>>:${ENGINE_MSVC_RUNTIME}>)
 endif ()
 
