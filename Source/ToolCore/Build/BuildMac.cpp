@@ -20,8 +20,8 @@
 // THE SOFTWARE.
 //
 
-#include <Atomic/IO/FileSystem.h>
-#include <Atomic/Resource/ResourceCache.h>
+#include <EngineCore/IO/FileSystem.h>
+#include <EngineCore/Resource/ResourceCache.h>
 
 #include "../ToolSystem.h"
 #include "../ToolEnvironment.h"

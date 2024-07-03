@@ -20,12 +20,12 @@
 // THE SOFTWARE.
 //
 
-#include <Atomic/IO/IOEvents.h>
-#include <Atomic/IO/Log.h>
-#include <Atomic/Core/ProcessUtils.h>
-#include <Atomic/Core/CoreEvents.h>
-#include <Atomic/IPC/IPCEvents.h>
-#include <Atomic/IPC/IPCWorker.h>
+#include <EngineCore/IO/IOEvents.h>
+#include <EngineCore/IO/Log.h>
+#include <EngineCore/Core/ProcessUtils.h>
+#include <EngineCore/Core/CoreEvents.h>
+#include <EngineCore/IPC/IPCEvents.h>
+#include <EngineCore/IPC/IPCWorker.h>
 
 #include "IPCClientApp.h"
 

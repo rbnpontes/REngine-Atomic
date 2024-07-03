@@ -29,9 +29,9 @@
 #include "include/cef_scheme.h"
 #include "include/wrapper/cef_helpers.h"
 
-#include <Atomic/Math/MathDefs.h>
-#include <Atomic/Resource/ResourceCache.h>
-#include <Atomic/IO/FileSystem.h>
+#include <EngineCore/Math/MathDefs.h>
+#include <EngineCore/Resource/ResourceCache.h>
+#include <EngineCore/IO/FileSystem.h>
 
 #include "WebString.h"
 #include "WebBrowserHost.h"

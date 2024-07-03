@@ -20,11 +20,11 @@
 // THE SOFTWARE.
 //
 
-#include <Atomic/Atomic.h>
-#include <Atomic/IO/Log.h>
-#include <Atomic/IO/FileSystem.h>
-#include <Atomic/Core/ProcessUtils.h>
-#include <Atomic/Resource/ResourceCache.h>
+#include <EngineCore/EngineCore.h>
+#include <EngineCore/IO/Log.h>
+#include <EngineCore/IO/FileSystem.h>
+#include <EngineCore/Core/ProcessUtils.h>
+#include <EngineCore/Resource/ResourceCache.h>
 
 #include "JSBind.h"
 #include "JSBPackage.h"

@@ -20,9 +20,9 @@
 // THE SOFTWARE.
 //
 
-#include <Atomic/Graphics/StaticModel.h>
-#include <Atomic/Graphics/CustomGeometry.h>
-#include <Atomic/Graphics/BillboardSet.h>
+#include <EngineCore/Graphics/StaticModel.h>
+#include <EngineCore/Graphics/CustomGeometry.h>
+#include <EngineCore/Graphics/BillboardSet.h>
 
 #include "JSAtomic3D.h"
 

@@ -1,9 +1,9 @@
 {
 	"name" : "Graphics",
-	"sources" : ["Source/Atomic/Graphics", "Source/Atomic/Graphics/Text3D"],
-	"includes" : ["<Atomic/Scene/Scene.h>", "<Atomic/Graphics/OcclusionBuffer.h>", "<Atomic/Scene/ValueAnimation.h>",
-							  "<Atomic/Container/ArrayPtr.h>", "<Atomic/Graphics/Animation.h>",
-							 "<Atomic/Graphics/Material.h>", "<Atomic/Resource/Image.h>", "<Atomic/Graphics/VertexBuffer.h>"],
+	"sources" : ["Source/EngineCore/Graphics", "Source/EngineCore/Graphics/Text3D"],
+	"includes" : ["<EngineCore/Scene/Scene.h>", "<EngineCore/Graphics/OcclusionBuffer.h>", "<EngineCore/Scene/ValueAnimation.h>",
+							  "<EngineCore/Container/ArrayPtr.h>", "<EngineCore/Graphics/Animation.h>",
+							 "<EngineCore/Graphics/Material.h>", "<EngineCore/Resource/Image.h>", "<EngineCore/Graphics/VertexBuffer.h>"],
 	"classes" : ["Graphics", "Texture", "Texture2D", "Material", "Drawable",
 				 "Viewport", "Renderer", "Octree", "Zone", "Camera", "Light", "RenderPath",
 				 "DebugRenderer",

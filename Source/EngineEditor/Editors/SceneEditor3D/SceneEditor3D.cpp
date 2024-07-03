@@ -20,23 +20,23 @@
 // THE SOFTWARE.
 //
 
-#include <Atomic/IO/Log.h>
-#include <Atomic/Core/CoreEvents.h>
-#include <Atomic/Scene/SceneEvents.h>
-#include <Atomic/Scene/Scene.h>
-#include <Atomic/Graphics/Camera.h>
+#include <EngineCore/IO/Log.h>
+#include <EngineCore/Core/CoreEvents.h>
+#include <EngineCore/Scene/SceneEvents.h>
+#include <EngineCore/Scene/Scene.h>
+#include <EngineCore/Graphics/Camera.h>
 
-#include <Atomic/Graphics/DebugRenderer.h>
-#include <Atomic/Graphics/Viewport.h>
-#include <Atomic/Graphics/Octree.h>
+#include <EngineCore/Graphics/DebugRenderer.h>
+#include <EngineCore/Graphics/Viewport.h>
+#include <EngineCore/Graphics/Octree.h>
 
-#include <Atomic/IO/FileSystem.h>
-#include <Atomic/Resource/ResourceCache.h>
+#include <EngineCore/IO/FileSystem.h>
+#include <EngineCore/Resource/ResourceCache.h>
 
-#include <Atomic/Physics/PhysicsWorld.h>
+#include <EngineCore/Physics/PhysicsWorld.h>
 
-#include <Atomic/Input/Input.h>
-#include <Atomic/UI/UI.h>
+#include <EngineCore/Input/Input.h>
+#include <EngineCore/UI/UI.h>
 
 #include <ToolCore/ToolSystem.h>
 #include <ToolCore/Project/Project.h>

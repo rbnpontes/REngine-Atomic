@@ -22,9 +22,9 @@
 
 #include <TurboBadger/tb_tab_container.h>
 
-#include <Atomic/Core/StringUtils.h>
-#include <Atomic/IO/FileSystem.h>
-#include <Atomic/Resource/ResourceEvents.h>
+#include <EngineCore/Core/StringUtils.h>
+#include <EngineCore/IO/FileSystem.h>
+#include <EngineCore/Resource/ResourceEvents.h>
 
 #include <TurboBadger/tb_message_window.h>
 

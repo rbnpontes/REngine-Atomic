@@ -20,9 +20,9 @@
 // THE SOFTWARE.
 //
 
-#include <Atomic/Core/Context.h>
-#include <Atomic/Resource/ResourceCache.h>
-#include <Atomic/Script/ScriptVector.h>
+#include <EngineCore/Core/Context.h>
+#include <EngineCore/Resource/ResourceCache.h>
+#include <EngineCore/Script/ScriptVector.h>
 
 #include "JSAPI.h"
 #include "JSVM.h"

@@ -1,6 +1,6 @@
 {
 	"name" : "Audio",
-	"sources" : ["Source/Atomic/Audio"],
+	"sources" : ["Source/EngineCore/Audio"],
 	"classes" : ["Sound", "SoundSource", "SoundSource3D", "SoundListener", "Audio"],
 	"overloads" : {
 		"SoundSource" : {

@@ -22,12 +22,12 @@
 // THE SOFTWARE.
 //
 
-#include <Atomic/Graphics/Model.h>
-#include <Atomic/Graphics/Material.h>
-#include <Atomic/Graphics/Octree.h>
-#include <Atomic/Resource/ResourceCache.h>
+#include <EngineCore/Graphics/Model.h>
+#include <EngineCore/Graphics/Material.h>
+#include <EngineCore/Graphics/Octree.h>
+#include <EngineCore/Resource/ResourceCache.h>
 
-#include <Atomic/Input/Input.h>
+#include <EngineCore/Input/Input.h>
 
 #include "SceneEditor3DEvents.h"
 #include "SceneSelection.h"

@@ -20,16 +20,16 @@
 // THE SOFTWARE.
 //
 
-#include <Atomic/Container/ArrayPtr.h>
-#include <Atomic/UI/UI.h>
-#include <Atomic/IO/Log.h>
-#include <Atomic/IO/File.h>
-#include <Atomic/IO/FileSystem.h>
-#include <Atomic/Resource/ResourceCache.h>
-#include <Atomic/Resource/JSONFile.h>
-#include <Atomic/Resource/ResourceEvents.h>
+#include <EngineCore/Container/ArrayPtr.h>
+#include <EngineCore/UI/UI.h>
+#include <EngineCore/IO/Log.h>
+#include <EngineCore/IO/File.h>
+#include <EngineCore/IO/FileSystem.h>
+#include <EngineCore/Resource/ResourceCache.h>
+#include <EngineCore/Resource/JSONFile.h>
+#include <EngineCore/Resource/ResourceEvents.h>
 
-#include <Atomic/Core/CoreEvents.h>
+#include <EngineCore/Core/CoreEvents.h>
 #include <AtomicJS/Javascript/JSVM.h>
 
 #include <ToolCore/ToolEnvironment.h>

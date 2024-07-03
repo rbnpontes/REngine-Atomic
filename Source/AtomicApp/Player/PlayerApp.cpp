@@ -21,12 +21,12 @@
 //
 
 
-#include <Atomic/Input/InputEvents.h>
-#include <Atomic/Engine/Engine.h>
-#include <Atomic/Graphics/Graphics.h>
-#include <Atomic/Resource/ResourceMapRouter.h>
-#include <Atomic/UI/UI.h>
-#include <Atomic/Metrics/Metrics.h>
+#include <EngineCore/Input/InputEvents.h>
+#include <EngineCore/Engine/Engine.h>
+#include <EngineCore/Graphics/Graphics.h>
+#include <EngineCore/Resource/ResourceMapRouter.h>
+#include <EngineCore/UI/UI.h>
+#include <EngineCore/Metrics/Metrics.h>
 
 #include <AtomicJS/Javascript/Javascript.h>
 

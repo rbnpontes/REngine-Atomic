@@ -1,6 +1,6 @@
 {
 	"name" : "Script",
-	"sources" : ["Source/Atomic/Script"],
+	"sources" : ["Source/EngineCore/Script"],
 	"classes_rename" : {
 		"ScriptRenderPathCommand" : "RenderPathCommand"
 	},

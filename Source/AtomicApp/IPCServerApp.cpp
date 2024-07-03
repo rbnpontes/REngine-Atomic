@@ -1,15 +1,15 @@
-#include <Atomic/IO/Log.h>
-#include <Atomic/IO/FileSystem.h>
+#include <EngineCore/IO/Log.h>
+#include <EngineCore/IO/FileSystem.h>
 
-#include <Atomic/IPC/IPCEvents.h>
-#include <Atomic/IPC/IPCBroker.h>
+#include <EngineCore/IPC/IPCEvents.h>
+#include <EngineCore/IPC/IPCBroker.h>
 
 #include <AtomicApp/Player/IPCPlayerAppEvents.h>
-#include <Atomic/Input/InputEvents.h>
+#include <EngineCore/Input/InputEvents.h>
 
 #include "IPCServerApp.h"
 
-#ifdef ATOMIC_PLATFORM_WINDOWS
+#ifdef ENGINE_PLATFORM_WINDOWS
 // PostMessage/PostMessageA windows macro introduced through AppBase.h
 #pragma push_macro("UndefPostMessage")
 #undef PostMessage

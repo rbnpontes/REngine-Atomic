@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include <Atomic/Scene/Component.h>
+#include <EngineCore/Scene/Component.h>
 
 using namespace Atomic;
 

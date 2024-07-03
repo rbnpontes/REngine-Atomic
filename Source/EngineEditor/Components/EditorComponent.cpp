@@ -20,11 +20,11 @@
 // THE SOFTWARE.
 //
 
-#include <Atomic/Core/Context.h>
+#include <EngineCore/Core/Context.h>
 
-#include <Atomic/Graphics/Camera.h>
-#include <Atomic/Graphics/Viewport.h>
-#include <Atomic/Graphics/Texture2D.h>
+#include <EngineCore/Graphics/Camera.h>
+#include <EngineCore/Graphics/Viewport.h>
+#include <EngineCore/Graphics/Texture2D.h>
 
 #include "../Editors/SceneEditor3D/SceneEditor3D.h"
 

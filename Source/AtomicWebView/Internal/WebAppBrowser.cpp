@@ -20,7 +20,7 @@
 // THE SOFTWARE.
 //
 
-#include <Atomic/IO/Log.h>
+#include <EngineCore/IO/Log.h>
 
 #include "WebAppBrowser.h"
 #include "../WebBrowserHost.h"

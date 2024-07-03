@@ -22,12 +22,12 @@
 
 #pragma once
 
-#include <Atomic/Core/Context.h>
-#include <Atomic/Core/Object.h>
-#include <Atomic/Container/List.h>
+#include <EngineCore/Core/Context.h>
+#include <EngineCore/Core/Object.h>
+#include <EngineCore/Container/List.h>
 
-#include <Atomic/IO/Log.h>
-#include <Atomic/IO/FileSystem.h>
+#include <EngineCore/IO/Log.h>
+#include <EngineCore/IO/FileSystem.h>
 
 #include "JSAPI.h"
 #include "JSEvents.h"

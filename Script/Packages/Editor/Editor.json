@@ -1,10 +1,10 @@
 {
 	"name" : "Editor",
-	"includes" : ["<Atomic/Graphics/DebugRenderer.h>", "<AtomicWebView/UIWebView.h>"],
-	"sources" : ["Source/AtomicEditor/Application", "Source/AtomicEditor/Utils",
-							 "Source/AtomicEditor/EditorMode", "Source/AtomicEditor/PlayerMode",
-							 "Source/AtomicEditor/Editors", "Source/AtomicEditor/Editors/SceneEditor3D",
-						   "Source/AtomicEditor/Components"],
+	"includes" : ["<EngineCore/Graphics/DebugRenderer.h>", "<AtomicWebView/UIWebView.h>"],
+	"sources" : ["Source/EngineEditor/Application", "Source/EngineEditor/Utils",
+							 "Source/EngineEditor/EditorMode", "Source/EngineEditor/PlayerMode",
+							 "Source/EngineEditor/Editors", "Source/EngineEditor/Editors/SceneEditor3D",
+						   "Source/EngineEditor/Components"],
 	"classes" : ["EditorMode", "PlayerMode", "FileUtils", "ResourceEditor", "JSResourceEditor",
 							 "SceneEditor3D", "SceneView3D", "SceneSelection", "EditorComponent", "CubemapGenerator", "Gizmo3D"]
 }

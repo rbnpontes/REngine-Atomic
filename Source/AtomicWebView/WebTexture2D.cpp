@@ -20,18 +20,18 @@
 // THE SOFTWARE.
 //
 
-#ifdef ATOMIC_PLATFORM_OSX
+#ifdef ENGINE_PLATFORM_MACOS
 #include <ThirdParty/GLEW/glew.h>
 #endif
 
 #include <include/cef_render_handler.h>
 
-#include <Atomic/Math/Rect.h>
-#include <Atomic/IO/Log.h>
-#include <Atomic/Resource/ResourceCache.h>
-#include <Atomic/Graphics/Graphics.h>
-#include <Atomic/Graphics/GraphicsImpl.h>
-#include <Atomic/Graphics/Technique.h>
+#include <EngineCore/Math/Rect.h>
+#include <EngineCore/IO/Log.h>
+#include <EngineCore/Resource/ResourceCache.h>
+#include <EngineCore/Graphics/Graphics.h>
+#include <EngineCore/Graphics/GraphicsImpl.h>
+#include <EngineCore/Graphics/Technique.h>
 
 #include "WebClient.h"
 #include "WebTexture2D.h"

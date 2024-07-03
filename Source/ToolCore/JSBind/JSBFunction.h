@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include <Atomic/IO/Log.h>
+#include <EngineCore/IO/Log.h>
 #include "JSBindTypes.h"
 #include "JSBClass.h"
 #include "JSBType.h"

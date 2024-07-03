@@ -20,13 +20,11 @@
 // THE SOFTWARE.
 //
 
-#include <Atomic/IO/Log.h>
-
-#include <Atomic/Input/InputEvents.h>
-
-#include <Atomic/Resource/ResourceCache.h>
-#include <Atomic/Graphics/Renderer.h>
-#include <Atomic/Graphics/Camera.h>
+#include <EngineCore/IO/Log.h>
+#include <EngineCore/Input/InputEvents.h>
+#include <EngineCore/Resource/ResourceCache.h>
+#include <EngineCore/Graphics/Renderer.h>
+#include <EngineCore/Graphics/Camera.h>
 
 #include "PlayerEvents.h"
 #include "Player.h"

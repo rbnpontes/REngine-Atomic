@@ -21,13 +21,12 @@
 // THE SOFTWARE.
 //
 
-#include <Atomic/IO/Log.h>
-#include <Atomic/IO/FileSystem.h>
-#include <Atomic/Core/Context.h>
-#include <Atomic/Resource/ResourceCache.h>
-
-#include <Atomic/Scene/Scene.h>
-#include <Atomic/Scene/SceneEvents.h>
+#include <EngineCore/IO/Log.h>
+#include <EngineCore/IO/FileSystem.h>
+#include <EngineCore/Core/Context.h>
+#include <EngineCore/Resource/ResourceCache.h>
+#include <EngineCore/Scene/Scene.h>
+#include <EngineCore/Scene/SceneEvents.h>
 
 #include "NETScriptEvents.h"
 #include "CSComponent.h"

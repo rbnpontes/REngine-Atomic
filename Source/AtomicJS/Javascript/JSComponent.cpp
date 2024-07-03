@@ -21,17 +21,17 @@
 // THE SOFTWARE.
 //
 
-#include <Atomic/IO/Log.h>
-#include <Atomic/IO/FileSystem.h>
-#include <Atomic/Core/Context.h>
-#include <Atomic/Resource/ResourceCache.h>
+#include <EngineCore/IO/Log.h>
+#include <EngineCore/IO/FileSystem.h>
+#include <EngineCore/Core/Context.h>
+#include <EngineCore/Resource/ResourceCache.h>
 
-#ifdef ATOMIC_PHYSICS
-#include <Atomic/Physics/PhysicsEvents.h>
-#include <Atomic/Physics/PhysicsWorld.h>
+#ifdef ENGINE_PHYSICS
+#include <EngineCore/Physics/PhysicsEvents.h>
+#include <EngineCore/Physics/PhysicsWorld.h>
 #endif
-#include <Atomic/Scene/Scene.h>
-#include <Atomic/Scene/SceneEvents.h>
+#include <EngineCore/Scene/Scene.h>
+#include <EngineCore/Scene/SceneEvents.h>
 
 #include "JSVM.h"
 #include "JSComponentFile.h"

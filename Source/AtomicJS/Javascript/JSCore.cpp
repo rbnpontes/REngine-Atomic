@@ -20,8 +20,8 @@
 // THE SOFTWARE.
 //
 
-#include <Atomic/Core/ProcessUtils.h>
-#include <Atomic/Core/Profiler.h>
+#include <EngineCore/Core/ProcessUtils.h>
+#include <EngineCore/Core/Profiler.h>
 
 #include "JSCore.h"
 #include "JSEventHelper.h"

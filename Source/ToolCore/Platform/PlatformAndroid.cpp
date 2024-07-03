@@ -20,9 +20,9 @@
 // THE SOFTWARE.
 //
 
-#include <Atomic/IO/MemoryBuffer.h>
-#include <Atomic/IO/FileSystem.h>
-#include <Atomic/IO/Log.h>
+#include <EngineCore/IO/MemoryBuffer.h>
+#include <EngineCore/IO/FileSystem.h>
+#include <EngineCore/IO/Log.h>
 
 #include "../ToolEnvironment.h"
 #include "../Subprocess/SubprocessSystem.h"

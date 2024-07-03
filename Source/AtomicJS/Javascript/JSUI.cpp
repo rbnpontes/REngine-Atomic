@@ -22,11 +22,11 @@
 
 #include <TurboBadger/tb_widgets.h>
 
-#include <Atomic/Core/CoreEvents.h>
-#include <Atomic/UI/UIEvents.h>
-#include <Atomic/UI/UIWidget.h>
-#include <Atomic/UI/UIButton.h>
-#include <Atomic/UI/UI.h>
+#include <EngineCore/Core/CoreEvents.h>
+#include <EngineCore/UI/UIEvents.h>
+#include <EngineCore/UI/UIWidget.h>
+#include <EngineCore/UI/UIButton.h>
+#include <EngineCore/UI/UI.h>
 #include "JSVM.h"
 #include "JSUI.h"
 

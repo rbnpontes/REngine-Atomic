@@ -1,6 +1,6 @@
 {
 	"name" : "IO",
-	"sources" : ["Source/Atomic/IO"],
+	"sources" : ["Source/EngineCore/IO"],
 	"classes" : ["Log", "File", "FileSystem", "FileWatcher", "BufferQueue", "PackageFile", "FileNameIterator"],
 	"interfaces" : ["Serializer", "Deserializer", "AbstractFile"],
 	"overloads" : {

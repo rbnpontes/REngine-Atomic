@@ -20,24 +20,24 @@
 // THE SOFTWARE.
 //
 
-#include <Atomic/Core/ProcessUtils.h>
-#include <Atomic/IO/FileSystem.h>
-#include <Atomic/IO/Log.h>
-#include <Atomic/Resource/ResourceCache.h>
-#include <Atomic/Input/Input.h>
-#include <Atomic/Graphics/Renderer.h>
-#include <Atomic/Graphics/Graphics.h>
-#include <Atomic/Engine/Engine.h>
-#include <Atomic/Audio/Audio.h>
-#include <Atomic/UI/UI.h>
-#include <Atomic/Metrics/Metrics.h>
+#include <EngineCore/Core/ProcessUtils.h>
+#include <EngineCore/IO/FileSystem.h>
+#include <EngineCore/IO/Log.h>
+#include <EngineCore/Resource/ResourceCache.h>
+#include <EngineCore/Input/Input.h>
+#include <EngineCore/Graphics/Renderer.h>
+#include <EngineCore/Graphics/Graphics.h>
+#include <EngineCore/Engine/Engine.h>
+#include <EngineCore/Audio/Audio.h>
+#include <EngineCore/UI/UI.h>
+#include <EngineCore/Metrics/Metrics.h>
 
-#ifdef ATOMIC_NETWORK
-#include <Atomic/Network/Network.h>
+#ifdef ENGINE_NETWORK
+#include <EngineCore/Network/Network.h>
 #endif
 
-#ifdef ATOMIC_WEB
-#include <Atomic/Web/Web.h>
+#ifdef ENGINE_WEB
+#include <EngineCore/Web/Web.h>
 #endif
 
 #include "JSEvents.h"
@@ -55,15 +55,15 @@
 #include "JSUIAPI.h"
 #include "JSScene.h"
 
-#ifdef ATOMIC_NETWORK
+#ifdef ENGINE_NETWORK
 #include "JSNetwork.h"
 #endif
 
 #include "JSAtomicPlayer.h"
 #include "JSAtomic.h"
 
-#include <Atomic/Scene/Scene.h>
-#include <Atomic/Environment/ProcSky.h>
+#include <EngineCore/Scene/Scene.h>
+#include <EngineCore/Environment/ProcSky.h>
 
 namespace Atomic
 {

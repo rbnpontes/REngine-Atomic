@@ -1,7 +1,7 @@
 {
 	"name" : "Scene",
-	"sources" : ["Source/Atomic/Scene"],
-	"includes" : ["<Atomic/Scene/LogicComponent.h>", "<Atomic/Network/Connection.h>"],
+	"sources" : ["Source/EngineCore/Scene"],
+	"includes" : ["<EngineCore/Scene/LogicComponent.h>", "<EngineCore/Network/Connection.h>"],
 	"classes" : ["Animatable", "Node", "Scene", "Component", "Serializable",
 				 "ObjectAnimation", "SmoothedTransform", "SplinePath",
 				 "ValueAnimation", "ValueAnimationInfo", "PrefabComponent"],

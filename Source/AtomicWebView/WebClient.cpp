@@ -20,7 +20,7 @@
 // THE SOFTWARE.
 //
 
-#ifdef ATOMIC_PLATFORM_WINDOWS
+#ifdef ENGINE_PLATFORM_WINDOWS
 #include <windows.h>
 #undef LoadString
 #endif
@@ -34,12 +34,12 @@
 #include "include/wrapper/cef_message_router.h"
 #include <include/base/cef_callback.h>
 
-#include <Atomic/Core/ProcessUtils.h>
-#include <Atomic/Core/CoreEvents.h>
-#include <Atomic/IO/Log.h>
-#include <Atomic/Input/Input.h>
+#include <EngineCore/Core/ProcessUtils.h>
+#include <EngineCore/Core/CoreEvents.h>
+#include <EngineCore/IO/Log.h>
+#include <EngineCore/Input/Input.h>
 
-#include <Atomic/Graphics/Graphics.h>
+#include <EngineCore/Graphics/Graphics.h>
 
 #include "Internal/WebAppBrowser.h"
 
@@ -58,7 +58,7 @@
 
 #include <SDL/include/SDL.h>
 
-#ifdef ATOMIC_PLATFORM_LINUX
+#ifdef ENGINE_PLATFORM_LINUX
   #ifndef SDL_VIDEO_DRIVER_X11
   #define SDL_VIDEO_DRIVER_X11
   #endif
@@ -71,7 +71,7 @@
 namespace Atomic
 {
 
-#ifdef ATOMIC_PLATFORM_OSX
+#ifdef ENGINE_PLATFORM_MACOS
 void* GetNSWindowContentView(void* window);
 #endif
 

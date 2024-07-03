@@ -20,14 +20,14 @@
 // THE SOFTWARE.
 //
 
-#include <Atomic/Core/CoreEvents.h>
-#include <Atomic/Engine/EngineEvents.h>
-#include <Atomic/IO/File.h>
-#include <Atomic/IO/Log.h>
-#include <Atomic/Core/ProcessUtils.h>
-#include <Atomic/Core/Profiler.h>
-#include <Atomic/Resource/ResourceCache.h>
-#include <Atomic/Scene/Scene.h>
+#include <EngineCore/Core/CoreEvents.h>
+#include <EngineCore/Engine/EngineEvents.h>
+#include <EngineCore/IO/File.h>
+#include <EngineCore/IO/Log.h>
+#include <EngineCore/Core/ProcessUtils.h>
+#include <EngineCore/Core/Profiler.h>
+#include <EngineCore/Resource/ResourceCache.h>
+#include <EngineCore/Scene/Scene.h>
 
 #include "Javascript.h"
 #include "JSComponent.h"

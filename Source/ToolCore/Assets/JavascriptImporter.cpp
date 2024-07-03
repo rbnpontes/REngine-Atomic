@@ -20,10 +20,10 @@
 // THE SOFTWARE.
 //
 
-#include <Atomic/IO/Log.h>
-#include <Atomic/IO/File.h>
-#include <Atomic/Resource/ResourceCache.h>
-#include <Atomic/Resource/Image.h>
+#include <EngineCore/IO/Log.h>
+#include <EngineCore/IO/File.h>
+#include <EngineCore/Resource/ResourceCache.h>
+#include <EngineCore/Resource/Image.h>
 
 #include <AtomicJS/Javascript/JSComponentFile.h>
 

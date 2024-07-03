@@ -20,16 +20,16 @@
 // THE SOFTWARE.
 //
 
-#include <Atomic/Resource/ResourceCache.h>
-#include <Atomic/IO/File.h>
-#include <Atomic/Scene/Node.h>
-#include <Atomic/Scene/Scene.h>
+#include <EngineCore/Resource/ResourceCache.h>
+#include <EngineCore/IO/File.h>
+#include <EngineCore/Scene/Node.h>
+#include <EngineCore/Scene/Scene.h>
 
 // These serialization functions need to operate on various script classes
 // including JS and C#, so use the base classes and avoid bringing in derived specifics
-#include <Atomic/Script/ScriptVector.h>
-#include <Atomic/Script/ScriptComponent.h>
-#include <Atomic/Script/ScriptComponentFile.h>
+#include <EngineCore/Script/ScriptVector.h>
+#include <EngineCore/Script/ScriptComponent.h>
+#include <EngineCore/Script/ScriptComponentFile.h>
 
 #include "JSScene.h"
 

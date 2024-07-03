@@ -20,13 +20,13 @@
 // THE SOFTWARE.
 //
 
-#include <Atomic/Scene/Node.h>
+#include <EngineCore/Scene/Node.h>
 
 #include "JSVM.h"
 #include "JSComponent.h"
 #include "JSMetrics.h"
 
-#include <Atomic/Container/Sort.h>
+#include <EngineCore/Container/Sort.h>
 
 namespace Atomic
 {

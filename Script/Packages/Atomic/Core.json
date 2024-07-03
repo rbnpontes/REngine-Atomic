@@ -1,18 +1,18 @@
 {
 	"name" : "Core",
-	"sources" : ["Source/Atomic/Core", "Source/Atomic/BuildInfo"],
+	"sources" : ["Source/EngineCore/Core", "Source/EngineCore/BuildInfo"],
 	"includes": [
-		"<Atomic/Engine/Engine.h>",
-		"<Atomic/Network/Network.h>",
-		"<Atomic/Web/Web.h>",
-		"<Atomic/Input/Input.h>",
-		"<Atomic/Audio/Audio.h>",
-		"<Atomic/UI/UI.h>",
-		"<Atomic/Graphics/Graphics.h>",
-		"<Atomic/Graphics/Renderer.h>",
-		"<Atomic/Metrics/Metrics.h>"
+		"<EngineCore/Engine/Engine.h>",
+		"<EngineCore/Network/Network.h>",
+		"<EngineCore/Web/Web.h>",
+		"<EngineCore/Input/Input.h>",
+		"<EngineCore/Audio/Audio.h>",
+		"<EngineCore/UI/UI.h>",
+		"<EngineCore/Graphics/Graphics.h>",
+		"<EngineCore/Graphics/Renderer.h>",
+		"<EngineCore/Metrics/Metrics.h>"
 	],
-	"classes" : ["Context", "Object", "AtomicBuildInfo", "Time", "Profiler"],
+	"classes" : ["Context", "Object", "EngineBuildInfo", "Time", "Profiler"],
 	"classes_rename" : {
 		"Object" : "AObject"
 	},

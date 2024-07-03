@@ -20,14 +20,14 @@
 // THE SOFTWARE.
 //
 
-#include <Atomic/Input/Input.h>
-#include <Atomic/UI/UI.h>
+#include <EngineCore/Input/Input.h>
+#include <EngineCore/UI/UI.h>
 #include <AtomicJS/Javascript/Javascript.h>
-#include <Atomic/IPC/IPC.h>
-#include <Atomic/Engine/EngineDefs.h>
+#include <EngineCore/IPC/IPC.h>
+#include <EngineCore/Engine/EngineDefs.h>
 
 // This can be removed once bone hack is fixed
-#include <Atomic/Graphics/AnimatedModel.h>
+#include <EngineCore/Graphics/AnimatedModel.h>
 
 #include <ToolCore/License/LicenseSystem.h>
 #include <ToolCore/ToolSystem.h>
@@ -42,17 +42,17 @@
 #include "AEEditorPrefs.h"
 #include "AEEditorApp.h"
 
-#include <Atomic/Web/Web.h>
+#include <EngineCore/Web/Web.h>
 
 using namespace ToolCore;
 
 // Fix these externs
 namespace Atomic
 {
-#ifdef ATOMIC_WEBVIEW
+#ifdef ENGINE_WEBVIEW
     void jsapi_init_webview(JSVM* vm, const VariantMap& engineParameters);
 #endif
-#ifdef ATOMIC_DOTNET
+#ifdef ENGINE_DOTNET
     extern void jsb_package_atomicnetscript_init(JSVM* vm);
 #endif
 }
@@ -73,10 +73,10 @@ namespace AtomicEditor
     {
         bool dotnet_enabled = false;
         bool webview_enabled = false;
-#ifdef ATOMIC_DOTNET
+#ifdef ENGINE_DOTNET
         dotnet_enabled = true;
 #endif
-#ifdef ATOMIC_WEBVIEW
+#ifdef ENGINE_WEBVIEW
         webview_enabled = true;
 #endif
 

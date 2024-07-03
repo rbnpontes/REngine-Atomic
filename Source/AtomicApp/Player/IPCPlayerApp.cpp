@@ -19,20 +19,20 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-#include <Atomic/Core/CoreEvents.h>//
-#include <Atomic/IO/IOEvents.h>
-#include <Atomic/Input/InputEvents.h>
-#include <Atomic/Graphics/Graphics.h>
-#include <Atomic/Graphics/GraphicsEvents.h>
-#include <Atomic/IPC/IPCEvents.h>
+#include <EngineCore/Core/CoreEvents.h>//
+#include <EngineCore/IO/IOEvents.h>
+#include <EngineCore/Input/InputEvents.h>
+#include <EngineCore/Graphics/Graphics.h>
+#include <EngineCore/Graphics/GraphicsEvents.h>
+#include <EngineCore/IPC/IPCEvents.h>
 #include <AtomicJS/Javascript/JSIPCEvents.h>
 #include "IPCPlayerAppEvents.h"
 
-#include <Atomic/Engine/Engine.h>
-#include <Atomic/IPC/IPC.h>
+#include <EngineCore/Engine/Engine.h>
+#include <EngineCore/IPC/IPC.h>
 #include <AtomicJS/Javascript/Javascript.h>
 #include <AtomicJS/Javascript/JSDebugger.h>
-#include <Atomic/UI/SystemUI/DebugHud.h>
+#include <EngineCore/UI/SystemUI/DebugHud.h>
 
 #include "IPCPlayerApp.h"
 

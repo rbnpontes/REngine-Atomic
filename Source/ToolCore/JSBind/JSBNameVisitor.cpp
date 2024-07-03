@@ -20,7 +20,7 @@
 // THE SOFTWARE.
 //
 
-#include <Atomic/Atomic.h>
+#include <EngineCore/EngineCore.h>
 
 #include "JSBNameVisitor.h"
 

@@ -20,19 +20,19 @@
 // THE SOFTWARE.
 //
 
-#include <Atomic/IO/IOEvents.h>
-#include <Atomic/IO/Log.h>
-#include <Atomic/Input/InputEvents.h>
-#include <Atomic/Core/ProcessUtils.h>
-#include <Atomic/Core/CoreEvents.h>
-#include <Atomic/Graphics/GraphicsEvents.h>
-#include <Atomic/Graphics/Graphics.h>
-#include <Atomic/Graphics/Camera.h>
-#include <Atomic/UI/SystemUI/DebugHud.h>
-#include <Atomic/UI/SystemUI/SystemUIEvents.h>
-#include <Atomic/UI/UI.h>
-#include <Atomic/IPC/IPCEvents.h>
-#include <Atomic/IPC/IPCWorker.h>
+#include <EngineCore/IO/IOEvents.h>
+#include <EngineCore/IO/Log.h>
+#include <EngineCore/Input/InputEvents.h>
+#include <EngineCore/Core/ProcessUtils.h>
+#include <EngineCore/Core/CoreEvents.h>
+#include <EngineCore/Graphics/GraphicsEvents.h>
+#include <EngineCore/Graphics/Graphics.h>
+#include <EngineCore/Graphics/Camera.h>
+#include <EngineCore/UI/SystemUI/DebugHud.h>
+#include <EngineCore/UI/SystemUI/SystemUIEvents.h>
+#include <EngineCore/UI/UI.h>
+#include <EngineCore/IPC/IPCEvents.h>
+#include <EngineCore/IPC/IPCWorker.h>
 
 #include <AtomicJS/Javascript/JSVM.h>
 #include <AtomicJS/Javascript/JSEvents.h>

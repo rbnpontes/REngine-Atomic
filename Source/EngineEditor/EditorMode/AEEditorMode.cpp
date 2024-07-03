@@ -20,15 +20,15 @@
 // THE SOFTWARE.
 //
 
-#include <Atomic/IO/Log.h>
-#include <Atomic/Engine/Application.h>
+#include <EngineCore/IO/Log.h>
+#include <EngineCore/Engine/Application.h>
 
-#include <Atomic/IPC/IPC.h>
-#include <Atomic/IPC/IPCEvents.h>
-#include <Atomic/IPC/IPCBroker.h>
+#include <EngineCore/IPC/IPC.h>
+#include <EngineCore/IPC/IPCEvents.h>
+#include <EngineCore/IPC/IPCBroker.h>
 
-#include <Atomic/Core/CoreEvents.h>
-#include <Atomic/Input/InputEvents.h>
+#include <EngineCore/Core/CoreEvents.h>
+#include <EngineCore/Input/InputEvents.h>
 
 #include <ToolCore/ToolEnvironment.h>
 #include <ToolCore/ToolSystem.h>
@@ -41,7 +41,7 @@
 
 #include <AtomicJS/Javascript/JSIPCEvents.h>
 
-#include <Atomic/UI/SystemUI/DebugHud.h>
+#include <EngineCore/UI/SystemUI/DebugHud.h>
 
 #include <AtomicApp/Player/IPCPlayerAppEvents.h>
 

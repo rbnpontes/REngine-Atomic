@@ -22,34 +22,34 @@
 // THE SOFTWARE.
 //
 
-#include <Atomic/IO/Log.h>
-#include <Atomic/Core/CoreEvents.h>
-#include <Atomic/Scene/SceneEvents.h>
-#include <Atomic/Scene/Scene.h>
-#include <Atomic/Scene/PrefabComponent.h>
-#include <Atomic/Graphics/Camera.h>
+#include <EngineCore/IO/Log.h>
+#include <EngineCore/Core/CoreEvents.h>
+#include <EngineCore/Scene/SceneEvents.h>
+#include <EngineCore/Scene/Scene.h>
+#include <EngineCore/Scene/PrefabComponent.h>
+#include <EngineCore/Graphics/Camera.h>
 
-#include <Atomic/Graphics/Graphics.h>
-#include <Atomic/Graphics/DebugRenderer.h>
-#include <Atomic/Graphics/Viewport.h>
-#include <Atomic/Graphics/Octree.h>
-#include <Atomic/Graphics/Material.h>
+#include <EngineCore/Graphics/Graphics.h>
+#include <EngineCore/Graphics/DebugRenderer.h>
+#include <EngineCore/Graphics/Viewport.h>
+#include <EngineCore/Graphics/Octree.h>
+#include <EngineCore/Graphics/Material.h>
 
-#include <Atomic/Graphics/Model.h>
-#include <Atomic/Graphics/StaticModel.h>
-#include <Atomic/Graphics/AnimatedModel.h>
-#include <Atomic/Graphics/AnimationController.h>
+#include <EngineCore/Graphics/Model.h>
+#include <EngineCore/Graphics/StaticModel.h>
+#include <EngineCore/Graphics/AnimatedModel.h>
+#include <EngineCore/Graphics/AnimationController.h>
 
-#include <Atomic/Input/Input.h>
+#include <EngineCore/Input/Input.h>
 
-#include <Atomic/IO/FileSystem.h>
-#include <Atomic/Resource/ResourceCache.h>
-#include <Atomic/Resource/XMLFile.h>
-#include <Atomic/Physics/PhysicsWorld.h>
-#include <Atomic/UI/UI.h>
-#include <Atomic/UI/UIEvents.h>
+#include <EngineCore/IO/FileSystem.h>
+#include <EngineCore/Resource/ResourceCache.h>
+#include <EngineCore/Resource/XMLFile.h>
+#include <EngineCore/Physics/PhysicsWorld.h>
+#include <EngineCore/UI/UI.h>
+#include <EngineCore/UI/UIEvents.h>
 
-#include <Atomic/Resource/ResourceEvents.h>
+#include <EngineCore/Resource/ResourceEvents.h>
 
 #include <ToolCore/Assets/Asset.h>
 #include <ToolCore/Assets/AssetDatabase.h>

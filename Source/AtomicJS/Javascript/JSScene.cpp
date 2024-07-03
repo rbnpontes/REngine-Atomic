@@ -20,16 +20,16 @@
 // THE SOFTWARE.
 //
 
-#include <Atomic/Resource/ResourceCache.h>
-#include <Atomic/Resource/XMLFile.h>
-#include <Atomic/IO/File.h>
-#include <Atomic/Scene/Node.h>
-#include <Atomic/Scene/Scene.h>
-#include <Atomic/Scene/PrefabComponent.h>
-#include <Atomic/Graphics/Camera.h>
+#include <EngineCore/Resource/ResourceCache.h>
+#include <EngineCore/Resource/XMLFile.h>
+#include <EngineCore/IO/File.h>
+#include <EngineCore/Scene/Node.h>
+#include <EngineCore/Scene/Scene.h>
+#include <EngineCore/Scene/PrefabComponent.h>
+#include <EngineCore/Graphics/Camera.h>
 
-#ifdef ATOMIC_3D
-#include <Atomic/Physics/RigidBody.h>
+#ifdef ENGINE_3D
+#include <EngineCore/Physics/RigidBody.h>
 #endif
 
 #include "JSScene.h"

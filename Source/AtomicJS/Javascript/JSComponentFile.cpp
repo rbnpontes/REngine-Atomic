@@ -20,12 +20,12 @@
 // THE SOFTWARE.
 //
 
-#include <Atomic/Core/Context.h>
-#include <Atomic/IO/Deserializer.h>
-#include <Atomic/IO/Log.h>
-#include <Atomic/Core/Profiler.h>
-#include <Atomic/Resource/ResourceCache.h>
-#include <Atomic/IO/Serializer.h>
+#include <EngineCore/Core/Context.h>
+#include <EngineCore/IO/Deserializer.h>
+#include <EngineCore/IO/Log.h>
+#include <EngineCore/Core/Profiler.h>
+#include <EngineCore/Resource/ResourceCache.h>
+#include <EngineCore/IO/Serializer.h>
 
 #include "JSComponentFile.h"
 #include "JSComponent.h"

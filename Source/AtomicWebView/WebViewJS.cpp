@@ -20,7 +20,7 @@
 // THE SOFTWARE.
 //
 
-#include <Atomic/Engine/Engine.h>
+#include <EngineCore/Engine/Engine.h>
 #include <AtomicJS/Javascript/JSVM.h>
 
 #include "WebBrowserHost.h"

@@ -22,8 +22,8 @@
 
 #pragma once
 
-#include <Atomic/IO/Log.h>
-#include <Atomic/Core/ProcessUtils.h>
+#include <EngineCore/IO/Log.h>
+#include <EngineCore/Core/ProcessUtils.h>
 
 using namespace Atomic;
 

@@ -22,10 +22,10 @@
 
 #include <Poco/File.h>
 
-#include <Atomic/Core/Context.h>
-#include <Atomic/Core/StringUtils.h>
-#include <Atomic/IO/FileSystem.h>
-#include <Atomic/Graphics/Graphics.h>
+#include <EngineCore/Core/Context.h>
+#include <EngineCore/Core/StringUtils.h>
+#include <EngineCore/IO/FileSystem.h>
+#include <EngineCore/Graphics/Graphics.h>
 #include "FileUtils.h"
 #include "nfd.h"
 

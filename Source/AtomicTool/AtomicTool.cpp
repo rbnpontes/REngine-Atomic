@@ -20,11 +20,11 @@
 // THE SOFTWARE.
 //
 
-#include <Atomic/Core/ProcessUtils.h>
-#include <Atomic/IO/Log.h>
-#include <Atomic/IO/FileSystem.h>
-#include <Atomic/Engine/Engine.h>
-#include <Atomic/Resource/ResourceCache.h>
+#include <EngineCore/Core/ProcessUtils.h>
+#include <EngineCore/IO/Log.h>
+#include <EngineCore/IO/FileSystem.h>
+#include <EngineCore/Engine/Engine.h>
+#include <EngineCore/Resource/ResourceCache.h>
 
 #include <ToolCore/ToolSystem.h>
 #include <ToolCore/ToolEnvironment.h>

@@ -27,15 +27,15 @@
 #endif
 
 #if defined(WIN32) && !defined(ATOMIC_WIN32_CONSOLE)
-#include <Atomic/Core/MiniDump.h>
+#include <EngineCore/Core/MiniDump.h>
 #include <windows.h>
 #ifdef _MSC_VER
 #include <crtdbg.h>
 #endif
 #endif
 
-#include <Atomic/Core/ProcessUtils.h>
-#include <Atomic/IO/Log.h>
+#include <EngineCore/Core/ProcessUtils.h>
+#include <EngineCore/IO/Log.h>
 
 #include "AEEditorApp.h"
 #include "AEPlayerApp.h"

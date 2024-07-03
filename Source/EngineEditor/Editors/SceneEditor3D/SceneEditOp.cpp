@@ -20,11 +20,11 @@
 // THE SOFTWARE.
 //
 
-#include <Atomic/IO/Log.h>
-#include <Atomic/Scene/Node.h>
-#include <Atomic/Scene/Component.h>
-#include <Atomic/Scene/PrefabComponent.h>
-#include <Atomic/Scene/Scene.h>
+#include <EngineCore/IO/Log.h>
+#include <EngineCore/Scene/Node.h>
+#include <EngineCore/Scene/Component.h>
+#include <EngineCore/Scene/PrefabComponent.h>
+#include <EngineCore/Scene/Scene.h>
 
 #include "SceneEditOp.h"
 #include "SceneEditor3DEvents.h"

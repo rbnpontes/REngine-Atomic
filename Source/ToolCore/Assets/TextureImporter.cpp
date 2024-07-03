@@ -20,14 +20,14 @@
 // THE SOFTWARE.
 //
 
-#include <Atomic/Resource/ResourceCache.h>
-#include <Atomic/Resource/Image.h>
-#include <Atomic/Atomic2D/Sprite2D.h>
-#include <Atomic/Atomic2D/StaticSprite2D.h>
-#include <Atomic/IO/FileSystem.h>
+#include <EngineCore/Resource/ResourceCache.h>
+#include <EngineCore/Resource/Image.h>
+#include <EngineCore/2D/Sprite2D.h>
+#include <EngineCore/2D/StaticSprite2D.h>
+#include <EngineCore/IO/FileSystem.h>
 
 #include <ToolCore/Import/ImportConfig.h>
-#include <Atomic/Graphics/Renderer.h>
+#include <EngineCore/Graphics/Renderer.h>
 
 #include "Asset.h"
 #include "AssetDatabase.h"

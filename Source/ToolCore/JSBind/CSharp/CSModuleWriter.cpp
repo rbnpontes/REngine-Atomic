@@ -20,8 +20,8 @@
 // THE SOFTWARE.
 //
 
-#include <Atomic/IO/File.h>
-#include <Atomic/IO/FileSystem.h>
+#include <EngineCore/IO/File.h>
+#include <EngineCore/IO/FileSystem.h>
 
 #include "../JSBind.h"
 #include "../JSBPackage.h"

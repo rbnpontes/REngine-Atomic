@@ -1,7 +1,7 @@
 {
 	"name" : "Resource",
-	"sources" : ["Source/Atomic/Resource"],
-	"includes" : ["<Atomic/IO/PackageFile.h>"],
+	"sources" : ["Source/EngineCore/Resource"],
+	"includes" : ["<EngineCore/IO/PackageFile.h>"],
 	"classes" : ["Resource", "ResourceWithMetadata", "ResourceCache", "XMLFile", "PListFile", "JSONFile", "Image", "ResourceNameIterator"],
 	"overloads": {
 		"Image": {

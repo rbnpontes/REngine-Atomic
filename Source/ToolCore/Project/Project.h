@@ -20,8 +20,9 @@
 // THE SOFTWARE.
 //
 
-#include <Atomic/Core/Object.h>
-#include <Atomic/IO/FileSystem.h>
+#pragma once
+#include <EngineCore/Core/Object.h>
+#include <EngineCore/IO/FileSystem.h>
 
 using namespace Atomic;
 

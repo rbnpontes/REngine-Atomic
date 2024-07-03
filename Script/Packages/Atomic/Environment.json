@@ -1,6 +1,6 @@
 {
 	"name" : "Environment",
 	"requires" : ["3D"],
-	"sources" : ["Source/Atomic/Environment"],
+	"sources" : ["Source/EngineCore/Environment"],
 	"classes" : ["ProcSky"]
 }

@@ -20,16 +20,16 @@
 // THE SOFTWARE.
 //
 
-#include <Atomic/Core/Context.h>
-#include <Atomic/Core/Profiler.h>
-#include <Atomic/IO/Deserializer.h>
-#include <Atomic/IO/Serializer.h>
-#include <Atomic/IO/Log.h>
-#include <Atomic/IO/FileSystem.h>
-#include <Atomic/Resource/ResourceCache.h>
-#include <Atomic/Resource/JSONFile.h>
-#include <Atomic/Resource/ResourceMapRouter.h>
-#include <Atomic/Script/ScriptSystem.h>
+#include <EngineCore/Core/Context.h>
+#include <EngineCore/Core/Profiler.h>
+#include <EngineCore/IO/Deserializer.h>
+#include <EngineCore/IO/Serializer.h>
+#include <EngineCore/IO/Log.h>
+#include <EngineCore/IO/FileSystem.h>
+#include <EngineCore/Resource/ResourceCache.h>
+#include <EngineCore/Resource/JSONFile.h>
+#include <EngineCore/Resource/ResourceMapRouter.h>
+#include <EngineCore/Script/ScriptSystem.h>
 
 #include "NETScriptEvents.h"
 #include "CSComponentAssembly.h"

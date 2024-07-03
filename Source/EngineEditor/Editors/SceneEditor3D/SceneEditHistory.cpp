@@ -20,8 +20,8 @@
 // THE SOFTWARE.
 //
 
-#include <Atomic/IO/Log.h>
-#include <Atomic/Scene/SceneEvents.h>
+#include <EngineCore/IO/Log.h>
+#include <EngineCore/Scene/SceneEvents.h>
 
 #include "SceneEditor3D.h"
 

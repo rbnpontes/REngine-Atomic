@@ -1,6 +1,6 @@
 
 
-#include <Atomic/Core/Context.h>
+#include <EngineCore/Core/Context.h>
 
 #include "CSComponent.h"
 #include "CSComponentAssembly.h"

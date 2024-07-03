@@ -21,16 +21,16 @@
 //
 
 
-#include <Atomic/IO/Log.h>
-#include <Atomic/IO/IOEvents.h>
-#include <Atomic/Engine/Engine.h>
-#include <Atomic/Engine/EngineConfig.h>
+#include <EngineCore/IO/Log.h>
+#include <EngineCore/IO/IOEvents.h>
+#include <EngineCore/Engine/Engine.h>
+#include <EngineCore/Engine/EngineConfig.h>
 
-#include <Atomic/Script/ScriptSystem.h>
+#include <EngineCore/Script/ScriptSystem.h>
 #include <AtomicJS/Javascript/Javascript.h>
 
 // Move me!
-#include <Atomic/Environment/Environment.h>
+#include <EngineCore/Environment/Environment.h>
 
 #include "AppBase.h"
 

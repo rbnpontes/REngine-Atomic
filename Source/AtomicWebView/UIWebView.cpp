@@ -20,12 +20,12 @@
 // THE SOFTWARE.
 //
 
-#include <Atomic/IO/Log.h>
-#include <Atomic/Input/InputEvents.h>
-#include <Atomic/Input/Input.h>
+#include <EngineCore/IO/Log.h>
+#include <EngineCore/Input/InputEvents.h>
+#include <EngineCore/Input/Input.h>
 
-#include <Atomic/UI/UIView.h>
-#include <Atomic/UI/UIRenderer.h>
+#include <EngineCore/UI/UIView.h>
+#include <EngineCore/UI/UIRenderer.h>
 
 #include "WebClient.h"
 #include "WebTexture2D.h"

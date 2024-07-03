@@ -20,9 +20,9 @@
 // THE SOFTWARE.
 //
 
-#include <Atomic/Resource/ResourceCache.h>
-#include <Atomic/Graphics/Graphics.h>
-#include <Atomic/Graphics/Technique.h>
+#include <EngineCore/Resource/ResourceCache.h>
+#include <EngineCore/Graphics/Graphics.h>
+#include <EngineCore/Graphics/Technique.h>
 
 #include "WebClient.h"
 #include "WebRenderHandler.h"

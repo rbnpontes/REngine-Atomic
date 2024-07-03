@@ -1,8 +1,8 @@
 {
 	"name" : "Navigation",
 	"requires" : ["3D"],
-	"sources" : ["Source/Atomic/Navigation"],
-	"includes" : ["<Atomic/Scene/Node.h>"],
+	"sources" : ["Source/EngineCore/Navigation"],
+	"includes" : ["<EngineCore/Scene/Node.h>"],
 	"classes" : ["Navigable", "NavigationMesh", "DynamicNavigationMesh", "NavArea", "OffMeshConnection", "Obstacle", "CrowdAgent", "CrowdManager"],
 	"overloads" : {
 		"NavigationMesh" : {

@@ -1,6 +1,6 @@
 {
 	"name" : "Engine",
-	"sources" : ["Source/Atomic/Engine"],
+	"sources" : ["Source/EngineCore/Engine"],
 	"includes" : [],
 	"classes" : ["Engine", "Application"],
 	"excludes" : {

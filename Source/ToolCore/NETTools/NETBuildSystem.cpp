@@ -24,8 +24,8 @@
 #include <Poco/Environment.h>
 
 
-#include <Atomic/IO/Log.h>
-#include <Atomic/IO/FileSystem.h>
+#include <EngineCore/IO/Log.h>
+#include <EngineCore/IO/FileSystem.h>
 
 #include "../ToolEvents.h"
 #include "../ToolSystem.h"

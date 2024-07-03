@@ -24,15 +24,15 @@
 #include <Duktape/duk_logging.h>
 #include <Duktape/duk_module_duktape.h>
 
-#include <Atomic/Core/Profiler.h>
-#include <Atomic/Core/CoreEvents.h>
+#include <EngineCore/Core/Profiler.h>
+#include <EngineCore/Core/CoreEvents.h>
 
-#include <Atomic/IO/File.h>
-#include <Atomic/IO/Log.h>
-#include <Atomic/IO/FileSystem.h>
-#include <Atomic/IO/PackageFile.h>
+#include <EngineCore/IO/File.h>
+#include <EngineCore/IO/Log.h>
+#include <EngineCore/IO/FileSystem.h>
+#include <EngineCore/IO/PackageFile.h>
 
-#include <Atomic/Resource/ResourceCache.h>
+#include <EngineCore/Resource/ResourceCache.h>
 
 #include "JSRequire.h"
 #include "JSPlugin.h"

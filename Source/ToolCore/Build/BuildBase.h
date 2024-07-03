@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include <Atomic/Core/Object.h>
+#include <EngineCore/Core/Object.h>
 #include "BuildTypes.h"
 #include "../Platform/Platform.h"
 

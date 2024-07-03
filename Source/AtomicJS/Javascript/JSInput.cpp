@@ -20,7 +20,7 @@
 // THE SOFTWARE.
 //
 
-#include <Atomic/Input/Input.h>
+#include <EngineCore/Input/Input.h>
 
 #include "JSInput.h"
 

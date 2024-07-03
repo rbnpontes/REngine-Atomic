@@ -29,13 +29,13 @@
 #include <include/base/cef_bind.h>
 #include <include/wrapper/cef_closure_task.h>
 
-#include <Atomic/Core/ProcessUtils.h>
-#include <Atomic/Core/CoreEvents.h>
-#include <Atomic/IO/Log.h>
-#include <Atomic/IO/File.h>
-#include <Atomic/IO/FileSystem.h>
+#include <EngineCore/Core/ProcessUtils.h>
+#include <EngineCore/Core/CoreEvents.h>
+#include <EngineCore/IO/Log.h>
+#include <EngineCore/IO/File.h>
+#include <EngineCore/IO/FileSystem.h>
 
-#include <Atomic/Graphics/Graphics.h>
+#include <EngineCore/Graphics/Graphics.h>
 
 #include "Internal/WebAppBrowser.h"
 
@@ -44,7 +44,7 @@
 #include "WebClient.h"
 #include "WebBrowserHost.h"
 
-#ifdef ATOMIC_PLATFORM_LINUX
+#ifdef ENGINE_PLATFORM_LINUX
 
 #include <locale>
 #include <X11/Xlib.h>
@@ -127,7 +127,7 @@ WebBrowserHost::WebBrowserHost(Context* context) : Object (context)
 
     const Vector<String>& arguments = GetArguments();
 
-#ifdef ATOMIC_PLATFORM_LINUX
+#ifdef ENGINE_PLATFORM_LINUX
     XSetErrorHandler(XErrorHandlerImpl);
     XSetIOErrorHandler(XIOErrorHandlerImpl);
 
@@ -140,7 +140,7 @@ WebBrowserHost::WebBrowserHost(Context* context) : Object (context)
     // IMPORTANT: See flags being set in implementation of void WebAppBrowser::OnBeforeCommandLineProcessing
     // these include "--enable-media-stream", "--enable-usermedia-screen-capturing", "--off-screen-rendering-enabled", "--transparent-painting-enabled"
 
-#ifdef ATOMIC_PLATFORM_LINUX
+#ifdef ENGINE_PLATFORM_LINUX
     static const char* _argv[2] = { "AtomicWebView", "--disable-setuid-sandbox" };
     CefMainArgs args(2, (char**) &_argv);
 #else
@@ -202,7 +202,7 @@ WebBrowserHost::WebBrowserHost(Context* context) : Object (context)
 
     d_ = new WebBrowserHostPrivate(this);
 
-#ifdef ATOMIC_PLATFORM_LINUX
+#ifdef ENGINE_PLATFORM_LINUX
     // On Linux systems, CEF ignores the locale in CefSettings and sets it based on environment variables.
     // On non-English systems this changes the decimal separator to a comma (e.g. with a German
     // locale such as de-AT), which in turn breaks the cross-platform behavior of strtod() and sprintf().
@@ -216,7 +216,7 @@ WebBrowserHost::WebBrowserHost(Context* context) : Object (context)
         ATOMIC_LOGERROR("CefInitialize - Error");
     }
 
-#ifdef ATOMIC_PLATFORM_LINUX
+#ifdef ENGINE_PLATFORM_LINUX
     std::locale::global(oldLocale);
 #endif
 

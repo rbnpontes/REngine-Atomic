@@ -21,18 +21,18 @@
 //
 
 
-#include <Atomic/IO/Log.h>
-#include <Atomic/Core/CoreEvents.h>
+#include <EngineCore/IO/Log.h>
+#include <EngineCore/Core/CoreEvents.h>
 
-#include <Atomic/Graphics/Graphics.h>
-#include <Atomic/Graphics/Drawable.h>
-#include <Atomic/Graphics/DebugRenderer.h>
-#include <Atomic/Graphics/Terrain.h>
+#include <EngineCore/Graphics/Graphics.h>
+#include <EngineCore/Graphics/Drawable.h>
+#include <EngineCore/Graphics/DebugRenderer.h>
+#include <EngineCore/Graphics/Terrain.h>
 
-#include <Atomic/Scene/SceneEvents.h>
-#include <Atomic/Scene/Node.h>
-#include <Atomic/Scene/Scene.h>
-#include <Atomic/Scene/PrefabComponent.h>
+#include <EngineCore/Scene/SceneEvents.h>
+#include <EngineCore/Scene/Node.h>
+#include <EngineCore/Scene/Scene.h>
+#include <EngineCore/Scene/PrefabComponent.h>
 
 #include "SceneEditor3D.h"
 #include "SceneEditor3DEvents.h"

@@ -21,9 +21,9 @@
 //
 #include <Poco/File.h>
 
-#include <Atomic/IO/Log.h>
-#include <Atomic/IO/FileSystem.h>
-#include <Atomic/Resource/JSONFile.h>
+#include <EngineCore/IO/Log.h>
+#include <EngineCore/IO/FileSystem.h>
+#include <EngineCore/Resource/JSONFile.h>
 
 #include "../Subprocess/SubprocessSystem.h"
 #include "../Project/Project.h"

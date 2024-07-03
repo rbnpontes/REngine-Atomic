@@ -23,7 +23,7 @@
 
 #pragma once
 
-#include <Atomic/Script/ScriptComponent.h>
+#include <EngineCore/Script/ScriptComponent.h>
 
 #include "CSComponentAssembly.h"
 

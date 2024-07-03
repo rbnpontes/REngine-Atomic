@@ -1,8 +1,8 @@
 {
 	"name" : "UI",
-	"sources" : ["Source/Atomic/UI"],
-	"includes" : ["<Atomic/Graphics/Material.h>", "<Atomic/Scene/Node.h>", "<Atomic/Scene/Scene.h>", "<Atomic/Graphics/Texture2D.h>",
-								"<Atomic/UI/UIBatch.h>"],
+	"sources" : ["Source/EngineCore/UI"],
+	"includes" : ["<EngineCore/Graphics/Material.h>", "<EngineCore/Scene/Node.h>", "<EngineCore/Scene/Scene.h>", "<EngineCore/Graphics/Texture2D.h>",
+								"<EngineCore/UI/UIBatch.h>"],
 	"classes" : ["UI", "UIWidget", "UILayout", "UIView", "UIWindow", "UIButton", "UITextField",
 								"UISelectItem", "UISelectItemSource", "UIMenuWindow", "UIEditField",
 								"UIImageWidget", "UIClickLabel", "UICheckBox", "UIMenuItem", "UIMenuItemSource",
