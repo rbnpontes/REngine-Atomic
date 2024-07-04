@@ -12,7 +12,7 @@
 		"<EngineCore/Graphics/Renderer.h>",
 		"<EngineCore/Metrics/Metrics.h>"
 	],
-	"classes" : ["Context", "Object", "EngineBuildInfo", "Time", "Profiler"],
+	"classes" : ["Context", "Object", "AtomicBuildInfo", "Time", "Profiler"],
 	"classes_rename" : {
 		"Object" : "AObject"
 	},
