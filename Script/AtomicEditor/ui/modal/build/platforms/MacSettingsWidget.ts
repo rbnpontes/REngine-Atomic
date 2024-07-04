@@ -30,7 +30,7 @@ class MacSettingsWidget extends Atomic.UIWidget implements BuildSettingsWindow.B
 
         this.settings = ToolCore.toolSystem.project.buildSettings.macBuildSettings;
 
-        this.load("AtomicEditor/editor/ui/buildsettings_mac.tb.txt");
+        this.load("editor/ui/buildsettings_mac.tb.txt");
 
         this.appNameEdit = <Atomic.UIEditField>this.getWidget("app_name");
         this.packageNameEdit = <Atomic.UIEditField>this.getWidget("app_identifier");

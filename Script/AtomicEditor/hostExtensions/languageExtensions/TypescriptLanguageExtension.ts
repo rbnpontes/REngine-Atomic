@@ -620,7 +620,7 @@ export default class TypescriptLanguageExtension extends Atomic.ScriptObject imp
             `Compilation Completed in ${results.duration}ms`
         ].join("\n");
 
-        let window = this.serviceRegistry.uiServices.showNonModalWindow("TypeScript Compilation Results", "AtomicEditor/editor/ui/typescriptresults.tb.txt", (ev: Atomic.UIWidgetEvent) => {
+        let window = this.serviceRegistry.uiServices.showNonModalWindow("TypeScript Compilation Results", "editor/ui/typescriptresults.tb.txt", (ev: Atomic.UIWidgetEvent) => {
             if (ev.type == Atomic.UI_EVENT_TYPE.UI_EVENT_TYPE_CLICK) {
                 if (ev.target.id == "close") {
                     window.close();

@@ -32,7 +32,7 @@ export class ResourceDelete extends ModalWindow {
         super();
 
         this.asset = asset;
-        this.init("Delete Resource", "AtomicEditor/editor/ui/resourcedelete.tb.txt");
+        this.init("Delete Resource", "editor/ui/resourcedelete.tb.txt");
         var message = <Atomic.UIEditField>this.getWidget("message");
 
         var text = "Are you sure you want to delete resource:\n\n";
@@ -90,7 +90,7 @@ export class CreateFolder extends ModalWindow {
         super();
 
         this.resourcePath = resourcePath;
-        this.init("New Folder", "AtomicEditor/editor/ui/resourcenewfolder.tb.txt");
+        this.init("New Folder", "editor/ui/resourcenewfolder.tb.txt");
         this.nameField = <Atomic.UIEditField>this.getWidget("folder_name");
     }
 
@@ -137,7 +137,7 @@ export class CreateComponent extends ModalWindow {
         super();
 
         this.resourcePath = resourcePath;
-        this.init("New Component", "AtomicEditor/editor/ui/resourcecreatecomponent.tb.txt");
+        this.init("New Component", "editor/ui/resourcecreatecomponent.tb.txt");
         this.nameField = <Atomic.UIEditField>this.getWidget("component_name");
         this.templateField = <Atomic.UISelectDropdown>this.getWidget("template_list");
         this.loadTemplatesList();
@@ -223,7 +223,7 @@ export class CreateScript extends ModalWindow {
         super();
 
         this.resourcePath = resourcePath;
-        this.init("New Script", "AtomicEditor/editor/ui/resourcecreatescript.tb.txt");
+        this.init("New Script", "editor/ui/resourcecreatescript.tb.txt");
         this.nameField = <Atomic.UIEditField>this.getWidget("script_name");
         this.templateField = <Atomic.UISelectDropdown>this.getWidget("template_list");
         this.loadTemplatesList();
@@ -309,7 +309,7 @@ export class CreateScene extends ModalWindow {
         super();
 
         this.resourcePath = resourcePath;
-        this.init("New Scene", "AtomicEditor/editor/ui/resourcecreateresource.tb.txt");
+        this.init("New Scene", "editor/ui/resourcecreateresource.tb.txt");
         this.nameField = <Atomic.UIEditField>this.getWidget("component_name");
     }
 
@@ -361,7 +361,7 @@ export class CreateMaterial extends ModalWindow {
         super();
 
         this.resourcePath = resourcePath;
-        this.init("New Material", "AtomicEditor/editor/ui/resourcecreateresource.tb.txt");
+        this.init("New Material", "editor/ui/resourcecreateresource.tb.txt");
         this.nameField = <Atomic.UIEditField>this.getWidget("component_name");
     }
 
@@ -413,7 +413,7 @@ export class RenameAsset extends ModalWindow {
         super();
 
         this.asset = asset;
-        this.init("Rename Resource", "AtomicEditor/editor/ui/renameasset.tb.txt");
+        this.init("Rename Resource", "editor/ui/renameasset.tb.txt");
 
         var currentName = <Atomic.UITextField>this.getWidget("current_name");
         this.nameEdit = <Atomic.UIEditField>this.getWidget("new_name");

@@ -31,7 +31,7 @@ class BuildComplete extends Atomic.UIWindow {
         this.buildFolder = ev.buildFolder;
 
         this.text = ev.success ? "Build Complete" : "Build Failed";
-        this.load("AtomicEditor/editor/ui/buildcomplete.tb.txt");
+        this.load("editor/ui/buildcomplete.tb.txt");
 
         this.resizeToFitContent();
         this.center();

@@ -31,7 +31,7 @@ class ProgressModal extends Atomic.UIWindow {
         this.settings = Atomic.UI_WINDOW_SETTINGS.UI_WINDOW_SETTINGS_DEFAULT & ~Atomic.UI_WINDOW_SETTINGS.UI_WINDOW_SETTINGS_CLOSE_BUTTON;
 
         this.text = title;
-        this.load("AtomicEditor/editor/ui/progressmodal.tb.txt");
+        this.load("editor/ui/progressmodal.tb.txt");
 
         var messageField = <Atomic.UITextField> this.getWidget("message");
         messageField.text = message;

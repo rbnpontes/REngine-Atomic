@@ -30,7 +30,7 @@ class WindowsSettingsWidget extends Atomic.UIWidget implements BuildSettingsWind
 
       this.settings = ToolCore.toolSystem.project.buildSettings.windowsBuildSettings;
 
-      this.load("AtomicEditor/editor/ui/buildsettings_windows.tb.txt");
+      this.load("editor/ui/buildsettings_windows.tb.txt");
 
       this.appNameEdit = <Atomic.UIEditField>this.getWidget("app_name");
       this.packageNameEdit = <Atomic.UIEditField>this.getWidget("app_identifier");

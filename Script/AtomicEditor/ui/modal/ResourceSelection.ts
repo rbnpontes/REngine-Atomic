@@ -43,7 +43,7 @@ class ResourceSelection extends ModalWindow {
         this.resourceType = resourceType;
         this.callback = callback;
         this.args = args;
-        this.load("AtomicEditor/editor/ui/resourceselection.tb.txt");
+        this.load("editor/ui/resourceselection.tb.txt");
         this.searchEdit = <Atomic.UIEditField>this.getWidget("filter");
         this.populate(importerType, resourceType, false);
 

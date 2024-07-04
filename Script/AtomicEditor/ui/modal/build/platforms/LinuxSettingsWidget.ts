@@ -28,7 +28,7 @@ class LinuxSettingsWidget extends Atomic.UIWidget implements BuildSettingsWindow
 
       super();
 
-      this.load("AtomicEditor/editor/ui/buildsettings_linux.tb.txt");
+      this.load("editor/ui/buildsettings_linux.tb.txt");
 
       this.settings = ToolCore.toolSystem.project.buildSettings.linuxBuildSettings;
 

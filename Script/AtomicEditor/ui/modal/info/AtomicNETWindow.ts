@@ -35,7 +35,7 @@ class AtomicNETWindow extends ModalWindow {
         // and center, which screw up the generated About text being resized
 
         this.text = "Atomic C# Requirements";
-        this.load("AtomicEditor/editor/ui/atomicnetwindow.tb.txt");
+        this.load("editor/ui/atomicnetwindow.tb.txt");
 
         this.downloadButton = <Atomic.UIButton>this.getWidget("download_button");
 

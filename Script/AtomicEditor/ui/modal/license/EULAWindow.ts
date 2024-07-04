@@ -31,7 +31,7 @@ class EULAWindow extends ModalWindow {
 
         this.settings = Atomic.UI_WINDOW_SETTINGS.UI_WINDOW_SETTINGS_DEFAULT & ~Atomic.UI_WINDOW_SETTINGS.UI_WINDOW_SETTINGS_CLOSE_BUTTON;
 
-        this.init("License Agreement", "AtomicEditor/editor/ui/eulaagreement.tb.txt");
+        this.init("License Agreement", "editor/ui/eulaagreement.tb.txt");
 
         this.age_license = <Atomic.UIEditField> this.getWidget("age_license");
         this.thirdparty_license = <Atomic.UIEditField> this.getWidget("thirdparty_license");

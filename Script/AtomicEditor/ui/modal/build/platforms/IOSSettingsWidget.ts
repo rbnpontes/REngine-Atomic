@@ -28,7 +28,7 @@ class IOSSettingsWidget extends Atomic.UIWidget implements BuildSettingsWindow.B
 
         super();
 
-        this.load("AtomicEditor/editor/ui/buildsettings_ios.tb.txt");
+        this.load("editor/ui/buildsettings_ios.tb.txt");
 
         this.settings = ToolCore.toolSystem.project.buildSettings.iOSBuildSettings;
 

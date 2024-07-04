@@ -49,7 +49,7 @@ class InspectorFrame extends ScriptWidget {
 
         this.gravity = Atomic.UI_GRAVITY.UI_GRAVITY_TOP_BOTTOM;
 
-        this.load("AtomicEditor/editor/ui/inspectorframe.tb.txt");
+        this.load("editor/ui/inspectorframe.tb.txt");
 
         var container = this.getWidget("inspectorcontainer");
 

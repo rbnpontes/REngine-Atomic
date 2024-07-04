@@ -37,7 +37,7 @@ class CreateProject extends ModalWindow {
         this.defaultPath = Preferences.getInstance().editorFeatures.defaultPath;
         this.defaultLanguage = Preferences.getInstance().editorFeatures.defaultLanguage;
 
-        this.init("Create Project", "AtomicEditor/editor/ui/createproject.tb.txt");
+        this.init("Create Project", "editor/ui/createproject.tb.txt");
 
         this.projectPathField = <Atomic.UIEditField>this.getWidget("project_path");
         this.projectNameField = <Atomic.UIEditField>this.getWidget("project_name");
@@ -45,11 +45,11 @@ class CreateProject extends ModalWindow {
         this.projectLanguageField = <Atomic.UISelectDropdown>this.getWidget("project_language");
         this.image = <Atomic.UIImageWidget>this.getWidget("project_image");
 
-        this.desktopButton = this.addPlatformButton("desktop", "AtomicEditor/editor/images/Desktop128.png");
+        this.desktopButton = this.addPlatformButton("desktop", "editor/images/Desktop128.png");
         this.desktopButton.value = 1;
-        this.androidButton = this.addPlatformButton("android", "AtomicEditor/editor/images/Android128.png");
-        this.iosButton = this.addPlatformButton("ios", "AtomicEditor/editor/images/iOS128.png");
-        this.html5Button = this.addPlatformButton("html5", "AtomicEditor/editor/images/HTML5128.png");
+        this.androidButton = this.addPlatformButton("android", "editor/images/Android128.png");
+        this.iosButton = this.addPlatformButton("ios", "editor/images/iOS128.png");
+        this.html5Button = this.addPlatformButton("html5", "editor/images/HTML5128.png");
 
         if (!projectTemplate.screenshot)
             this.image.visibility = Atomic.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_GONE;
@@ -102,7 +102,7 @@ class CreateProject extends ModalWindow {
 
         if (platformName != "desktop") {
             var greenplus = new Atomic.UIImageWidget();
-            greenplus.image = "AtomicEditor/editor/images/green_plus.png";
+            greenplus.image = "editor/images/green_plus.png";
             rect = [size - 18, 2, size - 2, 18];
             greenplus.rect = rect;
             greenplus.visibility = Atomic.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_INVISIBLE;

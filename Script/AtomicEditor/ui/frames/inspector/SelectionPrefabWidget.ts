@@ -182,7 +182,7 @@ class ConfirmPrefabBreak extends Atomic.UIWindow {
         this.settings = Atomic.UI_WINDOW_SETTINGS.UI_WINDOW_SETTINGS_DEFAULT & ~Atomic.UI_WINDOW_SETTINGS.UI_WINDOW_SETTINGS_CLOSE_BUTTON;
 
         this.text = "Break Prefab Connection";
-        this.load("AtomicEditor/editor/ui/breakprefab.tb.txt");
+        this.load("editor/ui/breakprefab.tb.txt");
 
         var message = <Atomic.UIEditField>this.getWidget("message");
         message.text = "Editing this node will break the prefab connection.\nThis operation cannot be undone, do you want to continue?";

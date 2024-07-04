@@ -37,7 +37,7 @@ class BuildWindow extends ModalWindow {
 
         super();
 
-        this.init("Build Settings", "AtomicEditor/editor/ui/build.tb.txt");
+        this.init("Build Settings", "editor/ui/build.tb.txt");
 
         this.buildPathField = <Atomic.UITextField>this.getWidget("build_path");
         this.platformIndicator = <Atomic.UISkinImage>this.getWidget("current_platform_indicator");

@@ -43,7 +43,7 @@ export class BuildSettingsWindow extends ModalWindow {
 
         super();
 
-        this.init("Build Settings", "AtomicEditor/editor/ui/buildsettings.tb.txt");
+        this.init("Build Settings", "editor/ui/buildsettings.tb.txt");
 
         this.settingsContainer = <Atomic.UILayout>this.getWidget("settingscontainer");
         var platformcontainer = <Atomic.UILayout>this.getWidget("platformcontainer");

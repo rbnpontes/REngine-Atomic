@@ -30,7 +30,7 @@ class NewProject extends ModalWindow {
 
         super();
 
-        this.init("Project Type", "AtomicEditor/editor/ui/newproject.tb.txt");
+        this.init("Project Type", "editor/ui/newproject.tb.txt");
 
     }
 

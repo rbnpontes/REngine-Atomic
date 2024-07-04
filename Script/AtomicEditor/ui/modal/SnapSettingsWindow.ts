@@ -28,7 +28,7 @@ class SnapSettingsWindow extends ModalWindow {
 
         super();
 
-        this.init("Snap Settings", "AtomicEditor/editor/ui/snapsettings.tb.txt");
+        this.init("Snap Settings", "editor/ui/snapsettings.tb.txt");
 
         this.transXEditField = <Atomic.UIEditField>this.getWidget("trans_x");
         this.transYEditField = <Atomic.UIEditField>this.getWidget("trans_y");

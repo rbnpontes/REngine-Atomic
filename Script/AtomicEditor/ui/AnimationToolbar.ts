@@ -34,7 +34,7 @@ class AnimationToolbar extends Atomic.UIWidget {
 
         super();
 
-        this.load("AtomicEditor/editor/ui/animationtoolbar.tb.txt");
+        this.load("editor/ui/animationtoolbar.tb.txt");
         this.asset = asset;
 
         this.leftAnimContainer = <Atomic.UILayout>this.getWidget("leftanimcontainer");

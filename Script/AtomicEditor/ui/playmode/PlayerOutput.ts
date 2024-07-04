@@ -38,7 +38,7 @@ class PlayerOutput extends Atomic.UIWindow {
 
         this.text = "Player Output";
 
-        this.load("AtomicEditor/editor/ui/playeroutput.tb.txt");
+        this.load("editor/ui/playeroutput.tb.txt");
 
         this.output = <Atomic.UIEditField> this.getWidget("output");
         this.closeOnStop = <Atomic.UICheckBox> this.getWidget("closeonstop");

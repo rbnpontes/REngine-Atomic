@@ -32,7 +32,7 @@ class BuildOutput extends ModalWindow {
 
         this.buildBase = buildBase;
 
-        this.init("Build Output", "AtomicEditor/editor/ui/programoutput.tb.txt");
+        this.init("Build Output", "editor/ui/programoutput.tb.txt");
 
         this.outputField = <Atomic.UIEditField>this.getWidget("output");
 

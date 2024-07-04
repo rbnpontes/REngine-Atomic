@@ -50,7 +50,7 @@ class ColorChooser extends Atomic.UIWindow {
         view.addChild(this);
 
         this.text = "Color Chooser";
-        this.load("AtomicEditor/editor/ui/colorchooser.tb.txt");
+        this.load("editor/ui/colorchooser.tb.txt");
 
         this.r_ils = <Atomic.UIInlineSelect>this.getWidget("redselect");
         this.g_ils = <Atomic.UIInlineSelect>this.getWidget("greenselect");

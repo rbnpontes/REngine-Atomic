@@ -33,7 +33,7 @@ class About extends ModalWindow {
         // and center, which screw up the generated About text being resized
 
         this.text = "About the Atomic Game Engine";
-        this.load("AtomicEditor/editor/ui/about.tb.txt");
+        this.load("editor/ui/about.tb.txt");
 
         this.age_license = <Atomic.UIEditField>this.getWidget("age_license");
         this.thirdparty_license = <Atomic.UIEditField>this.getWidget("thirdparty_license");
@@ -93,7 +93,7 @@ class About extends ModalWindow {
 
         var buildString = `<color #FFFFFF>'${buildName}' - ${buildDate} ${buildTime}\nGit: ${buildSHA}\nVendor: <color #76D6FF>${buildVendor}</color></color>`;
 
-        text += "<widget TBImageWidget: filename: 'AtomicEditor/editor/images/atomic_logo.png'>\n\n";
+        text += "<widget TBImageWidget: filename: 'editor/images/atomic_logo.png'>\n\n";
         text += "(c) 2014-2016 THUNDERBEAST GAMES LLC\n\n";
 
         text += "<color #76D6FF>Build Information:</color>\n";

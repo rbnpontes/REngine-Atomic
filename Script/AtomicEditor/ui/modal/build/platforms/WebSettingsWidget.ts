@@ -30,7 +30,7 @@ class WebSettingsWidget extends Atomic.UIWidget implements BuildSettingsWindow.B
 
       this.settings = ToolCore.toolSystem.project.buildSettings.webBuildSettings;
 
-      this.load("AtomicEditor/editor/ui/buildsettings_html5.tb.txt");
+      this.load("editor/ui/buildsettings_html5.tb.txt");
 
       this.appNameEdit = <Atomic.UIEditField>this.getWidget("app_name");
       this.radioDark = <Atomic.UICheckBox>this.getWidget("web_dark");

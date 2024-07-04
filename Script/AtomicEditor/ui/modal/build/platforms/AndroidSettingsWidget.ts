@@ -28,7 +28,7 @@ class AndroidSettingsWidget extends Atomic.UIWidget implements BuildSettingsWind
 
         super();
 
-        this.load("AtomicEditor/editor/ui/buildsettings_android.tb.txt");
+        this.load("editor/ui/buildsettings_android.tb.txt");
 
         this.settings = ToolCore.toolSystem.project.buildSettings.androidBuildSettings;
 

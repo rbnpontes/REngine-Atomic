@@ -36,7 +36,7 @@ class NewBuildWindow extends ModalWindow {
         // and center, which screw up the generated About text being resized
 
         this.text = showCheck ? "New Build Detected" : "Latest Updates";
-        this.load("AtomicEditor/editor/ui/newbuildwindow.tb.txt");
+        this.load("editor/ui/newbuildwindow.tb.txt");
 
         this.newbuild_text = <Atomic.UIEditField>this.getWidget("newbuild_text");
         this.newbuild_text.text = this.generateNewBuildText();
