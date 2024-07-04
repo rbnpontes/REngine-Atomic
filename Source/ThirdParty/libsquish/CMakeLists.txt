@@ -22,3 +22,5 @@
 file (GLOB SOURCE_FILES *.cpp *.h)
 set(INCLUDE_DIRS .)
 add_library(libsquish ${SOURCE_FILES})
+
+vs_add_to_grp(libsquish "${VS_GRP_THIRD_PARTY}")

@@ -34,3 +34,5 @@ setup_library ()
 
 
 target_link_libraries(${TARGET_NAME} Detour)
+
+vs_add_to_grp("${TARGET_NAME}" "${VS_GRP_THIRD_PARTY}")

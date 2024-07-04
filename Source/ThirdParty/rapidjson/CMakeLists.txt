@@ -22,3 +22,5 @@
 
 add_library(rapidjson INTERFACE)
 target_include_directories(rapidjson SYSTEM BEFORE INTERFACE ./include)
+
+vs_add_to_grp(rapidjson "${VS_GRP_THIRD_PARTY}")

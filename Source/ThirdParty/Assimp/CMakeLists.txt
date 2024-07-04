@@ -769,4 +769,4 @@ setup_library ()
 #Set default C++ standard
 set (CMAKE_CXX_STANDARD 20)
 
-vs_add_to_grp(Atomic "${VS_GRP_THIRD_PARTY}")
+vs_add_to_grp(Assimp "${VS_GRP_THIRD_PARTY}")

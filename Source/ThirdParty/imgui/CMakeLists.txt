@@ -27,3 +27,5 @@ add_library (imgui STATIC imgui.cpp imgui_draw.cpp)
 target_link_libraries (imgui STB)
 target_compile_definitions(imgui PUBLIC -DIMGUI_DISABLE_OBSOLETE_FUNCTIONS=1)
 target_include_directories(imgui PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+
+vs_add_to_grp(imgui "${VS_GRP_THIRD_PARTY}")

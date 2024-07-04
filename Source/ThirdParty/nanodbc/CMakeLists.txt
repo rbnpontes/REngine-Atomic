@@ -37,3 +37,6 @@ endif ()
 
 # Setup target
 setup_library ()
+
+
+vs_add_to_grp(nanodbc "${VS_GRP_THIRD_PARTY}")

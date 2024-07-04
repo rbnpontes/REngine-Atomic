@@ -20,3 +20,5 @@ endif(LINUX)
 
 add_library(nativefiledialog ${SOURCE_FILES})
 target_include_directories(nativefiledialog PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+
+vs_add_to_grp(nativefiledialog "${VS_GRP_THIRD_PARTY}")

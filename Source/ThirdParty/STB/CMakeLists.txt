@@ -28,6 +28,5 @@ target_include_directories(STB SYSTEM
     PUBLIC    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/STB>
               $<INSTALL_INTERFACE:${DEST_THIRDPARTY_HEADERS_DIR}/STB>
 )
-# add_library(STB STATIC stb_impl.cpp)
-# target_compile_definitions(STB PUBLIC -DSTB_VORBIS_HEADER_ONLY=1)
-# target_include_directories(STB PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} PRIVATE ../..)
+
+vs_add_to_grp(STB "${VS_GRP_THIRD_PARTY}")

@@ -22,3 +22,5 @@
 
 add_library(Mustache INTERFACE)
 target_include_directories(Mustache SYSTEM BEFORE INTERFACE .)
+
+vs_add_to_grp(Mustache "${VS_GRP_THIRD_PARTY}")

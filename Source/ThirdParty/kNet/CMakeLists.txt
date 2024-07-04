@@ -75,3 +75,5 @@ if (UNIX)
    target_compile_definitions(${TARGET_NAME} PUBLIC  -DKNET_UNIX)
 endif ()
 # ATOMIC END
+
+vs_add_to_grp("${TARGET_NAME}" "${VS_GRP_THIRD_PARTY}")

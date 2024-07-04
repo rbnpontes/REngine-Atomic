@@ -80,3 +80,5 @@ set (INCLUDE_DIRS ${CMAKE_CURRENT_BINARY_DIR}/include/generated include)
 
 # Setup target
 setup_library ()
+
+vs_add_to_grp("${TARGET_NAME}" "${VS_GRP_THIRD_PARTY}")
