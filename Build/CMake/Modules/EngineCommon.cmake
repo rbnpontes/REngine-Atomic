@@ -272,11 +272,11 @@ macro(msvc_set_runtime runtime_flag)
     endforeach()
     # Add release runtime flags.
     foreach(var ${COMPILER_RELEASE_VARS})
-        set(${var} "${${var}} ${runtime_flag}")
+        set(${var} "${${var}} ${runtime_flag}" CACHE STRING "msvc compiler flags" FORCE)
     endforeach()
     # Add debug runtime flags.
     foreach(var ${COMPILER_DEBUG_VARS})
-        set(${var} "${${var}} ${runtime_flag}d")
+        set(${var} "${${var}} ${runtime_flag}d" CACHE STRING "msvc compiler flags" FORCE)
     endforeach()
 endmacro()
 
