@@ -36,7 +36,7 @@ class MainToolbar extends Atomic.UIWidget {
 
         super();
 
-        this.load("AtomicEditor/editor/ui/maintoolbar.tb.txt");
+        this.load("editor/ui/maintoolbar.tb.txt");
 
         this.translateButton = <Atomic.UIButton>this.getWidget("3d_translate");
         this.rotateButton = <Atomic.UIButton>this.getWidget("3d_rotate");

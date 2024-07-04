@@ -107,7 +107,7 @@ class AtomicEditor extends Atomic.ScriptObject {
         var ui = Atomic.ui;
         ui.loadSkin(uiData.skinPath + "/skin.tb.txt", uiData.defaultSkinPath + "/skin.tb.txt");
         ui.addFont(uiData.fontFile, uiData.fontName);
-        ui.addFont("AtomicEditor/resources/MesloLGS-Regular.ttf", "Monaco");
+        ui.addFont("resources/MesloLGS-Regular.ttf", "Monaco");
         ui.setDefaultFont(uiData.fontName, uiData.fontSize);
     }
 

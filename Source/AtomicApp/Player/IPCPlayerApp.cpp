@@ -111,7 +111,7 @@ namespace Atomic
                         return;
                     }
 
-#ifdef ATOMIC_DEV_BUILD
+#ifdef ENGINE_DEV_BUILD
 
                     String resourcePaths = ToString("%s/Resources/CoreData;%s/Resources/PlayerData;%sResources;%s;%sCache",
                         ENGINE_ROOT_SOURCE_DIR, ENGINE_ROOT_SOURCE_DIR, value.CString(), value.CString(), value.CString());

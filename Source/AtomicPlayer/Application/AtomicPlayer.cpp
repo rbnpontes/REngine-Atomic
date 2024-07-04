@@ -21,7 +21,7 @@
 // THE SOFTWARE.
 //
 
-#include <EngineCore/Atomic.h>
+#include <EngineCore/EngineCore.h>
 #include <EngineCore/Engine/Engine.h>
 #include <EngineCore/Engine/EngineConfig.h>
 #include <EngineCore/IO/FileSystem.h>
@@ -65,7 +65,7 @@ AtomicPlayerApp::AtomicPlayerApp(Context* context) :
 void AtomicPlayerApp::Setup()
 {
 
-#ifdef ATOMIC_3D
+#ifdef ENGINE_3D
     RegisterEnvironmentLibrary(context_);
 #endif
 

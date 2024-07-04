@@ -461,7 +461,7 @@ namespace ToolCore
 
         String config = "Release";
 
-#ifdef ATOMIC_DEV_BUILD
+#ifdef ENGINE_DEV_BUILD
 
         // If we're a core AtomicNET assembly and a project is included in solution
         // output to Lib so that development changes will be picked up by project reference
@@ -506,7 +506,7 @@ namespace ToolCore
 
             String startArguments;
 
-    #ifndef ATOMIC_DEV_BUILD
+    #ifndef ENGINE_DEV_BUILD
 
         FileSystem* fileSystem = GetSubsystem<FileSystem>();
 
@@ -563,7 +563,7 @@ namespace ToolCore
 
         String config = "Debug";
 
-#ifdef ATOMIC_DEV_BUILD
+#ifdef ENGINE_DEV_BUILD
 
         // If we're a core AtomicNET assembly and a project is included in solution
         // output to Lib so that development changes will be picked up by project reference
@@ -612,7 +612,7 @@ namespace ToolCore
 
             String startArguments;
 
-    #ifndef ATOMIC_DEV_BUILD
+    #ifndef ENGINE_DEV_BUILD
 
         FileSystem* fileSystem = GetSubsystem<FileSystem>();
 
@@ -1192,7 +1192,7 @@ namespace ToolCore
 
                     String startArguments;
 
-#ifndef ATOMIC_DEV_BUILD
+#ifndef ENGINE_DEV_BUILD
 
 #ifdef ENGINE_PLATFORM_MACOS
                     startArguments += ToString("--resourcePrefix \"%s\" ", (fileSystem->GetProgramDir() + "../Resources/").CString());
@@ -1284,7 +1284,7 @@ namespace ToolCore
 
         }
 
-#ifdef ATOMIC_DEV_BUILD
+#ifdef ENGINE_DEV_BUILD
 #ifndef ENGINE_PLATFORM_WINDOWS
 
         // On xbuild, mdb files for references aren't being copied to output folders for desktop
@@ -1874,7 +1874,7 @@ namespace ToolCore
             projectSettings_->Load(atomicProjectPath_ + "Settings/Project.json");
         }
 
-#ifdef ATOMIC_DEV_BUILD
+#ifdef ENGINE_DEV_BUILD
 
         JSONValue netJSON;
 
@@ -1895,7 +1895,7 @@ namespace ToolCore
 
         AtomicNETCopyAssemblies(context_, atomicProjectPath_ + "AtomicNET/Lib/");
 
-#ifdef ATOMIC_DEV_BUILD
+#ifdef ENGINE_DEV_BUILD
 
         String projectPath = tenv->GetRootSourceDir() + "Script/AtomicNET/AtomicProject.json";
 #else
@@ -1917,7 +1917,7 @@ namespace ToolCore
         if (!JSONFile::ParseJSON(json, jvalue))
             return false;
 
-#ifdef ATOMIC_DEV_BUILD
+#ifdef ENGINE_DEV_BUILD
 
         // patch projects
         JSONArray netProjects = netJSON["projects"].GetArray();

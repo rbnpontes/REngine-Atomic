@@ -23,7 +23,7 @@
 #include "../Precompiled.h"
 
 #include "../IO/Log.h"
-#if defined(ATOMIC_PHYSICS) || defined(ATOMIC_ATOMIC2D)
+#if defined(ENGINE_PHYSICS) || defined(ENGINE_2D)
 #include "../Physics/PhysicsEvents.h"
 #endif
 #include "../Scene/LogicComponent.h"
@@ -97,7 +97,7 @@ void LogicComponent::OnSceneSet(Scene* scene)
     {
         UnsubscribeFromEvent(E_SCENEUPDATE);
         UnsubscribeFromEvent(E_SCENEPOSTUPDATE);
-#if defined(ATOMIC_PHYSICS) || defined(ATOMIC_ATOMIC2D)
+#if defined(ENGINE_PHYSICS) || defined(ENGINE_2D)
         UnsubscribeFromEvent(E_PHYSICSPRESTEP);
         UnsubscribeFromEvent(E_PHYSICSPOSTSTEP);
 #endif
@@ -137,7 +137,7 @@ void LogicComponent::UpdateEventSubscription()
         currentEventMask_ &= ~USE_POSTUPDATE;
     }
 
-#if defined(ATOMIC_PHYSICS) || defined(ATOMIC_ATOMIC2D)
+#if defined(ENGINE_PHYSICS) || defined(ENGINE_2D)
     Component* world = GetFixedUpdateSource();
     if (!world)
         return;
@@ -199,7 +199,7 @@ void LogicComponent::HandleScenePostUpdate(StringHash eventType, VariantMap& eve
     PostUpdate(eventData[P_TIMESTEP].GetFloat());
 }
 
-#if defined(ATOMIC_PHYSICS) || defined(ATOMIC_ATOMIC2D)
+#if defined(ENGINE_PHYSICS) || defined(ENGINE_2D)
 
 void LogicComponent::HandlePhysicsPreStep(StringHash eventType, VariantMap& eventData)
 {

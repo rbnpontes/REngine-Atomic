@@ -89,7 +89,7 @@ private:
     void HandleSceneUpdate(StringHash eventType, VariantMap& eventData);
     /// Handle scene post-update event.
     void HandleScenePostUpdate(StringHash eventType, VariantMap& eventData);
-#if defined(ATOMIC_PHYSICS) || defined(ATOMIC_ATOMIC2D)
+#if defined(ENGINE_PHYSICS) || defined(ENGINE_2D)
     /// Handle physics pre-step event.
     void HandlePhysicsPreStep(StringHash eventType, VariantMap& eventData);
     /// Handle physics post-step event.

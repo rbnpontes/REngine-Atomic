@@ -138,7 +138,7 @@ private:
     bool quiet_;
 };
 
-#ifdef ATOMIC_LOGGING
+#ifdef ENGINE_LOGGING
 #define ATOMIC_LOGDEBUG(message) Atomic::Log::Write(Atomic::LOG_DEBUG, message)
 #define ATOMIC_LOGINFO(message) Atomic::Log::Write(Atomic::LOG_INFO, message)
 #define ATOMIC_LOGWARNING(message) Atomic::Log::Write(Atomic::LOG_WARNING, message)

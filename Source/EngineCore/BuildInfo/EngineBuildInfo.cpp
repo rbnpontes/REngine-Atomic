@@ -37,7 +37,7 @@ String AtomicBuildInfo::GetBuildName()
 
 bool AtomicBuildInfo::GetDevBuild()
 {
-#ifdef ATOMIC_DEV_BUILD
+#ifdef ENGINE_DEV_BUILD
     return true;
 #else
     return false;

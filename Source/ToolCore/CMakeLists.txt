@@ -16,6 +16,8 @@ if (ENGINE_XCODE)
     target_compile_definitions(ToolCore PRIVATE -DENGINE_XCODE)
 endif ()
 
+target_compile_definitions(ToolCore PUBLIC -DENGINE_NAME="${ENGINE_NAME}" -DENGINE_EDITOR_NAME="${ENGINE_EDITOR_NAME}")
+
 GroupSources("Assets")
 GroupSources("Build")
 GroupSources("Command")

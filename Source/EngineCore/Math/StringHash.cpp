@@ -43,7 +43,7 @@ const StringHash StringHash::ZERO;
 StringHash::StringHash(const char* str) :
     value_(Calculate(str))
 {
-#if ATOMIC_PROFILING
+#if ENGINE_PROFILING
     RegisterSignificantString(str, *this);
 #endif
 }
@@ -51,7 +51,7 @@ StringHash::StringHash(const char* str) :
 StringHash::StringHash(const String& str) :
     value_(Calculate(str.CString()))
 {
-#if ATOMIC_PROFILING
+#if ENGINE_PROFILING
     RegisterSignificantString(str, *this);
 #endif
 }

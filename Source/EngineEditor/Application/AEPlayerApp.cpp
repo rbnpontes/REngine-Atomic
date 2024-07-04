@@ -49,7 +49,7 @@ namespace AtomicEditor
         AEEditorPrefs* prefs = new AEEditorPrefs(context_);
         context_->RegisterSubsystem(prefs);
 
-#ifdef ATOMIC_WEBVIEW
+#ifdef ENGINE_WEBVIEW
         JSVM::RegisterPackage(jsapi_init_webview, engineParameters_);
 #endif
 

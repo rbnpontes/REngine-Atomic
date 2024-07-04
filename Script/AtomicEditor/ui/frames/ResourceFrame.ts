@@ -279,7 +279,7 @@ class ResourceFrame extends ScriptWidget {
 
         super();
 
-        this.load("AtomicEditor/editor/ui/resourceframe.tb.txt");
+        this.load("editor/ui/resourceframe.tb.txt");
 
         this.gravity = Atomic.UI_GRAVITY.UI_GRAVITY_ALL;
 

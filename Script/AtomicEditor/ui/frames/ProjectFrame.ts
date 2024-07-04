@@ -49,7 +49,7 @@ class ProjectFrame extends ScriptWidget {
 
         this.menu = new ProjectFrameMenu();
 
-        this.load("AtomicEditor/editor/ui/projectframe.tb.txt");
+        this.load("editor/ui/projectframe.tb.txt");
 
         this.gravity = Atomic.UI_GRAVITY.UI_GRAVITY_TOP_BOTTOM;
 

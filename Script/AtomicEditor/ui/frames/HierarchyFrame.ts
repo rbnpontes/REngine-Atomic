@@ -46,7 +46,7 @@ class HierarchyFrame extends Atomic.UIWidget {
 
         this.menu = new HierarchyFrameMenu();
 
-        this.load("AtomicEditor/editor/ui/hierarchyframe.tb.txt");
+        this.load("editor/ui/hierarchyframe.tb.txt");
 
         this.gravity = Atomic.UI_GRAVITY.UI_GRAVITY_ALL;
 

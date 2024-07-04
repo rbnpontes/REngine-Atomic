@@ -41,7 +41,7 @@
 #include <STB/stb_image.h>
 #include <STB/stb_image_write.h>
 // ATOMIC END
-#ifdef ATOMIC_WEBP
+#ifdef ENGINE_WEBP
 #include <webp/decode.h>
 #include <webp/encode.h>
 #include <webp/mux.h>
@@ -764,7 +764,7 @@ bool Image::BeginLoad(Deserializer& source)
         source.Read(data_.Get(), dataSize);
         SetMemoryUse(dataSize);
     }
-#ifdef ATOMIC_WEBP
+#ifdef ENGINE_WEBP
     else if (fileID == "RIFF")
     {
         // WebP: https://developers.google.com/speed/webp/docs/api
@@ -886,7 +886,7 @@ bool Image::SaveFile(const String& fileName) const
         return SaveJPG(fileName, 100);
     else if (fileName.EndsWith(".tga", false))
         return SaveTGA(fileName);
-#ifdef ATOMIC_WEBP
+#ifdef ENGINE_WEBP
     else if (fileName.EndsWith(".webp", false))
         return SaveWEBP(fileName, 100.0f);
 #endif
@@ -1450,7 +1450,7 @@ bool Image::SaveDDS(const String& fileName) const
 
 bool Image::SaveWEBP(const String& fileName, float compression /* = 0.0f */) const
 {
-#ifdef ATOMIC_WEBP
+#ifdef ENGINE_WEBP
     ATOMIC_PROFILE(SaveImageWEBP);
 
     FileSystem* fileSystem(GetSubsystem<FileSystem>());

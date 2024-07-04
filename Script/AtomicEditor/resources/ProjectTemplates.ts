@@ -82,9 +82,9 @@ export function getNewProjectTemplateDefinition(projectType: string): ProjectTem
 /**
  * Return an array of all of the example project definitions.
  * Note that the paths in both screenshot and folder will be fully resolved.
- * @return {[ProjectTemplateDefinition]} Array of example project definitions.
+ * @return {ProjectTemplateDefinition[]} Array of example project definitions.
  */
-export function getExampleProjectTemplateDefinitions(): [ProjectTemplateDefinition] {
+export function getExampleProjectTemplateDefinitions(): ProjectTemplateDefinition[] {
 
     let env = ToolCore.toolEnvironment;
     let fileSystem = Atomic.fileSystem;
@@ -99,18 +99,18 @@ export function getExampleProjectTemplateDefinitions(): [ProjectTemplateDefiniti
     let exampleFoldersJson = JSON.parse(jsonFile.readText());
 
     // list of example folders
-    let exampleFolders = <[string]>exampleFoldersJson.examples;
+    let exampleFolders : string[] = exampleFoldersJson.examples;
 
-    let examples = <[ProjectTemplateDefinition]>[];
+    let examples : ProjectTemplateDefinition[] = [];
 
     // Update all the paths to a more fully qualified path
     exampleFolders.forEach(exampleFolder => {
 
-        let folder = Atomic.addTrailingSlash(env.toolDataDir + "AtomicExamples/" + exampleFolder);
+        let folder = Atomic.addTrailingSlash(env.toolDataDir + "EngineExamples/" + exampleFolder);
 
         // if we're building from source tree, adjust the path
         if (Atomic.AtomicBuildInfo.getDevBuild()) {
-            folder = Atomic.addTrailingSlash(env.rootSourceDir + "Submodules/AtomicExamples/" + exampleFolder);
+            folder = Atomic.addTrailingSlash(env.rootSourceDir + "Submodules/EngineExamples/" + exampleFolder);
         }
 
         let screenshot = folder + "Screenshot.png";

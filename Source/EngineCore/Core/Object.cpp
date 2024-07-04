@@ -314,7 +314,7 @@ void Object::SendEvent(StringHash eventType)
 // ATOMIC BEGIN
 void Object::SendEvent(StringHash eventType, VariantMap& eventData)
 {
-#if ATOMIC_PROFILING
+#if ENGINE_PROFILING
     bool eventProfilingEnabled = false;
     if (Profiler* profiler = GetSubsystem<Profiler>())
         eventProfilingEnabled = profiler->GetEventProfilingEnabled();
@@ -328,7 +328,7 @@ void Object::SendEvent(StringHash eventType, VariantMap& eventData)
 
 void Object::SendEventProfiled(StringHash eventType, VariantMap& eventData)
 {
-#if ATOMIC_PROFILING
+#if ENGINE_PROFILING
     String eventName;
     if (!StringHash::GetSignificantString(eventType, eventName))
         eventName = eventType.ToString();

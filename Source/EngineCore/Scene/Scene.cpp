@@ -1296,7 +1296,7 @@ void Scene::FinishSaving(Serializer* dest) const
 void Scene::PreloadResources(File* file, bool isSceneFile)
 {
     // If not threaded, can not background load resources, so rather load synchronously later when needed
-#ifdef ATOMIC_THREADING
+#ifdef ENGINE_THREADING
     ResourceCache* cache = GetSubsystem<ResourceCache>();
 
     // Read node ID (not needed)
@@ -1372,7 +1372,7 @@ void Scene::PreloadResources(File* file, bool isSceneFile)
 void Scene::PreloadResourcesXML(const XMLElement& element)
 {
     // If not threaded, can not background load resources, so rather load synchronously later when needed
-#ifdef ATOMIC_THREADING
+#ifdef ENGINE_THREADING
     ResourceCache* cache = GetSubsystem<ResourceCache>();
 
     // Node or Scene attributes do not include any resources; therefore skip to the components
@@ -1452,7 +1452,7 @@ void Scene::PreloadResourcesXML(const XMLElement& element)
 void Scene::PreloadResourcesJSON(const JSONValue& value)
 {
     // If not threaded, can not background load resources, so rather load synchronously later when needed
-#ifdef ATOMIC_THREADING
+#ifdef ENGINE_THREADING
     ResourceCache* cache = GetSubsystem<ResourceCache>();
 
     // Node or Scene attributes do not include any resources; therefore skip to the components

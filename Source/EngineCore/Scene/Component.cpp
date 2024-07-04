@@ -28,11 +28,11 @@
 #include "../Scene/ReplicationState.h"
 #include "../Scene/Scene.h"
 #include "../Scene/SceneEvents.h"
-#ifdef ATOMIC_PHYSICS
+#ifdef ENGINE_PHYSICS
 #include "../Physics/PhysicsWorld.h"
 #endif
-#ifdef ATOMIC_ATOMIC2D
-#include "../Atomic2D/PhysicsWorld2D.h"
+#ifdef ENGINE_2D
+#include "../2D/PhysicsWorld2D.h"
 #endif
 
 #include "../DebugNew.h"
@@ -291,10 +291,10 @@ Component* Component::GetFixedUpdateSource()
 
     if (scene)
     {
-#ifdef ATOMIC_PHYSICS
+#ifdef ENGINE_PHYSICS
         ret = scene->GetComponent<PhysicsWorld>();
 #endif
-#ifdef ATOMIC_ATOMIC2D
+#ifdef ENGINE_2D
         if (!ret)
             ret = scene->GetComponent<PhysicsWorld2D>();
 #endif

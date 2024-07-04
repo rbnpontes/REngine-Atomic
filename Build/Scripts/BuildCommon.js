@@ -106,7 +106,7 @@ namespace('build', function () {
         const bind_task = new Promise((resolve) => {
             jake.exec(cmds, { printStdout: true, printStderr: true }, () => {
                 // copy some external dependencies into the editor modules directory
-                const editorModulesDir = "./Artifacts/Build/Resources/EditorData/AtomicEditor/EditorScripts/AtomicEditor/modules";
+                const editorModulesDir = "./Artifacts/Build/Resources/EditorData/EditorScripts/AtomicEditor/modules";
                 const webeditorModulesDir = "./Data/AtomicEditor/CodeEditor/source/editorCore/modules";
                 const nodeModulesDir = "./Build/node_modules";
                 fs.mkdirsSync(editorModulesDir);
@@ -114,7 +114,7 @@ namespace('build', function () {
                 fs.copySync(nodeModulesDir + "/typescript/lib/typescript.js", webeditorModulesDir + "/typescript.js")
 
                 // copy lib.core.d.ts into the tool data directory
-                fs.mkdirsSync("./Artifacts/Build/Resources/EditorData/AtomicEditor/EditorScripts/AtomicEditor/TypeScriptSupport");
+                fs.mkdirsSync("./Artifacts/Build/Resources/EditorData/EditorScripts/AtomicEditor/TypeScriptSupport");
                 fs.copySync("./Build/node_modules/typescript/lib/lib.es5.d.ts", "./Data/AtomicEditor/TypeScriptSupport/lib.es5.d.ts");
 
                 // copy the combined Atomic.d.ts to the tool data directory

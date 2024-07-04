@@ -98,7 +98,7 @@ void PrefabComponent::LoadPrefabNode()
     this->SetTemporary(temporary);
     node->AddComponent(this, id, REPLICATED);
 
-#ifdef ATOMIC_3D
+#ifdef ENGINE_3D
 
     // Get all the rigid bodies of the load node
     PODVector<RigidBody*> bodies;

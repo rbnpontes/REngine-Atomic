@@ -156,13 +156,13 @@ class Preferences {
 
     toggleTheme() : void { // swap the themes
         var uiData = this.uiData;
-        if ( this.uiData.defaultSkinPath == "AtomicEditor/resources/default_skin/" ) {
-            this.uiData.defaultSkinPath = "AtomicEditor/resources/default_skin_light/";
-            this.uiData.skinPath = "AtomicEditor/editor/skin_light/";
+        if ( this.uiData.defaultSkinPath == "resources/default_skin/" ) {
+            this.uiData.defaultSkinPath = "resources/default_skin_light/";
+            this.uiData.skinPath = "editor/skin_light/";
         }
         else {
-            this.uiData.defaultSkinPath = "AtomicEditor/resources/default_skin/";
-            this.uiData.skinPath = "AtomicEditor/editor/skin/";
+            this.uiData.defaultSkinPath = "resources/default_skin/";
+            this.uiData.skinPath = "editor/skin/";
         }
         var ui = Atomic.ui; // install the new skins, live action
         ui.loadSkin(this.uiData.skinPath + "/skin.tb.txt", this.uiData.defaultSkinPath + "/skin.tb.txt");
@@ -465,9 +465,9 @@ class PreferencesFormat {
         };
 
         this.uiData = {
-            skinPath: "AtomicEditor/editor/skin/",
-            defaultSkinPath: "AtomicEditor/resources/default_skin/",
-            fontFile: "AtomicEditor/resources/vera.ttf",
+            skinPath: "editor/skin/",
+            defaultSkinPath: "resources/default_skin/",
+            fontFile: "resources/vera.ttf",
             fontName: "Vera",
             fontSize: 12
         };

@@ -83,7 +83,7 @@ ResourceCache::ResourceCache(Context* context) :
     // Register Resource library object factories
     RegisterResourceLibrary(context_);
 
-#ifdef ATOMIC_THREADING
+#ifdef ENGINE_THREADING
     // Create resource background loader. Its thread will start on the first background request
     backgroundLoader_ = new BackgroundLoader(this);
 #endif
@@ -94,7 +94,7 @@ ResourceCache::ResourceCache(Context* context) :
 
 ResourceCache::~ResourceCache()
 {
-#ifdef ATOMIC_THREADING
+#ifdef ENGINE_THREADING
     // Shut down the background loader first
     backgroundLoader_.Reset();
 #endif
@@ -606,7 +606,7 @@ Resource* ResourceCache::GetResource(StringHash type, const String& nameIn, bool
 
     StringHash nameHash(name);
 
-#ifdef ATOMIC_THREADING
+#ifdef ENGINE_THREADING
     // Check if the resource is being background loaded but is now needed immediately
     backgroundLoader_->WaitForResource(type, nameHash);
 #endif
@@ -670,7 +670,7 @@ Resource* ResourceCache::GetResource(StringHash type, const String& nameIn, bool
 
 bool ResourceCache::BackgroundLoadResource(StringHash type, const String& nameIn, bool sendEventOnFailure, Resource* caller)
 {
-#ifdef ATOMIC_THREADING
+#ifdef ENGINE_THREADING
     // If empty name, fail immediately
     String name = SanitateResourceName(nameIn);
     if (name.Empty())
@@ -766,7 +766,7 @@ SharedPtr<Resource> ResourceCache::GetTempResource(StringHash type, const String
 
 unsigned ResourceCache::GetNumBackgroundLoadResources() const
 {
-#ifdef ATOMIC_THREADING
+#ifdef ENGINE_THREADING
     return backgroundLoader_->GetNumQueuedResources();
 #else
     return 0;
@@ -1147,7 +1147,7 @@ void ResourceCache::HandleBeginFrame(StringHash eventType, VariantMap& eventData
     }
 
     // Check for background loaded resources that can be finished
-#ifdef ATOMIC_THREADING
+#ifdef ENGINE_THREADING
     {
         ATOMIC_PROFILE(FinishBackgroundResources);
         backgroundLoader_->FinishResources(finishBackgroundResourcesMs_);

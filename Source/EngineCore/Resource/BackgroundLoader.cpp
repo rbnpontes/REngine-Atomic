@@ -20,7 +20,7 @@
 // THE SOFTWARE.
 //
 
-#ifdef ATOMIC_THREADING
+#ifdef ENGINE_THREADING
 
 #include "../Precompiled.h"
 
@@ -264,7 +264,7 @@ void BackgroundLoader::FinishBackgroundLoading(BackgroundLoadItem& item)
     // If BeginLoad() phase was successful, call EndLoad() and get the final success/failure result
     if (success)
     {
-#if ATOMIC_PROFILING
+#if ENGINE_PROFILING
         String profileBlockName("Finish" + resource->GetTypeName());
         ATOMIC_PROFILE_SCOPED(profileBlockName.CString(), PROFILER_COLOR_RESOURCES);
 #endif

@@ -30,7 +30,7 @@
 
 #ifndef MINI_URHO
     #include <SDL2/SDL.h>
-    #ifdef ATOMIC_IK
+    #ifdef ENGINE_IK
     #include <ik/log.h>
     #include <ik/memory.h>
     #endif
@@ -286,7 +286,7 @@ void Context::ReleaseSDL()
         ATOMIC_LOGERROR("Too many calls to Context::ReleaseSDL()!");
 }
 
-#ifdef ATOMIC_IK
+#ifdef ENGINE_IK
 void Context::RequireIK()
 {
     // Always increment, the caller must match with ReleaseSDL(), regardless of

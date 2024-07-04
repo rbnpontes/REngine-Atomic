@@ -47,7 +47,7 @@
 #include "JSFileSystem.h"
 #include "JSGraphics.h"
 #include "JSAudio.h"
-#ifdef ATOMIC_3D
+#ifdef ENGINE_3D
 #include "JSAtomic3D.h"
 #endif
 #include "JSIO.h"
@@ -351,7 +351,7 @@ void jsapi_init_atomic(JSVM* vm)
 #endif
     jsapi_init_graphics(vm);
     jsapi_init_audio(vm);
-#ifdef ATOMIC_3D
+#ifdef ENGINE_3D
     jsapi_init_atomic3d(vm);
 #endif
     jsapi_init_input(vm);

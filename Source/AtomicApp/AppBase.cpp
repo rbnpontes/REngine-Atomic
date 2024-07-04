@@ -110,7 +110,7 @@ namespace Atomic
     {
         Application::Setup();
 
-#ifdef ATOMIC_3D
+#ifdef ENGINE_3D
         // Move me!
         RegisterEnvironmentLibrary(context_);
 #endif

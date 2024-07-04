@@ -67,7 +67,7 @@ namespace Atomic
         // TODO: We need to configure project as managed
         if (fileSystem->FileExists(resourcePath))
         {
-#ifdef ATOMIC_DEV_BUILD
+#ifdef ENGINE_DEV_BUILD
 
 #ifdef ATOMIC_DEBUG        
             clientBinary = projectPath + "AtomicNET/Debug/Bin/Desktop/" + projectExe;
@@ -100,7 +100,7 @@ namespace Atomic
 
         vargs = args.Split(' ');
 
-#ifdef ATOMIC_DEV_BUILD
+#ifdef ENGINE_DEV_BUILD
         vargs.Insert(0, ToString("\"%s/Resources/\"", ENGINE_ROOT_SOURCE_DIR));
 #else
 

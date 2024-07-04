@@ -26,7 +26,7 @@
 #include "../Core/Thread.h"
 #include "../Core/Timer.h"
 
-#if ATOMIC_PROFILING
+#if ENGINE_PROFILING
 #include <tracy/Tracy.hpp>
 #endif
 namespace profiler { class BaseBlockDescriptor {}; };
@@ -98,7 +98,7 @@ private:
     HashMap<unsigned, ::profiler::BaseBlockDescriptor*> blockDescriptorCache_;
 };
 
-#if ATOMIC_PROFILING
+#if ENGINE_PROFILING
 #   define ATOMIC_PROFILE_FRAME() FrameMark
 //#   define ATOMIC_PROFILE_FIXED_ZONE(varname, name) ZoneNamedN(TracyConcat(__tracy_scoped_zone, TracyLine), #name, true)
 #   define ATOMIC_PROFILE(name, ...) ZoneNamedN(TracyConcat(__tracy_scoped_zone, TracyLine), #name, true)

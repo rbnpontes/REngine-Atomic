@@ -42,7 +42,7 @@
 #include "../Navigation/NavigationMesh.h"
 #include "../Navigation/Obstacle.h"
 #include "../Navigation/OffMeshConnection.h"
-#ifdef ATOMIC_PHYSICS
+#ifdef ENGINE_PHYSICS
 #include "../Physics/CollisionShape.h"
 #endif
 #include "../Scene/Scene.h"
@@ -1020,7 +1020,7 @@ void NavigationMesh::CollectGeometries(Vector<NavigationGeometryInfo>& geometryL
 
     Matrix3x4 inverse = node_->GetWorldTransform().Inverse();
 
-#ifdef ATOMIC_PHYSICS
+#ifdef ENGINE_PHYSICS
     // Prefer compatible physics collision shapes (triangle mesh, convex hull, box) if found.
     // Then fallback to visible geometry
     PODVector<CollisionShape*> collisionShapes;
@@ -1119,7 +1119,7 @@ void NavigationMesh::GetTileGeometry(NavBuildData* build, Vector<NavigationGeome
                 continue;
             }
 
-#ifdef ATOMIC_PHYSICS
+#ifdef ENGINE_PHYSICS
             CollisionShape* shape = dynamic_cast<CollisionShape*>(geometryList[i].component_);
             if (shape)
             {

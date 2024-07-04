@@ -27,7 +27,7 @@
 
 #include <EngineCore/Input/Controls.h>
 
-#include <EngineCore/Atomic2D/PhysicsWorld2D.h>
+#include <EngineCore/2D/PhysicsWorld2D.h>
 #include <EngineCore/Core/Profiler.h>
 #include <EngineCore/IO/Log.h>
 

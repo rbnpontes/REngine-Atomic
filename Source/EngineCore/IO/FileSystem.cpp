@@ -405,7 +405,7 @@ int FileSystem::SystemRun(const String& fileName, const Vector<String>& argument
 
 unsigned FileSystem::SystemCommandAsync(const String& commandLine)
 {
-#ifdef ATOMIC_THREADING
+#ifdef ENGINE_THREADING
     if (allowedPaths_.Empty())
     {
         unsigned requestID = nextAsyncExecID_;
@@ -426,7 +426,7 @@ unsigned FileSystem::SystemCommandAsync(const String& commandLine)
 
 unsigned FileSystem::SystemRunAsync(const String& fileName, const Vector<String>& arguments)
 {
-#ifdef ATOMIC_THREADING
+#ifdef ENGINE_THREADING
     if (allowedPaths_.Empty())
     {
         unsigned requestID = nextAsyncExecID_;

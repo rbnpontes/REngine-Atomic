@@ -42,7 +42,7 @@ bool Resource::Load(Deserializer& source)
 {
     // Because BeginLoad() / EndLoad() can be called from worker threads, where profiling would be a no-op,
     // create a type name -based profile block here
-#if ATOMIC_PROFILING
+#if ENGINE_PROFILING
     String profileBlockName("Load" + GetTypeName());
     ATOMIC_PROFILE_SCOPED(profileBlockName.CString(), PROFILER_COLOR_RESOURCES);
 #endif

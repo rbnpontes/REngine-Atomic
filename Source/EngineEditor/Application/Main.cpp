@@ -21,12 +21,12 @@
 //
 
 #if defined(ENGINE_PLATFORM_WINDOWS) || defined (ENGINE_PLATFORM_LINUX)
-#ifdef ATOMIC_WEBVIEW
+#ifdef ENGINE_WEBVIEW
 #include <AtomicWebView/AtomicWebView.h>
 #endif
 #endif
 
-#if defined(WIN32) && !defined(ATOMIC_WIN32_CONSOLE)
+#if defined(WIN32) && !defined(ENGINE_WIN32_CONSOLE)
 #include <EngineCore/Core/MiniDump.h>
 #include <windows.h>
 #ifdef _MSC_VER
@@ -60,11 +60,11 @@ static int RunPlayerApplication()
 // Define a platform-specific main function, which in turn executes the user-defined function
 
 // MSVC debug mode: use memory leak reporting
-#if defined(_MSC_VER) && defined(_DEBUG) && !defined(ATOMIC_WIN32_CONSOLE)
+#if defined(_MSC_VER) && defined(_DEBUG) && !defined(ENGINE_WIN32_CONSOLE)
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE prevInstance, PSTR cmdLine, int showCmd)
 {
 
-#ifdef ATOMIC_WEBVIEW
+#ifdef ENGINE_WEBVIEW
     int exit_code = Atomic::WebMain(0, nullptr);
 
     if (exit_code >= 0)
@@ -96,7 +96,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE prevInstance, PSTR cmdLine, in
 
 }
 // MSVC release mode: write minidump on crash
-#elif defined(_MSC_VER) && defined(ATOMIC_MINIDUMPS) && !defined(ATOMIC_WIN32_CONSOLE)
+#elif defined(_MSC_VER) && defined(ATOMIC_MINIDUMPS) && !defined(ENGINE_WIN32_CONSOLE)
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE prevInstance, PSTR cmdLine, int showCmd)
 {
@@ -106,16 +106,16 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE prevInstance, PSTR cmdLine, in
     {
         exitCode = function;
     }
-    __except(Atomic::WriteMiniDump("Atomic", GetExceptionInformation()))
+    __except(Atomic::WriteMiniDump(ENGINE_NAME, GetExceptionInformation()))
     {
     }
     return exitCode;
 }
 // Other Win32 or minidumps disabled: just execute the function
-#elif defined(WIN32) && !defined(ATOMIC_WIN32_CONSOLE)
+#elif defined(WIN32) && !defined(ENGINE_WIN32_CONSOLE)
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE prevInstance, PSTR cmdLine, int showCmd)
 {
-#ifdef ATOMIC_WEBVIEW
+#ifdef ENGINE_WEBVIEW
     int exit_code = Atomic::WebMain(0, nullptr);
 
     if (exit_code >= 0)
@@ -151,7 +151,7 @@ int main(int argc, char** argv)
   Atomic::ParseArguments(argc, argv);
 
 #if defined(ENGINE_PLATFORM_WINDOWS) || defined (ENGINE_PLATFORM_LINUX)
-#ifdef ATOMIC_WEBVIEW
+#ifdef ENGINE_WEBVIEW
 
     int exit_code = Atomic::WebMain(argc, argv);
 

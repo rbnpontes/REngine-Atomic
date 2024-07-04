@@ -123,13 +123,13 @@ namespace AtomicEditor
         ToolSystem* system = new ToolSystem(context_);
         context_->RegisterSubsystem(system);
 
-        engineParameters_["WindowTitle"] = "AtomicEditor";
+        engineParameters_["WindowTitle"] = ENGINE_EDITOR_NAME;
         engineParameters_["WindowResizable"] = true;
         engineParameters_["FullScreen"] = false;
         engineParameters_["LogLevel"] = LOG_DEBUG;
 
         FileSystem* filesystem = GetSubsystem<FileSystem>();
-        engineParameters_["LogName"] = filesystem->GetAppPreferencesDir("AtomicEditor", "Logs") + "AtomicEditor.log";
+        engineParameters_["LogName"] = filesystem->GetAppPreferencesDir(ENGINE_EDITOR_NAME, "Logs") + String(ENGINE_EDITOR_NAME) + ".log";
 
 #ifdef ENGINE_PLATFORM_MACOS
         engineParameters_["WindowIcon"] = "Images/AtomicLogo32.png";
@@ -137,7 +137,7 @@ namespace AtomicEditor
 
         String resource_prefix_paths;
         String resource_paths;
-#ifdef ATOMIC_DEV_BUILD
+#ifdef ENGINE_DEV_BUILD
         resource_paths = env->GetCoreDataDir() + ";" + env->GetEditorDataDir();
         // for dev builds, add the compile editor scripts from artifacts
         resource_paths += ";" + env->GetRootSourceDir() + "Artifacts/Build/Resources/EditorData/;";
@@ -149,7 +149,7 @@ namespace AtomicEditor
     #else
         resource_prefix_paths = filesystem->GetProgramDir() + "Resources";
     #endif
-#endif // ATOMIC_DEV_BUILD
+#endif // ENGINE_DEV_BUILD
 
         engineParameters_["ResourcePaths"] = resource_paths;
         engineParameters_["ResourcePrefixPaths"] = resource_prefix_paths;
@@ -165,10 +165,10 @@ namespace AtomicEditor
 
         JSVM::RegisterPackage(jsapi_init_toolcore);
         JSVM::RegisterPackage(jsapi_init_editor);
-#ifdef ATOMIC_DOTNET
+#ifdef ENGINE_DOTNET
         JSVM::RegisterPackage(jsb_package_atomicnetscript_init);
 #endif
-#ifdef ATOMIC_WEBVIEW
+#ifdef ENGINE_WEBVIEW
         JSVM::RegisterPackage(jsapi_init_webview, engineParameters_);
 #endif
 
@@ -179,18 +179,18 @@ namespace AtomicEditor
         GetSubsystem<AEEditorPrefs>()->ValidateWindow();
 
         context_->RegisterSubsystem(new EditorMode(context_));
-#ifdef ATOMIC_DOTNET
+#ifdef ENGINE_DOTNET
         context_->RegisterSubsystem(new NETBuildSystem(context_));
 #endif
         context_->RegisterSubsystem(new EditorNETService(context_));        
 
         AppBase::Start();
 
-        vm_->SetModuleSearchPaths("AtomicEditor/JavaScript;AtomicEditor/EditorScripts;AtomicEditor/EditorScripts/AtomicEditor");
+        vm_->SetModuleSearchPaths("JavaScript;EditorScripts;EditorScripts/AtomicEditor");
 
         // move UI initialization to JS
         UI* ui = GetSubsystem<UI>();
-        ui->Initialize("AtomicEditor/resources/language/lng_en.tb.txt");        
+        ui->Initialize("resources/language/lng_en.tb.txt");        
 
         rengine_declare_features(vm_->GetJSContext());
         duk_get_global_string(vm_->GetJSContext(), "require");

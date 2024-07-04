@@ -31,7 +31,7 @@ class WelcomeFrame extends ScriptWidget {
 
         super();
 
-        this.load("AtomicEditor/editor/ui/welcomeframe.tb.txt");
+        this.load("editor/ui/welcomeframe.tb.txt");
 
         var recentProjects = <Atomic.UILayout>this.getWidget("recentprojects");
 

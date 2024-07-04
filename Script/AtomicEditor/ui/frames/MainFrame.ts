@@ -39,7 +39,7 @@ class MainFrame extends ScriptWidget {
 
         super();
 
-        this.load("AtomicEditor/editor/ui/mainframe.tb.txt");
+        this.load("editor/ui/mainframe.tb.txt");
 
         this.inspectorlayout = <Atomic.UILayout> this.getWidget("inspectorlayout");
 

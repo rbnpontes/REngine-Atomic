@@ -126,7 +126,7 @@ void CSModuleWriter::GenerateNativeSource()
 
     if (module_->Requires("3D"))
     {
-        source += "#ifdef ATOMIC_3D\n";
+        source += "#ifdef ENGINE_3D\n";
     }
 
     WriteIncludes(source);
@@ -174,7 +174,7 @@ void CSModuleWriter::GenerateNativeSource()
 
     if (module_->Requires("3D"))
     {
-        source += "#endif //ATOMIC_3D\n";
+        source += "#endif //ENGINE_3D\n";
     }
 
     if (moduleGuard.Length())

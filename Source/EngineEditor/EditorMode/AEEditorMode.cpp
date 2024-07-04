@@ -202,7 +202,7 @@ bool EditorMode::PlayProjectInternal(const String &addArgs, bool debug)
     {
         managed = true;
 
-#ifdef ATOMIC_DEV_BUILD
+#ifdef ENGINE_DEV_BUILD
 
 #ifdef ATOMIC_DEBUG        
         playerBinary = project->GetProjectPath() + "AtomicNET/Debug/Bin/Desktop/" + projectExe;
@@ -246,7 +246,7 @@ bool EditorMode::PlayProjectInternal(const String &addArgs, bool debug)
 
     if (managed)
     {
-#ifdef ATOMIC_DEV_BUILD
+#ifdef ENGINE_DEV_BUILD
         vargs.Insert(0, ToString("\"%s/Resources/\"", tenv->GetRootSourceDir().CString()));
 #else
 

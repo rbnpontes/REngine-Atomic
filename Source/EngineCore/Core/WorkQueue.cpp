@@ -87,7 +87,7 @@ WorkQueue::~WorkQueue()
 
 void WorkQueue::CreateThreads(unsigned numThreads)
 {
-#ifdef ATOMIC_THREADING
+#ifdef ENGINE_THREADING
     // Other subsystems may initialize themselves according to the number of threads.
     // Therefore allow creating the threads only once, after which the amount is fixed
     if (!threads_.Empty())

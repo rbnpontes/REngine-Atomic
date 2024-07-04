@@ -62,7 +62,7 @@ const String& ToolPrefs::GetAntPath()
 String ToolPrefs::GetPrefsPath()
 {
     FileSystem* fs = GetSubsystem<FileSystem>();
-    String path = fs->GetAppPreferencesDir("AtomicGameEngine", "ToolCore");
+    String path = fs->GetAppPreferencesDir(ENGINE_EDITOR_NAME, "ToolCore");
     path += "ToolPrefs.json";
     return path;
 

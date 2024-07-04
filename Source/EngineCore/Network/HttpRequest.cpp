@@ -55,7 +55,7 @@ HttpRequest::HttpRequest(const String& url, const String& verb, const Vector<Str
 
     ATOMIC_LOGDEBUG("HTTP " + verb_ + " request to URL " + url_);
 
-#ifdef ATOMIC_THREADING
+#ifdef ENGINE_THREADING
     // Start the worker thread to actually create the connection and read the response data.
     Run();
 #else
@@ -200,7 +200,7 @@ void HttpRequest::ThreadFunction()
 
 unsigned HttpRequest::Read(void* dest, unsigned size)
 {
-#ifdef ATOMIC_THREADING
+#ifdef ENGINE_THREADING
     mutex_.Acquire();
 
     unsigned char* destPtr = (unsigned char*)dest;

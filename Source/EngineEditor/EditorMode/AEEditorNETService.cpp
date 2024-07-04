@@ -47,7 +47,7 @@ namespace AtomicEditor
 
     bool EditorNETService::Initialize()
     {
-#ifdef ATOMIC_DOTNET
+#ifdef ENGINE_DOTNET
         RegisterNETScriptLibrary(context_);
 
         context_->RegisterSubsystem(new NETProjectSystem(context_));

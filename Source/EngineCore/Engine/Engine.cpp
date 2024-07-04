@@ -40,7 +40,7 @@
 #include "../IO/FileSystem.h"
 #include "../IO/Log.h"
 #include "../IO/PackageFile.h"
-#ifdef ATOMIC_IK
+#ifdef ENGINE_IK
     #include "../IK/IK.h"
 #endif
 
@@ -51,14 +51,14 @@
 #include "../UI/SystemUI/DebugHud.h"
 // ATOMIC END
 
-#ifdef ATOMIC_NAVIGATION
+#ifdef ENGINE_NAVIGATION
     #include "../Navigation/NavigationMesh.h"
 #endif
-#ifdef ATOMIC_NETWORK
+#ifdef ENGINE_NETWORK
     #include "../Network/Network.h"
 #endif
 // ATOMIC BEGIN
-#ifdef ATOMIC_WEB
+#ifdef ENGINE_WEB
 //#include "../Web/Web.h"
 #endif
 // ATOMIC END
@@ -74,7 +74,7 @@
 #include "../Scene/Scene.h"
 #include "../Scene/SceneEvents.h"
 #include "../UI/UI.h"
-#ifdef ENGINE_ATOMIC2D
+#ifdef ENGINE_2D
     #include "../2D/Atomic2D.h"
 #endif
 
@@ -146,24 +146,24 @@ Engine::Engine(Context* context) :
     // Create subsystems which do not depend on engine initialization or startup parameters
     context_->RegisterSubsystem(new Time(context_));
     context_->RegisterSubsystem(new WorkQueue(context_));
-#ifdef ATOMIC_PROFILING
+#ifdef ENGINE_PROFILING
     context_->RegisterSubsystem(new Profiler(context_));
 #endif
     context_->RegisterSubsystem(new FileSystem(context_));
-#ifdef ATOMIC_LOGGING
+#ifdef ENGINE_LOGGING
     context_->RegisterSubsystem(new Log(context_));
 #endif
     context_->RegisterSubsystem(new ResourceCache(context_));
     context_->RegisterSubsystem(new Localization(context_));
-#ifdef ATOMIC_NETWORK
+#ifdef ENGINE_NETWORK
     context_->RegisterSubsystem(new Network(context_));
 #endif
     // ATOMIC BEGIN
-#ifdef ATOMIC_WEB
+#ifdef ENGINE_WEB
     //context_->RegisterSubsystem(new Web(context_));
 #endif
     // ATOMIC END
-#ifdef ATOMIC_DATABASE
+#ifdef ENGINE_DATABASE
     context_->RegisterSubsystem(new Database(context_));
 #endif
     context_->RegisterSubsystem(new Input(context_));
@@ -175,15 +175,15 @@ Engine::Engine(Context* context) :
     // Register object factories for libraries which are not automatically registered along with subsystem creation
     RegisterSceneLibrary(context_);
 
-#ifdef ATOMIC_IK
+#ifdef ENGINE_IK
     RegisterIKLibrary(context_);
 #endif
 
-#ifdef ATOMIC_PHYSICS
+#ifdef ENGINE_PHYSICS
     RegisterPhysicsLibrary(context_);
 #endif
 
-#ifdef ATOMIC_NAVIGATION
+#ifdef ENGINE_NAVIGATION
     RegisterNavigationLibrary(context_);
 #endif
 
@@ -195,22 +195,22 @@ Engine::Engine(Context* context) :
     context_->engine_ = context_->GetSubsystem<Engine>();
     context_->time_ = context_->GetSubsystem<Time>();
     context_->workQueue_ = context_->GetSubsystem<WorkQueue>();
-#ifdef ATOMIC_PROFILING
+#ifdef ENGINE_PROFILING
     context_->profiler_ = context_->GetSubsystem<Profiler>();
 #endif
     context_->fileSystem_ = context_->GetSubsystem<FileSystem>();
-#ifdef ATOMIC_LOGGING
+#ifdef ENGINE_LOGGING
     context_->log_ = context_->GetSubsystem<Log>();
 #endif
     context_->cache_ = context_->GetSubsystem<ResourceCache>();
     context_->l18n_ = context_->GetSubsystem<Localization>();
-#ifdef ATOMIC_NETWORK
+#ifdef ENGINE_NETWORK
     context_->network_ = context_->GetSubsystem<Network>();
 #endif
-#ifdef ATOMIC_WEB
+#ifdef ENGINE_WEB
     //context_->web_ = context_->GetSubsystem<Web>();
 #endif
-#ifdef ATOMIC_DATABASE
+#ifdef ENGINE_DATABASE
     context_->db_ = context_->GetSubsystem<Database>();
 #endif
     context_->input_ = context_->GetSubsystem<Input>();
@@ -249,7 +249,7 @@ bool Engine::Initialize(const VariantMap& parameters)
         RegisterGraphicsLibrary(context_);
     }
 
-#ifdef ATOMIC_ATOMIC2D
+#ifdef ENGINE_2D
     // 2D graphics library is dependent on 3D graphics library
     RegisterAtomic2DLibrary(context_);
 #endif
@@ -261,7 +261,7 @@ bool Engine::Initialize(const VariantMap& parameters)
         if (HasParameter(parameters, EP_LOG_LEVEL))
             log->SetLevel(GetParameter(parameters, EP_LOG_LEVEL).GetInt());
         log->SetQuiet(GetParameter(parameters, EP_LOG_QUIET, false).GetBool());
-        log->Open(GetParameter(parameters, EP_LOG_NAME, "Atomic.log").GetString());
+        log->Open(GetParameter(parameters, EP_LOG_NAME, String(ENGINE_NAME)+".log").GetString());
     }
 
     // Set maximally accurate low res timer
@@ -282,7 +282,7 @@ bool Engine::Initialize(const VariantMap& parameters)
 
     // Set amount of worker threads according to the available physical CPU cores. Using also hyperthreaded cores results in
     // unpredictable extra synchronization overhead. Also reserve one core for the main thread
-#ifdef ATOMIC_THREADING
+#ifdef ENGINE_THREADING
     unsigned numThreads = GetParameter(parameters, EP_WORKER_THREADS, true).GetBool() ? GetNumPhysicalCPUs() - 1 : 0;
     if (numThreads)
     {
@@ -307,7 +307,7 @@ bool Engine::Initialize(const VariantMap& parameters)
 
         if (HasParameter(parameters, EP_EXTERNAL_WINDOW))
             graphics->SetExternalWindow(GetParameter(parameters, EP_EXTERNAL_WINDOW).GetVoidPtr());
-        graphics->SetWindowTitle(GetParameter(parameters, EP_WINDOW_TITLE, "Atomic").GetString());
+        graphics->SetWindowTitle(GetParameter(parameters, EP_WINDOW_TITLE,ENGINE_NAME).GetString());
         graphics->SetWindowIcon(cache->GetResource<Image>(GetParameter(parameters, EP_WINDOW_ICON, String::EMPTY).GetString()));
         graphics->SetFlushGPU(GetParameter(parameters, EP_FLUSH_GPU, false).GetBool());
         graphics->SetOrientations(GetParameter(parameters, EP_ORIENTATIONS, "LandscapeLeft LandscapeRight").GetString());
@@ -338,7 +338,7 @@ bool Engine::Initialize(const VariantMap& parameters)
         ))
             return false;
 
-        graphics->SetShaderCacheDir(GetParameter(parameters, EP_SHADER_CACHE_DIR, fileSystem->GetAppPreferencesDir("atomic", "shadercache")).GetString());
+        graphics->SetShaderCacheDir(GetParameter(parameters, EP_SHADER_CACHE_DIR, fileSystem->GetAppPreferencesDir(ENGINE_NAME, "shadercache")).GetString());
 
         if (HasParameter(parameters, EP_DUMP_SHADERS))
             graphics->BeginDumpShaders(GetParameter(parameters, EP_DUMP_SHADERS, String::EMPTY).GetString());
@@ -372,17 +372,12 @@ bool Engine::Initialize(const VariantMap& parameters)
         GetSubsystem<Input>()->SetTouchEmulation(GetParameter(parameters, EP_TOUCH_EMULATION).GetBool());
 
     // Initialize network
-#ifdef ATOMIC_NETWORK
+#ifdef ENGINE_NETWORK
     if (HasParameter(parameters, EP_PACKAGE_CACHE_DIR))
         GetSubsystem<Network>()->SetPackageCacheDir(GetParameter(parameters, EP_PACKAGE_CACHE_DIR).GetString());
 #endif
 
-#ifdef ATOMIC_TESTING
-    if (HasParameter(parameters, EP_TIME_OUT))
-        timeOut_ = GetParameter(parameters, EP_TIME_OUT, 0).GetInt() * 1000000LL;
-#endif
-
-#ifdef ATOMIC_PROFILING
+#ifdef ENGINE_PROFILING
     // ATOMIC BEGIN
     if (Profiler* profiler = GetSubsystem<Profiler>())
     {
@@ -705,7 +700,7 @@ void Engine::Exit()
 
 void Engine::DumpResources(bool dumpFileName)
 {
-#ifdef ATOMIC_LOGGING
+#ifdef ENGINE_LOGGING
     if (!Thread::IsMainThread())
         return;
 
@@ -731,7 +726,7 @@ void Engine::DumpResources(bool dumpFileName)
 
 void Engine::DumpMemory()
 {
-#ifdef ATOMIC_LOGGING
+#ifdef ENGINE_LOGGING
 #if defined(_MSC_VER) && defined(_DEBUG)
     _CrtMemState state;
     _CrtMemCheckpoint(&state);
@@ -1064,7 +1059,7 @@ VariantMap Engine::ParseParameters(const Vector<String>& arguments)
                 ++i;
             }
 #endif
-#ifdef ATOMIC_PROFILING
+#ifdef ENGINE_PROFILING
             else if(argument == "profiler")
             {
 	            ret[EP_PROFILER_LISTEN] = true;

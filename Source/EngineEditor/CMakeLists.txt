@@ -131,6 +131,8 @@ if (ENGINE_WEBVIEW)
         COPY_FILES("${CEF_TARGET}" "${CEF_BINARY_FILES}" "${CEF_BINARY_DIR}" "${CEF_TARGET_OUT_DIR}")
         COPY_FILES("${CEF_TARGET}" "${CEF_RESOURCE_FILES}" "${CEF_RESOURCE_DIR}" "${CEF_TARGET_OUT_DIR}")
     endif ()
+
+    target_compile_definitions(${CEF_TARGET} PUBLIC -DENGINE_EDITOR_NAME="${ENGINE_EDITOR_NAME}")
 endif ()
 
 target_link_libraries(${CEF_TARGET} ToolCore AtomicWebView AtomicJS AtomicPlayerJS ToolCoreJS Poco nativefiledialog ${ENGINE_CORE_LIB_TARGET} EASTL)

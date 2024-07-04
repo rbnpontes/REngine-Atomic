@@ -362,7 +362,9 @@ namespace Atomic
 		ResetCachedState();
 		Cleanup(GRAPHICS_CLEAR_ALL);
 
-		GetSubsystem<DrawCommandQueue>()->ClearStoredCommands();
+		if (auto* draw_command_queue = GetSubsystem<DrawCommandQueue>())
+			draw_command_queue->ClearStoredCommands();
+
 		impl_->Release();
 		delete impl_;
 		impl_ = nullptr;
@@ -590,7 +592,7 @@ namespace Atomic
 
 		impl_->GetSwapChain()->Present(0);
 
-#ifdef ATOMIC_LOGGING
+#ifdef ENGINE_LOGGING
 		String msg;
 		msg.AppendWithFormat("Set screen mode %dx%d %s monitor %d", width_, height_, (fullscreen_ ? "fullscreen" : "windowed"), monitor_);
 		if (borderless_)

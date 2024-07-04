@@ -303,7 +303,7 @@ void Connection::SendClientUpdate()
 
 void Connection::SendRemoteEvents()
 {
-#ifdef ATOMIC_LOGGING
+#ifdef ENGINE_LOGGING
     if (logStatistics_ && statsTimer_.GetMSec(false) > STATS_INTERVAL_MSEC)
     {
         statsTimer_.Reset();
