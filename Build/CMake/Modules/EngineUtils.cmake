@@ -10,7 +10,7 @@ check_cxx_source_runs("
         x = _mm_set1_pd(0);
         return 0;
     }
-" RENGINE_SSE)
+" ENGINE_SSE)
 
 macro(GroupSources curdir)
     if (WIN32)

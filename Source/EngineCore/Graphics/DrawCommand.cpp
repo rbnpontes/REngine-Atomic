@@ -49,7 +49,8 @@ namespace REngine
 		DrawCommandImpl(Graphics* graphics, Diligent::IDeviceContext* context) :
 			graphics_(graphics),
 			context_(context),
-			params_2_update_({}), next_param_2_update_idx_(0),
+			bind_depth_stencil_(nullptr),
+			params_2_update_({}), next_param_2_update_idx_(0), bind_rts_(),
 			vertex_buffers_({}),
 			bind_vertex_buffers_({}),
 			vertex_offsets_({}),
@@ -107,10 +108,9 @@ namespace REngine
 			vertex_offsets_.fill(0);
 
 			enable_clip_planes_ = false;
-#if !ENGINE_PLATFORM_ANDROID
+
 			if (graphics_->GetBackend() == GraphicsBackend::OpenGL)
 				glDisable(GL_CLIP_PLANE0);
-#endif
 
 			clip_plane_ = Atomic::Vector4::ZERO;
 			curr_pipeline_hash_			=
@@ -127,7 +127,7 @@ namespace REngine
 		void Clear(const DrawCommandClearDesc& desc) override
 		{
 			ATOMIC_PROFILE(IDrawCommand::Clear);
-			const auto render_size = graphics_->GetRenderSize();
+			const auto render_size = GetRenderTargetDimensions();
 
 			if(!viewport_.left_ && !viewport_.top_ && viewport_.right_ == render_size.x_ && viewport_.bottom_ == render_size.y_)
 			{
@@ -634,43 +634,37 @@ namespace REngine
 			if(shader_parameters_cache_get(param.Value(), &parameter))
 			{
 				const auto cbuffer = static_cast<ConstantBuffer*>(parameter->bufferPtr_);
-				const auto backend = graphics_->GetImpl()->GetBackend();
-				if(backend == GraphicsBackend::Vulkan || backend == GraphicsBackend::OpenGL)
-				{
 #if ENGINE_SSE
-					float* data = static_cast<float*>(cbuffer->GetWriteBuffer(parameter->offset_));
-					cbuffer->MakeDirty();
-					// I just need to copy matrix in a faster way
-					__m128 row = _mm_set_ps(0.0f, value.m02_, value.m01_, value.m00_);
-					_mm_store_ps(data, row);
+				float* data = static_cast<float*>(cbuffer->GetWriteBuffer(parameter->offset_));
+				cbuffer->MakeDirty();
+				// I just need to copy matrix in a faster way
+				__m128 row = _mm_set_ps(0.0f, value.m02_, value.m01_, value.m00_);
+				_mm_store_ps(data, row);
 
-					data += 4;
+				data += 4;
 
-					row = _mm_set_ps(0.0f, value.m12_, value.m11_, value.m10_);
-					_mm_store_ps(data, row);
+				row = _mm_set_ps(0.0f, value.m12_, value.m11_, value.m10_);
+				_mm_store_ps(data, row);
 
-					data += 4;
+				data += 4;
 
-					row = _mm_set_ps(0.0f, value.m22_, value.m21_, value.m20_);
-					_mm_store_ps(data, row);
+				row = _mm_set_ps(0.0f, value.m22_, value.m21_, value.m20_);
+				_mm_store_ps(data, row);
 #else
-					const auto data = static_cast<const float*>(static_cast<const void*>(&value));
-					size_t offset = 0;
-					size_t matrix_offset = 0;
-					for(u32 j =0; j < 3; ++j)
+				const auto data = static_cast<const float*>(static_cast<const void*>(&value));
+				size_t offset = 0;
+				size_t matrix_offset = 0;
+				for(u32 j =0; j < 3; ++j)
+				{
+					for(u32 i =0; i < 3; ++i)
 					{
-						for(u32 i =0; i < 3; ++i)
-						{
-							cbuffer->SetParameter(parameter->offset_ + offset, sizeof(float), data + matrix_offset);
-							offset += sizeof(float);
-							++matrix_offset;
-						}
+						cbuffer->SetParameter(parameter->offset_ + offset, sizeof(float), data + matrix_offset);
 						offset += sizeof(float);
+						++matrix_offset;
 					}
-#endif
+					offset += sizeof(float);
 				}
-				else
-					cbuffer->SetParameter(parameter->offset_, sizeof(Matrix3), &value);
+#endif
 				return;
 			}
 
