@@ -38,7 +38,7 @@
 #include <mach/mach_host.h>
 #elif defined(TVOS)
 extern "C" unsigned SDL_TVOS_GetActiveProcessorCount();
-#elif !defined(__linux__) && !defined(__EMSCRIPTEN__) && (defined(RENGINE_PLATFORM_MACOS) && !defined(__arm64__))
+#elif !defined(__linux__) && !defined(__EMSCRIPTEN__) && (defined(ENGINE_PLATFORM_MACOS) && !defined(__arm64__))
 #include <libcpuid.h>
 #endif
 
@@ -408,11 +408,11 @@ String GetPlatform()
 {
 #if defined(__ANDROID__)
     return "Android";
-#elif RENGINE_PLATFORM_IOS
+#elif ENGINE_PLATFORM_IOS
     return "iOS";
 #elif defined(TVOS)
     return "tvOS";
-#elif RENGINE_PLATFORM_MACOS
+#elif ENGINE_PLATFORM_MACOS
     return "macOS";
 #elif defined(_WIN32)
     return "Windows";

@@ -118,7 +118,7 @@ namespace REngine
         swap_chain_desc.Width = init_desc.window_size.x_;
         swap_chain_desc.Height = init_desc.window_size.y_;
         swap_chain_desc.BufferCount = init_desc.triple_buffer ? 3 : 2;
-#if RENGINE_PLATFORM_MACOS
+#if ENGINE_PLATFORM_MACOS
         // Apple Environments requires triple buffer
         swap_chain_desc.BufferCount = 3;
 #endif

@@ -271,7 +271,7 @@ public:
         browserSettings.javascript_close_windows = STATE_DISABLED;
         browserSettings.local_storage = STATE_DISABLED;
 
-#if RENGINE_PLATFORM_WINDOWS
+#if ENGINE_PLATFORM_WINDOWS
         windowInfo.SetAsWindowless(nullptr);
 #else
         windowInfo.SetAsWindowless(0);

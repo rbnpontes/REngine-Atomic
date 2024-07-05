@@ -162,7 +162,7 @@ namespace Atomic
                 flags |= SDL_WINDOW_BORDERLESS;
         }
         
-#if RENGINE_PLATFORM_IOS || RENGINE_PLATFORM_ANDROID
+#if ENGINE_PLATFORM_IOS || ENGINE_PLATFORM_ANDROID
         const auto x = 0;
         const auto y = 0;
 #else
@@ -174,12 +174,12 @@ namespace Atomic
         
         SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
-#if !RENGINE_PLATFORM_WINDOWS && !RENGINE_PLATFORM_LINUX
+#if !ENGINE_PLATFORM_WINDOWS && !RENGINE_PLATFORM_LINUX
         if(ci->backend == GraphicsBackend::OpenGLES) 
         {
 			SDL_SetHint(SDL_HINT_OPENGL_ES_DRIVER, "1");
             SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-#if RENGINE_PLATFORM_ANDROID
+#if ENGINE_PLATFORM_ANDROID
 			SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
 #else
 			SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
@@ -191,7 +191,7 @@ namespace Atomic
         {
             SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
             // MacOS platforms max supported version is 4.1
-#if RENGINE_PLATFORM_MACOS
+#if ENGINE_PLATFORM_MACOS
             SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
 #else
             SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 5);
@@ -263,7 +263,7 @@ namespace Atomic
     static void sdl_create_window(SDLWindowCreateDesc* ci, SDLWindowResult* result) {
 		if(ci->high_dpi)
 		{
-#if RENGINE_PLATFORM_WINDOWS
+#if ENGINE_PLATFORM_WINDOWS
 			const auto res = ::SetProcessDpiAwareness(PROCESS_PER_MONITOR_DPI_AWARE);
 			assert(!FAILED(res));
 #endif
@@ -281,19 +281,19 @@ namespace Atomic
         SDL_VERSION(&sys_info.version);
         SDL_GetWindowWMInfo(result->window.get(), &sys_info);
         
-#if RENGINE_PLATFORM_WINDOWS
+#if ENGINE_PLATFORM_WINDOWS
         result->native_window.hWnd = sys_info.info.win.window;
 #elif RENGINE_PLATFORM_LINUX
 		result->native_window.pDisplay = sys_info.info.x11.display;
     	result->native_window.WindowId = sys_info.info.x11.window;
-#elif RENGINE_PLATFORM_MACOS
+#elif ENGINE_PLATFORM_MACOS
         result->native_window.pNSView = result->metal_view.get();
-#elif RENGINE_PLATFORM_IOS
+#elif ENGINE_PLATFORM_IOS
         if(result->metal_view)
             result->native_window.pCALayer = result->metal_view.get();
         else
             result->native_window.pCALayer = sys_info.info.uikit.window;
-#elif RENGINE_PLATFORM_ANDROID
+#elif ENGINE_PLATFORM_ANDROID
         result->native_window.pAWindow = sys_info.info.android.window;
 #elif RENGINE_PLATFORM_WEB
         throw std::runtime_error("Not implemented Web Window");
@@ -386,7 +386,7 @@ namespace Atomic
             return;
         }
       
-#if !RENGINE_PLATFORM_WINDOWS
+#if !ENGINE_PLATFORM_WINDOWS
         if(backend == GraphicsBackend::D3D11) {
             backend = GraphicsBackend::OpenGL;
             ATOMIC_LOGWARNING("D3D11 is not supported on Non-Windows platform. Switching to OpenGL backend.");
@@ -398,30 +398,30 @@ namespace Atomic
         }
 #endif
         
-#if RENGINE_PLATFORM_MACOS && !__arm64__
+#if ENGINE_PLATFORM_MACOS && !__arm64__
         if(backend == GraphicsBackend::Vulkan) {
             backend = GraphicsBackend::Vulkan;
             ATOMIC_LOGWARNING("Vulkan is not supported on this Apple Machine. Switching to OpenGL backend");
         }
 #endif
     
-#if RENGINE_PLATFORM_IOS
+#if ENGINE_PLATFORM_IOS
         if(backend == GraphicsBackend::OpenGL || backend == GraphicsBackend::OpenGLES) {
             backend = GraphicsBackend::Vulkan;
             ATOMIC_LOGWARNING("OpenGL is not supported on iOS. Switching to Vulkan(MoltenVk)");
         }
 #endif
         
-#if RENGINE_PLATFORM_ANDROID
+#if ENGINE_PLATFORM_ANDROID
         if(backend == GraphicsBackend::OpenGL)
             backend = GraphicsBackend::OpenGLES;
 #endif
         
-#if RENGINE_PLATFORM_MACOS
+#if ENGINE_PLATFORM_MACOS
         if(backend == GraphicsBackend::OpenGLES) 
             ATOMIC_LOGWARNING("Graphics Backend GL ES requires libGLESv2 installed in your machine. You can build yourself ANGLE lib or copy from Chrome like browser to your system machine.");
 #endif
-#if RENGINE_PLATFORM_WINDOWS
+#if ENGINE_PLATFORM_WINDOWS
 		if (backend == GraphicsBackend::OpenGLES)
 			ATOMIC_LOGWARNING("Graphics Backend GL ES isn't supported on this environment. Engine will try to emulate operations.");
 #endif
@@ -451,12 +451,12 @@ namespace Atomic
 
 		Diligent::TEXTURE_FORMAT fullscreen_format = SDL_BITSPERPIXEL(mode.format) == 16 ? Diligent::TEX_FORMAT_B5G6R5_UNORM : Diligent::TEX_FORMAT_RGBA8_UNORM;
 
-#if RENGINE_PLATFORM_IOS || RENGINE_PLATFORM_ANDROID
+#if ENGINE_PLATFORM_IOS || ENGINE_PLATFORM_ANDROID
         fullscreen = true;
         borderless = false;
         resizable = true;
 #endif
-#if RENGINE_PLATFORM_MACOS
+#if ENGINE_PLATFORM_MACOS
         highDPI = true;
 #endif
 		// If zero dimensions in windowed mode, set windowed mode to maximize and set a predefined default restored window size. If zero in fullscreen, use desktop mode
@@ -475,7 +475,7 @@ namespace Atomic
 			}
 		}
         
-#if RENGINE_PLATFORM_IOS || RENGINE_PLATFORM_ANDROID
+#if ENGINE_PLATFORM_IOS || ENGINE_PLATFORM_ANDROID
         // On mobile devices Window size cannot be greater than Device size
         width = Min(width, mode.w);
         height = Min(height, mode.h);
@@ -536,7 +536,7 @@ namespace Atomic
             driver_desc_->window = result.native_window;
 		}
 
-#if !defined(RENGINE_PLATFORM_IOS) && !defined(RENGINE_PLATFORM_ANDROID)
+#if !defined(ENGINE_PLATFORM_IOS) && !defined(ENGINE_PLATFORM_ANDROID)
 		// Check fullscreen mode validity. Use a closest match if not found
 		if (fullscreen)
 		{
@@ -1363,7 +1363,7 @@ namespace Atomic
 		{
 		case CF_RGBA:
 			return TEX_FORMAT_RGBA8_UNORM;
-#if RENGINE_PLATFORM_IOS || RENGINE_PLATFORM_ANDROID
+#if ENGINE_PLATFORM_IOS || ENGINE_PLATFORM_ANDROID
         case CF_DXT1:
         case CF_DXT3:
         case CF_DXT5:

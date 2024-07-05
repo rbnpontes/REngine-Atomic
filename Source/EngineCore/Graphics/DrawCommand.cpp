@@ -20,11 +20,11 @@
 #include "../RHI/DiligentUtils.h"
 #include "../RHI/ShaderParametersCache.h"
 
-#if !RENGINE_PLATFORM_ANDROID
+#if !ENGINE_PLATFORM_ANDROID
 	#include <GLEW/glew.h>
 #endif
 
-#if RENGINE_SSE
+#if ENGINE_SSE
 	#include <emmintrin.h>
 #endif
 
@@ -107,7 +107,7 @@ namespace REngine
 			vertex_offsets_.fill(0);
 
 			enable_clip_planes_ = false;
-#if !RENGINE_PLATFORM_ANDROID
+#if !ENGINE_PLATFORM_ANDROID
 			if (graphics_->GetBackend() == GraphicsBackend::OpenGL)
 				glDisable(GL_CLIP_PLANE0);
 #endif
@@ -637,7 +637,7 @@ namespace REngine
 				const auto backend = graphics_->GetImpl()->GetBackend();
 				if(backend == GraphicsBackend::Vulkan || backend == GraphicsBackend::OpenGL)
 				{
-#if RENGINE_SSE
+#if ENGINE_SSE
 					float* data = static_cast<float*>(cbuffer->GetWriteBuffer(parameter->offset_));
 					cbuffer->MakeDirty();
 					// I just need to copy matrix in a faster way
@@ -1169,7 +1169,7 @@ namespace REngine
 		}
 		void SetClipPlane(const DrawCommandClipPlaneDesc& desc) override
 		{
-			#if !RENGINE_PLATFORM_ANDROID
+			#if !ENGINE_PLATFORM_ANDROID
 			if(desc.enable != enable_clip_planes_ && graphics_->GetBackend() == GraphicsBackend::OpenGL)
 			{
 				if (desc.enable)
@@ -1889,6 +1889,7 @@ namespace REngine
 
 			u32 pipeline_hash;
 			RefCntAutoPtr<IPipelineState> pipeline_state = pipeline_state_builder_acquire(graphics_->GetImpl(), pipeline_info, pipeline_hash);
+			curr_pipeline_hash_ = pipeline_hash;
 
 			ShaderResourceTextures textures_dummy = {};
 			RefCntAutoPtr<IShaderResourceBinding> srb = pipeline_state_builder_get_or_create_srb({

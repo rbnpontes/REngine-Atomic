@@ -250,7 +250,7 @@ namespace Atomic
         case GraphicsBackend::OpenGLES:
 	        {
                 defines.push_back("OPENGL");
-#ifdef RENGINE_PLATFORM_WINDOWS
+#ifdef ENGINE_PLATFORM_WINDOWS
                 if (backend == GraphicsBackend::OpenGLES)
                     defines.push_back("OPENGLES");
 #endif
@@ -258,20 +258,20 @@ namespace Atomic
             break;
         }
 
-        #ifdef RENGINE_PLATFORM_WINDOWS
-            defines.push_back("RENGINE_PLATFORM_WINDOWS");
+        #ifdef ENGINE_PLATFORM_WINDOWS
+            defines.push_back("ENGINE_PLATFORM_WINDOWS");
         #endif
-        #ifdef RENGINE_PLATFORM_MACOS
-            defines.push_back("RENGINE_PLATFORM_MACOS");
+        #ifdef ENGINE_PLATFORM_MACOS
+            defines.push_back("ENGINE_PLATFORM_MACOS");
         #endif
-        #ifdef RENGINE_PLATFORM_IOS
-            defines.push_back("RENGINE_PLATFORM_IOS");
+        #ifdef ENGINE_PLATFORM_IOS
+            defines.push_back("ENGINE_PLATFORM_IOS");
         #endif
         #ifdef ENGINE_PLATFORM_APPLE
             defines.push_back("ENGINE_PLATFORM_APPLE");
         #endif
-        #ifdef RENGINE_PLATFORM_ANDROID
-            defines.push_back("RENGINE_PLATFORM_ANDROID");
+        #ifdef ENGINE_PLATFORM_ANDROID
+            defines.push_back("ENGINE_PLATFORM_ANDROID");
         #endif
         
         switch (type_)
@@ -323,7 +323,7 @@ namespace Atomic
         }
 
         String glsl_version = "#version 450\n";
-#if RENGINE_PLATFORM_MACOS
+#if ENGINE_PLATFORM_MACOS
         glsl_version = "#version 330\n";
 #else
         if(backend == GraphicsBackend::OpenGLES)
@@ -356,7 +356,7 @@ namespace Atomic
 
             // Put pre-processed shader code and compile to obtain spirv bytecode
             compiler_desc.source_code = pre_process_result.source_code;
-#ifdef RENGINE_PLATFORM_WINDOWS
+#ifdef ENGINE_PLATFORM_WINDOWS
             // OpenGL ES on windows is emulated. we must change version to 4.5
             if (backend == GraphicsBackend::OpenGLES)
                 compiler_desc.source_code = compiler_desc.source_code.Replaced("#version 300 es", "#version 450");

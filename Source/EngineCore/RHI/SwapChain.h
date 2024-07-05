@@ -1,11 +1,11 @@
 #pragma once
 #include "./RHITypes.h"
 
-#if RENGINE_PLATFORM_IOS
+#if ENGINE_PLATFORM_IOS
     #include <OpenGLES/ES3/gl.h>
-#elif RENGINE_PLATFORM_ANDROID
+#elif ENGINE_PLATFORM_ANDROID
 	#include <GLES3/gl3.h>
-#elif RENGINE_PLATFORM_MACOS
+#elif ENGINE_PLATFORM_MACOS
     #include <OpenGL/OpenGL.h>
     #include <OpenGL/gl.h>
 #else

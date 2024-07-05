@@ -4,10 +4,10 @@
 #include "./DiligentUtils.h"
 #include "./ShaderParametersCache.h"
 
-#if RENGINE_PLATFORM_IOS
+#if ENGINE_PLATFORM_IOS
     #include <OpenGLES/gltypes.h>
     #include <OpenGLES/ES3/gl.h>
-#elif RENGINE_PLATFORM_ANDROID
+#elif ENGINE_PLATFORM_ANDROID
     #include <GLES3/gl3.h>
 #else
     #include <GLEW/glew.h>
@@ -52,7 +52,10 @@ namespace REngine
         // is linked into GL Shader Program. 
         const auto backend = graphics_->GetBackend();
         if(backend != GraphicsBackend::OpenGL && backend != GraphicsBackend::OpenGLES)
+        {
+            input_elements_ = vertex_shader->GetInputElements();
             return;
+        }
 
         const auto vs = vertex_shader->GetGPUObject().Cast<Diligent::IShaderGL>(Diligent::IID_ShaderGL);
         const auto ps = pixel_shader->GetGPUObject().Cast<Diligent::IShaderGL>(Diligent::IID_ShaderGL);
