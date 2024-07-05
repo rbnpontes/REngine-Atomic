@@ -58,7 +58,7 @@ namespace ToolCore
         execPath = String::EMPTY;
         args.Clear();
 
-#ifdef ATOMIC_DEBUG
+#ifdef ENGINE_DEBUG
         String config = "Debug";
 #else
         String config = "Release";

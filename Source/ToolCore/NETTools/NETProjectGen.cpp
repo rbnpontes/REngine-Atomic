@@ -266,7 +266,7 @@ namespace ToolCore
                 // If we're not building a project, assemblies will be either Debug or Release
                 if (!atomicProjectPath.Length())
                 {
-#ifdef ATOMIC_DEBUG
+#ifdef ENGINE_DEBUG
                     config = "Debug";
 #else
                     config = "Release";
@@ -670,7 +670,7 @@ namespace ToolCore
 
             XMLElement atomicNETNativeDLL = itemGroup.CreateChild("None");
 
-#ifdef ATOMIC_DEBUG
+#ifdef ENGINE_DEBUG
             String config = "Debug";
 #else
             String config = "Release";
@@ -739,7 +739,7 @@ namespace ToolCore
         {
             ToolEnvironment* tenv = GetSubsystem<ToolEnvironment>();
 
-#ifdef ATOMIC_DEBUG
+#ifdef ENGINE_DEBUG
             String config = "Debug";
 #else
             String config = "Release";
@@ -805,7 +805,7 @@ namespace ToolCore
             // TODO: other abi
             ToolEnvironment* tenv = GetSubsystem<ToolEnvironment>();
 
-#ifdef ATOMIC_DEBUG
+#ifdef ENGINE_DEBUG
             String config = "Debug";
 #else
             String config = "Release";
@@ -934,7 +934,7 @@ namespace ToolCore
         String oType = outputType_;
 
 #ifdef ENGINE_PLATFORM_WINDOWS
-#ifndef ATOMIC_DEBUG
+#ifndef ENGINE_DEBUG
 
         if (oType.ToLower() == "exe") 
         {

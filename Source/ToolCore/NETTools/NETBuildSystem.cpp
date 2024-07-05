@@ -464,7 +464,7 @@ namespace ToolCore
 
         platforms.Push("desktop");
 
-#ifdef ATOMIC_DEBUG
+#ifdef ENGINE_DEBUG
         configurations.Push("Debug");
 #else
         configurations.Push("Release");

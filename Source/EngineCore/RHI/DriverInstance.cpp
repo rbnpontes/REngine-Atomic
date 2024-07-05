@@ -36,7 +36,7 @@ namespace REngine
     {
         ci.NumDeferredContexts = init_desc.num_deferred_contexts;
         ci.AdapterId = adapter_id;
-#if ATOMIC_DEBUG
+#if ENGINE_DEBUG
         ci.EnableValidation = true;
 #endif
     }
@@ -148,7 +148,7 @@ namespace REngine
                 engine_factory_ = factory;
                 
                 EngineD3D11CreateInfo ci = {};
-#if ATOMIC_DEBUG
+#if ENGINE_DEBUG
                 factory->SetMessageCallback(OnDebugMessage);
                 ci.SetValidationLevel(VALIDATION_LEVEL_2);
 #endif
@@ -166,7 +166,7 @@ namespace REngine
                 factory->LoadD3D12();
 
                 EngineD3D12CreateInfo ci = {};
-#if ATOMIC_DEBUG
+#if ENGINE_DEBUG
                 factory->SetMessageCallback(OnDebugMessage);
 #endif
                 ci.GraphicsAPIVersion = { 11, 0};
@@ -183,7 +183,7 @@ namespace REngine
                 engine_factory_ = factory;
 
                 EngineVkCreateInfo ci = {};
-#if ATOMIC_DEBUG
+#if ENGINE_DEBUG
                 factory->SetMessageCallback(OnDebugMessage);
                 const char* const ignore_debug_messages[] = {
                     "UNASSIGNED-CoreValidation-Shader-OutputNotConsumed"
@@ -205,7 +205,7 @@ namespace REngine
                 engine_factory_ = factory;
 
                 EngineGLCreateInfo ci = {};
-#if ATOMIC_DEBUG
+#if ENGINE_DEBUG
                 factory->SetMessageCallback(OnDebugMessage);
 #endif
                 fill_create_info(init_desc, FindBestAdapter(init_desc.adapter_id, init_desc.backend), ci);

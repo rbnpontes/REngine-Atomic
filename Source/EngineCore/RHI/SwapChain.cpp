@@ -272,7 +272,7 @@ namespace REngine
             
             int profile_mask = 0;
             SDL_GL_GetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, &profile_mask);
-#ifdef RENGINE_PLATFORM_APPLE
+#ifdef ENGINE_PLATFORM_APPLE
             if(profile_mask == SDL_GL_CONTEXT_PROFILE_ES)
                 default_framebuffer_ = 1;
             else

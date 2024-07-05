@@ -54,7 +54,7 @@ namespace REngine
         ea::vector<REngine::ShaderCompilerReflectInputElement> input_elements_{};
         ShaderSamplerDesc* used_texture_slot_names_[Atomic::MAX_TEXTURE_UNITS];
         unsigned hash_{0};
-#if ATOMIC_DEBUG
+#if ENGINE_DEBUG
         // the properties is used only for debug purposes
         Atomic::String vs_shader_name_;
         Atomic::String ps_shader_name_;

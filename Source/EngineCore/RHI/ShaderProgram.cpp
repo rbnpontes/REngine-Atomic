@@ -24,7 +24,7 @@ namespace REngine
 	    graphics_(creation_desc.graphics)
     {
         memset(used_texture_slot_names_, 0, sizeof(void*) * Atomic::MAX_TEXTURE_UNITS);
-#if ATOMIC_DEBUG
+#if ENGINE_DEBUG
         vs_shader_name_ = creation_desc.vertex_shader->GetName();
         ps_shader_name_ = creation_desc.pixel_shader->GetName();
 #endif

@@ -267,8 +267,8 @@ namespace Atomic
         #ifdef RENGINE_PLATFORM_IOS
             defines.push_back("RENGINE_PLATFORM_IOS");
         #endif
-        #ifdef RENGINE_PLATFORM_APPLE
-            defines.push_back("RENGINE_PLATFORM_APPLE");
+        #ifdef ENGINE_PLATFORM_APPLE
+            defines.push_back("ENGINE_PLATFORM_APPLE");
         #endif
         #ifdef RENGINE_PLATFORM_ANDROID
             defines.push_back("RENGINE_PLATFORM_ANDROID");
@@ -316,7 +316,7 @@ namespace Atomic
             macros_header += '\n';
 
             // In debug mode, check that all defines are referenced by the shader code
-#ifdef ATOMIC_DEBUG
+#ifdef ENGINE_DEBUG
             if (source_code.Find(define.c_str()) == String::NPOS)
                 ATOMIC_LOGWARNING("Shader " + GetFullName() + " does not use the define " + String(define.c_str()));
 #endif

@@ -102,7 +102,7 @@ bool BuildWindows::BuildManaged(const String& buildPath)
 
     String projectPath = project->GetProjectPath();
 
-#ifdef ATOMIC_DEBUG
+#ifdef ENGINE_DEBUG
     String config = "Debug";
 #else
     String config = "Release";

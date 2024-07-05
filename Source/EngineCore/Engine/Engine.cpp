@@ -1160,7 +1160,7 @@ void Engine::HandlePauseStepRequested(StringHash eventType, VariantMap& eventDat
 
 bool Engine::GetDebugBuild() const
 {
-#ifdef ATOMIC_DEBUG
+#ifdef ENGINE_DEBUG
     return true;
 #else
     return false;

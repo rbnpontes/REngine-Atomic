@@ -1110,14 +1110,14 @@ RenderSurface* Renderer::GetDepthStencil(int width, int height, int multiSample,
 {
     // Return the default depth-stencil surface if applicable
     // (when using OpenGL Graphics will allocate right size surfaces on demand to emulate Direct3D9)
-    if (width == graphics_->GetWidth() && height == graphics_->GetHeight() && multiSample == 1 &&
+    /*if (width == graphics_->GetWidth() && height == graphics_->GetHeight() && multiSample == 1 &&
         graphics_->GetMultiSample() == multiSample)
         return 0;
     else
     {
-        return static_cast<Texture2D*>(GetScreenBuffer(width, height, Graphics::GetDepthStencilFormat(), multiSample, autoResolve,
-            false, false, false))->GetRenderSurface();
-    }
+    }*/
+    return static_cast<Texture2D*>(GetScreenBuffer(width, height, Graphics::GetDepthStencilFormat(), multiSample, autoResolve,
+        false, false, false))->GetRenderSurface();
 }
 
 OcclusionBuffer* Renderer::GetOcclusionBuffer(Camera* camera)

@@ -35,7 +35,7 @@
 // ATOMIC BEGIN
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_syswm.h>
-#if RENGINE_PLATFORM_APPLE
+#if ENGINE_PLATFORM_APPLE
     #include <SDL2/SDL_metal.h>
 #endif
 
@@ -107,7 +107,7 @@ namespace Atomic
                 flags |= SDL_WINDOW_RESIZABLE;
             if(ci->borderless)
                 flags |= SDL_WINDOW_BORDERLESS;
-#if RENGINE_PLATFORM_APPLE
+#if ENGINE_PLATFORM_APPLE
             if(ci->backend == GraphicsBackend::Vulkan){
                 flags |= SDL_WINDOW_METAL;
                 SDL_SetHint(SDL_HINT_RENDER_DRIVER, "metal");
@@ -132,7 +132,7 @@ namespace Atomic
             return;
         }
         
-#if RENGINE_PLATFORM_APPLE
+#if ENGINE_PLATFORM_APPLE
         SDL_MetalView view = SDL_Metal_CreateView(window);
         if(!view) {
             SDL_DestroyWindow(window);

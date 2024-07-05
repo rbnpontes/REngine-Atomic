@@ -204,7 +204,7 @@ bool EditorMode::PlayProjectInternal(const String &addArgs, bool debug)
 
 #ifdef ENGINE_DEV_BUILD
 
-#ifdef ATOMIC_DEBUG        
+#ifdef ENGINE_DEBUG        
         playerBinary = project->GetProjectPath() + "AtomicNET/Debug/Bin/Desktop/" + projectExe;
 #else
         playerBinary = project->GetProjectPath() + "AtomicNET/Release/Bin/Desktop/" + projectExe;

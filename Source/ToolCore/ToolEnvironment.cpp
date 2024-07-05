@@ -71,7 +71,7 @@ bool ToolEnvironment::InitFromDistribution()
 
     // AtomicNET
 
-#ifdef ATOMIC_DEBUG
+#ifdef ENGINE_DEBUG
     String config = "Debug";
 #else
     String config = "Release";
@@ -129,7 +129,7 @@ void ToolEnvironment::SetRootSourceDir(const String& sourceDir)
 
     // AtomicNET
 
-#ifdef ATOMIC_DEBUG
+#ifdef ENGINE_DEBUG
     String config = "Debug";
 #else
     String config = "Release";

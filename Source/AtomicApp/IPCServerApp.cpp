@@ -69,7 +69,7 @@ namespace Atomic
         {
 #ifdef ENGINE_DEV_BUILD
 
-#ifdef ATOMIC_DEBUG        
+#ifdef ENGINE_DEBUG        
             clientBinary = projectPath + "AtomicNET/Debug/Bin/Desktop/" + projectExe;
 #else
             clientBinary = projectPath + "AtomicNET/Release/Bin/Desktop/" + projectExe;

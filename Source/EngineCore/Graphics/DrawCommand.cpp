@@ -30,7 +30,7 @@
 
 #include <DiligentCore/Graphics/GraphicsAccessories/interface/GraphicsAccessories.hpp>
 
-#define MAX_SHADER_PARAMETER_UPDATES 100
+#define MAX_SHADER_PARAMETER_UPDATES 1000
 
 namespace REngine
 {
@@ -179,7 +179,7 @@ namespace REngine
 				});
 			}
 
-#if ATOMIC_DEBUG
+#if ENGINE_DEBUG
 			u32 primitive_count;
 			utils_get_primitive_type(desc.vertex_count, pipeline_info_->primitive_type, &primitive_count);
 			primitive_count_ += primitive_count;
@@ -201,7 +201,7 @@ namespace REngine
 				desc.base_vertex_index
 			});
 
-#if ATOMIC_DEBUG
+#if ENGINE_DEBUG
 			u32 primitive_count;
 			utils_get_primitive_type(desc.vertex_count, pipeline_info_->primitive_type, &primitive_count);
 			primitive_count_ += primitive_count * desc.instance_count;
@@ -1254,13 +1254,13 @@ namespace REngine
 
 		void BeginDebug(const char* mark_name, const Color& color) override
 		{
-#if ATOMIC_DEBUG
+#if ENGINE_DEBUG
 			graphics_->GetImpl()->GetDeviceContext()->BeginDebugGroup(mark_name, color.Data());
 #endif
 		}
 		void EndDebug() override
 		{
-#if ATOMIC_DEBUG
+#if ENGINE_DEBUG
 			graphics_->GetImpl()->GetDeviceContext()->EndDebugGroup();
 #endif
 		}
@@ -1436,7 +1436,7 @@ namespace REngine
 				if (!render_targets_[i])
 					continue;
 
-				const auto format = render_targets_[i]->GetParentTexture()->GetFormat();
+				const auto format = render_targets_[i]->GetRenderTargetView()->GetDesc().Format;
 				if(pipeline_info_->output.render_target_formats[num_rts_] != format)
 					dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::pipeline);
 				pipeline_info_->output.render_target_formats[num_rts_] = format;
@@ -1468,10 +1468,10 @@ namespace REngine
 				dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::pipeline);
 			pipeline_info_->output.num_rts = num_rts_;
 
-			if (pipeline_info_->output.render_target_formats[0] == bind_rts_[0]->GetTexture()->GetDesc().Format)
+			if (pipeline_info_->output.render_target_formats[0] == bind_rts_[0]->GetDesc().Format)
 				return true;
 
-			pipeline_info_->output.render_target_formats[0] = bind_rts_[0]->GetTexture()->GetDesc().Format;
+			pipeline_info_->output.render_target_formats[0] = bind_rts_[0]->GetDesc().Format;
 			dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::pipeline);
 
 			return true;
@@ -1800,7 +1800,7 @@ namespace REngine
 				context_->CommitShaderResources(shader_resource_binding_, RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
 			}
             
-#if ATOMIC_DEBUG
+#if ENGINE_DEBUG
             ValidatePipelineAndRenderTargets();
 #endif
 		}
@@ -1989,7 +1989,7 @@ namespace REngine
 
 			return result;
 		}
-#if ATOMIC_DEBUG
+#if ENGINE_DEBUG
         void ValidatePipelineAndRenderTargets() 
         {
             assert(num_rts_ == pipeline_info_->output.num_rts && "Used Render Target Count is not same of Pipeline State. This indicates a bug on DrawCommand implementation");
@@ -2006,7 +2006,7 @@ namespace REngine
             for(u32 i = 0; i < num_rts_; ++i) 
             {
                 assert(bind_rts_[i] && "Render Target is Required. This indicates a bug on DrawCommand implementation");
-                assert(bind_rts_[i]->GetTexture()->GetDesc().Format == pipeline_info_->output.render_target_formats[i]
+                assert(bind_rts_[i]->GetDesc().Format == pipeline_info_->output.render_target_formats[i]
                        && "Assigned render target is not same of Pipeline State. This indicates a bug on DrawCommand implementation");
             }
         }
