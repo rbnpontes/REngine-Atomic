@@ -20,7 +20,7 @@
 // THE SOFTWARE.
 //
 
-#if defined(_MSC_VER) && defined(ATOMIC_MINIDUMPS)
+#if defined(_MSC_VER) && defined(ENGINE_MINIDUMPS)
 
 #include "../Precompiled.h"
 

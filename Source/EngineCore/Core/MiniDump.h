@@ -25,7 +25,7 @@
 namespace Atomic
 {
 
-#if defined(_MSC_VER) && defined(ATOMIC_MINIDUMPS)
+#if defined(_MSC_VER) && defined(ENGINE_MINIDUMPS)
 /// Write a minidump. Needs to be called from within a structured exception handler.
 ATOMIC_API int WriteMiniDump(const char* applicationName, void* exceptionPointers);
 #endif
