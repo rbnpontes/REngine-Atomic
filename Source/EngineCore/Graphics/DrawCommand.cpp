@@ -1191,7 +1191,7 @@ namespace REngine
 			if(!dest || !dest->GetRenderSurface() || graphics_->GetBackend() == GraphicsBackend::OpenGLES)
 				return false;
 
-			const auto rt_size = GetRenderTargetDimensions();
+			const auto render_size = graphics_->GetRenderSize();
 			IntRect vp_copy = viewport;
 			if (vp_copy.right_ <= vp_copy.left_)
 				vp_copy.right_ = vp_copy.left_ + 1;
@@ -1199,10 +1199,10 @@ namespace REngine
 				vp_copy.bottom_ = vp_copy.top_ + 1;
 
 			Diligent::Box src_box;
-			src_box.MinX = Clamp(vp_copy.left_, 0, rt_size.x_);
-			src_box.MinY = Clamp(vp_copy.top_, 0, rt_size.y_);
-			src_box.MaxX = Clamp(vp_copy.right_, 0, rt_size.x_);
-			src_box.MaxY = Clamp(vp_copy.bottom_, 0, rt_size.y_);
+			src_box.MinX = Clamp(vp_copy.left_,  0, render_size.x_);
+			src_box.MinY = Clamp(vp_copy.top_,   0, render_size.y_);
+			src_box.MaxX = Clamp(vp_copy.right_, 0, render_size.x_);
+			src_box.MaxY = Clamp(vp_copy.bottom_,0, render_size.y_);
 			src_box.MinZ = 0;
 			src_box.MaxZ = 1;
 
@@ -1229,7 +1229,7 @@ namespace REngine
 				Diligent::ResolveTextureSubresourceAttribs resolve_attribs = {};
 				// if it is resolving to fullscreen, just resolve directly to the destination texture
 				// otherwise we must need an auxiliary texture to resolve to
-				if (!src_box.MinX && !src_box.MinY && src_box.MaxX == rt_size.x_ && src_box.MaxY == rt_size.y_)
+				if (!src_box.MinX && !src_box.MinY && src_box.MaxX == render_size.x_ && src_box.MaxY == render_size.y_)
 				{
 					context_->ResolveTextureSubresource(source->GetTexture(), destination_tex, resolve_attribs);
 				}

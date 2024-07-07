@@ -8,10 +8,12 @@ varying vec2 vTexCoord;
 varying vec2 vScreenPos;
 
 #ifdef COMPILEPS
-uniform vec2 cBlurDir;
-uniform float cBlurRadius;
-uniform float cBlurSigma;
-uniform vec2 cBlurHInvSize;
+UNIFORM_BEGIN(CustomPS)
+    vec2 cBlurDir;
+    float cBlurRadius;
+    float cBlurSigma;
+    vec2 cBlurHInvSize;
+UNIFORM_END()
 #endif
 
 void VS()
