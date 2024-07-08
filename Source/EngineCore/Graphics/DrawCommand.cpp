@@ -1944,7 +1944,7 @@ namespace REngine
 				const auto buffer = buffers[i];
 				const auto& elements = buffer->GetElements();
 				// Check if buffer has per-instance data
-				const auto has_instance_data = elements.Size() && elements[0].perInstance_;
+				const auto has_instance_data = elements.size() && elements[0].perInstance_;  // NOLINT(readability-container-size-empty)
 				const auto offset = has_instance_data ? instance_offset * buffer->GetVertexSize() : 0;
 				const auto buffer_obj = buffer->GetGPUObject().Cast<Diligent::IBuffer>(Diligent::IID_Buffer);
 

@@ -69,7 +69,7 @@ struct VertexBufferDesc
     /// Vertex count.
     unsigned vertexCount_;
     /// Vertex declaration.
-    PODVector<VertexElement> vertexElements_;
+    ea::vector<VertexElement> vertexElements_;
     /// Vertex data size.
     unsigned dataSize_;
     /// Vertex data.

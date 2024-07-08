@@ -155,7 +155,7 @@ void Geometry::SetLodDistance(float distance)
     lodDistance_ = distance;
 }
 
-void Geometry::SetRawVertexData(SharedArrayPtr<unsigned char> data, const PODVector<VertexElement>& elements)
+void Geometry::SetRawVertexData(SharedArrayPtr<unsigned char> data, const ea::vector<VertexElement>& elements)
 {
     rawVertexData_ = data;
     rawVertexSize_ = VertexBuffer::GetVertexSize(elements);
@@ -212,7 +212,7 @@ unsigned short Geometry::GetBufferHash() const
 }
 
 void Geometry::GetRawData(const unsigned char*& vertexData, unsigned& vertexSize, const unsigned char*& indexData,
-    unsigned& indexSize, const PODVector<VertexElement>*& elements) const
+    unsigned& indexSize, const ea::vector<VertexElement>*& elements) const
 {
     if (rawVertexData_)
     {
@@ -228,9 +228,9 @@ void Geometry::GetRawData(const unsigned char*& vertexData, unsigned& vertexSize
     }
     else
     {
-        vertexData = 0;
+        vertexData = nullptr;
         vertexSize = 0;
-        elements = 0;
+        elements = nullptr;
     }
 
     if (rawIndexData_)
@@ -250,14 +250,14 @@ void Geometry::GetRawData(const unsigned char*& vertexData, unsigned& vertexSize
         }
         else
         {
-            indexData = 0;
+            indexData = nullptr;
             indexSize = 0;
         }
     }
 }
 
 void Geometry::GetRawDataShared(SharedArrayPtr<unsigned char>& vertexData, unsigned& vertexSize,
-    SharedArrayPtr<unsigned char>& indexData, unsigned& indexSize, const PODVector<VertexElement>*& elements) const
+    SharedArrayPtr<unsigned char>& indexData, unsigned& indexSize, const ea::vector<VertexElement>*& elements) const
 {
     if (rawVertexData_)
     {
@@ -273,9 +273,9 @@ void Geometry::GetRawDataShared(SharedArrayPtr<unsigned char>& vertexData, unsig
     }
     else
     {
-        vertexData = 0;
+        vertexData = nullptr;
         vertexSize = 0;
-        elements = 0;
+        elements = nullptr;
     }
 
     if (rawIndexData_)
@@ -307,7 +307,7 @@ float Geometry::GetHitDistance(const Ray& ray, Vector3* outNormal, Vector2* outU
     const unsigned char* indexData;
     unsigned vertexSize;
     unsigned indexSize;
-    const PODVector<VertexElement>* elements;
+    const ea::vector<VertexElement>* elements;
 
     GetRawData(vertexData, vertexSize, indexData, indexSize, elements);
     
@@ -334,7 +334,7 @@ bool Geometry::IsInside(const Ray& ray) const
     const unsigned char* indexData;
     unsigned vertexSize;
     unsigned indexSize;
-    const PODVector<VertexElement>* elements;
+    const ea::vector<VertexElement>* elements;
 
     GetRawData(vertexData, vertexSize, indexData, indexSize, elements);
 
