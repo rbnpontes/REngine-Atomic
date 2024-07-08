@@ -371,6 +371,14 @@ enum TextureUnit
 
 #define MAX_MATERIAL_TEXTURE_UNITS 8
 
+enum class TextureUnitType
+{
+    Undefined = 0,
+	Texture2D,
+    Texture3D,
+    TextureCube
+};
+
 /// Billboard camera facing modes.
 enum FaceCameraMode
 {

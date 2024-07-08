@@ -157,7 +157,16 @@ namespace REngine
 
     Atomic::TextureUnit utils_get_texture_unit(const Atomic::String& name)
     {
-        const auto& it = s_texture_unit_map.Find(name);
+        return utils_get_texture_unit(name.CString());
+    }
+    Atomic::TextureUnit utils_get_texture_unit(const ea::string& name)
+    {
+        return utils_get_texture_unit(name.c_str());
+    }
+
+    Atomic::TextureUnit utils_get_texture_unit(const char* name)
+    {
+	    const auto& it = s_texture_unit_map.Find(name);
         return it != s_texture_unit_map.End() ? it->second_ : MAX_TEXTURE_UNITS;
     }
 

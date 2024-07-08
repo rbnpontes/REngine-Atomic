@@ -42,6 +42,9 @@ public:
     TextureCube(Context* context);
     /// Destruct.
     virtual ~TextureCube();
+
+    TextureUnitType GetUnitType() const override { return TextureUnitType::TextureCube; }
+
     /// Register object factory.
     static void RegisterObject(Context* context);
 

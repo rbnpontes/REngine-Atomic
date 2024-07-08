@@ -166,7 +166,7 @@ namespace Atomic
         elementHash_ = bin_result.reflect_info.element_hash;
         input_elements_ = bin_result.reflect_info.input_elements;
         parameters_ = bin_result.reflect_info.parameters;
-        used_textures_ = bin_result.reflect_info.samplers;
+        textures_ = bin_result.reflect_info.samplers;
         hash_ = bin_result.shader_hash;
 
         memcpy(constantBufferSizes_, bin_result.reflect_info.constant_buffer_sizes, sizeof(bool) * MAX_SHADER_PARAMETER_GROUPS);
@@ -386,9 +386,9 @@ namespace Atomic
             elementHash_ = reflect_info.element_hash;
             parameters_ = reflect_info.parameters;
             input_elements_ = reflect_info.input_elements;
-            used_textures_ = reflect_info.samplers;
+            textures_ = reflect_info.samplers;
 
-#if WIN32
+#if ENGINE_PLATFORM_WINDOWS
             // On D3D, spirv code needs to be converted to HLSL
             if (backend == GraphicsBackend::D3D11 || backend == GraphicsBackend::D3D12)
             {
@@ -454,7 +454,7 @@ namespace Atomic
             return false;
         }
 
-#if WIN32
+#if ENGINE_PLATFORM_WINDOWS
         if (backend == GraphicsBackend::D3D11 || backend == GraphicsBackend::D3D12)
         {
             const void* byte_code = nullptr;
@@ -510,7 +510,7 @@ namespace Atomic
         if (!fileSystem->DirExists(path))
             fileSystem->CreateDir(path);
 
-        SharedPtr<File> file(new File(owner_->GetContext(), full_name, FILE_WRITE));
+        const SharedPtr file(new File(owner_->GetContext(), full_name, FILE_WRITE));
         if (!file->IsOpen())
             return;
 

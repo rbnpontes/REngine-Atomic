@@ -40,6 +40,9 @@ public:
     Texture3D(Context* context);
     /// Destruct.
     virtual ~Texture3D();
+
+    TextureUnitType GetUnitType() const override { return TextureUnitType::Texture3D; }
+
     /// Register object factory.
     static void RegisterObject(Context* context);
 

@@ -1668,7 +1668,7 @@ namespace REngine
 				if(desc.name_hash != sampler->hash)
 					dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::srb);
 
-				desc.name = sampler->name.CString();
+				desc.name = sampler->name.c_str();
 				desc.name_hash = sampler->hash;
 				// get some hashes
 				const u32 sampler_hash = pipeline_info_->immutable_samplers[next_sampler_idx].sampler.ToHash();

@@ -598,6 +598,26 @@ void Batch::Prepare(View* view, Camera* camera, bool setModelTransform, bool all
         }
     }
 
+    // Set material-specific shader parameters and textures.
+    if (material_)
+    {
+        if (graphics->NeedParameterUpdate(SP_MATERIAL, reinterpret_cast<const void*>(material_->GetShaderParameterHash())))
+        {
+            const HashMap<StringHash, MaterialShaderParameter>& parameters = material_->GetShaderParameters();
+            for (HashMap<StringHash, MaterialShaderParameter>::ConstIterator i = parameters.Begin(); i != parameters.End(); ++i)
+                graphics->SetShaderParameter(i->first_, i->second_.value_);
+        }
+
+        const auto& textures = material_->GetTextures();
+        for(u32 i = 0; i < MAX_TEXTURE_UNITS; ++i)
+        {
+            const auto unit = static_cast<TextureUnit>(i);
+            // TODO: set default texture from renderer if texture is null
+            if (graphics->HasTextureUnit(unit))
+                graphics->SetTexture(unit, textures[i].Get());
+        }
+    }
+
     // Set zone texture if necessary
     if(backend == GraphicsBackend::OpenGLES)
     {
@@ -609,24 +629,6 @@ void Batch::Prepare(View* view, Camera* camera, bool setModelTransform, bool all
     {
         if (zone_ && graphics->HasTextureUnit(TU_ZONE))
             graphics->SetTexture(TU_ZONE, zone_->GetZoneTexture());
-    }
-
-    // Set material-specific shader parameters and textures
-    if (material_)
-    {
-        if (graphics->NeedParameterUpdate(SP_MATERIAL, reinterpret_cast<const void*>(material_->GetShaderParameterHash())))
-        {
-            const HashMap<StringHash, MaterialShaderParameter>& parameters = material_->GetShaderParameters();
-            for (HashMap<StringHash, MaterialShaderParameter>::ConstIterator i = parameters.Begin(); i != parameters.End(); ++i)
-                graphics->SetShaderParameter(i->first_, i->second_.value_);
-        }
-
-        const HashMap<TextureUnit, SharedPtr<Texture> >& textures = material_->GetTextures();
-        for (HashMap<TextureUnit, SharedPtr<Texture> >::ConstIterator i = textures.Begin(); i != textures.End(); ++i)
-        {
-            if (graphics->HasTextureUnit(i->first_))
-                graphics->SetTexture(i->first_, i->second_.Get());
-        }
     }
 
     // Set light-related textures

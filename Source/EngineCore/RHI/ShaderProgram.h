@@ -27,20 +27,14 @@ namespace REngine
 		}
     };
 
-    struct ShaderSamplerDesc
-    {
-	    Atomic::String name;
-        Atomic::StringHash hash;
-    };
-
     class RENGINE_API ShaderProgram : public Atomic::RefCounted
     {
         ATOMIC_REFCOUNTED(ShaderProgram);
     public:
         ShaderProgram(const ShaderProgramCreationDesc& creation_desc);
         ~ShaderProgram() override;
-        ShaderSamplerDesc* GetSampler(Atomic::TextureUnit unit) const;
-        ShaderSamplerDesc* GetSampler(const Atomic::StringHash& name) const;
+        TextureSampler* GetSampler(Atomic::TextureUnit unit) const;
+        TextureSampler* GetSampler(const Atomic::StringHash& name) const;
         unsigned ToHash() const { return hash_; }
         bool IsInUseTexture(const Atomic::StringHash& texture) const;
         const ea::vector<REngine::ShaderCompilerReflectInputElement>& GetInputElements() const { return input_elements_; }
@@ -50,9 +44,9 @@ namespace REngine
         void CollectShaderTextures(const Atomic::ShaderVariation* shader);
 
         Atomic::Graphics* graphics_;
-        ea::hash_map<u32, ea::shared_ptr<ShaderSamplerDesc>> used_textures_{};
+        ea::hash_map<u32, ea::shared_ptr<TextureSampler>> used_textures_{};
         ea::vector<REngine::ShaderCompilerReflectInputElement> input_elements_{};
-        ShaderSamplerDesc* used_texture_slot_names_[Atomic::MAX_TEXTURE_UNITS];
+        TextureSampler* used_texture_slot_names_[Atomic::MAX_TEXTURE_UNITS];
         unsigned hash_{0};
 #if ENGINE_DEBUG
         // the properties is used only for debug purposes

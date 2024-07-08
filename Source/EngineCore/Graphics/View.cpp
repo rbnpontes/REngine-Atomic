@@ -1683,7 +1683,12 @@ void View::ExecuteRenderPathCommands()
                         }
 
                         // Draw base (replace blend) batches first
-                        i->litBaseBatches_.Draw(this, camera_, false, false, allowDepthWrite);
+                        if(!i->litBaseBatches_.IsEmpty())
+                        {
+                            draw_command->BeginDebug("LitBaseBatches");
+                            i->litBaseBatches_.Draw(this, camera_, false, false, allowDepthWrite);
+                            draw_command->EndDebug();
+                        }
 
                         // Then, if there are additive passes, optimize the light and draw them
                         if (!i->litBatches_.IsEmpty())
@@ -1691,7 +1696,9 @@ void View::ExecuteRenderPathCommands()
                             renderer_->OptimizeLightByScissor(i->light_, camera_);
                             if (!noStencil_)
                                 renderer_->OptimizeLightByStencil(i->light_, camera_);
+                            draw_command->BeginDebug("LitBatches");
                             i->litBatches_.Draw(this, camera_, false, true, allowDepthWrite);
+                            draw_command->EndDebug();
                         }
 
                         passCommand_ = 0;
@@ -2881,34 +2888,31 @@ Technique* View::GetTechnique(Drawable* drawable, Material* material)
 
 void View::CheckMaterialForAuxView(Material* material)
 {
-    const HashMap<TextureUnit, SharedPtr<Texture> >& textures = material->GetTextures();
+    const auto& textures = material->GetTextures();
 
-    for (HashMap<TextureUnit, SharedPtr<Texture> >::ConstIterator i = textures.Begin(); i != textures.End(); ++i)
+    for(const auto& texture : textures)
     {
-        Texture* texture = i->second_.Get();
-        if (texture && texture->GetUsage() == TEXTURE_RENDERTARGET)
+        if (!texture || texture->GetUsage() != TEXTURE_RENDERTARGET)
+            continue;
+
+        if(texture->GetType() == Texture2D::GetTypeStatic())
         {
-            // Have to check cube & 2D textures separately
-            if (texture->GetType() == Texture2D::GetTypeStatic())
+	        const auto tex2d = static_cast<Texture2D*>(texture.Get());
+            RenderSurface* target = tex2d->GetRenderSurface();
+            if (target && target->GetUpdateMode() == SURFACE_UPDATEVISIBLE)
+                target->QueueUpdate();
+        }
+        else if(texture->GetType() == TextureCube::GetTypeStatic())
+        {
+            const auto tex_cube = static_cast<TextureCube*>(texture.Get());
+            for(u32 i = 0; i < MAX_CUBEMAP_FACES; ++i)
             {
-                Texture2D* tex2D = static_cast<Texture2D*>(texture);
-                RenderSurface* target = tex2D->GetRenderSurface();
+                const auto target = tex_cube->GetRenderSurface(static_cast<CubeMapFace>(i));
                 if (target && target->GetUpdateMode() == SURFACE_UPDATEVISIBLE)
                     target->QueueUpdate();
             }
-            else if (texture->GetType() == TextureCube::GetTypeStatic())
-            {
-                TextureCube* texCube = static_cast<TextureCube*>(texture);
-                for (unsigned j = 0; j < MAX_CUBEMAP_FACES; ++j)
-                {
-                    RenderSurface* target = texCube->GetRenderSurface((CubeMapFace)j);
-                    if (target && target->GetUpdateMode() == SURFACE_UPDATEVISIBLE)
-                        target->QueueUpdate();
-                }
-            }
         }
     }
-
     // Flag as processed so we can early-out next time we come across this material on the same frame
     material->MarkForAuxView(frame_.frameNumber_);
 }

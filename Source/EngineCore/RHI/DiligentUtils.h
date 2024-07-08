@@ -17,6 +17,8 @@ namespace REngine
     Atomic::ShaderParameterGroup utils_get_shader_parameter_group_type(Atomic::ShaderType type, const Atomic::String& name);
     Atomic::VertexElementSemantic utils_get_element_semantic(const Atomic::String& name, uint8_t* index);
     Atomic::TextureUnit utils_get_texture_unit(const Atomic::String& name);
+    Atomic::TextureUnit utils_get_texture_unit(const ea::string& name);
+    Atomic::TextureUnit utils_get_texture_unit(const char* name);
     const Atomic::StringVector& utils_get_texture_unit_names(Atomic::TextureUnit unit);
     Diligent::SHADER_TYPE utils_get_shader_type(Atomic::ShaderType type);
     bool utils_is_compressed_texture_format(Diligent::TEXTURE_FORMAT format);
