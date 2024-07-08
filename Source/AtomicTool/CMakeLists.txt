@@ -1,7 +1,7 @@
 set (ATOMIC_TOOL_SOURCES AtomicTool.cpp AtomicTool.h)
 
 if (WIN32)
-    add_definitions(-DATOMIC_WIN32_CONSOLE)
+    add_definitions(-DENGINE_WIN32_CONSOLE)
 endif()
 
 add_executable(AtomicTool ${ATOMIC_TOOL_SOURCES})
