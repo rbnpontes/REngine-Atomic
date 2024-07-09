@@ -1601,6 +1601,9 @@ namespace REngine
 						CombineHash(curr_vertx_decl_checksum_, vertex_buffers_[i]->GetBufferHash(0));
 				}
 
+				// Vertex declaration must match Shader Program hash
+				CombineHash(curr_vertx_decl_checksum_, shader_program_->ToHash());
+
 				if (curr_vertx_decl_checksum_ != last_vertx_decl_checksum_)
 					dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::vertex_decl);
 				last_vertx_decl_checksum_ = curr_vertx_decl_checksum_;
@@ -1936,7 +1939,7 @@ namespace REngine
 
 #define VALIDATE_VBUFFER_COUNT(count) \
 		if((count) > MAX_VERTEX_STREAMS) \
-			ATOMIC_LOGWARNING("Too many vertex buffers");
+			ATOMIC_LOGWARNING("Too many vertex buffers")
 
 		void SetVertexBuffer(u32 index, VertexBuffer* buffer, const u32& instance_offset)
 		{
