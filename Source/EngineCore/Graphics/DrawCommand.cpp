@@ -240,6 +240,10 @@ namespace REngine
 		{
 			SetVertexBuffers(buffers.Buffer(), buffers.Size(), instance_offset);
 		}
+		void SetVertexBuffers(const ea::vector<SharedPtr<VertexBuffer>>& buffers, u32 instance_offset) override
+		{
+			SetVertexBuffers(buffers.data(), buffers.size(), instance_offset);
+		}
 		void SetVertexBuffers(const ea::vector<VertexBuffer*>& buffers, u32 instance_offset) override
 		{
 			SetVertexBuffers(const_cast<VertexBuffer**>(buffers.data()), buffers.size(), instance_offset);
@@ -1929,39 +1933,58 @@ namespace REngine
 			context_->CommitShaderResources(srb, RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
 			context_->Draw(draw_attribs);
 		}
+
+#define VALIDATE_VBUFFER_COUNT(count) \
+		if((count) > MAX_VERTEX_STREAMS) \
+			ATOMIC_LOGWARNING("Too many vertex buffers");
+
+		void SetVertexBuffer(u32 index, VertexBuffer* buffer, const u32& instance_offset)
+		{
+			const auto& elements = buffer->GetElements();
+			// Check if buffer has per-instance data
+			const auto has_instance_data = elements.size() && elements[0].perInstance_;  // NOLINT(readability-container-size-empty)
+			const auto offset = has_instance_data ? instance_offset * buffer->GetVertexSize() : 0;
+			const auto buffer_obj = buffer->GetGPUObject().Cast<Diligent::IBuffer>(Diligent::IID_Buffer);
+
+			buffer->AddRef();
+			vertex_buffers_[index].reset(buffer, ea::EngineRefCounterDeleter<VertexBuffer>());
+			vertex_offsets_[index] = offset;
+			bind_vertex_buffers_[index] = buffer_obj;
+			// Build vertex buffer checksum
+			curr_vbuffer_checksum_ = 16777619;
+			curr_vbuffer_checksum_ ^= static_cast<u32>(reinterpret_cast<u64>(buffer_obj.ConstPtr())) * 16777619;
+			curr_vbuffer_checksum_ ^= offset * 16777619;
+
+		}
 		void SetVertexBuffers(VertexBuffer** buffers, u32 count, u32 instance_offset)
 		{
 			ATOMIC_PROFILE(IDrawCommand::SetVertexBuffers);
-			if (count > MAX_VERTEX_STREAMS)
-				ATOMIC_LOGWARNING("Too many vertex buffers");
+			VALIDATE_VBUFFER_COUNT(count);
 
 			curr_vbuffer_checksum_		= 
 			curr_vertx_decl_checksum_	= 0;
 
 			num_vertex_buffers_ = count = Min(count, MAX_VERTEX_STREAMS);
 			for (u32 i = 0; i < count; ++i)
-			{
-				const auto buffer = buffers[i];
-				const auto& elements = buffer->GetElements();
-				// Check if buffer has per-instance data
-				const auto has_instance_data = elements.size() && elements[0].perInstance_;  // NOLINT(readability-container-size-empty)
-				const auto offset = has_instance_data ? instance_offset * buffer->GetVertexSize() : 0;
-				const auto buffer_obj = buffer->GetGPUObject().Cast<Diligent::IBuffer>(Diligent::IID_Buffer);
+				SetVertexBuffer(i, buffers[i], instance_offset);
 
-				buffer->AddRef();
-				vertex_buffers_[i].reset(buffer, ea::EngineRefCounterDeleter<VertexBuffer>());
-				vertex_offsets_[i] = offset;
-				bind_vertex_buffers_[i] = buffer_obj;
-				// Build vertex buffer checksum
-				curr_vbuffer_checksum_ = 16777619;
-				curr_vbuffer_checksum_ ^= (u32)reinterpret_cast<u64>(buffer_obj.ConstPtr()) * 16777619;
-				curr_vbuffer_checksum_ ^= offset * 16777619;
-				//CombineHash(curr_vbuffer_checksum_, MakeHash(buffer_obj.ConstPtr()));
-				//CombineHash(curr_vbuffer_checksum_, offset);
-				// Build base Vertex Declaration Hash
-				curr_vertx_decl_checksum_ ^= buffer->GetBufferHash(i);
-				//CombineHash(curr_vertx_decl_checksum_, buffer->GetBufferHash(i));
+			if(curr_vbuffer_checksum_ != last_vbuffer_checksum_)
+			{
+				last_vbuffer_checksum_ = curr_vbuffer_checksum_;
+				dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::vertex_buffer);
 			}
+		}
+		void SetVertexBuffers(const SharedPtr<VertexBuffer>* buffers, u32 count, u32 instance_offset)
+		{
+			ATOMIC_PROFILE(IDrawCommand::SetVertexBuffers);
+			VALIDATE_VBUFFER_COUNT(count);
+
+			curr_vbuffer_checksum_		= 
+			curr_vertx_decl_checksum_	= 0;
+
+			num_vertex_buffers_ = count = Min(count, MAX_VERTEX_STREAMS);
+			for (u32 i = 0; i < count; ++i)
+				SetVertexBuffer(i, buffers[i], instance_offset);
 
 			if(curr_vbuffer_checksum_ != last_vbuffer_checksum_)
 			{

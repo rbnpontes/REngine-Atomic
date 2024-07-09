@@ -33,6 +33,7 @@ class IndexBuffer;
 class Ray;
 class Graphics;
 class VertexBuffer;
+class IDrawCommand;
 
 /// Defines one or more vertex buffers, an index buffer and a draw range.
 class ATOMIC_API Geometry : public Object
@@ -68,10 +69,10 @@ public:
     void Draw(Graphics* graphics);
 
     /// Return all vertex buffers.
-    const Vector<SharedPtr<VertexBuffer> >& GetVertexBuffers() const { return vertexBuffers_; }
+    const ea::vector<SharedPtr<VertexBuffer>>& GetVertexBuffers() const { return vertexBuffers_; }
 
     /// Return number of vertex buffers.
-    unsigned GetNumVertexBuffers() const { return vertexBuffers_.Size(); }
+    unsigned GetNumVertexBuffers() const { return vertexBuffers_.size(); }
 
     /// Return vertex buffer by index.
     VertexBuffer* GetVertexBuffer(unsigned index) const;
@@ -114,7 +115,7 @@ public:
 
 private:
     /// Vertex buffers.
-    Vector<SharedPtr<VertexBuffer> > vertexBuffers_;
+    ea::vector<SharedPtr<VertexBuffer> > vertexBuffers_;
     /// Index buffer.
     SharedPtr<IndexBuffer> indexBuffer_;
     /// Primitive type.
