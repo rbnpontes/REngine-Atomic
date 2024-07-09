@@ -46,8 +46,9 @@ namespace REngine
 	class DrawCommandImpl : public IDrawCommand
 	{
 	public:
-		DrawCommandImpl(Graphics* graphics, Diligent::IDeviceContext* context) :
+		DrawCommandImpl(Graphics* graphics, Renderer* renderer, Diligent::IDeviceContext* context) :
 			graphics_(graphics),
+			renderer_(renderer),
 			context_(context),
 			bind_depth_stencil_(nullptr),
 			params_2_update_({}), next_param_2_update_idx_(0), bind_rts_(),
@@ -1672,6 +1673,19 @@ namespace REngine
 				const auto sampler = shader_program_->GetSampler(desc.unit);
 				if (!sampler)
 					continue;
+
+				if(sampler->type != desc.owner->GetUnitType())
+				{
+#if ENGINE_DEBUG
+					ATOMIC_LOGWARNINGF("Can't bind texture %s at shader slot %s. Current texture type doesn't match shader texture type.",
+						desc.owner->GetName().CString(),
+						sampler->name.c_str());
+#endif
+					const auto owner = GetRenderer()->GetDummyTexture();
+					desc.texture = owner->GetShaderResourceView();
+					desc.owner = ea::MakeShared(owner);
+				}
+
 				if(desc.name_hash != sampler->hash)
 					dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::srb);
 
@@ -2010,7 +2024,13 @@ namespace REngine
 
 			return result;
 		}
-#if ENGINE_DEBUG
+		Renderer* GetRenderer()
+		{
+			if (!renderer_)
+				renderer_ = graphics_->GetSubsystem<Renderer>();
+			return renderer_;
+		}
+		#if ENGINE_DEBUG
         void ValidatePipelineAndRenderTargets() 
         {
             assert(num_rts_ == pipeline_info_->output.num_rts && "Used Render Target Count is not same of Pipeline State. This indicates a bug on DrawCommand implementation");
@@ -2048,6 +2068,7 @@ namespace REngine
 		}
 
 		Graphics* graphics_;
+		Renderer* renderer_;
 		Diligent::IDeviceContext* context_;
 		PipelineStateInfo* pipeline_info_;
 		Diligent::RefCntAutoPtr<Diligent::IPipelineState> pipeline_state_;
@@ -2102,9 +2123,9 @@ namespace REngine
 		u32 num_batches_;
 	};
 
-	Atomic::IDrawCommand* graphics_create_command(Atomic::Graphics* graphics)
+	Atomic::IDrawCommand* graphics_create_command(Atomic::Graphics* graphics, Atomic::Renderer* renderer)
 	{
-		Atomic::IDrawCommand* result = new DrawCommandImpl(graphics, graphics->GetImpl()->GetDeviceContext());
+		Atomic::IDrawCommand* result = new DrawCommandImpl(graphics, renderer, graphics->GetImpl()->GetDeviceContext());
 		return result;
 	}
 }

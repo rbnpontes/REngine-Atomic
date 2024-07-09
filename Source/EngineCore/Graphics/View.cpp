@@ -1875,6 +1875,7 @@ bool View::SetTextures(RenderPathCommand& command)
         {
             // If requesting a texture fails, clear the texture name to prevent redundant attempts
             command.textureNames_[i] = String::EMPTY;
+            graphics_->ResetTexture(i); // Set dummy texture as default.
         }
     }
 

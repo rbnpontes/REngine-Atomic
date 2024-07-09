@@ -19,6 +19,7 @@ namespace Atomic
 	class TextureCube;
 	class RenderTexture;
 	class RenderSurface;
+	class Renderer;
 
 	typedef Diligent::VALUE_TYPE ValueType;
 	struct DrawCommandClearDesc
@@ -246,5 +247,5 @@ namespace Atomic
 
 namespace REngine
 {
-	Atomic::IDrawCommand* graphics_create_command(Atomic::Graphics* graphics);
+	Atomic::IDrawCommand* graphics_create_command(Atomic::Graphics* graphics, Atomic::Renderer* renderer);
 }

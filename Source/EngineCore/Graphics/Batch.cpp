@@ -613,7 +613,7 @@ void Batch::Prepare(View* view, Camera* camera, bool setModelTransform, bool all
         {
             const auto unit = static_cast<TextureUnit>(i);
             // TODO: set default texture from renderer if texture is null
-            if (graphics->HasTextureUnit(unit))
+            if (graphics->HasTextureUnit(unit) && textures[i])
                 graphics->SetTexture(unit, textures[i].Get());
         }
     }

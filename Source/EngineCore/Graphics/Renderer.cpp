@@ -269,8 +269,8 @@ inline ea::vector<VertexElement> CreateInstancingBufferElements(unsigned numExtr
 Renderer::Renderer(Context* context) :
     Object(context),
     defaultZone_(new Zone(context)),
-    shadowMapFilterInstance_(0),
-    shadowMapFilter_(0),
+    shadowMapFilterInstance_(nullptr),
+    shadowMapFilter_(nullptr),
     textureAnisotropy_(4),
     textureFilterMode_(FILTER_TRILINEAR),
     textureQuality_(QUALITY_HIGH),
@@ -1608,6 +1608,7 @@ void Renderer::Initialize()
 
     defaultLightRamp_ = cache->GetResource<Texture2D>("Textures/Ramp.png");
     defaultLightSpot_ = cache->GetResource<Texture2D>("Textures/Spot.png");
+    dummy_texture_ = cache->GetResource<Texture2D>("Textures/NoTexture.jpg");
     defaultMaterial_ = new Material(context_);
 
     defaultRenderPath_ = new RenderPath();

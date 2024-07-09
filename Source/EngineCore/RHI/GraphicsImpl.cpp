@@ -1789,7 +1789,7 @@ namespace Atomic
 		CheckFeatureSupport();
 		SetFlushGPU(flushGPU_);
 		multiSample_ = impl_->GetMultiSample();
-		draw_command_ = ea::shared_ptr<IDrawCommand>(REngine::graphics_create_command(this));
+		draw_command_ = ea::shared_ptr<IDrawCommand>(REngine::graphics_create_command(this, GetSubsystem<Renderer>()));
         draw_command_->Reset();
 		GetSubsystem<DrawCommandQueue>()->AddCommand(draw_command_);
 	}
