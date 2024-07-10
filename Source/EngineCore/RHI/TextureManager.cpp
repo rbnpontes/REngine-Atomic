@@ -5,6 +5,7 @@ typedef Diligent::RefCntAutoPtr<Diligent::ITexture> TextureRef;
 namespace REngine
 {
 	static ea::hash_map<u32, TextureRef> s_tmp_textures;
+	static ea::hash_map<Atomic::TextureFormat, TextureRef> s_stg_textures;
 	static u32 s_textures_alive = 0;
 
 	ea::string texture_manager_internal_build_name(const ea::string& name, const ea::string& identifier)
@@ -82,14 +83,21 @@ namespace REngine
 		return texture_manager_internal_create(tex_desc, device);
 	}
 
-	TextureRef texture_manager_tex2d_get_stg(const TextureManagerCreateInfo& create_info)
+	TextureRef texture_manager_tex2d_get_stg(const TextureManagerStgCreateInfo& create_info)
 	{
 		const auto driver = create_info.driver;
 		const auto device = driver->GetDevice();
-		const auto dbg_name = texture_manager_internal_build_name(create_info.name, "StagingTexture");
+
+		const auto tex_it = s_stg_textures.find_as(create_info.format);
+		if(tex_it != s_stg_textures.end() && tex_it->second)
+		{
+			const auto desc = tex_it->second->GetDesc();
+			if (desc.Width < create_info.width && desc.Height < create_info.height)
+				return tex_it->second;
+		}
 
 		Diligent::TextureDesc tex_desc;
-		tex_desc.Name = dbg_name.c_str();
+		tex_desc.Name = "StagingTexture";
 		tex_desc.Width = create_info.width;
 		tex_desc.Height = create_info.height;
 		tex_desc.MipLevels = 1;
@@ -100,12 +108,27 @@ namespace REngine
 		tex_desc.CPUAccessFlags = Diligent::CPU_ACCESS_READ;
 		tex_desc.Type = Diligent::RESOURCE_DIM_TEX_2D;
 
-		return texture_manager_internal_create(tex_desc, device);
+		TextureRef result;
+		device->CreateTexture(tex_desc, nullptr, &result);
+
+		s_stg_textures[create_info.format] = result;
+		return result;
 	}
 
 	u32 texture_manager_tmp_textures_count()
 	{
 		return s_textures_alive;
+	}
+
+	u32 texture_manager_stg_textures_count()
+	{
+		u32 count = 0;
+		for(const auto& tex : s_stg_textures)
+		{
+			if (tex.second)
+				++count;
+		}
+		return count;
 	}
 
 	void texture_manager_clear_tmp_textures()
@@ -122,4 +145,10 @@ namespace REngine
 			--s_textures_alive;
 		}
 	}
+
+	void texture_manager_clear_stg_textures()
+	{
+		s_stg_textures.clear(true);
+	}
+
 }

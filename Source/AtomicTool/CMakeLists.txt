@@ -4,6 +4,10 @@ if (WIN32)
     add_definitions(-DENGINE_WIN32_CONSOLE)
 endif()
 
+if(ENGINE_DOTNET)
+    add_definitions(-DENGINE_DOTNET=1)
+endif()
+
 add_executable(AtomicTool ${ATOMIC_TOOL_SOURCES})
 
 target_link_libraries(AtomicTool ToolCore Poco ${ENGINE_CORE_LIB_TARGET})

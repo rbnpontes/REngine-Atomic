@@ -97,6 +97,10 @@ namespace Atomic
 		virtual void SetVertexBuffers(const ea::vector<SharedPtr<VertexBuffer>>& buffers, u32 instance_offset = 0) = 0;
 		/// Bind vertex buffers.
 		virtual void SetVertexBuffers(const ea::vector<VertexBuffer*>& buffers, u32 instance_offset = 0) = 0;
+		/// Bind vertex buffers.
+		virtual void SetVertexBuffers(VertexBuffer** buffers, u32 length, u32 instance_offset = 0) = 0;
+		/// Bind vertex buffers.
+		virtual void SetVertexBuffers(const SharedPtr<VertexBuffer>* buffers, u32 length, u32 instance_offset = 0) = 0;
 		/// Bind index buffer.
 		virtual void SetIndexBuffer(IndexBuffer* buffer) = 0;
 		/// Bind shaders.

@@ -695,8 +695,8 @@ void BatchGroup::Draw(View* view, Camera* camera, bool allowDepthWrite) const
     if (instances_.Size() && !geometry_->IsEmpty())
     {
         // Draw as individual objects if instancing not supported or could not fill the instancing buffer
-        VertexBuffer* instanceBuffer = renderer->GetInstancingBuffer();
-        if (!instanceBuffer || geometryType_ != GEOM_INSTANCED || startIndex_ == M_MAX_UNSIGNED)
+        VertexBuffer* instance_buffer = renderer->GetInstancingBuffer();
+        if (!instance_buffer || geometryType_ != GEOM_INSTANCED || startIndex_ == M_MAX_UNSIGNED)
         {
             Batch::Prepare(view, camera, false, allowDepthWrite);
             draw_cmd->SetIndexBuffer(geometry_->GetIndexBuffer());
@@ -722,8 +722,19 @@ void BatchGroup::Draw(View* view, Camera* camera, bool allowDepthWrite) const
         else
         {
             Batch::Prepare(view, camera, false, allowDepthWrite);
+            static ea::array<VertexBuffer*, MAX_VERTEX_STREAMS> s_vertex_buffers = {};
+
+            const auto& geometry_vertex_buffers = geometry_->GetVertexBuffers();
+            u32 next_idx = 0;
+            for (u32 i = 0; i < geometry_vertex_buffers.size(); ++i)
+            {
+                s_vertex_buffers[next_idx] = geometry_vertex_buffers[i];
+                next_idx = i;
+            }
+            s_vertex_buffers[++next_idx] = instance_buffer;
+
             draw_cmd->SetIndexBuffer(geometry_->GetIndexBuffer());
-            draw_cmd->SetVertexBuffers(geometry_->GetVertexBuffers(), startIndex_);
+            draw_cmd->SetVertexBuffers(s_vertex_buffers.data(), ++next_idx, startIndex_);
 
             DrawCommandInstancedDrawDesc draw_desc;
             draw_desc.index_start = geometry_->GetIndexStart();

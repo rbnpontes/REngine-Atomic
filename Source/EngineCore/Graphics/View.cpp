@@ -1849,7 +1849,12 @@ bool View::SetTextures(RenderPathCommand& command)
     for (unsigned i = 0; i < MAX_TEXTURE_UNITS; ++i)
     {
         if (command.textureNames_[i].Empty())
+        {
+            // always clean texture. we don't wan't unexpected behaviours
+            // in our render
+            graphics_->ResetTexture(i);
             continue;
+        }
 
         // Bind the rendered output
         if (!command.textureNames_[i].Compare("viewport", false))
@@ -1875,7 +1880,9 @@ bool View::SetTextures(RenderPathCommand& command)
         {
             // If requesting a texture fails, clear the texture name to prevent redundant attempts
             command.textureNames_[i] = String::EMPTY;
-            graphics_->ResetTexture(i); // Set dummy texture as default.
+            // always clean texture. we don't wan't unexpected behaviours
+            // in our render
+            graphics_->ResetTexture(i);
         }
     }
 

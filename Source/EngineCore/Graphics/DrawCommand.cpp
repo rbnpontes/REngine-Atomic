@@ -1665,25 +1665,40 @@ namespace REngine
 			dirty_flags_ ^= static_cast<u32>(RenderCommandDirtyState::textures);
 
 			u32 next_sampler_idx = 0;
-			for(auto& desc : textures_)
+			for(u32 i = 0; i < MAX_TEXTURE_UNITS; ++i)
 			{
-				if(!desc.owner)
-					continue;
+				const auto unit = static_cast<TextureUnit>(i);
+				auto& desc = textures_[i];
+				const auto sampler = shader_program_->GetSampler(unit);
 
-				const auto sampler = shader_program_->GetSampler(desc.unit);
+				if(!desc.owner)
+				{
+					if(!sampler)
+						continue;
+					// If bound texture is null but shader requires a sampler, we must use Dummy Texture instead.
+					const auto dummy_tex = GetRenderer()->GetDummyTexture();
+					desc.texture = dummy_tex->GetShaderResourceView();
+					desc.owner = ea::MakeShared(dummy_tex);
+				}
+
+				// If bound texture exists but shader doesn't need this sampler unit, we must skip!
 				if (!sampler)
 					continue;
 
+				// If shader texture unit type is not same of bound texture
+				// we must reject bound texture and use a dummy texture that
+				// matches texture unit type.
+				// TODO: create another types of dummy textures
 				if(sampler->type != desc.owner->GetUnitType())
 				{
 #if ENGINE_DEBUG
-					ATOMIC_LOGWARNINGF("Can't bind texture %s at shader slot %s. Current texture type doesn't match shader texture type.",
+					ATOMIC_LOGWARNINGF("Can't bind texture %s at shader slot %s. Current texture type doesn't match expected shader texture type.",
 						desc.owner->GetName().CString(),
 						sampler->name.c_str());
 #endif
-					const auto owner = GetRenderer()->GetDummyTexture();
-					desc.texture = owner->GetShaderResourceView();
-					desc.owner = ea::MakeShared(owner);
+					const auto dummy_tex = GetRenderer()->GetDummyTexture();
+					desc.texture = dummy_tex->GetShaderResourceView();
+					desc.owner = ea::MakeShared(dummy_tex);
 				}
 
 				if(desc.name_hash != sampler->hash)
@@ -1973,7 +1988,7 @@ namespace REngine
 			curr_vbuffer_checksum_ ^= offset * 16777619;
 
 		}
-		void SetVertexBuffers(VertexBuffer** buffers, u32 count, u32 instance_offset)
+		void SetVertexBuffers(VertexBuffer** buffers, u32 count, u32 instance_offset) override
 		{
 			ATOMIC_PROFILE(IDrawCommand::SetVertexBuffers);
 			VALIDATE_VBUFFER_COUNT(count);
@@ -1991,7 +2006,7 @@ namespace REngine
 				dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::vertex_buffer);
 			}
 		}
-		void SetVertexBuffers(const SharedPtr<VertexBuffer>* buffers, u32 count, u32 instance_offset)
+		void SetVertexBuffers(const SharedPtr<VertexBuffer>* buffers, u32 count, u32 instance_offset) override
 		{
 			ATOMIC_PROFILE(IDrawCommand::SetVertexBuffers);
 			VALIDATE_VBUFFER_COUNT(count);

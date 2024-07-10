@@ -695,13 +695,27 @@ namespace Atomic
 		tex_ci.format = TextureFormat::TEX_FORMAT_RGBA8_UNORM;
 		tex_ci.driver = impl_;
 
-		const auto stg_tex = REngine::texture_manager_tex2d_get_stg(tex_ci);
+		const auto stg_tex = REngine::texture_manager_tex2d_get_stg({
+			tex_ci.width,
+			tex_ci.height,
+			tex_ci.format,
+			tex_ci.driver
+		});
 
 		if (!stg_tex)
 			return false;
 
 		const auto ctx = impl_->GetDeviceContext();
+		Diligent::Box box;
+		box.MinX = box.MinY = box.MinZ = 0;
+		box.MaxX = size.x_;
+		box.MaxY = size.y_;
+		box.MaxZ = 1;
+
+
 		Diligent::CopyTextureAttribs cpy_attribs = {};
+		cpy_attribs.pSrcBox = &box;
+		cpy_attribs.DstSlice = cpy_attribs.DstX = cpy_attribs.DstY = cpy_attribs.DstZ = 0;
 		cpy_attribs.DstTextureTransitionMode = cpy_attribs.SrcTextureTransitionMode = Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION;
 		
 		if (multiSample_ > 1)
@@ -1562,6 +1576,14 @@ namespace Atomic
 			REngine::texture_manager_clear_tmp_textures();
 			if(cache_count > 0)
 				ATOMIC_LOGINFOF("Released (%d) Temporary Textures", cache_count);
+		}
+
+		if(cleanup_flags & GRAPHICS_CLEAR_STG_TEXTURES)
+		{
+			const auto cache_count = REngine::texture_manager_stg_textures_count();
+			REngine::texture_manager_clear_stg_textures();
+			if (cache_count > 0)
+				ATOMIC_LOGINFO("Release (%d) Staging Textures", cache_count);
 		}
 	}
 

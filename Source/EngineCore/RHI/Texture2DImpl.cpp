@@ -8,6 +8,7 @@
 #include "../Resource/ResourceCache.h"
 #include "./DiligentUtils.h"
 #include "./RHI/DriverInstance.h"
+#include "./TextureManager.h"
 
 #include "../DebugNew.h"
 
@@ -88,7 +89,10 @@ namespace Atomic
         const auto row_start = GetRowDataSize(x);
         const auto texture = object_.Cast<Diligent::ITexture>(Diligent::IID_Texture);
 
-        if (usage_ == TEXTURE_STATIC)
+        const auto backend = graphics_->GetBackend();
+        const auto is_opengl = backend == GraphicsBackend::OpenGL || backend == GraphicsBackend::OpenGLES;
+
+        if (usage_ == TEXTURE_STATIC || is_opengl)
         {
             Diligent::Box box = {};
             box.MinX = x;
@@ -138,6 +142,7 @@ namespace Atomic
         for (int row = 0; row < height; ++row)
             memcpy(static_cast<unsigned char*>(mapped_data.pData) + (row + y) * mapped_data.Stride + row_start,
                    src + row * row_size, row_size);
+
         graphics_->GetImpl()->GetDeviceContext()->UnmapTextureSubresource(texture, level, 0);
         return true;
     }

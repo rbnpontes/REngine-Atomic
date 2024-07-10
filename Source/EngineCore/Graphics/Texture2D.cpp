@@ -157,6 +157,12 @@ bool Texture2D::SetSize(int width, int height, TextureFormat format, TextureUsag
     return Create();
 }
 
+bool Texture2D::Resize(int width, int height, u32 format, TextureUsage usage, int multiSample, bool autoResolve)
+{
+    return SetSize(width, height, static_cast<TextureFormat>(format), usage, multiSample, autoResolve);
+}
+
+
 SharedPtr<Image> Texture2D::GetImage() const
 {
     if (format_ != Graphics::GetRGBAFormat() && format_ != Graphics::GetRGBFormat())

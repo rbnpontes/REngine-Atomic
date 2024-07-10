@@ -258,7 +258,7 @@ void AtomicTool::Start()
 
     }
 
-#if ATOMIC_DOTNET
+#if ENGINE_DOTNET
     if (cmd->RequiresNETService())
     {
         context_->RegisterSubsystem(new IPC(context_));
