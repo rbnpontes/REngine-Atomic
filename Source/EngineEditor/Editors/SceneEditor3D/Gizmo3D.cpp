@@ -46,7 +46,7 @@ Gizmo3D::Gizmo3D(Context* context) : Object(context),
 
     gizmoNode_ = new Node(context_);
     gizmo_ = gizmoNode_->CreateComponent<StaticModel>();
-    gizmo_->SetModel(cache->GetResource<Model>("AtomicEditor/Models/Axes.mdl"));
+    gizmo_->SetModel(cache->GetResource<Model>("Models/Axes.mdl"));
 
     gizmo_->SetEnabled(false);
     gizmo_->SetViewMask(0x80000000); // Editor raycasts use viewmask 0x7fffffff
@@ -61,9 +61,9 @@ Gizmo3D::Gizmo3D(Context* context) : Object(context),
     editMode_ = EDIT_MOVE;
     lastEditMode_ = EDIT_SELECT;
 
-    gizmo_->SetMaterial(0, cache->GetResource<Material>("AtomicEditor/Materials/RedUnlit.xml"));
-    gizmo_->SetMaterial(1, cache->GetResource<Material>("AtomicEditor/Materials/GreenUnlit.xml"));
-    gizmo_->SetMaterial(2, cache->GetResource<Material>("AtomicEditor/Materials/BlueUnlit.xml"));
+    gizmo_->SetMaterial(0, cache->GetResource<Material>("Materials/RedUnlit.xml"));
+    gizmo_->SetMaterial(1, cache->GetResource<Material>("Materials/GreenUnlit.xml"));
+    gizmo_->SetMaterial(2, cache->GetResource<Material>("Materials/BlueUnlit.xml"));
 
 }
 
