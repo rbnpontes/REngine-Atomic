@@ -653,7 +653,7 @@ public:
         return draw_command_->GetClipPlane();
     }
 
-    /// Return shader cache directory, Direct3D only.
+    /// Return shader cache directory.
     const String& GetShaderCacheDir() const { return shaderCacheDir_; }
 
     /// Return current rendertarget width and height.

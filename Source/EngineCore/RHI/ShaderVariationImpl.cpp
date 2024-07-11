@@ -20,6 +20,14 @@
 namespace Atomic
 {
     static const char* s_shader_file_id = "RSHD";
+    static ea::array<const char*, static_cast<u32>(GraphicsBackend::Max) + 1> s_shader_backend_name = {
+        "D3D11",
+        "D3D12",
+        "Vk",
+        "GL",
+        "GLES"
+    };
+
     void ShaderVariation::OnDeviceLost()
     {
         // No-op on Direct3D11
@@ -43,7 +51,12 @@ namespace Atomic
         SplitPath(owner_->GetName(), path, name, extension);
         REngine::shader_compiler_get_file_ext(type_, extension);
 
-        const String binary_shader_name = graphics_->GetShaderCacheDir() + name + "_" + StringHash(defines_).ToString()
+        const auto backend = graphics_->GetBackend();
+        const String binary_shader_name = graphics_->GetShaderCacheDir()
+    	    + String(s_shader_backend_name[static_cast<u32>(backend)])
+            + String("/")
+    	    + name + "_"
+    	    + StringHash(defines_).ToString()
             + extension;
 
         if (!LoadByteCode(binary_shader_name))

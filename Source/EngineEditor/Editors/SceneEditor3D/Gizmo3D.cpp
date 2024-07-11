@@ -120,15 +120,15 @@ void Gizmo3D::Position()
         switch (editMode_)
         {
         case EDIT_MOVE:
-            gizmo_->SetModel(cache->GetResource<Model>("AtomicEditor/Models/Axes.mdl"));
+            gizmo_->SetModel(cache->GetResource<Model>("Models/Axes.mdl"));
             break;
 
         case EDIT_ROTATE:
-            gizmo_->SetModel(cache->GetResource<Model>("AtomicEditor/Models/RotateAxes.mdl"));
+            gizmo_->SetModel(cache->GetResource<Model>("Models/RotateAxes.mdl"));
             break;
 
         case EDIT_SCALE:
-            gizmo_->SetModel(cache->GetResource<Model>("AtomicEditor/Models/ScaleAxes.mdl"));
+            gizmo_->SetModel(cache->GetResource<Model>("Models/ScaleAxes.mdl"));
             break;
 
         default:
@@ -225,7 +225,7 @@ void Gizmo3D::Use()
     {
         gizmo_->SetMaterial(0, cache->GetResource<Material>(
                                 gizmoAxisX_.selected_ ?
-                                    "AtomicEditor/Materials/BrightRedUnlit.xml" : "AtomicEditor/Materials/RedUnlit.xml"));
+                                    "Materials/BrightRedUnlit.xml" : "Materials/RedUnlit.xml"));
 
         gizmoAxisX_.lastSelected_ = gizmoAxisX_.selected_;
     }
@@ -234,7 +234,7 @@ void Gizmo3D::Use()
     {
         gizmo_->SetMaterial(1, cache->GetResource<Material>(
                                 gizmoAxisY_.selected_ ?
-                                    "AtomicEditor/Materials/BrightGreenUnlit.xml" : "AtomicEditor/Materials/GreenUnlit.xml"));
+                                    "Materials/BrightGreenUnlit.xml" : "Materials/GreenUnlit.xml"));
 
         gizmoAxisY_.lastSelected_ = gizmoAxisY_.selected_;
     }
@@ -242,7 +242,7 @@ void Gizmo3D::Use()
     {
         gizmo_->SetMaterial(2, cache->GetResource<Material>(
                                 gizmoAxisZ_.selected_ ?
-                                    "AtomicEditor/Materials/BrightBlueUnlit.xml" : "AtomicEditor/Materials/BlueUnlit.xml"));
+                                    "Materials/BrightBlueUnlit.xml" : "Materials/BlueUnlit.xml"));
 
         gizmoAxisZ_.lastSelected_ = gizmoAxisZ_.selected_;
     }

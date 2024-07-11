@@ -48,7 +48,8 @@ enum class GraphicsBackend : uint8_t
     D3D12,
     Vulkan,
     OpenGL,
-    OpenGLES
+    OpenGLES,
+    Max = OpenGLES
 };
 
 enum GraphicsClearFlags

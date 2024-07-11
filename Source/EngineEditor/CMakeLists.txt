@@ -142,6 +142,7 @@ if(ENGINE_JAVASCRIPT OR ENGINE_DOTNET)
 endif()
 
 if(ENGINE_DOTNET)
+    target_compile_definitions(${CEF_TARGET} PUBLIC -DENGINE_DOTNET=1)
     target_link_libraries(${CEF_TARGET} AtomicNETScriptBindings AtomicNETScript)
 endif()
 
