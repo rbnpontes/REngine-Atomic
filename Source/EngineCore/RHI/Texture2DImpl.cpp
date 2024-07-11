@@ -315,6 +315,7 @@ namespace Atomic
         texture_desc.SampleCount = 1;
         texture_desc.Usage = Diligent::USAGE_STAGING;
         texture_desc.CPUAccessFlags = Diligent::CPU_ACCESS_READ;
+        texture_desc.Type = Diligent::RESOURCE_DIM_TEX_2D;
 
         Diligent::RefCntAutoPtr<Diligent::ITexture> staging_texture;
         graphics_->GetImpl()->GetDevice()->CreateTexture(texture_desc, nullptr, &staging_texture);
