@@ -121,6 +121,11 @@ private:
 
     String toolDataDir_;
 
+#ifdef ENGINE_PLATFORM_WINDOWS
+    // path to the vswhere command line binary
+    String vs_where_binary_;
+#endif
+
     // resources
     String resourceCoreDataDir_;
     String resourcePlayerDataDir_;

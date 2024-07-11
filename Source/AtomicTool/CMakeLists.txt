@@ -14,6 +14,14 @@ target_link_libraries(AtomicTool ToolCore Poco ${ENGINE_CORE_LIB_TARGET})
 
 if (WIN32)
     target_link_libraries(AtomicTool Iphlpapi Wldap32)
+
+    # Copy vswhere to Artifacts
+    add_custom_command( TARGET AtomicTool POST_BUILD
+                        COMMAND "${CMAKE_COMMAND}"
+                        ARGS -E make_directory \"${ENGINE_SOURCE_DIR}/Artifacts/Build/AtomicTool\"
+                        COMMAND "${CMAKE_COMMAND}"
+                        ARGS -E copy_if_different \"${ENGINE_SOURCE_DIR}/Build/Windows/vswhere.exe\" \"${ENGINE_SOURCE_DIR}/Artifacts/\"
+                        COMMENT "Copying vswhere to Build Artifacts" )
 endif()
 
 if (ENGINE_JAVASCRIPT OR ENGINE_DOTNET)
