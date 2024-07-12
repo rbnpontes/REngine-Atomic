@@ -67,7 +67,8 @@ public:
     bool SetData(CubeMapFace face, Deserializer& source);
     /// Set data of one face from an image. Return true if successful. Optionally make a single channel image alpha-only.
     bool SetData(CubeMapFace face, const Image* image, bool useAlpha = false);
-
+    /// Set data of one face from an texture. Return true if successful.
+    bool SetData(CubeMapFace face, const Texture2D* texture);
     /// Get data from a face's mip level. The destination buffer must be big enough. Return true if successful.
     bool GetData(CubeMapFace face, unsigned level, void* dest) const;
     /// Get image data from a face's zero mip level. Only RGB and RGBA textures are supported.
@@ -76,6 +77,7 @@ public:
     /// Return render surface for one face.
     RenderSurface* GetRenderSurface(CubeMapFace face) const { return renderSurfaces_[face]; }
 
+    static TextureCube* CreateFrom(Texture2D* texture);
 protected:
     /// Create the GPU texture.
     virtual bool Create();
