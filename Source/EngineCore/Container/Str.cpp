@@ -525,14 +525,14 @@ String String::Trimmed() const
     while (trimStart < trimEnd)
     {
         char c = buffer_[trimStart];
-        if (c != ' ' && c != 9)
+        if (c != ' ' && c != '\n' && c != '\r' && c != 9)
             break;
         ++trimStart;
     }
     while (trimEnd > trimStart)
     {
         char c = buffer_[trimEnd - 1];
-        if (c != ' ' && c != 9)
+        if (c != ' ' && c != '\n' && c != '\r' && c != 9)
             break;
         --trimEnd;
     }

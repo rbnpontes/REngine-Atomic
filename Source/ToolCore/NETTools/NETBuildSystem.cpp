@@ -26,6 +26,7 @@
 
 #include <EngineCore/IO/Log.h>
 #include <EngineCore/IO/FileSystem.h>
+#include <EngineCore/Container/ContainerUtils.h>
 
 #include "../ToolEvents.h"
 #include "../ToolSystem.h"
@@ -38,12 +39,60 @@
 #include "NETProjectGen.h"
 #include "NETBuildSystem.h"
 
+#include <Poco/StreamCopier.h>
+
 #ifdef ENGINE_PLATFORM_WINDOWS
 #include <Poco/WinRegistryKey.h>
 #endif
 
+
 namespace ToolCore
 {
+    static String find_vs_tool_path(const String& vs_installation_path, FileSystem* file_system)
+    {
+        String result;
+        ea::vector<ea::string> file_list;
+
+        // test if default directory exists and VsMSBuildCmd is at path
+        String target_path = vs_installation_path + "/Common7/Tools/";
+        if(file_system->DirExists(target_path))
+        {
+            file_system->ScanDir(
+                file_list,
+                target_path.ToStdString(),
+                "*",
+                SCAN_FILES,
+                false);
+
+            const auto it = ea::find_if(file_list.begin(), file_list.end(), [&](const ea::string& file)
+            {
+                    return file.find("VsMSBuildCmd.bat") != ea::string::npos;
+            });
+            if(it != file_list.end())
+            {
+                result = target_path + "/";
+                result = result + it->c_str();
+                return result;
+            }
+        }
+
+        file_system->ScanDir(
+            file_list,
+            vs_installation_path.ToStdString(),
+            "*",
+            SCAN_DIRS | SCAN_FILES,
+            true
+        );
+
+        const auto file_it = ea::find_if(file_list.begin(), file_list.end(), [&](const ea::string& file) {
+            return file.find("VsMSBuildCmd.bat") != ea::string::npos;
+        });
+
+        result = vs_installation_path + "/";
+        result = result + file_it->c_str();
+        return result;
+    }
+
     NETBuild::NETBuild(Context* context, const String& solutionPath) :
         Object(context),
         solutionPath_(solutionPath),
@@ -316,20 +365,51 @@ namespace ToolCore
             Vector<String> args;
 
 #ifdef ENGINE_PLATFORM_WINDOWS
-            const String vs_tools_path = Poco::Environment::get("VS_TOOLS", "").c_str();
+            ea::vector<ea::string> files;
+
+            // Build vswhere args
+            static std::vector<std::string> vs_where_args = {
+                "-latest",
+                "-property", "installationPath"
+            };
+            Poco::Pipe out_pipe;
+
+            // execute vswhere process
+            const auto vs_proc = Poco::Process::launch(
+                tenv->GetVsWhereToBinary().CString(),
+                vs_where_args,
+                nullptr,
+                &out_pipe,
+                nullptr
+            );
+            Poco::PipeInputStream input_stream(out_pipe);
+
+            // copy output process to vs_tools_path
+            std::string vs_installation_path;
+            Poco::StreamCopier::copyToString(input_stream, vs_installation_path);
+
+            // wait vswhere to exit.
+            vs_proc.wait();
+
+            String vs_tools_path = vs_installation_path.c_str();
+            vs_tools_path = vs_tools_path.Trimmed();
+
             if(vs_tools_path.Empty())
             {
-                CurrentBuildError("VS_TOOLS environment variable is not correct set.");
+                CurrentBuildError("Not found installation path for visual studio.");
                 return;
             }
 
-            String cmdToolsPath = vs_tools_path;
-            if (!cmdToolsPath.EndsWith("\\"))
+
+            vs_tools_path = find_vs_tool_path(vs_tools_path, fileSystem);
+
+        	if(vs_tools_path.Empty())
             {
-                cmdToolsPath += "\\";
+                CurrentBuildError("Not found VsMSBuildCmd.bat");
+                return;
             }
 
-            String msbuildcmd = ToString("%sVsMSBuildCmd.bat", cmdToolsPath.CString());
+            String msbuildcmd = vs_tools_path;
 
             String cmd = "cmd";
 

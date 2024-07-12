@@ -42,10 +42,6 @@
             "projectGuid" : "071BB150-7518-11E6-AB1D-005056C00008",
             "playerApplication" : true,
             "references" : [
-                "System",
-                "System.Core" ,
-                "System.Xml.Linq",
-                "System.XML",
                 "AtomicNET.Desktop"
             ],
             "sharedReferences" : [
@@ -70,10 +66,6 @@
             "playerApplication" : true,
             "references" : [
                 "Mono.Android",
-                "System",
-                "System.Core",
-                "System.Xml.Linq",
-                "System.Xml",
                 "AtomicNET.Android.SDL",
                 "AtomicNET.Android"
             ],
@@ -100,10 +92,6 @@
             "infoPList" : "$ATOMIC_PROJECT_ROOT$/Project/AtomicNET/Platforms/iOS/Info.plist",
             "references" : [
                 "Xamarin.iOS",
-                "System",
-                "System.Core",
-                "System.Xml.Linq",
-                "System.Xml",
                 "AtomicNET.iOS"
             ],
             "sharedReferences" : [

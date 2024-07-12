@@ -45,6 +45,8 @@
 #include "NETBuildSystem.h"
 #include "NETProjectSystem.h"
 
+#include <Poco/StreamCopier.h>
+
 #ifdef ENGINE_PLATFORM_WINDOWS
 #include <Poco/WinRegistryKey.h>
 #endif
@@ -516,38 +518,27 @@ namespace ToolCore
         // at the time of this comment is in RC, refactor once
         // in general release
 
-        FileSystem* fileSystem = GetSubsystem<FileSystem>();
-        // Query for Visual Studio 2015 path
-        idePath_ = Poco::Environment::get("VS140COMNTOOLS", "").c_str();
+        ToolEnvironment* tool_env = GetSubsystem<ToolEnvironment>();
 
-        if (idePath_.Length())
-        {
-            // Ensure the path ends with a slash
-            if (!idePath_.EndsWith("\\"))
-            {
-                idePath_ += "\\";
-            }
+        // Build vswhere args
+        static std::vector<std::string> vs_where_args = {
+            "-latest",
+            "-property", "productPath"
+        };
+        Poco::Pipe out_pipe;
 
-            idePath_.Replace("Tools\\", "IDE\\devenv.exe");
+        // execute vswhere process
+        const auto vs_proc = Poco::Process::launch(tool_env->GetVsWhereToBinary().CString(), vs_where_args, nullptr, &out_pipe, nullptr);
+        Poco::PipeInputStream input_stream(out_pipe);
 
-            if (!fileSystem->FileExists(idePath_))
-                idePath_.Clear();
-        }
+        // copy output process to vs_path
+        std::string vs_path;
+        Poco::StreamCopier::copyToString(input_stream, vs_path);
 
-        // If we didn't find VS2015, look for VS2017
-        if (!idePath_.Length())
-        {
-            // check for VS2017
-            Poco::WinRegistryKey regKey("HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Microsoft\\VisualStudio\\SxS\\VS7", true);
-            if (regKey.exists() && regKey.exists("15.0"))
-                idePath_ = regKey.getString("15.0").c_str();
+        // wait vswhere to exit.
+        vs_proc.wait();
 
-            if (idePath_.Length())
-            {
-                // We have VS2017
-                idePath_ += "Common7\\IDE\\devenv.exe";
-            }
-        }
+        idePath_ = String(vs_path.c_str()).Trimmed();
 
 #elif defined ENGINE_PLATFORM_MACOS
 
