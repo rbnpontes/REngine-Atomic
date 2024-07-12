@@ -21,7 +21,7 @@
             "projectGuid" : "071BB14F-7518-11E6-BF97-005056C00008",
             "projectTypeGuids" : ["786C830F-07A1-408B-BD7F-6EE04809D6DB", "FAE04EC0-301F-11D3-BF4B-00C04F79EFBC"],
             "targetFrameworkProfile" : "Profile111",
-            "importProjects" : ["$(MSBuildExtensionsPath32)\\Microsoft\\Portable\\$(TargetFrameworkVersion)\\Microsoft.Portable.CSharp.targets"],
+            "importProjects" : [],
             "references" : [
                 "AtomicNET"
             ],
