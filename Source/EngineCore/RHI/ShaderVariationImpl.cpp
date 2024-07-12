@@ -59,6 +59,7 @@ namespace Atomic
     	    + StringHash(defines_).ToString()
             + extension;
 
+        BuildHash();
         if (!LoadByteCode(binary_shader_name))
         {
             ea::shared_array<u8> shader_file_data;
@@ -125,15 +126,6 @@ namespace Atomic
         if (!cache->Exists(binaryShaderName))
             return false;
 
-        /*const auto file_system = owner_->GetSubsystem<FileSystem>();
-        const auto source_time_stamp = owner_->GetTimeStamp();*/
-        // If source code is loaded from a package, its timestamp will be zero. Else check that binary is not older
-        // than source
-        // TODO: fix this
-       /* if (source_time_stamp && file_system->GetLastModifiedTime(cache->GetResourceFileName(binaryShaderName)) <
-            source_time_stamp)
-            return false;*/
-
         const SharedPtr<File> file = cache->GetFile(binaryShaderName);
         if (!file || file->ReadFileID() != s_shader_file_id)
         {
@@ -174,7 +166,13 @@ namespace Atomic
             ATOMIC_LOGERROR("Invalid shader bytecode type. Shader file must contains a valid GLSL shader.");
             return false;
         }
-        
+
+        if(hash_ != bin_result.shader_hash)
+        {
+            ATOMIC_LOGWARNINGF("Invalid shader bytecode for %s. It seems that their original shader was changed or shader bytecode is corrupted!", name_.CString());
+            return false;
+        }
+
         byteCode_ = ea::vector<u8>(bin_result.byte_code.get(), bin_result.byte_code.get() + bin_result.byte_code_size);
         elementHash_ = bin_result.reflect_info.element_hash;
         input_elements_ = bin_result.reflect_info.input_elements;
@@ -346,8 +344,6 @@ namespace Atomic
         source_code.Append("void main()\n{\n");
         source_code.AppendWithFormat("\t%s\n", entrypoint.CString());
         source_code.Append("}");
-
-        hash_ = StringHash::Calculate(source_code.CString());
 
         REngine::ShaderCompilerReflectInfo reflect_info = {};
         {
@@ -530,4 +526,13 @@ namespace Atomic
         file->WriteFileID(s_shader_file_id);
         file->Write(byte_code.get(), byte_code_len);
     }
+    void ShaderVariation::BuildHash()
+    {
+        hash_ = StringHash::Calculate(name_.CString());
+        CombineHash(hash_, StringHash::Calculate(GetDefinesClipPlane().CString()));
+        CombineHash(hash_, owner_->ToHash());
+        CombineHash(hash_, Graphics::GetMaxBones());
+        CombineHash(hash_, type_);
+    }
+
 }

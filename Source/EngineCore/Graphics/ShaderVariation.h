@@ -100,6 +100,7 @@ public:
     uint32_t ToHash() const { return hash_; }
 
 private:
+    void BuildHash();
     /// Load bytecode from a file. Return true if successful.
     bool LoadByteCode(const String& binaryShaderName);
     /// Compile from source. Return true if successful.
