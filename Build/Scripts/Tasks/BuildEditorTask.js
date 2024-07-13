@@ -22,7 +22,6 @@ const {
 } = require('../Utils/ProcessUtils');
 const { getUnsupportedEnvironmentError } = require('../Exceptions');
 
-
 const engine_root = engineGetRoot();
 const artifacts_root = engineGetArtifactsRoot();
 const editor_app_folder = config.editorAppFolder;
@@ -86,7 +85,13 @@ async function editorBuildFirstPhase() {
             // Execute Build Windows
             const vs_tools_path = await visualStudioDefineVsToolsEnv();
             const compile_script = path.resolve(__dirname, '../Windows/CompileAtomicEditorPhase1.bat');
-            return await execAsync(compile_script, [config.config, vs_tools_path], { cwd: build_dir });
+            return await execAsync(
+                compile_script,
+                [
+                    config.config,
+                    vs_tools_path,
+                    constants.engine_solution_name
+                ], { cwd: build_dir });
         },
         linux: async () => {
             return await execAsync(
@@ -127,7 +132,13 @@ async function editorBuildSecondPhase() {
         win32: async () => {
             const vs_tools_path = await visualStudioDefineVsToolsEnv();
             const compile_script = path.resolve(__dirname, '../Windows/CompileAtomicEditorPhase2.bat');
-            return await execAsync(compile_script, [config.config, vs_tools_path], { cwd: build_dir });
+            return await execAsync(compile_script,
+                [
+                    config.config,
+                    vs_tools_path,
+                    constants.engine_solution_name,
+                    constants.engine_editor_name
+                ], { cwd: build_dir });
         },
         linux: async () => {
             return await execAsync(
@@ -165,7 +176,7 @@ async function editorGenerate() {
     // Remove editor directory always
     if (fs.existsSync(editor_app_folder))
         fs.rmSync(editor_app_folder, { recursive: true, force: true });
-    fs.mkdirSync(editor_app_folder, { recursive: true});
+    fs.mkdirSync(editor_app_folder, { recursive: true });
 
     const build_dir = editorGetBuildDirectory();
     const dirs_2_create = [
@@ -346,8 +357,8 @@ async function editorCopyBinaries() {
 }
 async function editorPackage() {
     console.log('- Packing Editor to Shipping');
-    const pkg_name = (()=> {
-        switch(os.platform()) {
+    const pkg_name = (() => {
+        switch (os.platform()) {
             case 'win32':
                 return constants.engine_name + '-Windows.zip';
             case 'linux':
@@ -364,10 +375,10 @@ async function editorPackage() {
     if (fs.existsSync(pkg_output_path) && !config.noclean)
         fs.unlinkSync(pkg_output_path);
 
-    const archive_task = new Promise((resolve, reject)=> {
+    const archive_task = new Promise((resolve, reject) => {
         const write_stream = fs.createWriteStream(pkg_output_path);
         const archive = archiver('zip', {
-            zlib: { level : 9}
+            zlib: { level: 9 }
         });
         archive.on('warning', e => {
             if (e.code == 'ENOENT')

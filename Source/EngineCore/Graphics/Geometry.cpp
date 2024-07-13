@@ -155,7 +155,7 @@ void Geometry::SetLodDistance(float distance)
     lodDistance_ = distance;
 }
 
-void Geometry::SetRawVertexData(SharedArrayPtr<unsigned char> data, const PODVector<VertexElement>& elements)
+void Geometry::SetRawVertexData(SharedArrayPtr<unsigned char> data, const ea::vector<VertexElement>& elements)
 {
     rawVertexData_ = data;
     rawVertexSize_ = VertexBuffer::GetVertexSize(elements);
@@ -192,7 +192,7 @@ void Geometry::Draw(Graphics* graphics)
 
 VertexBuffer* Geometry::GetVertexBuffer(unsigned index) const
 {
-    return index < vertexBuffers_.Size() ? vertexBuffers_[index] : (VertexBuffer*)0;
+    return index < vertexBuffers_.Size() ? vertexBuffers_[index] : static_cast<VertexBuffer*>(nullptr);
 }
 
 unsigned short Geometry::GetBufferHash() const
@@ -212,7 +212,7 @@ unsigned short Geometry::GetBufferHash() const
 }
 
 void Geometry::GetRawData(const unsigned char*& vertexData, unsigned& vertexSize, const unsigned char*& indexData,
-    unsigned& indexSize, const PODVector<VertexElement>*& elements) const
+    unsigned& indexSize, const ea::vector<VertexElement>*& elements) const
 {
     if (rawVertexData_)
     {
@@ -257,7 +257,7 @@ void Geometry::GetRawData(const unsigned char*& vertexData, unsigned& vertexSize
 }
 
 void Geometry::GetRawDataShared(SharedArrayPtr<unsigned char>& vertexData, unsigned& vertexSize,
-    SharedArrayPtr<unsigned char>& indexData, unsigned& indexSize, const PODVector<VertexElement>*& elements) const
+    SharedArrayPtr<unsigned char>& indexData, unsigned& indexSize, const ea::vector<VertexElement>*& elements) const
 {
     if (rawVertexData_)
     {
