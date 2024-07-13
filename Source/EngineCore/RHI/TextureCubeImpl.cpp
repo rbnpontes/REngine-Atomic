@@ -10,6 +10,7 @@
 #include "./DriverInstance.h"
 
 #include "../DebugNew.h"
+#include "Graphics/Texture2D.h"
 
 #ifdef _MSC_VER
 #pragma warning(disable:4355)
@@ -336,6 +337,26 @@ namespace Atomic
         return true;
     }
 
+    bool TextureCube::SetData(const CubeMapFace face, const Texture2D* texture)
+    {
+	    if(!texture)
+	    {
+            ATOMIC_LOGERROR("Null texture, can not load texture");
+            return false;
+	    }
+
+        Diligent::CopyTextureAttribs copy_tex_attribs = {};
+        copy_tex_attribs.SrcTextureTransitionMode
+    	    = copy_tex_attribs.DstTextureTransitionMode
+    	    = Diligent::RESOURCE_STATE_TRANSITION_MODE_TRANSITION;
+        copy_tex_attribs.DstSlice = static_cast<u32>(face);
+        copy_tex_attribs.pSrcTexture = texture->GetGPUObject().Cast<Diligent::ITexture>(Diligent::IID_Texture);
+        copy_tex_attribs.pDstTexture = object_.Cast<Diligent::ITexture>(Diligent::IID_Texture);
+        graphics_->GetImpl()->GetDeviceContext()->CopyTexture(copy_tex_attribs);
+
+        return true;
+    }
+
     bool TextureCube::GetData(const CubeMapFace face, unsigned level, void* dest) const
     {
         if (!object_)
@@ -530,4 +551,27 @@ namespace Atomic
         
         return true;
     }
+
+    TextureCube* TextureCube::CreateFrom(Texture2D* texture)
+    {
+        if(texture->GetWidth() != texture->GetHeight())
+        {
+            ATOMIC_LOGERRORF("Can't create TextureCube from Texture %s. Sizes must be equal", texture->GetName().CString());
+            // TODO: return dummy texture cube
+            return nullptr;
+        }
+
+        String name = "TextureCube";
+        if (!texture->GetName().Empty())
+            name.Append('|');
+        name.Append(texture->GetName());
+
+        TextureCube* tex_cube = new TextureCube(texture->GetContext());
+        tex_cube->SetName(name);
+        tex_cube->SetSize(texture->GetWidth(), texture->GetFormat(), texture->GetUsage(), 1);
+        for (u32 face = FACE_POSITIVE_X; face < MAX_CUBEMAP_FACES; ++face)
+            tex_cube->SetData(static_cast<CubeMapFace>(face), texture);
+        return tex_cube;
+    }
+
 }

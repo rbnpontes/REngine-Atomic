@@ -42,6 +42,9 @@ public:
     Texture2D(Context* context);
     /// Destruct.
     virtual ~Texture2D();
+
+    TextureUnitType GetUnitType() const override { return TextureUnitType::Texture2D; }
+
     /// Register object factory.
     static void RegisterObject(Context* context);
 
@@ -61,6 +64,9 @@ public:
         Autoresolve false means the multisampled texture will be read as individual samples in the shader and is not supported on Direct3D9.
         */
     bool SetSize(int width, int height, TextureFormat format, TextureUsage usage = TEXTURE_STATIC, int multiSample = 1, bool autoResolve = true);
+    /// Set size. Same of method above but it's a workaround to js bind tool
+    /// TODO: remove this signature after refactor of js bind tool
+    bool Resize(int width, int height, u32 format, TextureUsage usage = TEXTURE_STATIC, int multiSample = 1, bool autoResolve = true);
     /// Set data either partially or fully on a mip level. Return true if successful.
     bool SetData(unsigned level, int x, int y, int width, int height, const void* data);
     /// Set data from an image. Return true if successful. Optionally make a single channel image alpha-only.

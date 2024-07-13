@@ -236,7 +236,8 @@ void SystemUI::OnRenderDrawLists(ImDrawData* data)
         // in rendering loop.
         if (cmd_list->VtxBuffer.Size > vertexBuffer_->GetVertexCount())
         {
-            PODVector<VertexElement> elems = {VertexElement(TYPE_VECTOR2, SEM_POSITION),
+            // TODO: move this to static
+            ea::vector<VertexElement> elems = {VertexElement(TYPE_VECTOR2, SEM_POSITION),
                                               VertexElement(TYPE_VECTOR2, SEM_TEXCOORD),
                                               VertexElement(TYPE_UBYTE4_NORM, SEM_COLOR)
             };

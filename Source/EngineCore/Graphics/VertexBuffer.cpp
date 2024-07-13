@@ -85,7 +85,7 @@ bool VertexBuffer::SetSize(unsigned vertexCount, unsigned elementMask, bool dyna
     return SetSize(vertexCount, GetElements(elementMask), dynamic);
 }
 
-bool VertexBuffer::SetSize(unsigned vertexCount, const PODVector<VertexElement>& elements, bool dynamic)
+bool VertexBuffer::SetSize(unsigned vertexCount, const ea::vector<VertexElement>& elements, bool dynamic)
 {
     Unlock();
 
@@ -109,17 +109,17 @@ void VertexBuffer::UpdateOffsets()
     elementHash_ = 0;
     elementMask_ = 0;
 
-    for (PODVector<VertexElement>::Iterator i = elements_.Begin(); i != elements_.End(); ++i)
+    for(auto& element : elements_)
     {
-        i->offset_ = elementOffset;
-        elementOffset += ELEMENT_TYPESIZES[i->type_];
+        element.offset_ = elementOffset;
+        elementOffset += ELEMENT_TYPESIZES[element.type_];
         elementHash_ <<= 6;
-        elementHash_ += (((int)i->type_ + 1) * ((int)i->semantic_ + 1) + i->index_);
+        elementHash_ += (((int)element.type_ + 1) * ((int)element.semantic_ + 1) + element.index_);
 
         for (unsigned j = 0; j < MAX_LEGACY_VERTEX_ELEMENTS; ++j)
         {
             const VertexElement& legacy = LEGACY_VERTEXELEMENTS[j];
-            if (i->type_ == legacy.type_ && i->semantic_ == legacy.semantic_ && i->index_ == legacy.index_)
+            if (element.type_ == legacy.type_ && element.semantic_ == legacy.semantic_ && element.index_ == legacy.index_)
                 elementMask_ |= (1 << j);
         }
     }
@@ -129,76 +129,76 @@ void VertexBuffer::UpdateOffsets()
 
 const VertexElement* VertexBuffer::GetElement(VertexElementSemantic semantic, unsigned char index) const
 {
-    for (PODVector<VertexElement>::ConstIterator i = elements_.Begin(); i != elements_.End(); ++i)
+    for(const auto& element : elements_)
     {
-        if (i->semantic_ == semantic && i->index_ == index)
-            return &(*i);
+        if (element.semantic_ == semantic && element.index_ == index)
+            return &element;
     }
 
-    return 0;
+    return nullptr;
 }
 
 const VertexElement* VertexBuffer::GetElement(VertexElementType type, VertexElementSemantic semantic, unsigned char index) const
 {
-    for (PODVector<VertexElement>::ConstIterator i = elements_.Begin(); i != elements_.End(); ++i)
+    for(const auto& element : elements_)
     {
-        if (i->type_ == type && i->semantic_ == semantic && i->index_ == index)
-            return &(*i);
+        if (element.type_ == type && element.semantic_ == semantic && element.index_ == index)
+            return &element;
     }
 
-    return 0;
+    return nullptr;
 }
 
-const VertexElement* VertexBuffer::GetElement(const PODVector<VertexElement>& elements, VertexElementType type, VertexElementSemantic semantic, unsigned char index)
+const VertexElement* VertexBuffer::GetElement(const ea::vector<VertexElement>& elements, VertexElementType type, VertexElementSemantic semantic, unsigned char index)
 {
-    for (PODVector<VertexElement>::ConstIterator i = elements.Begin(); i != elements.End(); ++i)
+    for(const auto& element : elements)
     {
-        if (i->type_ == type && i->semantic_ == semantic && i->index_ == index)
-            return &(*i);
+        if (element.type_ == type && element.semantic_ == semantic && element.index_ == index)
+            return &element;
     }
 
-    return 0;
+    return nullptr;
 }
 
-bool VertexBuffer::HasElement(const PODVector<VertexElement>& elements, VertexElementType type, VertexElementSemantic semantic, unsigned char index)
+bool VertexBuffer::HasElement(const ea::vector<VertexElement>& elements, VertexElementType type, VertexElementSemantic semantic, unsigned char index)
 {
-    return GetElement(elements, type, semantic, index) != 0;
+    return GetElement(elements, type, semantic, index) != nullptr;
 }
 
-unsigned VertexBuffer::GetElementOffset(const PODVector<VertexElement>& elements, VertexElementType type, VertexElementSemantic semantic, unsigned char index)
+u32 VertexBuffer::GetElementOffset(const ea::vector<VertexElement>& elements, VertexElementType type, VertexElementSemantic semantic, unsigned char index)
 {
     const VertexElement* element = GetElement(elements, type, semantic, index);
     return element ? element->offset_ : M_MAX_UNSIGNED;
 }
 
-PODVector<VertexElement> VertexBuffer::GetElements(unsigned elementMask)
+ea::vector<VertexElement> VertexBuffer::GetElements(u32 elementMask)
 {
-    PODVector<VertexElement> ret;
+    ea::vector<VertexElement> ret;
 
     for (unsigned i = 0; i < MAX_LEGACY_VERTEX_ELEMENTS; ++i)
     {
         if (elementMask & (1 << i))
-            ret.Push(LEGACY_VERTEXELEMENTS[i]);
+            ret.push_back(LEGACY_VERTEXELEMENTS[i]);
     }
 
     return ret;
 }
 
-unsigned VertexBuffer::GetVertexSize(const PODVector<VertexElement>& elements)
+u32 VertexBuffer::GetVertexSize(const ea::vector<VertexElement>& elements)
 {
-    unsigned size = 0;
+    u32 size = 0;
 
-    for (unsigned i = 0; i < elements.Size(); ++i)
-        size += ELEMENT_TYPESIZES[elements[i].type_];
+    for (const auto element : elements)
+	    size += ELEMENT_TYPESIZES[element.type_];
 
     return size;
 }
 
-unsigned VertexBuffer::GetVertexSize(unsigned elementMask)
+u32 VertexBuffer::GetVertexSize(u32 elementMask)
 {
-    unsigned size = 0;
+    u32 size = 0;
 
-    for (unsigned i = 0; i < MAX_LEGACY_VERTEX_ELEMENTS; ++i)
+    for (u32 i = 0; i < MAX_LEGACY_VERTEX_ELEMENTS; ++i)
     {
         if (elementMask & (1 << i))
             size += ELEMENT_TYPESIZES[LEGACY_VERTEXELEMENTS[i].type_];
@@ -207,14 +207,13 @@ unsigned VertexBuffer::GetVertexSize(unsigned elementMask)
     return size;
 }
 
-void VertexBuffer::UpdateOffsets(PODVector<VertexElement>& elements)
+void VertexBuffer::UpdateOffsets(ea::vector<VertexElement>& elements)
 {
-    unsigned elementOffset = 0;
-
-    for (PODVector<VertexElement>::Iterator i = elements.Begin(); i != elements.End(); ++i)
+    u32 element_offset = 0;
+    for(auto& element : elements)
     {
-        i->offset_ = elementOffset;
-        elementOffset += ELEMENT_TYPESIZES[i->type_];
+        element.offset_ = element_offset;
+        element_offset += ELEMENT_TYPESIZES[element.type_];
     }
 }
 

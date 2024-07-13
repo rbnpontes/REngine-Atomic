@@ -33,6 +33,7 @@ class IndexBuffer;
 class Ray;
 class Graphics;
 class VertexBuffer;
+class IDrawCommand;
 
 /// Defines one or more vertex buffers, an index buffer and a draw range.
 class ATOMIC_API Geometry : public Object
@@ -59,7 +60,7 @@ public:
     /// Set the LOD distance.
     void SetLodDistance(float distance);
     /// Override raw vertex data to be returned for CPU-side operations.
-    void SetRawVertexData(SharedArrayPtr<unsigned char> data, const PODVector<VertexElement>& elements);
+    void SetRawVertexData(SharedArrayPtr<unsigned char> data, const ea::vector<VertexElement>& elements);
     /// Override raw vertex data to be returned for CPU-side operations using a legacy vertex bitmask.
     void SetRawVertexData(SharedArrayPtr<unsigned char> data, unsigned elementMask);
     /// Override raw index data to be returned for CPU-side operations.
@@ -68,10 +69,10 @@ public:
     void Draw(Graphics* graphics);
 
     /// Return all vertex buffers.
-    const Vector<SharedPtr<VertexBuffer> >& GetVertexBuffers() const { return vertexBuffers_; }
+    const ea::vector<SharedPtr<VertexBuffer>>& GetVertexBuffers() const { return vertexBuffers_; }
 
     /// Return number of vertex buffers.
-    unsigned GetNumVertexBuffers() const { return vertexBuffers_.Size(); }
+    unsigned GetNumVertexBuffers() const { return vertexBuffers_.size(); }
 
     /// Return vertex buffer by index.
     VertexBuffer* GetVertexBuffer(unsigned index) const;
@@ -100,10 +101,10 @@ public:
     /// Return buffers' combined hash value for state sorting.
     unsigned short GetBufferHash() const;
     /// Return raw vertex and index data for CPU operations, or null pointers if not available. Will return data of the first vertex buffer if override data not set.
-    void GetRawData(const unsigned char*& vertexData, unsigned& vertexSize, const unsigned char*& indexData, unsigned& indexSize, const PODVector<VertexElement>*& elements) const;
+    void GetRawData(const unsigned char*& vertexData, unsigned& vertexSize, const unsigned char*& indexData, unsigned& indexSize, const ea::vector<VertexElement>*& elements) const;
     /// Return raw vertex and index data for CPU operations, or null pointers if not available. Will return data of the first vertex buffer if override data not set.
     void GetRawDataShared(SharedArrayPtr<unsigned char>& vertexData, unsigned& vertexSize, SharedArrayPtr<unsigned char>& indexData,
-        unsigned& indexSize, const PODVector<VertexElement>*& elements) const;
+        unsigned& indexSize, const ea::vector<VertexElement>*& elements) const;
     /// Return ray hit distance or infinity if no hit. Requires raw data to be set. Optionally return hit normal and hit uv coordinates at intersect point.
     float GetHitDistance(const Ray& ray, Vector3* outNormal = 0, Vector2* outUV = 0) const;
     /// Return whether or not the ray is inside geometry.
@@ -114,7 +115,7 @@ public:
 
 private:
     /// Vertex buffers.
-    Vector<SharedPtr<VertexBuffer> > vertexBuffers_;
+    ea::vector<SharedPtr<VertexBuffer> > vertexBuffers_;
     /// Index buffer.
     SharedPtr<IndexBuffer> indexBuffer_;
     /// Primitive type.
@@ -130,7 +131,7 @@ private:
     /// LOD distance.
     float lodDistance_;
     /// Raw vertex data elements.
-    PODVector<VertexElement> rawElements_;
+    ea::vector<VertexElement> rawElements_;
     /// Raw vertex data override.
     SharedArrayPtr<unsigned char> rawVertexData_;
     /// Raw index data override.

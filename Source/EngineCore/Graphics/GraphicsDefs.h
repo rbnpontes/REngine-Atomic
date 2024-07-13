@@ -48,18 +48,20 @@ enum class GraphicsBackend : uint8_t
     D3D12,
     Vulkan,
     OpenGL,
-    OpenGLES
+    OpenGLES,
+    Max = OpenGLES
 };
 
 enum GraphicsClearFlags
 {
-	GRAPHICS_CLEAR_SHADER_PROGRAMS = 1 << 0,
-    GRAPHICS_CLEAR_PIPELINES = 1 << 2,
-    GRAPHICS_CLEAR_SRB = 1 << 3,
-    GRAPHICS_CLEAR_SCRATCH_BUFFERS = 1 << 4,
-    GRAPHICS_CLEAR_VERTEX_DECLARATIONS = 1 << 5,
-    GRAPHICS_CLEAR_CONSTANT_BUFFERS = 1 << 6,
-    GRAPHICS_CLEAR_TEXTURES = 1 << 7,
+	GRAPHICS_CLEAR_SHADER_PROGRAMS      = 1 << 0,
+    GRAPHICS_CLEAR_PIPELINES            = 1 << 2,
+    GRAPHICS_CLEAR_SRB                  = 1 << 3,
+    GRAPHICS_CLEAR_SCRATCH_BUFFERS      = 1 << 4,
+    GRAPHICS_CLEAR_VERTEX_DECLARATIONS  = 1 << 5,
+    GRAPHICS_CLEAR_CONSTANT_BUFFERS     = 1 << 6,
+    GRAPHICS_CLEAR_TEXTURES             = 1 << 7,
+    GRAPHICS_CLEAR_STG_TEXTURES         = 1 << 8,
     GRAPHICS_CLEAR_ALL = GRAPHICS_CLEAR_SHADER_PROGRAMS
 	| GRAPHICS_CLEAR_PIPELINES
 	| GRAPHICS_CLEAR_SRB
@@ -67,6 +69,7 @@ enum GraphicsClearFlags
     | GRAPHICS_CLEAR_VERTEX_DECLARATIONS
     | GRAPHICS_CLEAR_CONSTANT_BUFFERS
     | GRAPHICS_CLEAR_TEXTURES
+    | GRAPHICS_CLEAR_STG_TEXTURES
 };
     
 /// Primitive type.
@@ -370,6 +373,14 @@ enum TextureUnit
 };
 
 #define MAX_MATERIAL_TEXTURE_UNITS 8
+
+enum class TextureUnitType
+{
+    Undefined = 0,
+	Texture2D,
+    Texture3D,
+    TextureCube
+};
 
 /// Billboard camera facing modes.
 enum FaceCameraMode

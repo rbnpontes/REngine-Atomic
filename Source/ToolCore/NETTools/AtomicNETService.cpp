@@ -64,7 +64,21 @@ namespace ToolCore
         String config = "Release";
 #endif
 
-        String netServiceFilename = tenv->GetAtomicNETRootDir() + config + "/AtomicNETService/AtomicNETService.exe";
+        ea::vector<ea::string> files;
+        const auto search_path = tenv->GetAtomicNETRootDir().ToStdString() + config.ToStdString();
+        const auto target_net_service = ea::string(ENGINE_NET_SERVICE_NAME) + ".exe";
+    	const auto file_system = GetSubsystem<FileSystem>();
+        file_system->ScanDir(files, search_path, "*", SCAN_FILES | SCAN_DIRS, true);
+
+        String netServiceFilename;
+        for(const auto& file : files)
+        {
+            const auto target_it = file.find(target_net_service);
+            if(target_it == ea::string::npos)
+                continue;
+
+            netServiceFilename = (search_path + "/" + file).c_str();
+        }
 
 #ifdef ENGINE_PLATFORM_WINDOWS        
 
@@ -81,8 +95,7 @@ namespace ToolCore
         args.Push(netServiceFilename);
 #endif
 
-        FileSystem* fileSystem = GetSubsystem<FileSystem>();
-        if (!fileSystem->FileExists(execPath))
+        if (!file_system->FileExists(execPath))
         {
             ATOMIC_LOGERRORF("AtomicNETService binary not found: %s", execPath.CString());
             return false;

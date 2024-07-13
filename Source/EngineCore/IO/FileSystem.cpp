@@ -685,6 +685,18 @@ void FileSystem::ScanDir(Vector<String>& result, const String& pathName, const S
     }
 }
 
+void FileSystem::ScanDir(ea::vector<ea::string>& result, const ea::string& pathName, const ea::string& filter, u32 flags, bool recursive) const
+{
+    result.clear();
+    Vector<String> _results;
+    ScanDir(_results, String(pathName.c_str()), String(filter.c_str()), flags, recursive);
+
+    result.resize(_results.Size());
+    for (u32 i = 0; i < _results.Size(); ++i)
+        result[i] = _results[i].CString();
+}
+
+
 String FileSystem::GetProgramDir() const
 {
 #if defined(__ANDROID__)

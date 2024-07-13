@@ -96,10 +96,11 @@ public:
     /// Return defines with the CLIPPLANE define appended. Used internally on Direct3D11 only, will be empty on other APIs.
     const String& GetDefinesClipPlane() { return definesClipPlane_; }
 	const ea::vector<REngine::ShaderCompilerReflectInputElement>& GetInputElements() const { return input_elements_; }
-    StringVector GetUseTextureNames() const { return used_textures_; }
+    ea::vector<REngine::TextureSampler> GetTexturesInUse() const { return textures_; }
     uint32_t ToHash() const { return hash_; }
 
 private:
+    void BuildHash();
     /// Load bytecode from a file. Return true if successful.
     bool LoadByteCode(const String& binaryShaderName);
     /// Compile from source. Return true if successful.
@@ -129,7 +130,7 @@ private:
     String definesClipPlane_;
     /// Shader compile error string.
     String compilerOutput_;
-    StringVector used_textures_{};
+    ea::vector<REngine::TextureSampler> textures_{};
     ea::vector<REngine::ShaderCompilerReflectInputElement> input_elements_{};
     u32 hash_{};
 };

@@ -60,15 +60,14 @@ bool Geometry::SetNumVertexBuffers(unsigned num)
         return false;
     }
 
-    unsigned oldSize = vertexBuffers_.Size();
-    vertexBuffers_.Resize(num);
+    vertexBuffers_.resize(num);
 
     return true;
 }
 
 bool Geometry::SetVertexBuffer(unsigned index, VertexBuffer* buffer)
 {
-    if (index >= vertexBuffers_.Size())
+    if (index >= vertexBuffers_.size())
     {
         ATOMIC_LOGERROR("Stream index out of bounds");
         return false;
@@ -155,7 +154,7 @@ void Geometry::SetLodDistance(float distance)
     lodDistance_ = distance;
 }
 
-void Geometry::SetRawVertexData(SharedArrayPtr<unsigned char> data, const PODVector<VertexElement>& elements)
+void Geometry::SetRawVertexData(SharedArrayPtr<unsigned char> data, const ea::vector<VertexElement>& elements)
 {
     rawVertexData_ = data;
     rawVertexSize_ = VertexBuffer::GetVertexSize(elements);
@@ -177,29 +176,47 @@ void Geometry::SetRawIndexData(SharedArrayPtr<unsigned char> data, unsigned inde
 
 void Geometry::Draw(Graphics* graphics)
 {
+    const auto draw_cmd = graphics->GetDrawCommand();
     if (indexBuffer_ && indexCount_ > 0)
     {
-        graphics->SetIndexBuffer(indexBuffer_);
-        graphics->SetVertexBuffers(vertexBuffers_);
-        graphics->Draw(primitiveType_, indexStart_, indexCount_, vertexStart_, vertexCount_);
+        DrawCommandDrawDesc desc;
+        desc.min_vertex = vertexStart_;
+        desc.vertex_count = vertexCount_;
+        desc.index_start = indexStart_;
+        desc.index_count = indexCount_;
+        desc.base_vertex_index = desc.vertex_start = 0;
+        draw_cmd->SetIndexBuffer(indexBuffer_);
+        draw_cmd->SetVertexBuffers(vertexBuffers_);
+        draw_cmd->SetPrimitiveType(primitiveType_);
+        draw_cmd->Draw(desc);
     }
     else if (vertexCount_ > 0)
     {
-        graphics->SetVertexBuffers(vertexBuffers_);
-        graphics->Draw(primitiveType_, vertexStart_, vertexCount_);
+        draw_cmd->SetVertexBuffers(vertexBuffers_);
+        draw_cmd->SetIndexBuffer(nullptr);
+        draw_cmd->SetPrimitiveType(primitiveType_);
+
+        DrawCommandDrawDesc desc;
+        desc.vertex_start = vertexStart_;
+        desc.vertex_count = vertexCount_;
+        desc.min_vertex =
+            desc.index_start =
+            desc.index_count =
+            desc.base_vertex_index = 0;
+        draw_cmd->Draw(desc);
     }
 }
 
 VertexBuffer* Geometry::GetVertexBuffer(unsigned index) const
 {
-    return index < vertexBuffers_.Size() ? vertexBuffers_[index] : (VertexBuffer*)0;
+    return vertexBuffers_.empty() ? nullptr : vertexBuffers_[index];
 }
 
 unsigned short Geometry::GetBufferHash() const
 {
     unsigned short hash = 0;
 
-    for (unsigned i = 0; i < vertexBuffers_.Size(); ++i)
+    for (unsigned i = 0; i < vertexBuffers_.size(); ++i)
     {
         VertexBuffer* vBuf = vertexBuffers_[i];
         hash += *((unsigned short*)&vBuf);
@@ -212,7 +229,7 @@ unsigned short Geometry::GetBufferHash() const
 }
 
 void Geometry::GetRawData(const unsigned char*& vertexData, unsigned& vertexSize, const unsigned char*& indexData,
-    unsigned& indexSize, const PODVector<VertexElement>*& elements) const
+    unsigned& indexSize, const ea::vector<VertexElement>*& elements) const
 {
     if (rawVertexData_)
     {
@@ -220,7 +237,7 @@ void Geometry::GetRawData(const unsigned char*& vertexData, unsigned& vertexSize
         vertexSize = rawVertexSize_;
         elements = &rawElements_;
     }
-    else if (vertexBuffers_.Size() && vertexBuffers_[0])
+    else if (vertexBuffers_.size() && vertexBuffers_[0])
     {
         vertexData = vertexBuffers_[0]->GetShadowData();
         vertexSize = vertexBuffers_[0]->GetVertexSize();
@@ -228,9 +245,9 @@ void Geometry::GetRawData(const unsigned char*& vertexData, unsigned& vertexSize
     }
     else
     {
-        vertexData = 0;
+        vertexData = nullptr;
         vertexSize = 0;
-        elements = 0;
+        elements = nullptr;
     }
 
     if (rawIndexData_)
@@ -250,14 +267,14 @@ void Geometry::GetRawData(const unsigned char*& vertexData, unsigned& vertexSize
         }
         else
         {
-            indexData = 0;
+            indexData = nullptr;
             indexSize = 0;
         }
     }
 }
 
 void Geometry::GetRawDataShared(SharedArrayPtr<unsigned char>& vertexData, unsigned& vertexSize,
-    SharedArrayPtr<unsigned char>& indexData, unsigned& indexSize, const PODVector<VertexElement>*& elements) const
+    SharedArrayPtr<unsigned char>& indexData, unsigned& indexSize, const ea::vector<VertexElement>*& elements) const
 {
     if (rawVertexData_)
     {
@@ -265,7 +282,7 @@ void Geometry::GetRawDataShared(SharedArrayPtr<unsigned char>& vertexData, unsig
         vertexSize = rawVertexSize_;
         elements = &rawElements_;
     }
-    else if (vertexBuffers_.Size() && vertexBuffers_[0])
+    else if (vertexBuffers_.size() && vertexBuffers_[0])
     {
         vertexData = vertexBuffers_[0]->GetShadowDataShared();
         vertexSize = vertexBuffers_[0]->GetVertexSize();
@@ -273,9 +290,9 @@ void Geometry::GetRawDataShared(SharedArrayPtr<unsigned char>& vertexData, unsig
     }
     else
     {
-        vertexData = 0;
+        vertexData = nullptr;
         vertexSize = 0;
-        elements = 0;
+        elements = nullptr;
     }
 
     if (rawIndexData_)
@@ -307,7 +324,7 @@ float Geometry::GetHitDistance(const Ray& ray, Vector3* outNormal, Vector2* outU
     const unsigned char* indexData;
     unsigned vertexSize;
     unsigned indexSize;
-    const PODVector<VertexElement>* elements;
+    const ea::vector<VertexElement>* elements;
 
     GetRawData(vertexData, vertexSize, indexData, indexSize, elements);
     
@@ -334,7 +351,7 @@ bool Geometry::IsInside(const Ray& ray) const
     const unsigned char* indexData;
     unsigned vertexSize;
     unsigned indexSize;
-    const PODVector<VertexElement>* elements;
+    const ea::vector<VertexElement>* elements;
 
     GetRawData(vertexData, vertexSize, indexData, indexSize, elements);
 

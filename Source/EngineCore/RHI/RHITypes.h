@@ -250,9 +250,16 @@ namespace REngine
         uint8_t semantic_index{};
     };
 
+    struct TextureSampler
+    {
+        ea::string name{};
+        Atomic::StringHash hash{};
+        Atomic::TextureUnit unit{};
+        Atomic::TextureUnitType type{};
+    };
     struct ShaderCompilerReflectInfo
     {
-        Atomic::StringVector samplers{};
+        ea::vector<TextureSampler> samplers{};
         bool used_texture_units[Atomic::MAX_TEXTURE_UNITS]{};
         Atomic::HashMap<Atomic::StringHash, ShaderCompilerConstantBufferDesc> constant_buffers{};
         uint32_t constant_buffer_sizes[Atomic::MAX_SHADER_PARAMETER_GROUPS];

@@ -119,28 +119,28 @@ namespace REngine
 
     void ShaderProgram::CollectShaderTextures(const Atomic::ShaderVariation* shader)
     {
-        const auto& textures = shader->GetUseTextureNames();
+        const auto& textures = shader->GetTexturesInUse();
 		for (const auto& it : textures)
 		{
-			const auto tex_unit = utils_get_texture_unit(it);
-			const auto sampler_desc = ea::make_shared<ShaderSamplerDesc>();
-            sampler_desc->name = it;
-            sampler_desc->hash = it;
-			used_textures_[sampler_desc->hash.Value()] = sampler_desc;
-            if(tex_unit != Atomic::MAX_TEXTURE_UNITS)
-				used_texture_slot_names_[tex_unit] = sampler_desc.get();
+			const auto texture_sampler = ea::make_shared<TextureSampler>();
+            texture_sampler->name = it.name;
+            texture_sampler->hash = it.hash;
+            texture_sampler->unit = it.unit;
+            texture_sampler->type = it.type;
+			used_textures_[it.hash.Value()] = texture_sampler;
+            if(it.unit != Atomic::MAX_TEXTURE_UNITS)
+				used_texture_slot_names_[it.unit] = texture_sampler.get();
 		}
 	}
 
-
-    ShaderSamplerDesc* ShaderProgram::GetSampler(Atomic::TextureUnit unit) const
+    TextureSampler* ShaderProgram::GetSampler(Atomic::TextureUnit unit) const
     {
         if(unit >= Atomic::MAX_TEXTURE_UNITS)
             return nullptr;
         return used_texture_slot_names_[unit];
     }
 
-    ShaderSamplerDesc* ShaderProgram::GetSampler(const Atomic::StringHash& name) const
+    TextureSampler* ShaderProgram::GetSampler(const Atomic::StringHash& name) const
     {
         const auto it = used_textures_.find_as(name.Value());
         if(it == used_textures_.end())

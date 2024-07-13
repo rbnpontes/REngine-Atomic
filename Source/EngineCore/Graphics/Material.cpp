@@ -57,7 +57,6 @@ static const char* textureUnitNames[] =
     "specular",
     "emissive",
     "environment",
-#ifdef DESKTOP_GRAPHICS
     "volume",
     "custom1",
     "custom2",
@@ -70,12 +69,6 @@ static const char* textureUnitNames[] =
     "light",
     "zone",
     0
-#else
-    "lightramp",
-    "lightshape",
-    "shadowmap",
-    0
-#endif
 };
 
 const char* cullModeNames[] =
@@ -1059,10 +1052,7 @@ void Material::SetTexture(TextureUnit unit, Texture* texture)
 {
     if (unit < MAX_TEXTURE_UNITS)
     {
-        if (texture)
-            textures_[unit] = texture;
-        else
-            textures_.Erase(unit);
+        textures_[unit] = texture;
     }
 }
 
@@ -1222,8 +1212,7 @@ Pass* Material::GetPass(unsigned index, const String& passName) const
 
 Texture* Material::GetTexture(TextureUnit unit) const
 {
-    HashMap<TextureUnit, SharedPtr<Texture> >::ConstIterator i = textures_.Find(unit);
-    return i != textures_.End() ? i->second_.Get() : (Texture*)0;
+    return textures_[unit];
 }
 
 const Variant& Material::GetShaderParameter(const String& name) const
@@ -1283,7 +1272,7 @@ void Material::ResetToDefaults()
     SetTechnique(0, renderer ? renderer->GetDefaultTechnique() :
         GetSubsystem<ResourceCache>()->GetResource<Technique>("Techniques/NoTexture.xml"));
 
-    textures_.Clear();
+    textures_.fill(SharedPtr<Texture>(nullptr));
 
     batchedParameterUpdate_ = true;
     shaderParameters_.Clear();

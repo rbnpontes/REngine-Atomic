@@ -42,6 +42,9 @@ public:
     Texture2DArray(Context* context);
     /// Destruct.
     virtual ~Texture2DArray();
+
+    TextureUnitType GetUnitType() const override { return TextureUnitType::Texture2D; }
+
     /// Register object factory.
     static void RegisterObject(Context* context);
 

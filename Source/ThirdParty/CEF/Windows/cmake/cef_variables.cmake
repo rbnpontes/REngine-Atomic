@@ -94,7 +94,6 @@ set(CEF_LIBTYPE STATIC)
 list(APPEND CEF_COMPILER_FLAGS
   /MP           # Multiprocess compilation
   /Gy           # Enable function-level linking
-  /GR-          # Disable run-time type information
   /W4           # Warning level 4
   /wd4100       # Ignore "unreferenced formal parameter" warning
   /wd4127       # Ignore "conditional expression is constant" warning

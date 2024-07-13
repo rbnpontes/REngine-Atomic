@@ -50,6 +50,8 @@ public:
     /// Destruct.
     virtual ~Texture();
 
+    virtual TextureUnitType GetUnitType() const { return TextureUnitType::Undefined; }
+
     /// Set number of requested mip levels. Needs to be called before setting size.
     /** The default value (0) allocates as many mip levels as necessary to reach 1x1 size. Set value 1 to disable mipmapping.
         Note that rendertargets need to regenerate mips dynamically after rendering, which may cost performance. Screen buffers

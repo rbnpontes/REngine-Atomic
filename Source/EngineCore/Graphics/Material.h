@@ -200,7 +200,7 @@ public:
     Texture* GetTexture(TextureUnit unit) const;
 
     /// Return all textures.
-    const HashMap<TextureUnit, SharedPtr<Texture> >& GetTextures() const { return textures_; }
+    const ea::array<SharedPtr<Texture>, MAX_TEXTURE_UNITS>& GetTextures() const { return textures_; }
 
     /// Return additional vertex shader defines.
     const String& GetVertexShaderDefines() const { return vertexShaderDefines_; }
@@ -289,7 +289,7 @@ private:
     /// Techniques.
     Vector<TechniqueEntry> techniques_;
     /// Textures.
-    HashMap<TextureUnit, SharedPtr<Texture> > textures_;
+    ea::array<SharedPtr<Texture>, MAX_TEXTURE_UNITS> textures_;
     /// %Shader parameters.
     HashMap<StringHash, MaterialShaderParameter> shaderParameters_;
     /// %Shader parameters animation infos.
