@@ -1228,9 +1228,9 @@ void AnimatedModel::CloneGeometries()
 
             // Add an additional vertex stream into the clone, which supplies only the morphable vertex data, while the static
             // data comes from the original vertex buffer(s)
-            const Vector<SharedPtr<VertexBuffer> >& originalBuffers = original->GetVertexBuffers();
-            unsigned totalBuf = originalBuffers.Size();
-            for (unsigned k = 0; k < originalBuffers.Size(); ++k)
+            const auto& originalBuffers = original->GetVertexBuffers();
+            unsigned totalBuf = originalBuffers.size();
+            for (unsigned k = 0; k < originalBuffers.size(); ++k)
             {
                 VertexBuffer* originalBuffer = originalBuffers[k];
                 if (clonedVertexBuffers.Contains(originalBuffer))
@@ -1239,7 +1239,7 @@ void AnimatedModel::CloneGeometries()
             clone->SetNumVertexBuffers(totalBuf);
 
             unsigned l = 0;
-            for (unsigned k = 0; k < originalBuffers.Size(); ++k)
+            for (unsigned k = 0; k < originalBuffers.size(); ++k)
             {
                 VertexBuffer* originalBuffer = originalBuffers[k];
 

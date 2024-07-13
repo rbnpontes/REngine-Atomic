@@ -10,4 +10,4 @@ set EDITOR_NAME=%4
 echo Initializing Vs Dev Command
 call %VS_TOOLS%\VsDevCmd.bat
 echo Start Building
-msbuild /m %SOLUTION_NAME% "/t:Engine Code\%EDITOR_NAME%" /t:AtomicPlayer /p:Configuration=%1 /p:Platform=x64
+msbuild /m %SOLUTION_NAME% "/t:Engine Tools\%EDITOR_NAME%" "/t:Engine Code\AtomicPlayer" /p:Configuration=%1 /p:Platform=x64

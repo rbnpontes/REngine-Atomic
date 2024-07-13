@@ -53,7 +53,7 @@ namespace REngine
 		for(const auto& element : shader_input_elements_map)
 		{
 			auto& input_element = input_layout_desc_.elements[input_layout_desc_.num_elements];
-			input_element.buffer_stride = 0;
+			input_element.buffer_stride = creation_desc.vertex_buffers->at(0)->GetVertexSize();
 			input_element.buffer_index = 0;
 			input_element.input_index =	element.second_.index;
 			input_element.element_offset = 0;

@@ -398,6 +398,8 @@ public:
     /// Return the C string.
     const char* CString() const { return buffer_; }
 
+    ea::string ToStdString() const { return ea::string(buffer_); }
+
     /// Return length.
     unsigned Length() const { return length_; }
 

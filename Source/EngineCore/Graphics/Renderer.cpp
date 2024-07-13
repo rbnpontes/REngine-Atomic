@@ -254,22 +254,23 @@ static const unsigned MAX_BUFFER_AGE = 1000;
 
 static const int MAX_EXTRA_INSTANCING_BUFFER_ELEMENTS = 4;
 
-inline PODVector<VertexElement> CreateInstancingBufferElements(unsigned numExtraElements)
+inline ea::vector<VertexElement> CreateInstancingBufferElements(unsigned numExtraElements)
 {
     static const unsigned NUM_INSTANCEMATRIX_ELEMENTS = 3;
     static const unsigned FIRST_UNUSED_TEXCOORD = 4;
 
-    PODVector<VertexElement> elements;
-    for (unsigned i = 0; i < NUM_INSTANCEMATRIX_ELEMENTS + numExtraElements; ++i)
-        elements.Push(VertexElement(TYPE_VECTOR4, SEM_TEXCOORD, FIRST_UNUSED_TEXCOORD + i, true));
+    const auto total_items = NUM_INSTANCEMATRIX_ELEMENTS + numExtraElements;
+    ea::vector<VertexElement> elements(total_items);
+    for (unsigned i = 0; i < total_items; ++i)
+        elements[i] = VertexElement(TYPE_VECTOR4, SEM_TEXCOORD, FIRST_UNUSED_TEXCOORD + i, true);
     return elements;
 }
 
 Renderer::Renderer(Context* context) :
     Object(context),
     defaultZone_(new Zone(context)),
-    shadowMapFilterInstance_(0),
-    shadowMapFilter_(0),
+    shadowMapFilterInstance_(nullptr),
+    shadowMapFilter_(nullptr),
     textureAnisotropy_(4),
     textureFilterMode_(FILTER_TRILINEAR),
     textureQuality_(QUALITY_HIGH),
@@ -1368,7 +1369,7 @@ bool Renderer::ResizeInstancingBuffer(unsigned numInstances)
     while (newSize < numInstances)
         newSize <<= 1;
 
-    const PODVector<VertexElement> instancingBufferElements = CreateInstancingBufferElements(numExtraInstancingBufferElements_);
+    const ea::vector<VertexElement> instancingBufferElements = CreateInstancingBufferElements(numExtraInstancingBufferElements_);
     if (!instancingBuffer_->SetSize(newSize, instancingBufferElements, true))
     {
         ATOMIC_LOGERROR("Failed to resize instancing buffer to " + String(newSize));
@@ -1607,6 +1608,8 @@ void Renderer::Initialize()
 
     defaultLightRamp_ = cache->GetResource<Texture2D>("Textures/Ramp.png");
     defaultLightSpot_ = cache->GetResource<Texture2D>("Textures/Spot.png");
+    dummy_texture_ = cache->GetResource<Texture2D>("Textures/NoTexture.jpg");
+    dummy_texture_cube_ = TextureCube::CreateFrom(dummy_texture_);
     defaultMaterial_ = new Material(context_);
 
     defaultRenderPath_ = new RenderPath();
@@ -1906,7 +1909,7 @@ void Renderer::CreateInstancingBuffer()
     }
 
     instancingBuffer_ = new VertexBuffer(context_);
-    const PODVector<VertexElement> instancingBufferElements = CreateInstancingBufferElements(numExtraInstancingBufferElements_);
+    const auto instancingBufferElements = CreateInstancingBufferElements(numExtraInstancingBufferElements_);
     if (!instancingBuffer_->SetSize(INSTANCING_BUFFER_DEFAULT_SIZE, instancingBufferElements, true))
     {
         instancingBuffer_.Reset();
@@ -2020,4 +2023,21 @@ void Renderer::BlurShadowMap(View* view, Texture2D* shadowMap, float blurScale)
     graphics_->SetTexture(TU_DIFFUSE, tmpBuffer);
     view->DrawFullscreenQuad(true);
 }
+
+
+Texture* Renderer::GetSuitableDummyTexture(TextureUnitType unit_type)
+{
+    switch (unit_type)
+    {
+    case TextureUnitType::Texture2D:
+        return dummy_texture_;
+    case TextureUnitType::TextureCube:
+        return dummy_texture_cube_;
+    case TextureUnitType::Texture3D:
+    case TextureUnitType::Undefined:
+        throw std::runtime_error("Invalid texture unit type. Can't get a dummy texture for this unit type.");
+    }
+    return nullptr;
+}
+
 }

@@ -241,6 +241,13 @@ function editorCopyNETBinaries() {
         fs.copySync(src, dst);
     });
 }
+function editorCopyVsWhere() {
+    console.log('- Copying VsWhere');
+    const vswhere_path = path.resolve(artifacts_root, 'Artifacts/vswhere.exe');
+    const vswhere_out = path.resolve(artifacts_root, constants.engine_editor_name, 'vswhere.exe');
+    console.log(`- Copying. From: ${vswhere_path} - To: ${vswhere_out}`)
+    fs.copySync(vswhere_path, vswhere_out);
+}
 async function editorCopyBinaries() {
     console.log(`- Copying ${constants.engine_name} Editor Binaries`);
 
@@ -349,8 +356,8 @@ async function editorCopyBinaries() {
         fs.copySync(src, dst);
     });
 
-    // if (os.platform() == 'linux')
-    //     editorCopyCEFBinaries();
+    if(os.platform() == 'win32')
+        editorCopyVsWhere();
     editorCopyNETBinaries();
 
     console.log('- Editor binaries has been copied with success!!!');

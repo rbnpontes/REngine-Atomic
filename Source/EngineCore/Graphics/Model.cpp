@@ -125,7 +125,7 @@ bool Model::BeginLoad(Deserializer& source)
         }
         else
         {
-            desc.vertexElements_.Clear();
+            desc.vertexElements_.clear();
             unsigned numElements = source.ReadUInt();
             for (unsigned j = 0; j < numElements; ++j)
             {
@@ -133,7 +133,7 @@ bool Model::BeginLoad(Deserializer& source)
                 VertexElementType type = (VertexElementType)(elementDesc & 0xff);
                 VertexElementSemantic semantic = (VertexElementSemantic)((elementDesc >> 8) & 0xff);
                 unsigned char index = (unsigned char)((elementDesc >> 16) & 0xff);
-                desc.vertexElements_.Push(VertexElement(type, semantic, index));
+                desc.vertexElements_.push_back(VertexElement(type, semantic, index));
             }
         }
 
@@ -409,9 +409,9 @@ bool Model::Save(Serializer& dest) const
     {
         VertexBuffer* buffer = vertexBuffers_[i];
         dest.WriteUInt(buffer->GetVertexCount());
-        const PODVector<VertexElement>& elements = buffer->GetElements();
-        dest.WriteUInt(elements.Size());
-        for (unsigned j = 0; j < elements.Size(); ++j)
+        const ea::vector<VertexElement>& elements = buffer->GetElements();
+        dest.WriteUInt(elements.size());
+        for (unsigned j = 0; j < elements.size(); ++j)
         {
             unsigned elementDesc = ((unsigned)elements[j].type_) |
                 (((unsigned)elements[j].semantic_) << 8) |

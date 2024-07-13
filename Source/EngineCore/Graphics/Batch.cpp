@@ -613,7 +613,7 @@ void Batch::Prepare(View* view, Camera* camera, bool setModelTransform, bool all
         {
             const auto unit = static_cast<TextureUnit>(i);
             // TODO: set default texture from renderer if texture is null
-            if (graphics->HasTextureUnit(unit))
+            if (graphics->HasTextureUnit(unit) && textures[i])
                 graphics->SetTexture(unit, textures[i].Get());
         }
     }
@@ -689,45 +689,62 @@ void BatchGroup::Draw(View* view, Camera* camera, bool allowDepthWrite) const
 {
     Graphics* graphics = view->GetGraphics();
     Renderer* renderer = view->GetRenderer();
+    const auto draw_cmd = graphics->GetDrawCommand();
+    draw_cmd->SetPrimitiveType(geometry_->GetPrimitiveType());
 
     if (instances_.Size() && !geometry_->IsEmpty())
     {
         // Draw as individual objects if instancing not supported or could not fill the instancing buffer
-        VertexBuffer* instanceBuffer = renderer->GetInstancingBuffer();
-        if (!instanceBuffer || geometryType_ != GEOM_INSTANCED || startIndex_ == M_MAX_UNSIGNED)
+        VertexBuffer* instance_buffer = renderer->GetInstancingBuffer();
+        if (!instance_buffer || geometryType_ != GEOM_INSTANCED || startIndex_ == M_MAX_UNSIGNED)
         {
             Batch::Prepare(view, camera, false, allowDepthWrite);
+            draw_cmd->SetIndexBuffer(geometry_->GetIndexBuffer());
+            draw_cmd->SetVertexBuffers(geometry_->GetVertexBuffers());
 
-            graphics->SetIndexBuffer(geometry_->GetIndexBuffer());
-            graphics->SetVertexBuffers(geometry_->GetVertexBuffers());
+            DrawCommandDrawDesc draw_desc;
+            draw_desc.base_vertex_index = 0;
+            draw_desc.vertex_start = 0;
 
             for (unsigned i = 0; i < instances_.Size(); ++i)
             {
                 const auto& instance_data = instances_[i];
-                if (graphics->NeedParameterUpdate(SP_OBJECT, instance_data.worldTransform_))
-                    graphics->SetShaderParameter(VSP_MODEL, *instance_data.worldTransform_);
+                if (draw_cmd->NeedShaderGroupUpdate(SP_OBJECT, instance_data.worldTransform_))
+                    draw_cmd->SetShaderParameter(VSP_MODEL, *instance_data.worldTransform_);
 
-                graphics->Draw(geometry_->GetPrimitiveType(), geometry_->GetIndexStart(), geometry_->GetIndexCount(),
-                    geometry_->GetVertexStart(), geometry_->GetVertexCount());
+                draw_desc.index_start = geometry_->GetIndexStart();
+                draw_desc.index_count = geometry_->GetIndexCount();
+                draw_desc.min_vertex = geometry_->GetVertexStart();
+                draw_desc.vertex_count = geometry_->GetVertexCount();
+                draw_cmd->Draw(draw_desc);
             }
         }
         else
         {
             Batch::Prepare(view, camera, false, allowDepthWrite);
+            static ea::array<VertexBuffer*, MAX_VERTEX_STREAMS> s_vertex_buffers = {};
 
-            // Get the geometry vertex buffers, then add the instancing stream buffer
-            // Hack: use a const_cast to avoid dynamic allocation of new temp vectors
-            Vector<SharedPtr<VertexBuffer> >& vertexBuffers = const_cast<Vector<SharedPtr<VertexBuffer> >&>(
-                geometry_->GetVertexBuffers());
-            vertexBuffers.Push(SharedPtr<VertexBuffer>(instanceBuffer));
+            const auto& geometry_vertex_buffers = geometry_->GetVertexBuffers();
+            u32 next_idx = 0;
+            for (u32 i = 0; i < geometry_vertex_buffers.size(); ++i)
+            {
+                s_vertex_buffers[next_idx] = geometry_vertex_buffers[i];
+                next_idx = i;
+            }
+            s_vertex_buffers[++next_idx] = instance_buffer;
 
-            graphics->SetIndexBuffer(geometry_->GetIndexBuffer());
-            graphics->SetVertexBuffers(vertexBuffers, startIndex_);
-            graphics->DrawInstanced(geometry_->GetPrimitiveType(), geometry_->GetIndexStart(), geometry_->GetIndexCount(),
-                geometry_->GetVertexStart(), geometry_->GetVertexCount(), instances_.Size());
+            draw_cmd->SetIndexBuffer(geometry_->GetIndexBuffer());
+            draw_cmd->SetVertexBuffers(s_vertex_buffers.data(), ++next_idx, startIndex_);
 
-            // Remove the instancing buffer & element mask now
-            vertexBuffers.Pop();
+            DrawCommandInstancedDrawDesc draw_desc;
+            draw_desc.index_start = geometry_->GetIndexStart();
+            draw_desc.index_count = geometry_->GetIndexCount();
+            draw_desc.min_vertex = geometry_->GetVertexStart();
+            draw_desc.vertex_count = geometry_->GetVertexCount();
+            draw_desc.instance_count = instances_.Size();
+            draw_desc.base_vertex_index = 0;
+
+            draw_cmd->Draw(draw_desc);
         }
     }
 }

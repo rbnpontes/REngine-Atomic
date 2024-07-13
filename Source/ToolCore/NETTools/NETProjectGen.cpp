@@ -283,7 +283,7 @@ namespace ToolCore
                         xref.SetAttribute("Include", ref);                        
 
                         // Specify the assembly path, which is the same based on native build
-                        String assemblyPath = relativeAssemblyPath + ToString("%s/%s/%s.dll", config.CString(), platform.CString(), ref.CString());
+                        String assemblyPath = relativeAssemblyPath + ToString("%s/%s/net8.0/%s.dll", config.CString(), platform.CString(), ref.CString());
 
                         // Setup hint paths with both release/debug config, although they point to same assembly, they don't need to
                         XMLElement hintPath = xref.CreateChild("HintPath");

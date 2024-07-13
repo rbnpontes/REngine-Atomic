@@ -19,6 +19,7 @@ namespace Atomic
 	class TextureCube;
 	class RenderTexture;
 	class RenderSurface;
+	class Renderer;
 
 	typedef Diligent::VALUE_TYPE ValueType;
 	struct DrawCommandClearDesc
@@ -92,8 +93,14 @@ namespace Atomic
 		virtual void SetVertexBuffer(VertexBuffer* buffer) = 0;
 		/// Bind vertex buffers.
 		virtual void SetVertexBuffers(const PODVector<VertexBuffer*> buffers, u32 instance_offset = 0) = 0;
+		/// Bind vertex buffers
+		virtual void SetVertexBuffers(const ea::vector<SharedPtr<VertexBuffer>>& buffers, u32 instance_offset = 0) = 0;
 		/// Bind vertex buffers.
 		virtual void SetVertexBuffers(const ea::vector<VertexBuffer*>& buffers, u32 instance_offset = 0) = 0;
+		/// Bind vertex buffers.
+		virtual void SetVertexBuffers(VertexBuffer** buffers, u32 length, u32 instance_offset = 0) = 0;
+		/// Bind vertex buffers.
+		virtual void SetVertexBuffers(const SharedPtr<VertexBuffer>* buffers, u32 length, u32 instance_offset = 0) = 0;
 		/// Bind index buffer.
 		virtual void SetIndexBuffer(IndexBuffer* buffer) = 0;
 		/// Bind shaders.
@@ -244,5 +251,5 @@ namespace Atomic
 
 namespace REngine
 {
-	Atomic::IDrawCommand* graphics_create_command(Atomic::Graphics* graphics);
+	Atomic::IDrawCommand* graphics_create_command(Atomic::Graphics* graphics, Atomic::Renderer* renderer);
 }

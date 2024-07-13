@@ -3,11 +3,11 @@ TBLayout: axis: y, position: left
 	TBSeparator: gravity: left right, skin: AESeparator
 	TBLayout:
 		TBButton: id: project_2d
-			TBImageWidget: filename: "AtomicEditor/editor/images/newproject_2d.png"
+			TBImageWidget: filename: "editor/images/newproject_2d.png"
 		TBButton: id: project_3d
-			TBImageWidget: filename: "AtomicEditor/editor/images/newproject_3d.png"
+			TBImageWidget: filename: "editor/images/newproject_3d.png"
 		TBButton: id: project_empty
-			TBImageWidget: filename: "AtomicEditor/editor/images/newproject_empty.png"			
+			TBImageWidget: filename: "editor/images/newproject_empty.png"			
 	TBSeparator: gravity: left right, skin: AESeparator
 	TBLayout:
 		TBButton: text: Cancel, id: cancel

@@ -26,6 +26,7 @@
 
 #include <EngineCore/IO/Log.h>
 #include <EngineCore/IO/FileSystem.h>
+#include <EngineCore/Container/ContainerUtils.h>
 
 #include "../ToolEvents.h"
 #include "../ToolSystem.h"
@@ -38,12 +39,60 @@
 #include "NETProjectGen.h"
 #include "NETBuildSystem.h"
 
+#include <Poco/StreamCopier.h>
+
 #ifdef ENGINE_PLATFORM_WINDOWS
 #include <Poco/WinRegistryKey.h>
 #endif
 
+
 namespace ToolCore
 {
+    static String find_vs_tool_path(const String& vs_installation_path, FileSystem* file_system)
+    {
+        String result;
+        ea::vector<ea::string> file_list;
+
+        // test if default directory exists and VsMSBuildCmd is at path
+        String target_path = vs_installation_path + "/Common7/Tools/";
+        if(file_system->DirExists(target_path))
+        {
+            file_system->ScanDir(
+                file_list,
+                target_path.ToStdString(),
+                "*",
+                SCAN_FILES,
+                false);
+
+            const auto it = ea::find_if(file_list.begin(), file_list.end(), [&](const ea::string& file)
+            {
+                    return file.find("VsMSBuildCmd.bat") != ea::string::npos;
+            });
+            if(it != file_list.end())
+            {
+                result = target_path + "/";
+                result = result + it->c_str();
+                return result;
+            }
+        }
+
+        file_system->ScanDir(
+            file_list,
+            vs_installation_path.ToStdString(),
+            "*",
+            SCAN_DIRS | SCAN_FILES,
+            true
+        );
+
+        const auto file_it = ea::find_if(file_list.begin(), file_list.end(), [&](const ea::string& file) {
+            return file.find("VsMSBuildCmd.bat") != ea::string::npos;
+        });
+
+        result = vs_installation_path + "/";
+        result = result + file_it->c_str();
+        return result;
+    }
+
     NETBuild::NETBuild(Context* context, const String& solutionPath) :
         Object(context),
         solutionPath_(solutionPath),
@@ -126,7 +175,7 @@ namespace ToolCore
 
         if (verbose_)
         {
-            ATOMIC_LOGINFOF("AtomicNET Build Command: %s", curBuild_->allArgs_.CString());
+            ATOMIC_LOGINFOF(".NET Project Build End: %s", curBuild_->allArgs_.CString());
         }
 
         if (!code)
@@ -176,266 +225,327 @@ namespace ToolCore
         if (curBuild_.Null() && !builds_.Size())
             return;
 
-        if (curBuild_.Null())
+        if (!curBuild_.Null())
+            return;
+        // kick off a new build
+
+        curBuild_ = builds_.Front();
+        builds_.PopFront();
+
+
+        FileSystem* fileSystem = GetSubsystem<FileSystem>();
+
+        // Ensure solution still exists
+        if (!fileSystem->FileExists(curBuild_->solutionPath_))
         {
-            // kick off a new build
+            CurrentBuildError(ToString("Solution does not exist(%s)", curBuild_->solutionPath_.CString()));
+            return;
+        }
 
-            curBuild_ = builds_.Front();
-            builds_.PopFront();
+        String solutionPath = curBuild_->solutionPath_;
 
+        String ext = GetExtension(solutionPath);
 
-            FileSystem* fileSystem = GetSubsystem<FileSystem>();
+        bool requiresNuGet = true;
 
-            // Ensure solution still exists
-            if (!fileSystem->FileExists(curBuild_->solutionPath_))
+        if (ext == ".sln")
+        {
+            // TODO: handle projects that require nuget
+            requiresNuGet = false;
+
+            if (!fileSystem->FileExists(solutionPath))
             {
-                CurrentBuildError(ToString("Solution does not exist(%s)", curBuild_->solutionPath_.CString()));
+                CurrentBuildError(ToString("Generated solution does not exist (%s : %s)", curBuild_->solutionPath_.CString(), solutionPath.CString()));
                 return;
             }
 
-            String solutionPath = curBuild_->solutionPath_;
+        }
+        else if (ext == ".json")
+        {
+            SharedPtr gen(new NETProjectGen(context_));
 
-            String ext = GetExtension(solutionPath);
+            gen->SetSupportedPlatforms(curBuild_->platforms_);
+            gen->SetRewriteSolution(true);
 
-            bool requiresNuGet = true;
-
-            if (ext == ".sln")
+            if (!gen->LoadJSONProject(solutionPath))
             {
-                // TODO: handle projects that require nuget
-                requiresNuGet = false;
-
-                if (!fileSystem->FileExists(solutionPath))
-                {
-                    CurrentBuildError(ToString("Generated solution does not exist (%s : %s)", curBuild_->solutionPath_.CString(), solutionPath.CString()));
-                    return;
-                }
-
-            }
-            else if (ext == ".json")
-            {
-                SharedPtr<NETProjectGen> gen(new NETProjectGen(context_));
-
-                gen->SetSupportedPlatforms(curBuild_->platforms_);
-                gen->SetRewriteSolution(true);
-
-                if (!gen->LoadJSONProject(solutionPath))
-                {
-                    CurrentBuildError(ToString("Error loading project (%s)", solutionPath.CString()));
-                    return;
-                }
-
-                if (!gen->Generate())
-                {
-                    CurrentBuildError(ToString("Error generating project (%s)", solutionPath.CString()));
-                    return;
-                }
-
-                solutionPath = gen->GetSolution()->GetOutputFilename();
-                requiresNuGet = gen->GetRequiresNuGet();
-
-                if (!fileSystem->FileExists(solutionPath))
-                {
-                    CurrentBuildError(ToString("Generated solution does not exist (%s : %s)", curBuild_->solutionPath_.CString(), solutionPath.CString()));
-                    return;
-                }
-
-            }
-
-            ToolEnvironment* tenv = GetSubsystem<ToolEnvironment>();
-            const String& nugetBinary = tenv->GetAtomicNETNuGetBinary();
-
-            if (requiresNuGet && !fileSystem->FileExists(nugetBinary))
-            {
-                CurrentBuildError(ToString("NuGet binary is missing (%s)", nugetBinary.CString()));
+                CurrentBuildError(ToString("Error loading project (%s)", solutionPath.CString()));
                 return;
             }
 
-            StringVector stringVector;
-            String platforms;
-            StringVector processedPlatforms;
-            String configs;
-
-            for (unsigned i = 0; i < curBuild_->configurations_.Size(); i++)
+            if (!gen->Generate())
             {
-                stringVector.Push(ToString("/p:Configuration=%s", curBuild_->configurations_[i].CString()));
-            }
-
-            configs = String::Joined(stringVector, " ");
-            stringVector.Clear();
-
-            for (unsigned i = 0; i < curBuild_->platforms_.Size(); i++)
-            {
-                // map platform
-                String platform = curBuild_->platforms_[i];
-
-                if (platform == "windows" || platform == "macosx" || platform == "linux")
-                {
-                    ATOMIC_LOGINFOF("Platform \"%s\" mapped to \"desktop\"", platform.CString());
-                    platform = "desktop";
-                }
-
-                if (processedPlatforms.Contains(platform))
-                {
-                    ATOMIC_LOGWARNINGF("Platform \"%s\" is duplicated, skipping", platform.CString());
-                    continue;
-                }
-
-                processedPlatforms.Push(platform);
-
-                if (platform == "desktop" || platform == "android")
-                {
-                    platform = "\"Any CPU\"";
-                }
-                else if (platform == "ios")
-                {
-
-                    platform = "\"Any CPU\"";
-                    // TODO
-                    // platform = "iPhone";
-                }
-                else
-                {
-                    ATOMIC_LOGERRORF("Unknown platform: %s, skipping", platform.CString());
-                    continue;
-                }
-
-                platform = ToString("/p:Platform=%s", platform.CString());
-
-                if (stringVector.Contains(platform))
-                {
-                    // This can happen when specifying Desktop + Android for example
-                    continue;
-                }
-
-                stringVector.Push(platform);
-            }
-
-            platforms = String::Joined(stringVector, " ");
-            stringVector.Clear();
-
-            Vector<String> args;
-
-#ifdef ENGINE_PLATFORM_WINDOWS
-            const String vs_tools_path = Poco::Environment::get("VS_TOOLS", "").c_str();
-            if(vs_tools_path.Empty())
-            {
-                CurrentBuildError("VS_TOOLS environment variable is not correct set.");
+                CurrentBuildError(ToString("Error generating project (%s)", solutionPath.CString()));
                 return;
             }
 
-            String cmdToolsPath = vs_tools_path;
-            if (!cmdToolsPath.EndsWith("\\"))
+            solutionPath = gen->GetSolution()->GetOutputFilename();
+            requiresNuGet = gen->GetRequiresNuGet();
+
+            if (!fileSystem->FileExists(solutionPath))
             {
-                cmdToolsPath += "\\";
-            }
-
-            String msbuildcmd = ToString("%sVsMSBuildCmd.bat", cmdToolsPath.CString());
-
-            String cmd = "cmd";
-
-            args.Push("/A");
-            args.Push("/C");
-
-            // vcvars bat
-            String compile = ToString("\"\"%s\" ", msbuildcmd.CString());
-
-            if (requiresNuGet)
-            {
-                compile += ToString("&& \"%s\" restore \"%s\" ", nugetBinary.CString(), solutionPath.CString());
-            }
-
-            compile += ToString("&& msbuild \"%s\" %s %s", solutionPath.CString(), platforms.CString(), configs.CString());
-
-            if (curBuild_->targets_.Size()) {
-
-                StringVector targets;
-
-                for (unsigned i = 0; i < curBuild_->targets_.Size(); i++)
-                {
-                    const char* tname = curBuild_->targets_[i].CString();
-                    targets.Push(ToString("/t:\"%s:Rebuild\"", tname));
-                }
-
-                compile += " " + String::Joined(targets, " ");
-
-            }
-
-            // close out quote
-            compile += "\"";
-
-            args.Push(compile);
-
-#else
-
-            String compile;
-
-            String cmd = "bash";
-            args.Push("-c");
-
-            String xbuildBinary = tenv->GetMonoExecutableDir() + "xbuild";
-
-            if (requiresNuGet)
-            {
-#ifdef ENGINE_PLATFORM_MACOS
-                compile += ToString("\"%s\" restore \"%s\" && ", nugetBinary.CString(), solutionPath.CString());
-#else
-                compile += ToString("mono \"%s\" restore \"%s\" && ", nugetBinary.CString(), solutionPath.CString());
-#endif
-            }
-
-            compile += ToString("\"%s\" \"%s\" %s %s", xbuildBinary.CString(), solutionPath.CString(), platforms.CString(), configs.CString());
-
-            if (curBuild_->targets_.Size()) {
-
-                StringVector targets;
-
-                for (unsigned i = 0; i < curBuild_->targets_.Size(); i++)
-                {
-                    const char* tname = curBuild_->targets_[i].CString();
-                    targets.Push(ToString("%s:Rebuild", tname));
-                }
-
-                compile += " /target:\"" + String::Joined(targets, ";") + "\"";
-
-            }
-
-            args.Push(compile);
-
-#endif
-
-            curBuild_->allArgs_.Join(args, " ");
-
-            SubprocessSystem* subs = GetSubsystem<SubprocessSystem>();
-            Subprocess* subprocess = nullptr;
-
-            ATOMIC_LOGINFOF("%s : %s", cmd.CString(), curBuild_->allArgs_.CString());
-
-            try
-            {
-                subprocess = subs->Launch(cmd, args, "");
-            }
-            catch (Poco::SystemException)
-            {
-                subprocess = nullptr;
-            }
-
-            if (!subprocess)
-            {
-                CurrentBuildError(ToString("NETCompile::Compile - Unable to launch MSBuild subprocess\n%s", curBuild_->allArgs_.CString()));
+                CurrentBuildError(ToString("Generated solution does not exist (%s : %s)", curBuild_->solutionPath_.CString(), solutionPath.CString()));
                 return;
             }
-
-            VariantMap buildBeginEventData;
-            buildBeginEventData[NETBuildBegin::P_BUILD] = curBuild_;
-            SendEvent(E_NETBUILDBEGIN, buildBeginEventData);
-
-            SubscribeToEvent(subprocess, E_SUBPROCESSCOMPLETE, ATOMIC_HANDLER(NETBuildSystem, HandleCompileProcessComplete));
-            SubscribeToEvent(subprocess, E_SUBPROCESSOUTPUT, ATOMIC_HANDLER(NETBuildSystem, HandleSubprocessOutput));
-
-            curBuild_->status_ = NETBUILD_BUILDING;
 
         }
 
+        ToolEnvironment* tenv = GetSubsystem<ToolEnvironment>();
+        const String& nugetBinary = tenv->GetAtomicNETNuGetBinary();
+
+        if (requiresNuGet && !fileSystem->FileExists(nugetBinary))
+        {
+            CurrentBuildError(ToString("NuGet binary is missing (%s)", nugetBinary.CString()));
+            return;
+        }
+
+        // TODO: revisit this code and remove if is necessary
+        //StringVector stringVector;
+        //String platforms;
+        //StringVector processedPlatforms;
+        //String configs;
+
+        //for (unsigned i = 0; i < curBuild_->configurations_.Size(); i++)
+        //{
+        //    stringVector.Push(ToString("/p:Configuration=%s", curBuild_->configurations_[i].CString()));
+        //}
+
+        //configs = String::Joined(stringVector, " ");
+        //stringVector.Clear();
+
+        //for (unsigned i = 0; i < curBuild_->platforms_.Size(); i++)
+        //{
+        //    // map platform
+        //    String platform = curBuild_->platforms_[i];
+
+        //    if (platform == "windows" || platform == "macosx" || platform == "linux")
+        //    {
+        //        ATOMIC_LOGINFOF("Platform \"%s\" mapped to \"desktop\"", platform.CString());
+        //        platform = "desktop";
+        //    }
+
+        //    if (processedPlatforms.Contains(platform))
+        //    {
+        //        ATOMIC_LOGWARNINGF("Platform \"%s\" is duplicated, skipping", platform.CString());
+        //        continue;
+        //    }
+
+        //    processedPlatforms.Push(platform);
+
+        //    if (platform == "desktop" || platform == "android")
+        //    {
+        //        platform = "\"Any CPU\"";
+        //    }
+        //    else if (platform == "ios")
+        //    {
+
+        //        platform = "\"Any CPU\"";
+        //        // TODO
+        //        // platform = "iPhone";
+        //    }
+        //    else
+        //    {
+        //        ATOMIC_LOGERRORF("Unknown platform: %s, skipping", platform.CString());
+        //        continue;
+        //    }
+
+        //    platform = ToString("/p:Platform=%s", platform.CString());
+
+        //    if (stringVector.Contains(platform))
+        //    {
+        //        // This can happen when specifying Desktop + Android for example
+        //        continue;
+        //    }
+
+        //    stringVector.Push(platform);
+        //}
+
+        //platforms = String::Joined(stringVector, " ");
+        //stringVector.Clear();
+
+        // TODO: revisit this and remove if is necessary
+//#ifdef ENGINE_PLATFORM_WINDOWS
+//            ea::vector<ea::string> files;
+//
+//            // Build vswhere args
+//            static std::vector<std::string> vs_where_args = {
+//                "-latest",
+//                "-property", "installationPath"
+//            };
+//            Poco::Pipe out_pipe;
+//
+//            // execute vswhere process
+//            const auto vs_proc = Poco::Process::launch(
+//                tenv->GetVsWhereToBinary().CString(),
+//                vs_where_args,
+//                nullptr,
+//                &out_pipe,
+//                nullptr
+//            );
+//            Poco::PipeInputStream input_stream(out_pipe);
+//
+//            // copy output process to vs_tools_path
+//            std::string vs_installation_path;
+//            Poco::StreamCopier::copyToString(input_stream, vs_installation_path);
+//
+//            // wait vswhere to exit.
+//            vs_proc.wait();
+//
+//            String vs_tools_path = vs_installation_path.c_str();
+//            vs_tools_path = vs_tools_path.Trimmed();
+//
+//            if(vs_tools_path.Empty())
+//            {
+//                CurrentBuildError("Not found installation path for visual studio.");
+//                return;
+//            }
+//
+//
+//            vs_tools_path = find_vs_tool_path(vs_tools_path, fileSystem);
+//
+//        	if(vs_tools_path.Empty())
+//            {
+//                CurrentBuildError("Not found VsMSBuildCmd.bat");
+//                return;
+//            }
+//
+//            String msbuildcmd = vs_tools_path;
+//
+//            String cmd = "cmd";
+//
+//            args.Push("/A");
+//            args.Push("/C");
+//
+//            // vcvars bat
+//            String compile = ToString("\"\"%s\" ", msbuildcmd.CString());
+//
+//            if (requiresNuGet)
+//            {
+//                compile += ToString("&& \"%s\" restore \"%s\" ", nugetBinary.CString(), solutionPath.CString());
+//            }
+//
+//            compile += ToString("&& msbuild \"%s\" %s %s", solutionPath.CString(), platforms.CString(), configs.CString());
+//
+//            if (curBuild_->targets_.Size()) {
+//
+//                StringVector targets;
+//
+//                for (unsigned i = 0; i < curBuild_->targets_.Size(); i++)
+//                {
+//                    const char* tname = curBuild_->targets_[i].CString();
+//                    targets.Push(ToString("/t:\"%s:Rebuild\"", tname));
+//                }
+//
+//                compile += " " + String::Joined(targets, " ");
+//
+//            }
+//
+//            // close out quote
+//            compile += "\"";
+//
+//            args.Push(compile);
+//
+//#else
+//
+//            String compile;
+//
+//            String cmd = "bash";
+//            args.Push("-c");
+//
+//            String xbuildBinary = tenv->GetMonoExecutableDir() + "xbuild";
+//
+//            if (requiresNuGet)
+//            {
+//#ifdef ENGINE_PLATFORM_MACOS
+//                compile += ToString("\"%s\" restore \"%s\" && ", nugetBinary.CString(), solutionPath.CString());
+//#else
+//                compile += ToString("mono \"%s\" restore \"%s\" && ", nugetBinary.CString(), solutionPath.CString());
+//#endif
+//            }
+//
+//            compile += ToString("\"%s\" \"%s\" %s %s", xbuildBinary.CString(), solutionPath.CString(), platforms.CString(), configs.CString());
+//
+//            if (curBuild_->targets_.Size()) {
+//
+//                StringVector targets;
+//
+//                for (unsigned i = 0; i < curBuild_->targets_.Size(); i++)
+//                {
+//                    const char* tname = curBuild_->targets_[i].CString();
+//                    targets.Push(ToString("%s:Rebuild", tname));
+//                }
+//
+//                compile += " /target:\"" + String::Joined(targets, ";") + "\"";
+//
+//            }
+//
+//            args.Push(compile);
+//
+//#endif
+
+        Vector<String> args;
+        String cmd;
+#if ENGINE_PLATFORM_WINDOWS
+        cmd = "cmd";
+        args.Push("/A");
+        args.Push("/C");
+#else
+        cmd = "batch";
+        args.Push("-c");
+#endif
+
+        // Execute clean first
+        args.Push("dotnet");
+        args.Push("clean");
+        args.Push("&&");
+        // Restore project dependencies
+        args.Push("dotnet");
+        args.Push("restore");
+        args.Push("&&");
+        // Execute project build
+        for(const auto& config : curBuild_->configurations_)
+        {
+            args.Push("dotnet");
+            args.Push("build");
+            // Build configuration. Can be Debug, Release or something like that.
+            args.Push("-c");
+            args.Push(config);
+            args.Push("&&");
+        }
+        args.Pop();
+
+        curBuild_->allArgs_ = String::Joined(args, " ");
+
+        SubprocessSystem* subs = GetSubsystem<SubprocessSystem>();
+        Subprocess* subprocess;
+
+        ATOMIC_LOGINFOF("Begin .NET Build: %s %s", cmd.CString(), curBuild_->allArgs_.CString());
+
+        String working_dir = GetPath(solutionPath);
+        try
+        {
+            subprocess = subs->Launch(cmd, args, working_dir);
+        }
+        catch (const Poco::SystemException& e)
+        {
+            ATOMIC_LOGERRORF("%s", e.message().c_str());
+            subprocess = nullptr;
+        }
+
+        if (!subprocess)
+        {
+            CurrentBuildError(ToString("NETCompile::Compile - Unable to launch MSBuild subprocess\n%s", curBuild_->allArgs_.CString()));
+            return;
+        }
+
+        VariantMap buildBeginEventData;
+        buildBeginEventData[NETBuildBegin::P_BUILD] = curBuild_;
+        SendEvent(E_NETBUILDBEGIN, buildBeginEventData);
+
+        SubscribeToEvent(subprocess, E_SUBPROCESSCOMPLETE, ATOMIC_HANDLER(NETBuildSystem, HandleCompileProcessComplete));
+        SubscribeToEvent(subprocess, E_SUBPROCESSOUTPUT, ATOMIC_HANDLER(NETBuildSystem, HandleSubprocessOutput));
+
+        curBuild_->status_ = NETBUILD_BUILDING;
     }
 
 

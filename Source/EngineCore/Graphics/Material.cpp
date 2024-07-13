@@ -57,7 +57,6 @@ static const char* textureUnitNames[] =
     "specular",
     "emissive",
     "environment",
-#ifdef DESKTOP_GRAPHICS
     "volume",
     "custom1",
     "custom2",
@@ -70,12 +69,6 @@ static const char* textureUnitNames[] =
     "light",
     "zone",
     0
-#else
-    "lightramp",
-    "lightshape",
-    "shadowmap",
-    0
-#endif
 };
 
 const char* cullModeNames[] =

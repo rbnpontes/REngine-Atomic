@@ -53,6 +53,7 @@ bool ToolEnvironment::InitFromDistribution()
 #ifdef ENGINE_PLATFORM_WINDOWS
     editorBinary_ = fileSystem->GetProgramDir() + "EngineEditor.exe";
     String resourcesDir = fileSystem->GetProgramDir() + "Resources/";
+    vs_where_binary_ = fileSystem->GetProgramDir() + "vswhere.exe";
     playerBinary_ = resourcesDir + String("ToolData/Deployment/Windows/x64/") + "AtomicPlayer.exe";
 #elif ENGINE_PLATFORM_LINUX
     editorBinary_ = fileSystem->GetProgramDir() + "EngineEditor";
@@ -138,6 +139,10 @@ void ToolEnvironment::SetRootSourceDir(const String& sourceDir)
     atomicNETRootDir_ = rootSourceDir_ + "Artifacts/AtomicNET/";
     atomicNETCoreAssemblyDir_ = rootSourceDir_ + "Artifacts/AtomicNET/" + config + "/";
 
+#ifdef ENGINE_PLATFORM_WINDOWS
+    vs_where_binary_ = ToString("%sArtifacts/vswhere.exe", rootSourceDir_.CString());
+#endif
+
 #if defined ENGINE_PLATFORM_WINDOWS || defined ENGINE_PLATFORM_LINUX
     atomicNETNuGetBinary_ = ToString("%sBuild/Managed/nuget/nuget.exe", rootSourceDir_.CString());
 #endif
@@ -212,6 +217,9 @@ void ToolEnvironment::Dump()
     ATOMIC_LOGINFOF("Editor Binary: %s", editorBinary_.CString());
     ATOMIC_LOGINFOF("Player Binary: %s", playerBinary_.CString());
     ATOMIC_LOGINFOF("Tool Binary: %s", toolBinary_.CString());
+#ifdef ENGINE_PLATFORM_WINDOWS
+    ATOMIC_LOGINFOF("VsWhere Binary: %s", vs_where_binary_.CString());
+#endif
 
 
     ATOMIC_LOGINFOF("Tool Data Dir: %s", toolDataDir_.CString());

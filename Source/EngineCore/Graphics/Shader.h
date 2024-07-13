@@ -59,6 +59,9 @@ public:
     /// Return the latest timestamp of the shader code and its includes.
     unsigned GetTimeStamp() const { return timeStamp_; }
 
+    /// Return shader unique hash.
+    u32 ToHash() const { return hash_; }
+
 private:
     /// Process source code and include files. Return true if successful.
     bool ProcessSource(String& code, Deserializer& file);
@@ -79,6 +82,8 @@ private:
     unsigned timeStamp_;
     /// Number of unique variations so far.
     unsigned numVariations_;
+    /// Shader unique hash
+    u32 hash_;
 };
 
 }

@@ -21,7 +21,8 @@ namespace Atomic
 	ea::shared_ptr<IDrawCommand> DrawCommandQueue::CreateImmediateCommand()
 	{
 		Graphics* graphics = GetSubsystem<Graphics>();
-		ea::shared_ptr<IDrawCommand> command(REngine::graphics_create_command(graphics));
+		Renderer* renderer = GetSubsystem<Renderer>();
+		ea::shared_ptr<IDrawCommand> command(REngine::graphics_create_command(graphics, renderer));
 		commands_.push_back(command);
 		return command;
 	}

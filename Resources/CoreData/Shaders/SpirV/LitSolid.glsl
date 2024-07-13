@@ -14,7 +14,7 @@
         varying vec2 vTexCoord;
     #endif
 #endif
-#if defined(NORMALMAP) || defined(PERPIXEL) || defined(PREPASS) || defined(DEFERRED)
+#if defined(NORMALMAP) || defined(PERPIXEL) || defined(PREPASS) || defined(DEFERRED) || defined(NORMAL)
     #define FEATURE_NORMAL 1
     varying vec3 vNormal;
 #endif

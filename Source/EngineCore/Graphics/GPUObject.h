@@ -32,17 +32,6 @@ namespace Atomic
 
 class Graphics;
 
-#ifndef RENGINE_DILIGENT
-/// API-specific GPU object representation.
-union GPUObjectHandle
-{
-    /// Object pointer (Direct3D.)
-    void* ptr_;
-    /// Object name (OpenGL.)
-    unsigned name_;
-};
-#endif
-
 /// Base class for GPU resources.
 class ATOMIC_API GPUObject
 {

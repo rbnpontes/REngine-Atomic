@@ -70,9 +70,7 @@
             "assemblyOutputPath" : "..\\..\\$ATOMIC_CONFIG$\\Android\\",
             "projectGuid" : "C74AB5E7-7517-11E6-BF7F-005056C00008",
             "references" : [
-                "Mono.Android",
-                "System",
-                "System.Core"
+                "Mono.Android"
             ],
             "sources" : [
             ]
@@ -89,10 +87,6 @@
             "projectGuid" : "C74AB5E8-7517-11E6-B3CD-005056C00008",
             "references" : [
                 "Mono.Android",
-                "System",
-                "System.Core",
-                "System.Xml.Linq",
-                "System.Xml",
                 "AtomicNET.Android.SDL"
             ],
             "sharedReferences" : [
@@ -115,11 +109,7 @@
             "projectGuid" : "C74AB5E8-7517-11E6-AE3F-005056C00008",
             "objcBindingApiDefinition" : "$ATOMIC_ROOT$/Script/AtomicNET/Platform/iOS/ApiDefinition/ApiDefinition.cs",
             "references" : [
-                "Xamarin.iOS",
-                "System",
-                "System.Core",
-                "System.Xml.Linq",
-                "System.Xml"
+                "Xamarin.iOS"
             ],
             "sharedReferences" : [
                 "AtomicNET.Shared"

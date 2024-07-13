@@ -42,12 +42,14 @@ namespace REngine
 
 	static u32 s_texture_2d_type = Texture2D::GetTypeStatic();
 	static u32 s_texture_cube_type = TextureCube::GetTypeStatic();
+
 	//static ea::queue<ShaderParameterUpdateData> s_empty_params_queue = {};
 	class DrawCommandImpl : public IDrawCommand
 	{
 	public:
-		DrawCommandImpl(Graphics* graphics, Diligent::IDeviceContext* context) :
+		DrawCommandImpl(Graphics* graphics, Renderer* renderer, Diligent::IDeviceContext* context) :
 			graphics_(graphics),
+			renderer_(renderer),
 			context_(context),
 			bind_depth_stencil_(nullptr),
 			params_2_update_({}), next_param_2_update_idx_(0), bind_rts_(),
@@ -240,6 +242,10 @@ namespace REngine
 		{
 			SetVertexBuffers(buffers.Buffer(), buffers.Size(), instance_offset);
 		}
+		void SetVertexBuffers(const ea::vector<SharedPtr<VertexBuffer>>& buffers, u32 instance_offset) override
+		{
+			SetVertexBuffers(buffers.data(), buffers.size(), instance_offset);
+		}
 		void SetVertexBuffers(const ea::vector<VertexBuffer*>& buffers, u32 instance_offset) override
 		{
 			SetVertexBuffers(const_cast<VertexBuffer**>(buffers.data()), buffers.size(), instance_offset);
@@ -355,7 +361,7 @@ namespace REngine
 			// If parameters is exceeded we must skip writing
 			if(idx == MAX_SHADER_PARAMETER_UPDATES)
 			{
-				ATOMIC_LOGWARNING("Exceeded number of writing at shader parameters");
+				PrintExceededShaderWrite();
 				return;
 			}
 
@@ -381,7 +387,7 @@ namespace REngine
 			// If parameters is exceeded we must skip writing
 			if(idx == MAX_SHADER_PARAMETER_UPDATES)
 			{
-				ATOMIC_LOGWARNING("Exceeded number of writing at shader parameters");
+				PrintExceededShaderWrite();
 				return;
 			}
 
@@ -407,7 +413,7 @@ namespace REngine
 			// If parameters is exceeded we must skip writing
 			if(idx == MAX_SHADER_PARAMETER_UPDATES)
 			{
-				ATOMIC_LOGWARNING("Exceeded number of writing at shader parameters");
+				PrintExceededShaderWrite();
 				return;
 			}
 
@@ -433,7 +439,7 @@ namespace REngine
 			// If parameters is exceeded we must skip writing
 			if(idx == MAX_SHADER_PARAMETER_UPDATES)
 			{
-				ATOMIC_LOGWARNING("Exceeded number of writing at shader parameters");
+				PrintExceededShaderWrite();
 				return;
 			}
 
@@ -459,7 +465,7 @@ namespace REngine
 			// If parameters is exceeded we must skip writing
 			if(idx == MAX_SHADER_PARAMETER_UPDATES)
 			{
-				ATOMIC_LOGWARNING("Exceeded number of writing at shader parameters");
+				PrintExceededShaderWrite();
 				return;
 			}
 
@@ -485,7 +491,7 @@ namespace REngine
 			// If parameters is exceeded we must skip writing
 			if(idx == MAX_SHADER_PARAMETER_UPDATES)
 			{
-				ATOMIC_LOGWARNING("Exceeded number of writing at shader parameters");
+				PrintExceededShaderWrite();
 				return;
 			}
 
@@ -511,7 +517,7 @@ namespace REngine
 			// If parameters is exceeded we must skip writing
 			if(idx == MAX_SHADER_PARAMETER_UPDATES)
 			{
-				ATOMIC_LOGWARNING("Exceeded number of writing at shader parameters");
+				PrintExceededShaderWrite();
 				return;
 			}
 
@@ -537,7 +543,7 @@ namespace REngine
 			// If parameters is exceeded we must skip writing
 			if(idx == MAX_SHADER_PARAMETER_UPDATES)
 			{
-				ATOMIC_LOGWARNING("Exceeded number of writing at shader parameters");
+				PrintExceededShaderWrite();
 				return;
 			}
 
@@ -563,7 +569,7 @@ namespace REngine
 			// If parameters is exceeded we must skip writing
 			if(idx == MAX_SHADER_PARAMETER_UPDATES)
 			{
-				ATOMIC_LOGWARNING("Exceeded number of writing at shader parameters");
+				PrintExceededShaderWrite();
 				return;
 			}
 
@@ -589,7 +595,7 @@ namespace REngine
 			// If parameters is exceeded we must skip writing
 			if(idx == MAX_SHADER_PARAMETER_UPDATES)
 			{
-				ATOMIC_LOGWARNING("Exceeded number of writing at shader parameters");
+				PrintExceededShaderWrite();
 				return;
 			}
 
@@ -615,7 +621,7 @@ namespace REngine
 			// If parameters is exceeded we must skip writing
 			if(idx == MAX_SHADER_PARAMETER_UPDATES)
 			{
-				ATOMIC_LOGWARNING("Exceeded number of writing at shader parameters");
+				PrintExceededShaderWrite();
 				return;
 			}
 
@@ -672,7 +678,7 @@ namespace REngine
 			// If parameters is exceeded we must skip writing
 			if(idx == MAX_SHADER_PARAMETER_UPDATES)
 			{
-				ATOMIC_LOGWARNING("Exceeded number of writing at shader parameters");
+				PrintExceededShaderWrite();
 				return;
 			}
 
@@ -704,7 +710,7 @@ namespace REngine
 			// If parameters is exceeded we must skip writing
 			if(idx == MAX_SHADER_PARAMETER_UPDATES)
 			{
-				ATOMIC_LOGWARNING("Exceeded number of writing at shader parameters");
+				PrintExceededShaderWrite();
 				return;
 			}
 
@@ -730,7 +736,7 @@ namespace REngine
 			// If parameters is exceeded we must skip writing
 			if(idx == MAX_SHADER_PARAMETER_UPDATES)
 			{
-				ATOMIC_LOGWARNING("Exceeded number of writing at shader parameters");
+				PrintExceededShaderWrite();
 				return;
 			}
 
@@ -756,7 +762,7 @@ namespace REngine
 			// If parameters is exceeded we must skip writing
 			if(idx == MAX_SHADER_PARAMETER_UPDATES)
 			{
-				ATOMIC_LOGWARNING("Exceeded number of writing at shader parameters");
+				PrintExceededShaderWrite();
 				return;
 			}
 
@@ -1597,6 +1603,9 @@ namespace REngine
 						CombineHash(curr_vertx_decl_checksum_, vertex_buffers_[i]->GetBufferHash(0));
 				}
 
+				// Vertex declaration must match Shader Program hash
+				CombineHash(curr_vertx_decl_checksum_, shader_program_->ToHash());
+
 				if (curr_vertx_decl_checksum_ != last_vertx_decl_checksum_)
 					dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::vertex_decl);
 				last_vertx_decl_checksum_ = curr_vertx_decl_checksum_;
@@ -1657,14 +1666,42 @@ namespace REngine
 			dirty_flags_ ^= static_cast<u32>(RenderCommandDirtyState::textures);
 
 			u32 next_sampler_idx = 0;
-			for(auto& desc : textures_)
+			for(u32 i = 0; i < MAX_TEXTURE_UNITS; ++i)
 			{
-				if(!desc.owner)
-					continue;
+				const auto unit = static_cast<TextureUnit>(i);
+				auto& desc = textures_[i];
+				const auto sampler = shader_program_->GetSampler(unit);
 
-				const auto sampler = shader_program_->GetSampler(desc.unit);
+				if(!desc.owner)
+				{
+					if(!sampler)
+						continue;
+					// If bound texture is null but shader requires a sampler, we must use Dummy Texture instead.
+					const auto dummy_tex = GetRenderer()->GetSuitableDummyTexture(sampler->type);
+					desc.texture = dummy_tex->GetShaderResourceView();
+					desc.owner = ea::MakeShared(dummy_tex);
+				}
+
+				// If bound texture exists but shader doesn't need this sampler unit, we must skip!
 				if (!sampler)
 					continue;
+
+				// If shader texture unit type is not same of bound texture
+				// we must reject bound texture and use a dummy texture that
+				// matches texture unit type.
+				// TODO: create another types of dummy textures
+				if(sampler->type != desc.owner->GetUnitType())
+				{
+#if ENGINE_DEBUG
+					ATOMIC_LOGWARNINGF("Can't bind texture %s at shader slot %s. Current texture type doesn't match expected shader texture type.",
+						desc.owner->GetName().CString(),
+						sampler->name.c_str());
+#endif
+					const auto dummy_tex = GetRenderer()->GetSuitableDummyTexture(sampler->type);
+					desc.texture = dummy_tex->GetShaderResourceView();
+					desc.owner = ea::MakeShared(dummy_tex);
+				}
+
 				if(desc.name_hash != sampler->hash)
 					dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::srb);
 
@@ -1929,39 +1966,58 @@ namespace REngine
 			context_->CommitShaderResources(srb, RESOURCE_STATE_TRANSITION_MODE_TRANSITION);
 			context_->Draw(draw_attribs);
 		}
-		void SetVertexBuffers(VertexBuffer** buffers, u32 count, u32 instance_offset)
+
+#define VALIDATE_VBUFFER_COUNT(count) \
+		if((count) > MAX_VERTEX_STREAMS) \
+			ATOMIC_LOGWARNING("Too many vertex buffers")
+
+		void SetVertexBuffer(u32 index, VertexBuffer* buffer, const u32& instance_offset)
+		{
+			const auto& elements = buffer->GetElements();
+			// Check if buffer has per-instance data
+			const auto has_instance_data = elements.size() && elements[0].perInstance_;  // NOLINT(readability-container-size-empty)
+			const auto offset = has_instance_data ? instance_offset * buffer->GetVertexSize() : 0;
+			const auto buffer_obj = buffer->GetGPUObject().Cast<Diligent::IBuffer>(Diligent::IID_Buffer);
+
+			buffer->AddRef();
+			vertex_buffers_[index].reset(buffer, ea::EngineRefCounterDeleter<VertexBuffer>());
+			vertex_offsets_[index] = offset;
+			bind_vertex_buffers_[index] = buffer_obj;
+			// Build vertex buffer checksum
+			curr_vbuffer_checksum_ = 16777619;
+			curr_vbuffer_checksum_ ^= static_cast<u32>(reinterpret_cast<u64>(buffer_obj.ConstPtr())) * 16777619;
+			curr_vbuffer_checksum_ ^= offset * 16777619;
+
+		}
+		void SetVertexBuffers(VertexBuffer** buffers, u32 count, u32 instance_offset) override
 		{
 			ATOMIC_PROFILE(IDrawCommand::SetVertexBuffers);
-			if (count > MAX_VERTEX_STREAMS)
-				ATOMIC_LOGWARNING("Too many vertex buffers");
+			VALIDATE_VBUFFER_COUNT(count);
 
 			curr_vbuffer_checksum_		= 
 			curr_vertx_decl_checksum_	= 0;
 
 			num_vertex_buffers_ = count = Min(count, MAX_VERTEX_STREAMS);
 			for (u32 i = 0; i < count; ++i)
-			{
-				const auto buffer = buffers[i];
-				const auto& elements = buffer->GetElements();
-				// Check if buffer has per-instance data
-				const auto has_instance_data = elements.Size() && elements[0].perInstance_;
-				const auto offset = has_instance_data ? instance_offset * buffer->GetVertexSize() : 0;
-				const auto buffer_obj = buffer->GetGPUObject().Cast<Diligent::IBuffer>(Diligent::IID_Buffer);
+				SetVertexBuffer(i, buffers[i], instance_offset);
 
-				buffer->AddRef();
-				vertex_buffers_[i].reset(buffer, ea::EngineRefCounterDeleter<VertexBuffer>());
-				vertex_offsets_[i] = offset;
-				bind_vertex_buffers_[i] = buffer_obj;
-				// Build vertex buffer checksum
-				curr_vbuffer_checksum_ = 16777619;
-				curr_vbuffer_checksum_ ^= (u32)reinterpret_cast<u64>(buffer_obj.ConstPtr()) * 16777619;
-				curr_vbuffer_checksum_ ^= offset * 16777619;
-				//CombineHash(curr_vbuffer_checksum_, MakeHash(buffer_obj.ConstPtr()));
-				//CombineHash(curr_vbuffer_checksum_, offset);
-				// Build base Vertex Declaration Hash
-				curr_vertx_decl_checksum_ ^= buffer->GetBufferHash(i);
-				//CombineHash(curr_vertx_decl_checksum_, buffer->GetBufferHash(i));
+			if(curr_vbuffer_checksum_ != last_vbuffer_checksum_)
+			{
+				last_vbuffer_checksum_ = curr_vbuffer_checksum_;
+				dirty_flags_ |= static_cast<u32>(RenderCommandDirtyState::vertex_buffer);
 			}
+		}
+		void SetVertexBuffers(const SharedPtr<VertexBuffer>* buffers, u32 count, u32 instance_offset) override
+		{
+			ATOMIC_PROFILE(IDrawCommand::SetVertexBuffers);
+			VALIDATE_VBUFFER_COUNT(count);
+
+			curr_vbuffer_checksum_		= 
+			curr_vertx_decl_checksum_	= 0;
+
+			num_vertex_buffers_ = count = Min(count, MAX_VERTEX_STREAMS);
+			for (u32 i = 0; i < count; ++i)
+				SetVertexBuffer(i, buffers[i], instance_offset);
 
 			if(curr_vbuffer_checksum_ != last_vbuffer_checksum_)
 			{
@@ -1984,7 +2040,13 @@ namespace REngine
 
 			return result;
 		}
-#if ENGINE_DEBUG
+		Renderer* GetRenderer()
+		{
+			if (!renderer_)
+				renderer_ = graphics_->GetSubsystem<Renderer>();
+			return renderer_;
+		}
+		#if ENGINE_DEBUG
         void ValidatePipelineAndRenderTargets() 
         {
             assert(num_rts_ == pipeline_info_->output.num_rts && "Used Render Target Count is not same of Pipeline State. This indicates a bug on DrawCommand implementation");
@@ -2005,7 +2067,7 @@ namespace REngine
                        && "Assigned render target is not same of Pipeline State. This indicates a bug on DrawCommand implementation");
             }
         }
-#endif
+		#endif
 
 		static void WriteShaderParameter(ShaderProgram* program, const StringHash& param, void* data, u32 length)
 		{
@@ -2020,8 +2082,15 @@ namespace REngine
 		{
 			return size == sizeof(u16) ? Diligent::VT_UINT16 : Diligent::VT_UINT32;
 		}
+		static void PrintExceededShaderWrite()
+		{
+#if ENGINE_DEBUG
+			ATOMIC_LOGWARNING("Exceeded number of writing at shader parameters");
+#endif
+		}
 
 		Graphics* graphics_;
+		Renderer* renderer_;
 		Diligent::IDeviceContext* context_;
 		PipelineStateInfo* pipeline_info_;
 		Diligent::RefCntAutoPtr<Diligent::IPipelineState> pipeline_state_;
@@ -2076,9 +2145,9 @@ namespace REngine
 		u32 num_batches_;
 	};
 
-	Atomic::IDrawCommand* graphics_create_command(Atomic::Graphics* graphics)
+	Atomic::IDrawCommand* graphics_create_command(Atomic::Graphics* graphics, Atomic::Renderer* renderer)
 	{
-		Atomic::IDrawCommand* result = new DrawCommandImpl(graphics, graphics->GetImpl()->GetDeviceContext());
+		Atomic::IDrawCommand* result = new DrawCommandImpl(graphics, renderer, graphics->GetImpl()->GetDeviceContext());
 		return result;
 	}
 }

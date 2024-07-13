@@ -115,6 +115,8 @@ public:
     bool DirExists(const String& pathName) const;
     /// Scan a directory for specified files.
     void ScanDir(Vector<String>& result, const String& pathName, const String& filter, unsigned flags, bool recursive) const;
+    /// Scan a directory for specified files.
+    void ScanDir(ea::vector<ea::string>& result, const ea::string& pathName, const ea::string& filter, u32 flags, bool recursive) const;
     /// Return the program's directory.
     String GetProgramDir() const;
     /// Return the user documents directory.
