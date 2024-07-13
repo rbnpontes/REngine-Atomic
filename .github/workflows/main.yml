@@ -7,10 +7,10 @@ on:
   #     - master
   #   tags-ignore:
   #     - v*
-  pull_request:
-    types: [opened, synchronize]
-    tags-ignore:
-      - v*
+  push:
+    branches:
+      - 'feat/*'
+      - 'fix/*'
 jobs:
   Build-Windows:
     uses: ./.github/workflows/build.yml
