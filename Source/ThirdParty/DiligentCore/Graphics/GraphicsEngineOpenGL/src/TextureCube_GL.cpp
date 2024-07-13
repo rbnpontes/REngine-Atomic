@@ -298,7 +298,7 @@ void TextureCube_GL::AttachToFramebuffer(const TextureViewDesc& ViewDesc, GLenum
 void TextureCube_GL::CopyTexSubimage(GLContextState& GLState, const CopyTexSubimageAttribs& Attribs)
 {
     auto CubeMapFaceBindTarget = GetCubeMapFaceBindTarget(Attribs.DstLayer);
-    GLState.BindTexture(-1, CubeMapFaceBindTarget, GetGLHandle());
+    GLState.BindTexture(-1, GL_TEXTURE_CUBE_MAP, GetGLHandle());
 
     glCopyTexSubImage2D(CubeMapFaceBindTarget,
                         Attribs.DstMip,
