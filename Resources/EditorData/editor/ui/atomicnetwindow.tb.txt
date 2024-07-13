@@ -1,5 +1,5 @@
 TBLayout: axis: y, distribution: gravity
-    TBImageWidget: filename: "AtomicEditor/editor/images/atomicnet_info_header.png"
+    TBImageWidget: filename: "editor/images/atomicnet_info_header.png"
         lp: width: 500, height: 167, min-width: 500, min-height: 167
     TBEditField: multiline: 1, styling: 1, gravity: all, id: atomicnet_text, readonly: 1, adapt-to-content: 0
         font: size: 13
