@@ -243,7 +243,7 @@ function editorCopyNETBinaries() {
 }
 function editorCopyVsWhere() {
     console.log('- Copying VsWhere');
-    const vswhere_path = path.resolve(artifacts_root, 'Artifacts/vswhere.exe');
+    const vswhere_path = path.resolve(artifacts_root, 'vswhere.exe');
     const vswhere_out = path.resolve(artifacts_root, constants.engine_editor_name, 'vswhere.exe');
     console.log(`- Copying. From: ${vswhere_path} - To: ${vswhere_out}`)
     fs.copySync(vswhere_path, vswhere_out);
@@ -279,12 +279,12 @@ async function editorCopyBinaries() {
     const core_data_output_dir = path.resolve(resources_dest, 'Resources/CoreData');
     const player_data_dir = path.resolve(engine_root, 'Resources/PlayerData');
     const player_data_output_dir = path.resolve(resources_dest, 'Resources/PlayerData');
-    const engine_editor_data_dir = path.resolve(engine_root, 'Data', constants.engine_editor_name);
-    const tool_data_output_dir = path.resolve(resources_dest, 'Resources/ToolData');
+    const engine_editor_data_dir = path.resolve(engine_root, 'Data');
+    const tool_data_output_dir = path.resolve(resources_dest, 'Resources/ToolData', constants.engine_editor_name);
     const editor_data_dir = path.resolve(engine_root, 'Resources/EditorData');
     const editor_data_output_dir = path.resolve(resources_dest, 'Resources/EditorData');
-    const editor_scripts_dir = path.resolve(engine_root, `Artifacts/Build/Resources/EditorData/${constants.engine_editor_name}/EditorScripts`);
-    const editor_scripts_output_dir = path.resolve(resources_dest, 'Resources/EditorData/AtomicEditor/EditorScripts');
+    const editor_scripts_dir = path.resolve(engine_root, `Artifacts/Build/Resources/EditorData/EditorScripts`);
+    const editor_scripts_output_dir = path.resolve(resources_dest, 'Resources/EditorData/EditorScripts');
     const app_file_dir = (() => {
         if (os.platform() == 'win32') {
             return path.resolve(
