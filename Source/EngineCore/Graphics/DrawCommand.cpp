@@ -42,6 +42,7 @@ namespace REngine
 
 	static u32 s_texture_2d_type = Texture2D::GetTypeStatic();
 	static u32 s_texture_cube_type = TextureCube::GetTypeStatic();
+
 	//static ea::queue<ShaderParameterUpdateData> s_empty_params_queue = {};
 	class DrawCommandImpl : public IDrawCommand
 	{
@@ -360,7 +361,7 @@ namespace REngine
 			// If parameters is exceeded we must skip writing
 			if(idx == MAX_SHADER_PARAMETER_UPDATES)
 			{
-				ATOMIC_LOGWARNING("Exceeded number of writing at shader parameters");
+				PrintExceededShaderWrite();
 				return;
 			}
 
@@ -386,7 +387,7 @@ namespace REngine
 			// If parameters is exceeded we must skip writing
 			if(idx == MAX_SHADER_PARAMETER_UPDATES)
 			{
-				ATOMIC_LOGWARNING("Exceeded number of writing at shader parameters");
+				PrintExceededShaderWrite();
 				return;
 			}
 
@@ -412,7 +413,7 @@ namespace REngine
 			// If parameters is exceeded we must skip writing
 			if(idx == MAX_SHADER_PARAMETER_UPDATES)
 			{
-				ATOMIC_LOGWARNING("Exceeded number of writing at shader parameters");
+				PrintExceededShaderWrite();
 				return;
 			}
 
@@ -438,7 +439,7 @@ namespace REngine
 			// If parameters is exceeded we must skip writing
 			if(idx == MAX_SHADER_PARAMETER_UPDATES)
 			{
-				ATOMIC_LOGWARNING("Exceeded number of writing at shader parameters");
+				PrintExceededShaderWrite();
 				return;
 			}
 
@@ -464,7 +465,7 @@ namespace REngine
 			// If parameters is exceeded we must skip writing
 			if(idx == MAX_SHADER_PARAMETER_UPDATES)
 			{
-				ATOMIC_LOGWARNING("Exceeded number of writing at shader parameters");
+				PrintExceededShaderWrite();
 				return;
 			}
 
@@ -490,7 +491,7 @@ namespace REngine
 			// If parameters is exceeded we must skip writing
 			if(idx == MAX_SHADER_PARAMETER_UPDATES)
 			{
-				ATOMIC_LOGWARNING("Exceeded number of writing at shader parameters");
+				PrintExceededShaderWrite();
 				return;
 			}
 
@@ -516,7 +517,7 @@ namespace REngine
 			// If parameters is exceeded we must skip writing
 			if(idx == MAX_SHADER_PARAMETER_UPDATES)
 			{
-				ATOMIC_LOGWARNING("Exceeded number of writing at shader parameters");
+				PrintExceededShaderWrite();
 				return;
 			}
 
@@ -542,7 +543,7 @@ namespace REngine
 			// If parameters is exceeded we must skip writing
 			if(idx == MAX_SHADER_PARAMETER_UPDATES)
 			{
-				ATOMIC_LOGWARNING("Exceeded number of writing at shader parameters");
+				PrintExceededShaderWrite();
 				return;
 			}
 
@@ -568,7 +569,7 @@ namespace REngine
 			// If parameters is exceeded we must skip writing
 			if(idx == MAX_SHADER_PARAMETER_UPDATES)
 			{
-				ATOMIC_LOGWARNING("Exceeded number of writing at shader parameters");
+				PrintExceededShaderWrite();
 				return;
 			}
 
@@ -594,7 +595,7 @@ namespace REngine
 			// If parameters is exceeded we must skip writing
 			if(idx == MAX_SHADER_PARAMETER_UPDATES)
 			{
-				ATOMIC_LOGWARNING("Exceeded number of writing at shader parameters");
+				PrintExceededShaderWrite();
 				return;
 			}
 
@@ -620,7 +621,7 @@ namespace REngine
 			// If parameters is exceeded we must skip writing
 			if(idx == MAX_SHADER_PARAMETER_UPDATES)
 			{
-				ATOMIC_LOGWARNING("Exceeded number of writing at shader parameters");
+				PrintExceededShaderWrite();
 				return;
 			}
 
@@ -677,7 +678,7 @@ namespace REngine
 			// If parameters is exceeded we must skip writing
 			if(idx == MAX_SHADER_PARAMETER_UPDATES)
 			{
-				ATOMIC_LOGWARNING("Exceeded number of writing at shader parameters");
+				PrintExceededShaderWrite();
 				return;
 			}
 
@@ -709,7 +710,7 @@ namespace REngine
 			// If parameters is exceeded we must skip writing
 			if(idx == MAX_SHADER_PARAMETER_UPDATES)
 			{
-				ATOMIC_LOGWARNING("Exceeded number of writing at shader parameters");
+				PrintExceededShaderWrite();
 				return;
 			}
 
@@ -735,7 +736,7 @@ namespace REngine
 			// If parameters is exceeded we must skip writing
 			if(idx == MAX_SHADER_PARAMETER_UPDATES)
 			{
-				ATOMIC_LOGWARNING("Exceeded number of writing at shader parameters");
+				PrintExceededShaderWrite();
 				return;
 			}
 
@@ -761,7 +762,7 @@ namespace REngine
 			// If parameters is exceeded we must skip writing
 			if(idx == MAX_SHADER_PARAMETER_UPDATES)
 			{
-				ATOMIC_LOGWARNING("Exceeded number of writing at shader parameters");
+				PrintExceededShaderWrite();
 				return;
 			}
 
@@ -2080,6 +2081,12 @@ namespace REngine
 		static Diligent::VALUE_TYPE GetIndexSize(u32 size)
 		{
 			return size == sizeof(u16) ? Diligent::VT_UINT16 : Diligent::VT_UINT32;
+		}
+		static void PrintExceededShaderWrite()
+		{
+#if ENGINE_DEBUG
+			ATOMIC_LOGWARNING("Exceeded number of writing at shader parameters");
+#endif
 		}
 
 		Graphics* graphics_;
