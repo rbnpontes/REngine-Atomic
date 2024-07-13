@@ -367,6 +367,12 @@ public:
     /// Return the dummy texture.
     Texture2D* GetDummyTexture() const { return dummy_texture_; }
 
+    /// Return the dummy texture cube.
+    TextureCube* GetDummyTextureCube() const { return dummy_texture_cube_; }
+
+    /// Return correct dummy texture for a given unit type.
+    Texture* GetSuitableDummyTexture(TextureUnitType unit_type);
+
     /// Return the shadowed pointlight face selection cube map.
     TextureCube* GetFaceSelectCubeMap() const { return faceSelectCubeMap_; }
 
@@ -496,6 +502,8 @@ private:
     SharedPtr<Texture2D> defaultLightSpot_;
     /// Dummy texture
     SharedPtr<Texture2D> dummy_texture_;
+    /// Dummy texture cube
+    SharedPtr<TextureCube> dummy_texture_cube_;
     /// Face selection cube map for shadowed pointlights.
     SharedPtr<TextureCube> faceSelectCubeMap_;
     /// Indirection cube map for shadowed pointlights.

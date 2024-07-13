@@ -1676,7 +1676,7 @@ namespace REngine
 					if(!sampler)
 						continue;
 					// If bound texture is null but shader requires a sampler, we must use Dummy Texture instead.
-					const auto dummy_tex = GetRenderer()->GetDummyTexture();
+					const auto dummy_tex = GetRenderer()->GetSuitableDummyTexture(sampler->type);
 					desc.texture = dummy_tex->GetShaderResourceView();
 					desc.owner = ea::MakeShared(dummy_tex);
 				}
@@ -1696,7 +1696,7 @@ namespace REngine
 						desc.owner->GetName().CString(),
 						sampler->name.c_str());
 #endif
-					const auto dummy_tex = GetRenderer()->GetDummyTexture();
+					const auto dummy_tex = GetRenderer()->GetSuitableDummyTexture(sampler->type);
 					desc.texture = dummy_tex->GetShaderResourceView();
 					desc.owner = ea::MakeShared(dummy_tex);
 				}
@@ -2066,7 +2066,7 @@ namespace REngine
                        && "Assigned render target is not same of Pipeline State. This indicates a bug on DrawCommand implementation");
             }
         }
-#endif
+		#endif
 
 		static void WriteShaderParameter(ShaderProgram* program, const StringHash& param, void* data, u32 length)
 		{

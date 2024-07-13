@@ -561,7 +561,13 @@ namespace Atomic
             return nullptr;
         }
 
+        String name = "TextureCube";
+        if (!texture->GetName().Empty())
+            name.Append('|');
+        name.Append(texture->GetName());
+
         TextureCube* tex_cube = new TextureCube(texture->GetContext());
+        tex_cube->SetName(name);
         tex_cube->SetSize(texture->GetWidth(), texture->GetFormat(), texture->GetUsage(), 1);
         for (u32 face = FACE_POSITIVE_X; face < MAX_CUBEMAP_FACES; ++face)
             tex_cube->SetData(static_cast<CubeMapFace>(face), texture);

@@ -1609,6 +1609,7 @@ void Renderer::Initialize()
     defaultLightRamp_ = cache->GetResource<Texture2D>("Textures/Ramp.png");
     defaultLightSpot_ = cache->GetResource<Texture2D>("Textures/Spot.png");
     dummy_texture_ = cache->GetResource<Texture2D>("Textures/NoTexture.jpg");
+    dummy_texture_cube_ = TextureCube::CreateFrom(dummy_texture_);
     defaultMaterial_ = new Material(context_);
 
     defaultRenderPath_ = new RenderPath();
@@ -2022,4 +2023,21 @@ void Renderer::BlurShadowMap(View* view, Texture2D* shadowMap, float blurScale)
     graphics_->SetTexture(TU_DIFFUSE, tmpBuffer);
     view->DrawFullscreenQuad(true);
 }
+
+
+Texture* Renderer::GetSuitableDummyTexture(TextureUnitType unit_type)
+{
+    switch (unit_type)
+    {
+    case TextureUnitType::Texture2D:
+        return dummy_texture_;
+    case TextureUnitType::TextureCube:
+        return dummy_texture_cube_;
+    case TextureUnitType::Texture3D:
+    case TextureUnitType::Undefined:
+        throw std::runtime_error("Invalid texture unit type. Can't get a dummy texture for this unit type.");
+    }
+    return nullptr;
+}
+
 }
