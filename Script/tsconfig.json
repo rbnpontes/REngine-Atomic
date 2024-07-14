@@ -113,7 +113,7 @@
         "./AtomicEditor/ui/ScriptWidget.ts",
         "./AtomicEditor/ui/Shortcuts.ts",
         "./TypeScript/Atomic.d.ts",
-        "./TypeScript/AtomicApp.d.ts",
+        "./TypeScript/EngineApp.d.ts",
         "./TypeScript/AtomicNETScript.d.ts",
         "./TypeScript/AtomicPlayer.d.ts",
         "./TypeScript/AtomicWork.d.ts",
