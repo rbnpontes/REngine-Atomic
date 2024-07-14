@@ -1,6 +1,6 @@
 {
-	"name" : "AtomicApp",
-	"sources" : ["Source/AtomicApp", "Source/AtomicApp/Player"],
+	"name" : "EngineApp",
+	"sources" : ["Source/EngineApp", "Source/EngineApp/Player"],
 	"classes" : ["AppBase", "PlayerApp", "IPCClientApp", "IPCPlayerApp", "IPCServerApp"],
 	"classExcludes" : {
 		"IPCClientApp" : ["ANDROID", "IOS", "WEB"],

@@ -23,7 +23,7 @@
 
 #pragma once
 
-#include <AtomicApp/IPCClientApp.h>
+#include <EngineApp/IPCClientApp.h>
 
 namespace Atomic
 {

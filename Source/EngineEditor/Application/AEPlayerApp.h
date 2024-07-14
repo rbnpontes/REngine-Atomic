@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include <AtomicApp/Player/IPCPlayerApp.h>
+#include <EngineApp/Player/IPCPlayerApp.h>
 
 using namespace Atomic;
 

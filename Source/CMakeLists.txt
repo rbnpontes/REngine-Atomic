@@ -14,7 +14,7 @@ if (ENGINE_WEBVIEW)
 endif ()
 
 if (ENGINE_JAVASCRIPT OR ENGINE_DOTNET)
-    add_subdirectory(AtomicApp)
+    add_subdirectory(EngineApp)
     if (ENGINE_DOTNET)
         add_subdirectory(AtomicNET)
     endif()

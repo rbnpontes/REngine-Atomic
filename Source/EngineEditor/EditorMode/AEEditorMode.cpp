@@ -43,7 +43,7 @@
 
 #include <EngineCore/UI/SystemUI/DebugHud.h>
 
-#include <AtomicApp/Player/IPCPlayerAppEvents.h>
+#include <EngineApp/Player/IPCPlayerAppEvents.h>
 
 #include "AEEditorMode.h"
 

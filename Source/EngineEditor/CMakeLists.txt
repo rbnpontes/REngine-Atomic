@@ -138,7 +138,7 @@ endif ()
 target_link_libraries(${CEF_TARGET} ToolCore AtomicWebView AtomicJS AtomicPlayerJS ToolCoreJS Poco nativefiledialog ${ENGINE_CORE_LIB_TARGET} EASTL)
 
 if(ENGINE_JAVASCRIPT OR ENGINE_DOTNET)
-    target_link_libraries(${CEF_TARGET} AtomicApp)
+    target_link_libraries(${CEF_TARGET} ${ENGINE_APP_TARGET})
 endif()
 
 if(ENGINE_DOTNET)

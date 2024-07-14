@@ -4,7 +4,7 @@
 #include <EngineCore/IPC/IPCEvents.h>
 #include <EngineCore/IPC/IPCBroker.h>
 
-#include <AtomicApp/Player/IPCPlayerAppEvents.h>
+#include <EngineApp/Player/IPCPlayerAppEvents.h>
 #include <EngineCore/Input/InputEvents.h>
 
 #include "IPCServerApp.h"
