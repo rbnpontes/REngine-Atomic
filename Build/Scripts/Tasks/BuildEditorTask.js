@@ -275,18 +275,25 @@ async function editorCopyBinaries() {
                 throw getUnsupportedEnvironmentError();
         }
     })();
+    // CoreData
     const core_data_dir = path.resolve(engine_root, 'Resources/CoreData');
     const core_data_output_dir = path.resolve(resources_dest, 'Resources/CoreData');
+    // PlayerData
     const player_data_dir = path.resolve(engine_root, 'Resources/PlayerData');
     const player_data_output_dir = path.resolve(resources_dest, 'Resources/PlayerData');
+    // EngineData/ToolData
     const engine_editor_data_dir = path.resolve(engine_root, 'Data');
     const tool_data_output_dir = path.resolve(resources_dest, 'Resources/ToolData');
+    // Engine Examples
     const examples_dir = path.resolve(engine_root, 'Submodules/EngineExamples');
     const examples_output = path.resolve(resources_dest, 'Resources/ToolData/EngineExamples');
+    // Editor Data
     const editor_data_dir = path.resolve(engine_root, 'Resources/EditorData');
     const editor_data_output_dir = path.resolve(resources_dest, 'Resources/EditorData');
+    // Editor Scripts
     const editor_scripts_dir = path.resolve(engine_root, `Artifacts/Build/Resources/EditorData/EditorScripts`);
     const editor_scripts_output_dir = path.resolve(resources_dest, 'Resources/EditorData/EditorScripts');
+    // App
     const app_file_dir = (() => {
         if (os.platform() == 'win32') {
             return path.resolve(
@@ -344,6 +351,7 @@ async function editorCopyBinaries() {
         );
     })();
 
+    // Copy files from a list of paths
     [
         [editor_build_dir, editor_output_dir],
         [core_data_dir, core_data_output_dir],
