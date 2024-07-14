@@ -281,6 +281,8 @@ async function editorCopyBinaries() {
     const player_data_output_dir = path.resolve(resources_dest, 'Resources/PlayerData');
     const engine_editor_data_dir = path.resolve(engine_root, 'Data');
     const tool_data_output_dir = path.resolve(resources_dest, 'Resources/ToolData');
+    const examples_dir = path.resolve(engine_root, 'Submodules/EngineExamples');
+    const examples_output = path.resolve(resources_dest, 'Resources/ToolData/EngineExamples');
     const editor_data_dir = path.resolve(engine_root, 'Resources/EditorData');
     const editor_data_output_dir = path.resolve(resources_dest, 'Resources/EditorData');
     const editor_scripts_dir = path.resolve(engine_root, `Artifacts/Build/Resources/EditorData/EditorScripts`);
@@ -347,6 +349,7 @@ async function editorCopyBinaries() {
         [core_data_dir, core_data_output_dir],
         [player_data_dir, player_data_output_dir],
         [engine_editor_data_dir, tool_data_output_dir],
+        [examples_dir, examples_output],
         [editor_data_dir, editor_data_output_dir],
         [editor_scripts_dir, editor_scripts_output_dir],
         [app_file_dir, app_file_output_dir]
