@@ -13,6 +13,7 @@ Resources/CoreData/Shaders/HLSL/Cache
 Artifacts/*
 Docs/out/*
 Docs/node_modules/*
+Data/AtomicEditor
 Data/Deployment/Web/AtomicPlayer.js
 Data/Deployment/Web/AtomicPlayer.html.mem
 Data/Deployment/IOS/AtomicPlayer.app/AtomicPlayer
