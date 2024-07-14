@@ -67,7 +67,7 @@ class AtomicEditor extends Atomic.ScriptObject {
             this.handleProjectUnloaded(data);
         }));
 
-        this.subscribeToEvent(Atomic.ScriptEvent(EditorEvents.IPCPlayerWindowChangedEventType, (data: AtomicApp.IPCPlayerWindowChangedEvent) => {
+        this.subscribeToEvent(Atomic.ScriptEvent(EditorEvents.IPCPlayerWindowChangedEventType, (data: EngineApp.IPCPlayerWindowChangedEvent) => {
             var playerWindow = Preferences.getInstance().playerWindow;
             //if player window is maximized, then we want keep the window size from the previous state
             if (data.maximized) {
