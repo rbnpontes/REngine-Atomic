@@ -222,7 +222,7 @@ async function editorGenerate() {
 function editorCopyNETBinaries() {
     console.log(`- Copying ${constants.engine_name} .NET binaries`);
     const engine_lib_path = path.resolve(engine_root, 'Artifacts', constants.engine_net_name, config.config);
-    const engine_lib_out_path = path.resolve(engine_root, 'Resources/ToolData', constants.engine_net_name, config.config);
+    const engine_lib_out_path = path.resolve(resources_dest, 'Resources/ToolData', constants.engine_net_name, config.config);
     const engine_proj_path = path.resolve(engine_root, 'Script', constants.engine_net_name, constants.engine_project_json);
     const engine_proj_out_path = path.resolve(
         resources_dest,
