@@ -27,7 +27,7 @@ const artifacts_root = engineGetArtifactsRoot();
 const editor_app_folder = config.editorAppFolder;
 const resources_dest = (() => {
     if (os.platform() == 'win32')
-        return editor_app_folder;
+        return path.join(artifacts_root, constants.engine_editor_name);
     else if (os.platform() == 'darwin')
         return path.resolve(editor_app_folder, 'Contents');
     return path.join(artifacts_root, constants.engine_editor_name);
@@ -222,7 +222,7 @@ async function editorGenerate() {
 function editorCopyNETBinaries() {
     console.log(`- Copying ${constants.engine_name} .NET binaries`);
     const engine_lib_path = path.resolve(engine_root, 'Artifacts', constants.engine_net_name, config.config);
-    const engine_lib_out_path = path.resolve(resources_dest, 'Resources/ToolData', constants.engine_net_name, config.config);
+    const engine_lib_out_path = path.resolve(engine_root, 'Resources/ToolData', constants.engine_net_name, config.config);
     const engine_proj_path = path.resolve(engine_root, 'Script', constants.engine_net_name, constants.engine_project_json);
     const engine_proj_out_path = path.resolve(
         resources_dest,
@@ -280,7 +280,7 @@ async function editorCopyBinaries() {
     const player_data_dir = path.resolve(engine_root, 'Resources/PlayerData');
     const player_data_output_dir = path.resolve(resources_dest, 'Resources/PlayerData');
     const engine_editor_data_dir = path.resolve(engine_root, 'Data');
-    const tool_data_output_dir = path.resolve(resources_dest, 'Resources/ToolData', constants.engine_editor_name);
+    const tool_data_output_dir = path.resolve(resources_dest, 'Resources/ToolData');
     const editor_data_dir = path.resolve(engine_root, 'Resources/EditorData');
     const editor_data_output_dir = path.resolve(resources_dest, 'Resources/EditorData');
     const editor_scripts_dir = path.resolve(engine_root, `Artifacts/Build/Resources/EditorData/EditorScripts`);
