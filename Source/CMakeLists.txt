@@ -4,7 +4,7 @@ add_subdirectory(ThirdParty)
 add_subdirectory(EngineCore)
 
 if (ENGINE_JAVASCRIPT)
-    add_subdirectory(AtomicPlayer)
+    add_subdirectory(EnginePlayer)
     add_subdirectory(AtomicJS)
     add_subdirectory(AtomicPlayerJS)
 endif ()
