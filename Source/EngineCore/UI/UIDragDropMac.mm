@@ -26,9 +26,9 @@
 #include <ThirdParty/SDL/include/SDL.h>
 #include <ThirdParty/SDL/include/SDL_syswm.h>
 
-#include <Atomic/IO/Log.h>
-#include <Atomic/Input/InputEvents.h>
-#include <Atomic/Graphics/Graphics.h>
+#include "../IO/Log.h"
+#include "../Input/InputEvents.h"
+#include "../Graphics/Graphics.h"
 
 #include "UIDragDrop.h"
 #include "UIDragDropMac.h"
