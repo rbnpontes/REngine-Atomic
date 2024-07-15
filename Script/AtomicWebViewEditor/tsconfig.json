@@ -6,7 +6,7 @@
         "noImplicitAny": false,
         "removeComments": true,
         "noLib": false,
-        "outDir": "../../Data/AtomicEditor/CodeEditor/source/editorCore",
+        "outDir": "../../Data/CodeEditor/source/editorCore",
         "sourceMap": true,
         "forceConsistentCasingInFileNames": true
     },
