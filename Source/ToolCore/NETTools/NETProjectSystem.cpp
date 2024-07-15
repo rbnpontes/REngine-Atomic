@@ -528,7 +528,7 @@ namespace ToolCore
         Poco::Pipe out_pipe;
 
         // execute vswhere process
-        const auto vs_proc = Poco::Process::launch(tool_env->GetVsWhereToBinary().CString(), vs_where_args, nullptr, &out_pipe, nullptr);
+        const auto vs_proc = Poco::Process::launch(tool_env->GetVsWhereBinary().CString(), vs_where_args, nullptr, &out_pipe, nullptr);
         Poco::PipeInputStream input_stream(out_pipe);
 
         // copy output process to vs_path

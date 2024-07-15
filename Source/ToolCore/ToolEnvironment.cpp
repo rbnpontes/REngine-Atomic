@@ -44,6 +44,14 @@ ToolEnvironment::~ToolEnvironment()
 
 }
 
+const String& ToolEnvironment::GetVsWhereBinary() {
+#ifdef ENGINE_PLATFORM_WINDOWS
+    return vs_where_binary_;
+#else
+    return "";
+#endif
+}
+
 bool ToolEnvironment::InitFromDistribution()
 {
     toolPrefs_->Load();
