@@ -155,7 +155,8 @@ async function editorBuildSecondPhase() {
                     '-target', constants.engine_player_name,
                     '-configuration', config.config,
                     '-parallelizeTargets',
-                    '-jobs', '4'
+                    '-jobs', '4',
+                    '-verbose'
                 ],
                 { cwd: build_dir }
             );
