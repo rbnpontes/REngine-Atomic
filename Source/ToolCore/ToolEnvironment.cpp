@@ -193,7 +193,7 @@ void ToolEnvironment::SetRootBuildDir(const String& buildDir, bool setBinaryPath
                 playerBinary_ = rootBuildDir_ + ToString(
                     "Source/%s/%s/%s.app/Contents/MacOS/%s", 
                     ENGINE_PLAYER_TARGET, CMAKE_INTDIR, 
-                    ENGINE_PLAYER, ENGINE_PLAYER
+                    ENGINE_PLAYER_TARGET, ENGINE_PLAYER_TARGET
                 );
                 editorBinary_ = rootBuildDir_ + ToString(
                     "Source/%s/%s/%s.app/Contents/MacOS/%s",
