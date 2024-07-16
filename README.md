@@ -1,3 +1,4 @@
+[![Build Status](https://github.com/rbnpontes/REngine-Atomic/actions/workflows/main.yml/badge.svg?event=push)](https://github.com/rbnpontes/REngine-Atomic/actions/workflows/main.yml)
 #### Why REngine - Atomic ?
 
 This project is a fork of Atomic Game Engine that is abandoned 
