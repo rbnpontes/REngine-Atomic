@@ -10,7 +10,7 @@ if (ENGINE_JAVASCRIPT)
 endif ()
 
 if (ENGINE_WEBVIEW)
-    add_subdirectory(AtomicWebView)
+    add_subdirectory(EngineWebView)
 endif ()
 
 if (ENGINE_JAVASCRIPT OR ENGINE_DOTNET)

@@ -36,11 +36,11 @@
 #include <ToolCore/ToolSystem.h>
 #include <ToolCore/Project/Project.h>
 
-#include <AtomicWebView/WebViewEvents.h>
-#include <AtomicWebView/UIWebView.h>
-#include <AtomicWebView/WebClient.h>
-#include <AtomicWebView/WebMessageHandler.h>
-#include <AtomicWebView/WebTexture2D.h>
+#include <EngineWebView/WebViewEvents.h>
+#include <EngineWebView/UIWebView.h>
+#include <EngineWebView/WebClient.h>
+#include <EngineWebView/WebMessageHandler.h>
+#include <EngineWebView/WebTexture2D.h>
 
 #include "JSResourceEditor.h"
 

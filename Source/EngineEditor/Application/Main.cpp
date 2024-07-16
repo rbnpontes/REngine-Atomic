@@ -22,7 +22,7 @@
 
 #if defined(ENGINE_PLATFORM_WINDOWS) || defined (ENGINE_PLATFORM_LINUX)
 #ifdef ENGINE_WEBVIEW
-#include <AtomicWebView/AtomicWebView.h>
+#include <EngineWebView/AtomicWebView.h>
 #endif
 #endif
 

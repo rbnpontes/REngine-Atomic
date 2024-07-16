@@ -4,7 +4,7 @@
 
 #ifdef ENGINE_PLATFORM_MACOS
 
-#include <AtomicWebView/AtomicWebView.h>
+#include <EngineWebView/AtomicWebView.h>
 
 // Entry point function for sub-processes.
 int main(int argc, char* argv[])

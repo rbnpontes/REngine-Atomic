@@ -1,6 +1,6 @@
 {
 	"name" : "Editor",
-	"includes" : ["<EngineCore/Graphics/DebugRenderer.h>", "<AtomicWebView/UIWebView.h>"],
+	"includes" : ["<EngineCore/Graphics/DebugRenderer.h>", "<EngineWebView/UIWebView.h>"],
 	"sources" : ["Source/EngineEditor/Application", "Source/EngineEditor/Utils",
 							 "Source/EngineEditor/EditorMode", "Source/EngineEditor/PlayerMode",
 							 "Source/EngineEditor/Editors", "Source/EngineEditor/Editors/SceneEditor3D",

@@ -1,6 +1,6 @@
 {
 	"name" : "WebView",
 	"includes" : ["<EngineCore/Graphics/DebugRenderer.h>"],
-	"sources" : ["Source/AtomicWebView"],
+	"sources" : ["Source/EngineWebView"],
 	"classes" : ["WebBrowserHost", "WebClient", "WebRenderHandler", "WebTexture2D", "UIWebView", "WebMessageHandler"]
 }

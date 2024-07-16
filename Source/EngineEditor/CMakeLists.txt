@@ -76,7 +76,7 @@ if (ENGINE_WEBVIEW)
         add_executable(${CEF_HELPER_TARGET} MACOSX_BUNDLE "${CMAKE_CURRENT_SOURCE_DIR}/WebView/WebProcessHelperMac.cpp")
         SET_EXECUTABLE_TARGET_PROPERTIES(${CEF_HELPER_TARGET})
         add_dependencies(${CEF_HELPER_TARGET} libcef_dll_wrapper)
-        target_link_libraries(${CEF_HELPER_TARGET} libcef_lib libcef_dll_wrapper ${CEF_STANDARD_LIBS} ${ENGINE_CORE_LIB_TARGET} AtomicWebView)
+        target_link_libraries(${CEF_HELPER_TARGET} libcef_lib libcef_dll_wrapper ${CEF_STANDARD_LIBS} ${ENGINE_CORE_LIB_TARGET} ${ENGINE_WEB_VIEW_TARGET})
 
         set_target_properties(${CEF_HELPER_TARGET} PROPERTIES
             MACOSX_BUNDLE_INFO_PLIST "${ENGINE_SOURCE_DIR}/Build/CMake/Modules/EngineEditor-HelperInfo.plist.template"
@@ -135,7 +135,7 @@ if (ENGINE_WEBVIEW)
     target_compile_definitions(${CEF_TARGET} PUBLIC -DENGINE_EDITOR_NAME="${ENGINE_EDITOR_NAME}")
 endif ()
 
-target_link_libraries(${CEF_TARGET} ToolCore AtomicWebView AtomicJS ${ENGINE_PLAYER_JS_TARGET} ToolCoreJS Poco nativefiledialog ${ENGINE_CORE_LIB_TARGET} EASTL)
+target_link_libraries(${CEF_TARGET} ToolCore ${ENGINE_WEB_VIEW_TARGET} AtomicJS ${ENGINE_PLAYER_JS_TARGET} ToolCoreJS Poco nativefiledialog ${ENGINE_CORE_LIB_TARGET} EASTL)
 
 if(ENGINE_JAVASCRIPT OR ENGINE_DOTNET)
     target_link_libraries(${CEF_TARGET} ${ENGINE_APP_TARGET})
