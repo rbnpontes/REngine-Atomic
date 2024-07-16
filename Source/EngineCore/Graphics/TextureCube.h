@@ -31,6 +31,7 @@ namespace Atomic
 
 class Deserializer;
 class Image;
+class Texture2D;
 
 /// Cube texture resource.
 class ATOMIC_API TextureCube : public Texture

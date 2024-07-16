@@ -63,9 +63,7 @@ public:
     const String& GetEditorBinary() { return editorBinary_; }
     const String& GetPlayerBinary() { return playerBinary_; }
     const String& GetToolBinary() { return toolBinary_; }
-#ifdef ENGINE_PLATFORM_WINDOWS
-    const String& GetVsWhereToBinary() { return vs_where_binary_; }
-#endif
+    const String& GetVsWhereBinary();
     /// Resource directories
     const String& GetCoreDataDir() { return resourceCoreDataDir_; }
     const String& GetPlayerDataDir() { return resourcePlayerDataDir_; }

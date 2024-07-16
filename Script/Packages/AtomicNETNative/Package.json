@@ -2,7 +2,7 @@
 {
   "name" : "AtomicNETNative",
   "namespace" : "Atomic",
-  "dependencies" : ["Script/Packages/AtomicApp"],
+  "dependencies" : ["Script/Packages/EngineApp"],
   "modules" : ["AtomicNETNative"],
   "platforms" : ["WINDOWS", "MACOSX","LINUX", "ANDROID"],
   "bindings" : ["CSharp"]

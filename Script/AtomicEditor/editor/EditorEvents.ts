@@ -20,7 +20,7 @@
 // THE SOFTWARE.
 //
 
-// These are exposed in AtomicApp, but that module is not available to call until the player is playing
+// These are exposed in EngineApp, but that module is not available to call until the player is playing
 // but we need the event names
 export const IPCPlayerExitRequestEventType: Atomic.EventType = "IPCPlayerExitRequest";
 export const IPCPlayerWindowChangedEventType: Atomic.EventType = "IPCPlayerWindowChanged";

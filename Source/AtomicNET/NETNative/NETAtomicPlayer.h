@@ -23,7 +23,7 @@
 
 #pragma once
 
-#include <AtomicApp/Player/PlayerApp.h>
+#include <EngineApp/Player/PlayerApp.h>
 
 namespace Atomic
 {

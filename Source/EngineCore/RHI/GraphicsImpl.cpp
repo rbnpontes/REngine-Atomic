@@ -1583,7 +1583,7 @@ namespace Atomic
 			const auto cache_count = REngine::texture_manager_stg_textures_count();
 			REngine::texture_manager_clear_stg_textures();
 			if (cache_count > 0)
-				ATOMIC_LOGINFO("Release (%d) Staging Textures", cache_count);
+				ATOMIC_LOGINFOF("Release (%d) Staging Textures", cache_count);
 		}
 	}
 

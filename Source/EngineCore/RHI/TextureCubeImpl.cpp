@@ -4,6 +4,7 @@
 #include "../Graphics/Graphics.h"
 #include "../Graphics/Renderer.h"
 #include "../Graphics/TextureCube.h"
+#include "../Graphics/Texture2D.h"
 #include "../IO/Log.h"
 #include "../Resource/ResourceCache.h"
 #include "./DiligentUtils.h"

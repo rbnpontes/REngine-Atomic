@@ -36,7 +36,7 @@ async function cmakeGenerate(options) {
     );
 
     if(err_code != 0)
-        throw new Error('CMake process exited with code ' + code);
+        throw new Error('CMake process exited with code ' + err_code);
 }
 
 module.exports = {

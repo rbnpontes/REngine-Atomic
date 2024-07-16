@@ -1,7 +1,7 @@
 /// <reference path="Atomic.d.ts" />
 /// <reference path="ToolCore.d.ts" />
 /// <reference path="Editor.d.ts" />
-/// <reference path="AtomicPlayer.d.ts" />
+/// <reference path="EnginePlayer.d.ts" />
 
 declare module Atomic {
 
@@ -20,7 +20,7 @@ declare module Atomic {
     export var network: Network;
     export var ui: UI;
     export var audio: Audio;
-    export var player: AtomicPlayer.Player;
+    export var player: EnginePlayer.Player;
 
     export var editorMode: Editor.EditorMode;
 

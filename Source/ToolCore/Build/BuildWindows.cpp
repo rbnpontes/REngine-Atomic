@@ -161,7 +161,7 @@ void BuildWindows::BuildNative(const String& buildPath)
 
     String playerBinary = tenv->GetPlayerBinary();
 
-    if (!BuildCopyFile(playerBinary, buildPath_ + "/AtomicPlayer.exe"))
+    if (!BuildCopyFile(playerBinary, buildPath_ + ToString("/%s.exe", ENGINE_PLAYER_TARGET)))
         return;
 }
 
@@ -191,14 +191,14 @@ void BuildWindows::Build(const String& buildPath)
     if (!BuildCreateDirectory(buildPath_))
         return;
 
-    if (!resourcesOnly_ && !BuildCreateDirectory(buildPath_ + "/AtomicPlayer_Resources"))
+    if (!resourcesOnly_ && !BuildCreateDirectory(buildPath_ + ToString("/AtomicPlayer_Resources", ENGINE_PLAYER_TARGET)))
         return;
 
-    String resourcePackagePath = buildPath_ + "/AtomicPlayer_Resources/AtomicResources" + PAK_EXTENSION;
+    String resourcePackagePath = buildPath_ + ToString("/%s_Resources/Resources%s", ENGINE_PLAYER_TARGET, PAK_EXTENSION);
 
     if (resourcesOnly_)
     {
-        resourcePackagePath = buildPath_ + "/AtomicResources" + PAK_EXTENSION;
+        resourcePackagePath = buildPath_ + ToString("/Resources", PAK_EXTENSION);
     }
 
     GenerateResourcePackage(resourcePackagePath);

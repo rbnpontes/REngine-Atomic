@@ -376,7 +376,7 @@ namespace ToolCore
 //
 //            // execute vswhere process
 //            const auto vs_proc = Poco::Process::launch(
-//                tenv->GetVsWhereToBinary().CString(),
+//                tenv->GetVsWhereBinary().CString(),
 //                vs_where_args,
 //                nullptr,
 //                &out_pipe,
