@@ -6,7 +6,7 @@ target_link_libraries(PackageTool ${ENGINE_CORE_LIB_TARGET})
 
 
 file (GLOB_RECURSE EDITORDATA_FILES ${ENGINE_SOURCE_DIR}/Data/Resources/EditorData/*)
-file (GLOB_RECURSE COREDATA_FILES ${ENGINE_SOURCE_DIR}/Data/AtomicPlayer/Resources/CoreData/*)
+file (GLOB_RECURSE COREDATA_FILES ${ENGINE_SOURCE_DIR}/Data/Resources/CoreData/*)
 
 if (ATOMIC_BUILD_PAK_FILES)
     set (EDITORDATA_PAK "${ENGINE_SOURCE_DIR}/Bin/EditorData.pak")
@@ -21,7 +21,7 @@ if (ATOMIC_BUILD_PAK_FILES)
                         DEPENDS PackageTool ${EDITORDATA_FILES})
 
         add_custom_command(OUTPUT "${COREDATA_PAK}"
-                        COMMAND $<TARGET_FILE:PackageTool> "${ENGINE_SOURCE_DIR}/Data/AtomicPlayer/Resources/CoreData" "${COREDATA_PAK}" -c
+                        COMMAND $<TARGET_FILE:PackageTool> "${ENGINE_SOURCE_DIR}/Data/Resources/CoreData" "${COREDATA_PAK}" -c
                         COMMAND ${CMAKE_COMMAND}
                         ARGS -E copy \"${COREDATA_PAK}\" \"$<TARGET_FILE_DIR:AtomicEditor>/CoreData.pak\"
                         DEPENDS PackageTool ${COREDATA_FILES})
@@ -34,7 +34,7 @@ if (ATOMIC_BUILD_PAK_FILES)
                         DEPENDS PackageTool ${EDITORDATA_FILES})
 
         add_custom_command(OUTPUT "${COREDATA_PAK}"
-                        COMMAND $<TARGET_FILE:PackageTool> "${ENGINE_SOURCE_DIR}/Data/AtomicPlayer/Resources/CoreData" "${COREDATA_PAK}" -c
+                        COMMAND $<TARGET_FILE:PackageTool> "${ENGINE_SOURCE_DIR}/Data/Resources/CoreData" "${COREDATA_PAK}" -c
                         COMMAND rsync -u "${COREDATA_PAK}" "$<TARGET_FILE_DIR:AtomicEditor>/../Resources/CoreData.pak"
                         DEPENDS PackageTool ${COREDATA_FILES})
 
@@ -46,7 +46,7 @@ if (ATOMIC_BUILD_PAK_FILES)
                         DEPENDS PackageTool ${EDITORDATA_FILES})
 
         add_custom_command(OUTPUT "${COREDATA_PAK}"
-                        COMMAND $<TARGET_FILE:PackageTool> "${ENGINE_SOURCE_DIR}/Data/AtomicPlayer/Resources/CoreData" "${COREDATA_PAK}" -c
+                        COMMAND $<TARGET_FILE:PackageTool> "${ENGINE_SOURCE_DIR}/Data/Resources/CoreData" "${COREDATA_PAK}" -c
                         COMMAND rsync -u "${COREDATA_PAK}" "$<TARGET_FILE_DIR:AtomicEditor>/CoreData.pak"
                         DEPENDS PackageTool ${COREDATA_FILES})
 

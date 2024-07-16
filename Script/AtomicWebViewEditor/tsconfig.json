@@ -42,7 +42,7 @@
         "../TypeScript/Atomic.d.ts",
         "../TypeScript/EngineApp.d.ts",
         "../TypeScript/AtomicNETScript.d.ts",
-        "../TypeScript/AtomicPlayer.d.ts",
+        "../TypeScript/EnginePlayer.d.ts",
         "../TypeScript/AtomicWork.d.ts",
         "../TypeScript/duktape.d.ts",
         "../TypeScript/Editor.d.ts",
