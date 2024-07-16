@@ -10,7 +10,7 @@ file (GLOB CSHARP_BINDINGS_SOURCE ${CSATOMICDIR}/Atomic/Native/*.cpp ${CSATOMICD
                                   ${CSATOMICDIR}/AtomicNETNative/Native/*.cpp ${CSATOMICDIR}/AtomicNETNative/Native/*.h
                                   ${CSATOMICDIR}/AtomicNETScript/Native/*.cpp ${CSATOMICDIR}/AtomicNETScript/Native/*.h
                                   ${CSATOMICDIR}/${ENGINE_APP_TARGET}/Native/*.cpp ${CSATOMICDIR}/${ENGINE_APP_TARGET}/Native/*.h
-                                  ${CSATOMICDIR}/AtomicPlayer/Native/*.cpp ${CSATOMICDIR}/AtomicPlayer/Native/*.h )
+                                  ${CSATOMICDIR}/${ENGINE_PLAYER_TARGET}/Native/*.cpp ${CSATOMICDIR}/${ENGINE_PLAYER_TARGET}/Native/*.h )
 
 file (GLOB SOURCE_FILES *.cpp *.h)
 
@@ -27,7 +27,7 @@ add_library(AtomicNETNative SHARED ${SOURCE_FILES} ${CSHARP_BINDINGS_SOURCE})
 if (ENGINE_DESKTOP)
     add_dependencies(AtomicNETNative AtomicToolCheckScripts)
 endif ()
-target_link_libraries(AtomicNETNative ${ENGINE_APP_TARGET} AtomicNETScriptBindings AtomicNETScript AtomicJS ${ENGINE_PLAYER_TARGET_LIB} AtomicPlayerJS ${ENGINE_CORE_LIB_TARGET})
+target_link_libraries(AtomicNETNative ${ENGINE_APP_TARGET} AtomicNETScriptBindings AtomicNETScript AtomicJS ${ENGINE_PLAYER_TARGET_LIB} ${ENGINE_PLAYER_JS_TARGET} ${ENGINE_CORE_LIB_TARGET})
 target_include_directories(AtomicNETNative PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 if (APPLE)

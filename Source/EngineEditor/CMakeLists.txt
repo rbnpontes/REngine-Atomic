@@ -135,7 +135,7 @@ if (ENGINE_WEBVIEW)
     target_compile_definitions(${CEF_TARGET} PUBLIC -DENGINE_EDITOR_NAME="${ENGINE_EDITOR_NAME}")
 endif ()
 
-target_link_libraries(${CEF_TARGET} ToolCore AtomicWebView AtomicJS AtomicPlayerJS ToolCoreJS Poco nativefiledialog ${ENGINE_CORE_LIB_TARGET} EASTL)
+target_link_libraries(${CEF_TARGET} ToolCore AtomicWebView AtomicJS ${ENGINE_PLAYER_JS_TARGET} ToolCoreJS Poco nativefiledialog ${ENGINE_CORE_LIB_TARGET} EASTL)
 
 if(ENGINE_JAVASCRIPT OR ENGINE_DOTNET)
     target_link_libraries(${CEF_TARGET} ${ENGINE_APP_TARGET})

@@ -24,7 +24,7 @@ else()
 endif()
 
 if (NOT IOS)
-    target_link_libraries(${ENGINE_PLAYER_TARGET} AtomicJS ${ENGINE_PLAYER_TARGET_LIB} AtomicPlayerJS ${ENGINE_CORE_LIB_TARGET})
+    target_link_libraries(${ENGINE_PLAYER_TARGET} AtomicJS ${ENGINE_PLAYER_TARGET_LIB} ${ENGINE_PLAYER_JS_TARGET} ${ENGINE_CORE_LIB_TARGET})
 endif()
 
 if (APPLE)

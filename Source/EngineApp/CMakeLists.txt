@@ -12,7 +12,7 @@ if (ENGINE_DESKTOP)
     endif()
 endif ()
 if(ENGINE_JAVASCRIPT)
-    target_link_libraries(${ENGINE_APP_TARGET} AtomicJS AtomicPlayerJS)
+    target_link_libraries(${ENGINE_APP_TARGET} AtomicJS ${ENGINE_PLAYER_JS_TARGET})
 endif()
 GroupSources("Player")
 
