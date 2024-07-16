@@ -40,7 +40,7 @@
 
 #include <AtomicJS/Javascript/Javascript.h>
 
-#include <AtomicPlayer/Player.h>
+#include <EnginePlayer/Player.h>
 
 #include "AtomicPlayer.h"
 

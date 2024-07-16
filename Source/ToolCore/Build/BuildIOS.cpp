@@ -65,10 +65,10 @@ String BuildIOS::GenerateInfoPlist()
     plist += "<string>English</string>\n";
 
     plist += "<key>CFBundleExecutable</key>\n";
-    plist += "<string>AtomicPlayer</string>\n";
+    plist.AppendWithFormat("<string>%s</string>\n", ENGINE_PLAYER_TARGET);
 
     plist += "<key>CFBundleGetInfoString</key>\n";
-    plist += "<string>\"Atomic Player\"</string>\n";
+    plist.AppendWithFormat("<string>\"%s\"</string>\n", ENGINE_PLAYER_TARGET);
 
     plist += "<key>CFBundleIconFile</key>\n";
     plist += "<string></string>\n";

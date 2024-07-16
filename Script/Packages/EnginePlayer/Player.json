@@ -1,5 +1,5 @@
 {
 	"name" : "Player",
-	"sources" : ["Source/AtomicPlayer"],
+	"sources" : ["Source/EnginePlayer"],
 	"classes" : ["Player"]
 }

@@ -27,7 +27,7 @@ add_library(AtomicNETNative SHARED ${SOURCE_FILES} ${CSHARP_BINDINGS_SOURCE})
 if (ENGINE_DESKTOP)
     add_dependencies(AtomicNETNative AtomicToolCheckScripts)
 endif ()
-target_link_libraries(AtomicNETNative ${ENGINE_APP_TARGET} AtomicNETScriptBindings AtomicNETScript AtomicJS AtomicPlayerLib AtomicPlayerJS ${ENGINE_CORE_LIB_TARGET})
+target_link_libraries(AtomicNETNative ${ENGINE_APP_TARGET} AtomicNETScriptBindings AtomicNETScript AtomicJS ${ENGINE_PLAYER_TARGET_LIB} AtomicPlayerJS ${ENGINE_CORE_LIB_TARGET})
 target_include_directories(AtomicNETNative PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 if (APPLE)

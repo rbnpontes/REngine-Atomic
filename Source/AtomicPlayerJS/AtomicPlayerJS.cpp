@@ -21,7 +21,7 @@
 //
 
 #include <AtomicJS/Javascript/JSVM.h>
-#include <AtomicPlayer/Player.h>
+#include <EnginePlayer/Player.h>
 
 using namespace Atomic;
 using namespace AtomicPlayer;
@@ -29,7 +29,7 @@ using namespace AtomicPlayer;
 namespace Atomic
 {
 
-    extern void jsb_package_atomicplayer_init(JSVM* vm);
+    extern void jsb_package_engineplayer_init(JSVM* vm);
 
 }
 
@@ -40,7 +40,7 @@ void jsapi_init_atomicplayer(JSVM* vm)
 {
     duk_context* ctx = vm->GetJSContext();
 
-    jsb_package_atomicplayer_init(vm);
+    jsb_package_engineplayer_init(vm);
 
     duk_get_global_string(ctx, "Atomic");
 

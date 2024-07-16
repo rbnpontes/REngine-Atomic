@@ -30,7 +30,7 @@
 
 #include <AtomicJS/Javascript/Javascript.h>
 
-#include <AtomicPlayer/Player.h>
+#include <EnginePlayer/Player.h>
 
 #include "PlayerApp.h"
 
@@ -63,30 +63,30 @@ namespace Atomic
 
         FileSystem *filesystem = GetSubsystem<FileSystem>();
 
-        engineParameters_.InsertNew("WindowTitle", "AtomicPlayer");
+        engineParameters_.InsertNew("WindowTitle", ENGINE_PLAYER_TARGET);
 
 #if (ATOMIC_PLATFORM_ANDROID)
         engineParameters_.InsertNew("FullScreen", true);
-        engineParameters_.InsertNew("ResourcePaths", "CoreData;PlayerData;Cache;AtomicResources");
+        engineParameters_.InsertNew("ResourcePaths", "CoreData;PlayerData;Cache;Resources");
 #elif ATOMIC_PLATFORM_WEB
         engineParameters_.InsertNew("FullScreen", false);
-        engineParameters_.InsertNew("ResourcePaths", "AtomicResources");
+        engineParameters_.InsertNew("ResourcePaths", "Resources");
         // engineParameters_.InsertNew("WindowWidth", 1280);
         // engineParameters_.InsertNew("WindowHeight", 720);
 #elif ATOMIC_PLATFORM_IOS
         engineParameters_.InsertNew("FullScreen", false);
-        engineParameters_.InsertNew("ResourcePaths", "AtomicResources");
+        engineParameters_.InsertNew("ResourcePaths", "Resources");
 #else
         engineParameters_.InsertNew("FullScreen", false);
         engineParameters_.InsertNew("WindowWidth", 1280);
         engineParameters_.InsertNew("WindowHeight", 720);
-        engineParameters_.InsertNew("ResourcePaths", "AtomicResources");
+        engineParameters_.InsertNew("ResourcePaths", "Resources");
 #endif
 
 #if ENGINE_PLATFORM_WINDOWS || ENGINE_PLATFORM_LINUX
 
-        engineParameters_.InsertNew("WindowIcon", "Images/AtomicLogo32.png");
-        engineParameters_.InsertNew("ResourcePrefixPaths", "AtomicPlayer_Resources");
+        engineParameters_.InsertNew("WindowIcon", "Images/EngineLogo32.png");
+        engineParameters_.InsertNew("ResourcePrefixPaths", ToString("%s_Resources", ENGINE_PLAYER_TARGET));
 
 #elif ATOMIC_PLATFORM_ANDROID
         //engineParameters_.InsertNew("ResourcePrefixPaths"], "assets");
@@ -95,7 +95,7 @@ namespace Atomic
 #endif
 
         // Setup player log
-        engineParameters_.InsertNew("LogName", filesystem->GetAppPreferencesDir("AtomicPlayer", "Logs") + "AtomicPlayer.log");
+        engineParameters_.InsertNew("LogName", filesystem->GetAppPreferencesDir(ENGINE_PLAYER_TARGET, "Logs") + ToString("%s.log", ENGINE_PLAYER_TARGET));
 
         // Register JS packages
         JSVM::RegisterPackage(AtomicPlayer::jsapi_init_atomicplayer);

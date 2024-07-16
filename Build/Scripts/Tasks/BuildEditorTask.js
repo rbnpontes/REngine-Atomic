@@ -137,7 +137,8 @@ async function editorBuildSecondPhase() {
                     config.config,
                     vs_tools_path,
                     constants.engine_solution_name,
-                    constants.engine_editor_name
+                    constants.engine_editor_name,
+                    constants.engine_player_name
                 ], { cwd: build_dir });
         },
         linux: async () => {
