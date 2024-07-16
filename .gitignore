@@ -16,7 +16,7 @@ Docs/node_modules/*
 Data/AtomicEditor
 Data/Deployment/Web/AtomicPlayer.js
 Data/Deployment/Web/AtomicPlayer.html.mem
-Data/Deployment/IOS/AtomicPlayer.app/AtomicPlayer
+Data/Deployment/IOS/*.app/*
 node_modules/*
 /.project
 Script/TypeScript/**/*.d.ts
