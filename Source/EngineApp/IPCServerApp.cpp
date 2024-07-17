@@ -70,14 +70,14 @@ namespace Atomic
 #ifdef ENGINE_DEV_BUILD
 
 #ifdef ENGINE_DEBUG        
-            clientBinary = projectPath + ToString("%s/Debug/Bin/Desktop/%s", ENGINE_NET_NAME, projectExe);
+            clientBinary = projectPath + ToString("%s/Debug/Bin/Desktop/%s", ENGINE_NET_NAME, projectExe.CString());
 #else
-            clientBinary = projectPath + ToString("%s/Release/Bin/Desktop/%s", ENGINE_NET_NAME, projectExe);
+            clientBinary = projectPath + ToString("%s/Release/Bin/Desktop/%s", ENGINE_NET_NAME, projectExe.CString());
 #endif
 
 #else
             // TODO: We are using the release build of the managed project here, how and when to use debug?
-            clientBinary = projectPath + ToString("%s/Release/Bin/Desktop/", ENGINE_NET_NAME, projectExe);
+            clientBinary = projectPath + ToString("%s/Release/Bin/Desktop/%s", ENGINE_NET_NAME, projectExe.CString());
 #endif
 
 
