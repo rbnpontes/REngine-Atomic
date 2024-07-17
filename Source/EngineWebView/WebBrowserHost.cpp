@@ -141,7 +141,7 @@ WebBrowserHost::WebBrowserHost(Context* context) : Object (context)
     // these include "--enable-media-stream", "--enable-usermedia-screen-capturing", "--off-screen-rendering-enabled", "--transparent-painting-enabled"
 
 #ifdef ENGINE_PLATFORM_LINUX
-    static const char* _argv[2] = { "AtomicWebView", "--disable-setuid-sandbox" };
+    static const char* _argv[2] = { ENGINE_WEB_VIEW_TARGET, "--disable-setuid-sandbox" };
     CefMainArgs args(2, (char**) &_argv);
 #else
     CefMainArgs args;

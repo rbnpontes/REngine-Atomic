@@ -14,6 +14,7 @@ GroupSources("Internal")
 
 add_library(${ENGINE_WEB_VIEW_TARGET} ${SOURCE_FILES})
 target_link_libraries(${ENGINE_WEB_VIEW_TARGET} ${ENGINE_CORE_LIB_TARGET})
+target_compile_definitions(${ENGINE_WEB_VIEW_TARGET} -DENGINE_WEB_VIEW_TARGET="${ENGINE_WEB_VIEW_TARGET}")
 
 if (ENGINE_JAVASCRIPT OR ENGINE_DOTNET)
     add_dependencies(${ENGINE_WEB_VIEW_TARGET} AtomicToolCheckScripts)
