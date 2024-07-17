@@ -23,7 +23,7 @@
 #include <EngineCore/Core/Context.h>
 #include <EngineCore/IO/Log.h>
 
-#include <AtomicNET/NETScript/NETScript.h>
+#include <EngineNET/NETScript/NETScript.h>
 
 #include <ToolCore/NETTools/NETProjectSystem.h>
 #include <ToolCore/NETTools/AtomicNETService.h>
@@ -57,7 +57,7 @@ namespace AtomicEditor
         if (!netService_->Start())
         {
             netService_ = nullptr;
-            ATOMIC_LOGERRORF("Unable to start AtomicNETService");
+            ATOMIC_LOGERRORF("Unable to start NETService");
             return false;
         }
 

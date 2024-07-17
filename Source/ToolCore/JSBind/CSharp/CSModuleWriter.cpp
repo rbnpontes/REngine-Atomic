@@ -135,7 +135,7 @@ void CSModuleWriter::GenerateNativeSource()
     // If additional interfaces are introduced, consider generalizing this
     source += "\n#include <EngineCore/IO/Deserializer.h>\n";
     source += "#include <EngineCore/IO/Serializer.h>\n";
-    source += "#include <AtomicNET/NETNative/NETCore.h>\n";
+    source.AppendWithFormat("#include <%s/NETNative/NETCore.h>", ENGINE_NET_NAME);
 
     String ns = module_->GetPackage()->GetNamespace();
 

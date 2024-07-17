@@ -1,8 +1,8 @@
 
 {
-  "name" : "AtomicNETScript",
+  "name" : "EngineNETScript",
   "namespace" : "Atomic",
   "dependencies" : ["Script/Packages/Atomic"],
-  "modules" : ["AtomicNETScript"],
+  "modules" : ["EngineNETScript"],
   "platforms" : ["WINDOWS", "MACOSX","LINUX", "ANDROID"]
 }

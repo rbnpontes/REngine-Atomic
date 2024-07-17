@@ -23,7 +23,7 @@
 
 #include <EngineCore/Scene/ValueAnimation.h>
 
-#include <AtomicNET/NETScript/CSComponent.h>
+#include <EngineNET/NETScript/CSComponent.h>
 
 #include <EngineCore/Input/Controls.h>
 
@@ -167,7 +167,7 @@ namespace Atomic
             return netCore;
         }
 
-        ATOMIC_EXPORT_API unsigned csi_Atomic_AtomicNET_StringToStringHash(const char* str)
+        ATOMIC_EXPORT_API unsigned csi_Atomic_EngineNET_StringToStringHash(const char* str)
         {
             unsigned hash = 0;
 
@@ -185,7 +185,7 @@ namespace Atomic
             return hash;
         }
 
-        ATOMIC_EXPORT_API void csi_Atomic_AtomicNET_ScriptVariantMapCopyVariantMap(ScriptVariantMap* svm, VariantMap* vm)
+        ATOMIC_EXPORT_API void csi_Atomic_EngineNET_ScriptVariantMapCopyVariantMap(ScriptVariantMap* svm, VariantMap* vm)
         {
             if (!svm)
                 return;
@@ -200,7 +200,7 @@ namespace Atomic
 
         }
 
-        ATOMIC_EXPORT_API void* csi_Atomic_AtomicNET_ScriptVariantMap_GetVoidPtr(ScriptVariantMap* svm, const char* key)
+        ATOMIC_EXPORT_API void* csi_Atomic_EngineNET_ScriptVariantMap_GetVoidPtr(ScriptVariantMap* svm, const char* key)
         {
             if (!svm || !key || !strlen(key))
                 return nullptr;

@@ -132,7 +132,9 @@ if (ENGINE_WEBVIEW)
         COPY_FILES("${CEF_TARGET}" "${CEF_RESOURCE_FILES}" "${CEF_RESOURCE_DIR}" "${CEF_TARGET_OUT_DIR}")
     endif ()
 
-    target_compile_definitions(${CEF_TARGET} PUBLIC -DENGINE_EDITOR_NAME="${ENGINE_EDITOR_NAME}")
+    target_compile_definitions(${CEF_TARGET} PUBLIC 
+        -DENGINE_EDITOR_NAME="${ENGINE_EDITOR_NAME}"
+        -DENGINE_NET_NAME="${ENGINE_NET_NAME}")
 endif ()
 
 target_link_libraries(${CEF_TARGET} ToolCore ${ENGINE_WEB_VIEW_TARGET} AtomicJS ${ENGINE_PLAYER_JS_TARGET} ToolCoreJS Poco nativefiledialog ${ENGINE_CORE_LIB_TARGET} EASTL)
@@ -143,7 +145,7 @@ endif()
 
 if(ENGINE_DOTNET)
     target_compile_definitions(${CEF_TARGET} PUBLIC -DENGINE_DOTNET=1)
-    target_link_libraries(${CEF_TARGET} AtomicNETScriptBindings AtomicNETScript)
+    target_link_libraries(${CEF_TARGET} ${ENGINE_NET_SCRIPT_BINDINGS_TARGET} ${ENGINE_NET_SCRIPT_TARGET})
 endif()
 
 if (APPLE)

@@ -78,7 +78,7 @@ bool ToolEnvironment::InitFromDistribution()
 
     toolDataDir_ =  resourcesDir + "ToolData/";
 
-    // AtomicNET
+    // EngineNET
 
 #ifdef ENGINE_DEBUG
     String config = "Debug";
@@ -86,7 +86,7 @@ bool ToolEnvironment::InitFromDistribution()
     String config = "Release";
 #endif
 
-    atomicNETRootDir_ = resourcesDir + "ToolData/AtomicNET/";
+    atomicNETRootDir_ = resourcesDir + ToString("ToolData/%s/", ENGINE_NET_NAME);
     atomicNETCoreAssemblyDir_ = atomicNETRootDir_ + config + "/";
 
 #ifdef ENGINE_PLATFORM_MACOS
@@ -136,7 +136,7 @@ void ToolEnvironment::SetRootSourceDir(const String& sourceDir)
     resourceEditorDataDir_ = rootSourceDir_ + "Resources/EditorData";
     toolDataDir_ = rootSourceDir_ + "Data/";
 
-    // AtomicNET
+    // EngineNET
 
 #ifdef ENGINE_DEBUG
     String config = "Debug";
@@ -144,8 +144,8 @@ void ToolEnvironment::SetRootSourceDir(const String& sourceDir)
     String config = "Release";
 #endif
 
-    atomicNETRootDir_ = rootSourceDir_ + "Artifacts/AtomicNET/";
-    atomicNETCoreAssemblyDir_ = rootSourceDir_ + "Artifacts/AtomicNET/" + config + "/";
+    atomicNETRootDir_ = rootSourceDir_ + ToString("Artifacts/%s/", ENGINE_NET_NAME);
+    atomicNETCoreAssemblyDir_ = rootSourceDir_ + ToString("Artifacts/%s/", ENGINE_NET_NAME) + config + "/";
 
 #ifdef ENGINE_PLATFORM_WINDOWS
     vs_where_binary_ = ToString("%sArtifacts/vswhere.exe", rootSourceDir_.CString());

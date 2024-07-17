@@ -235,28 +235,28 @@ namespace ToolCore
 
             String platform;
 
-            if (ref.StartsWith("AtomicNET"))
+            if (ref.StartsWith(ENGINE_NET_NAME))
             {
                 if (GetIsPCL())
                 {
-                    ref = "AtomicNET";
+                    ref = ENGINE_NET_NAME;
                     platform = "Portable";
                 }
                 else if (SupportsDesktop())
                 {
-                    ref = "AtomicNET";
+                    ref = ENGINE_NET_NAME;
                     platform = "Desktop";
                 }
                 else if (SupportsPlatform("android"))
                 {
-                    if (ref != "AtomicNET.Android.SDL")
-                        ref = "AtomicNET";
+                    if (ref != ToString("%s.Android.SDL", ENGINE_NET_NAME))
+                        ref = ENGINE_NET_NAME;
 
                     platform = "Android";
                 }
                 else if (SupportsPlatform("ios"))
                 {
-                    ref = "AtomicNET";
+                    ref = ENGINE_NET_NAME;
                     platform = "iOS";
                 }
 
@@ -463,7 +463,7 @@ namespace ToolCore
 
 #ifdef ENGINE_DEV_BUILD
 
-        // If we're a core AtomicNET assembly and a project is included in solution
+        // If we're a core EngineNET assembly and a project is included in solution
         // output to Lib so that development changes will be picked up by project reference
         if (atomicNETProject_ && projectGen_->GetAtomicProjectPath().Length())
             config = "Lib";
@@ -565,7 +565,7 @@ namespace ToolCore
 
 #ifdef ENGINE_DEV_BUILD
 
-        // If we're a core AtomicNET assembly and a project is included in solution
+        // If we're a core EngineNET assembly and a project is included in solution
         // output to Lib so that development changes will be picked up by project reference
         if (atomicNETProject_ && projectGen_->GetAtomicProjectPath().Length())
             config = "Lib";
@@ -666,7 +666,7 @@ namespace ToolCore
 
         if (SupportsDesktop())
         {
-            // AtomicNETNative
+            // EngineNETNative
 
             XMLElement atomicNETNativeDLL = itemGroup.CreateChild("None");
 
@@ -678,13 +678,13 @@ namespace ToolCore
 
 #ifdef ENGINE_PLATFORM_WINDOWS
             String platform = "Windows";
-            String filename = "AtomicNETNative.dll";
+            String filename = ToString("%s.dll", ENGINE_NET_NAME);
 #elif defined(ENGINE_PLATFORM_MACOS)
             String platform = "Mac";
-            String filename = "libAtomicNETNative.dylib";
+            String filename = ToString("lib%s.dylib", ENGINE_NET_NATIVE_TARGET);
 #elif defined(ENGINE_PLATFORM_LINUX)
             String platform = "Linux";
-            String filename = "libAtomicNETNative.so";
+            String filename = ToString("lib%s.so", ENGINE_NET_NATIVE_TARGET);
 #endif
             String relativeNativePath;
 
@@ -712,14 +712,14 @@ namespace ToolCore
             if (androidApplication_)
             {
                 XMLElement androidAsset = itemGroup.CreateChild("AndroidAsset");
-                androidAsset.SetAttribute("Include", projectPath + "AtomicNET/Resources/AtomicResources.pak");
-                androidAsset.CreateChild("Link").SetValue("Assets\\AtomicResources.pak");
+                androidAsset.SetAttribute("Include", projectPath + ToString("%s/Resources/Resources.pak", ENGINE_NET_NAME));
+                androidAsset.CreateChild("Link").SetValue("Assets\\Resources.pak");
             }
             else
             {
                 XMLElement bundleResource = itemGroup.CreateChild("BundleResource");
-                bundleResource.SetAttribute("Include", projectPath + "AtomicNET/Resources/AtomicResources.pak");
-                bundleResource.CreateChild("Link").SetValue("Resources\\AtomicResources.pak");
+                bundleResource.SetAttribute("Include", projectPath + ToString("%s/Resources/Resources.pak", ENGINE_NET_NAME));
+                bundleResource.CreateChild("Link").SetValue("Resources\\Resources.pak");
                 bundleResource.CreateChild("CopyToOutputDirectory").SetValue("PreserveNewest");
             }
         }
@@ -735,7 +735,7 @@ namespace ToolCore
             iosGroup.CreateChild("ObjcBindingApiDefinition").SetAttribute("Include", GetSanitizedPath(objcBindingApiDefinition_));
         }
 
-        if (name_ == "AtomicNET.iOS")
+        if (name_ == ToString("%s.iOS", ENGINE_NET_NAME))
         {
             ToolEnvironment* tenv = GetSubsystem<ToolEnvironment>();
 
@@ -745,13 +745,13 @@ namespace ToolCore
             String config = "Release";
 #endif
 
-            String nativePath = AddTrailingSlash(tenv->GetAtomicNETRootDir()) + config + "/Native/iOS/AtomicNETNative.framework";
+            String nativePath = AddTrailingSlash(tenv->GetAtomicNETRootDir()) + config + ToString("/Native/iOS/%s.framework", ENGINE_NET_NATIVE_TARGET);
             iosGroup.CreateChild("ObjcBindingNativeFramework").SetAttribute("Include", GetSanitizedPath(nativePath));
 
             // framework copy
             XMLElement none = iosGroup.CreateChild("None");
             none.SetAttribute("Include", nativePath + ".zip");
-            none.CreateChild("Link").SetValue("AtomicNETNative.framework.zip");
+            none.CreateChild("Link").SetValue(ToString("%s.framework.zip", ENGINE_NET_NATIVE_TARGET));
             none.CreateChild("CopyToOutputDirectory").SetValue("Always");
 
         }
@@ -812,18 +812,18 @@ namespace ToolCore
 #endif
 
             // TODO: more than armeabi-v7a (which this is)
-            String nativePath = AddTrailingSlash(tenv->GetAtomicNETRootDir()) + config + "/Native/Android/libAtomicNETNative.so";
+            String nativePath = AddTrailingSlash(tenv->GetAtomicNETRootDir()) + config + ToString("/Native/Android/lib%s.so", ENGINE_NET_NATIVE_TARGET);
 
             XMLElement nativeLibrary =  projectRoot.CreateChild("ItemGroup").CreateChild("AndroidNativeLibrary");
             nativeLibrary.SetAttribute("Include", nativePath);
 
-            nativeLibrary.CreateChild("Link").SetValue("Libs\\armeabi-v7a\\libAtomicNETNative.so");
+            nativeLibrary.CreateChild("Link").SetValue(ToString("Libs\\armeabi-v7a\\lib%s.so", ENGINE_NET_NATIVE_TARGET));
 
             XMLElement resourceGroup = projectRoot.CreateChild("ItemGroup");
 
             String relativePath;
 
-            if (GetRelativeProjectPath("$ATOMIC_PROJECT_ROOT$/Project/AtomicNET/Platforms/Android/Resources/values/Strings.xml", projectPath_, relativePath))
+            if (GetRelativeProjectPath(ToString("$ATOMIC_PROJECT_ROOT$/Project/%s/Platforms/Android/Resources/values/Strings.xml", ENGINE_NET_NAME), projectPath_, relativePath))
             {
                 relativePath.Replace("/", "\\");
 
@@ -837,7 +837,7 @@ namespace ToolCore
                 ATOMIC_LOGERROR("Unabled to get relative path for Strings.xml");
             }
 
-            if (GetRelativeProjectPath("$ATOMIC_PROJECT_ROOT$/Project/AtomicNET/Platforms/Android/Resources/drawable/icon.png", projectPath_, relativePath))
+            if (GetRelativeProjectPath(ToString("$ATOMIC_PROJECT_ROOT$/Project/%s/Platforms/Android/Resources/drawable/icon.png", ENGINE_NET_NAME), projectPath_, relativePath))
             {
                 relativePath.Replace("/", "\\");
                 XMLElement icon = resourceGroup.CreateChild("AndroidResource");
@@ -1252,7 +1252,7 @@ namespace ToolCore
 
         // Have to come after the imports, so AfterBuild exists
 
-        String projectName = "AtomicProject";
+        String projectName = ENGINE_PROJECT_NAME;
 
         if (projectGen_->GetProjectSettings())
             projectName = projectGen_->GetProjectSettings()->GetName();
@@ -1298,19 +1298,19 @@ namespace ToolCore
 
             // mdb file item group
             XMLElement mdbItemGroup = project.CreateChild("ItemGroup");
-            mdbItemGroup.CreateChild("AtomicNETMDBFiles").SetAttribute("Include", "..\\..\\Lib\\Desktop\\**\\*.mdb");
+            mdbItemGroup.CreateChild("EngineNETMDBFiles").SetAttribute("Include", "..\\..\\Lib\\Desktop\\**\\*.mdb");
 
             // Debug
             XMLElement copyOp = afterBuild.CreateChild("Copy");
             copyOp.SetAttribute("Condition", "'$(Configuration)' == 'Debug'");
-            copyOp.SetAttribute("SourceFiles", "@(AtomicNETMDBFiles)");
-            copyOp.SetAttribute("DestinationFiles", "@(AtomicNETMDBFiles->'..\\..\\Debug\\Bin\\Desktop\\%(Filename)%(Extension)')");
+            copyOp.SetAttribute("SourceFiles", "@(EngineNETMDBFiles)");
+            copyOp.SetAttribute("DestinationFiles", "@(EngineNETMDBFiles->'..\\..\\Debug\\Bin\\Desktop\\%(Filename)%(Extension)')");
 
             // Release
             copyOp = afterBuild.CreateChild("Copy");
             copyOp.SetAttribute("Condition", "'$(Configuration)' == 'Release'");
-            copyOp.SetAttribute("SourceFiles", "@(AtomicNETMDBFiles)");
-            copyOp.SetAttribute("DestinationFiles", "@(AtomicNETMDBFiles->'..\\..\\Release\\Bin\\Desktop\\%(Filename)%(Extension)')");
+            copyOp.SetAttribute("SourceFiles", "@(EngineNETMDBFiles)");
+            copyOp.SetAttribute("DestinationFiles", "@(EngineNETMDBFiles->'..\\..\\Release\\Bin\\Desktop\\%(Filename)%(Extension)')");
         }
 
 #endif
@@ -1809,8 +1809,8 @@ namespace ToolCore
                 }
             }
 
-            // HACK!  Do not generate AtomicNETService in the AtomicProject solution
-            if (jproject["name"].GetString() == "AtomicNETService" && atomicProjectPath_.Length())
+            // HACK!  Do not generate NETService in the AtomicProject solution
+            if (jproject["name"].GetString() == ENGINE_NET_SERVICE_NAME && atomicProjectPath_.Length())
             {
                 continue;
             }
@@ -1880,7 +1880,7 @@ namespace ToolCore
 
         SharedPtr<File> netJSONFile(new File(context_));
 
-        String atomicNETProject = tenv->GetRootSourceDir() + "Script/AtomicNET/AtomicNETProject.json";
+        String atomicNETProject = tenv->GetRootSourceDir() + ToString("Script/%s/%sProject.json", ENGINE_NET_NAME, ENGINE_NET_NAME);
 
         if (!netJSONFile->Open(GetSanitizedPath(atomicNETProject)))
             return false;
@@ -1893,11 +1893,11 @@ namespace ToolCore
 
 #endif
 
-        AtomicNETCopyAssemblies(context_, atomicProjectPath_ + "AtomicNET/Lib/");
+        AtomicNETCopyAssemblies(context_, atomicProjectPath_ + ToString("%s/Lib/", ENGINE_NET_NAME));
 
 #ifdef ENGINE_DEV_BUILD
 
-        String projectPath = tenv->GetRootSourceDir() + "Script/AtomicNET/AtomicProject.json";
+        String projectPath = tenv->GetRootSourceDir() + ToString("Script/%s/AtomicProject.json", ENGINE_NET_NAME);
 #else
         String projectPath = tenv->GetAtomicNETRootDir() + "Build/Projects/AtomicProject.json";
 #endif

@@ -205,14 +205,14 @@ bool EditorMode::PlayProjectInternal(const String &addArgs, bool debug)
 #ifdef ENGINE_DEV_BUILD
 
 #ifdef ENGINE_DEBUG        
-        playerBinary = project->GetProjectPath() + "AtomicNET/Debug/Bin/Desktop/" + projectExe;
+        playerBinary = project->GetProjectPath() + ToString("%s/Debug/Bin/Desktop/%s", ENGINE_NET_NAME, projectExe);
 #else
-        playerBinary = project->GetProjectPath() + "AtomicNET/Release/Bin/Desktop/" + projectExe;
+        playerBinary = project->GetProjectPath() + ToString("%s/Release/Bin/Desktop/", ENGINE_NET_NAME, projectExe);
 #endif
 
 #else
         // TODO: We are using the release build of the managed project here, how and when to use debug?
-        playerBinary = project->GetProjectPath() + "AtomicNET/Release/Bin/Desktop/" + projectExe;
+        playerBinary = project->GetProjectPath() + ToString("%s/Release/Bin/Desktop/%s", ENGINE_NET_NAME, projectExe);
 #endif
 
         

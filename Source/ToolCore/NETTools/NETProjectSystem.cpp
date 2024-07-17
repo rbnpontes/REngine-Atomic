@@ -234,7 +234,7 @@ namespace ToolCore
         // TODO: We just use WINDOWS platform for PAK generation for now
         Platform* platform = tsystem->GetPlatformByName("WINDOWS");
 
-        buildSystem->SetBuildPath(project->GetProjectPath() + "AtomicNET/Resources/");
+        buildSystem->SetBuildPath(project->GetProjectPath() + ToString("%s/Resources/", ENGINE_NET_NAME));
 
         SharedPtr<BuildBase> buildBase(platform->NewBuild(project));
         buildBase->SetResourcesOnly(true);
@@ -269,7 +269,7 @@ namespace ToolCore
         {
             FileSystem* fileSystem = GetSubsystem<FileSystem>();
 
-            if (!fileSystem->FileExists(project->GetProjectPath() + "AtomicNET/Resources/AtomicResources.pak"))
+            if (!fileSystem->FileExists(project->GetProjectPath() + ToString("%s/Resources/Resources.pak", ENGINE_NET_NAME)))
             {
                 if (!GenerateResourcePak())
                     return false;
@@ -339,7 +339,7 @@ namespace ToolCore
 
         String projectName = project->GetProjectSettings()->GetName();
 
-        solutionPath_ = AddTrailingSlash(projectPath_) + "AtomicNET/Solution/" + projectName + ".sln";
+        solutionPath_ = AddTrailingSlash(projectPath_) + ToString("%s/Solution/%s.sln", ENGINE_NET_NAME, projectName.CString());
         projectAssemblyPath_ = AddTrailingSlash(projectPath_) + "Resources/" + projectName + ".dll";
 
         FileSystem* fileSystem = GetSubsystem<FileSystem>();

@@ -35,7 +35,7 @@
 #include <ToolCore/Command/CommandParser.h>
 
 #include <EngineCore/IPC/IPC.h>
-#include <AtomicNET/NETScript/NETScript.h>
+#include <EngineNET/NETScript/NETScript.h>
 #include <ToolCore/NETTools/AtomicNETService.h>
 
 #include "AtomicTool.h"

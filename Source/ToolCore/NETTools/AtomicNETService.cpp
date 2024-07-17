@@ -97,7 +97,7 @@ namespace ToolCore
 
         if (!file_system->FileExists(execPath))
         {
-            ATOMIC_LOGERRORF("AtomicNETService binary not found: %s", execPath.CString());
+            ATOMIC_LOGERRORF("NETService binary not found: %s", execPath.CString());
             return false;
         }
 

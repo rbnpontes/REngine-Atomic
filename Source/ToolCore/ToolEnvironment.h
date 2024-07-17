@@ -77,7 +77,7 @@ public:
     // Returns true if we running from a command line tool (aka: AtomicTool)
     bool GetCLI() { return cli_; }
 
-    // AtomicNET
+    // EngineNET
 
     const String& GetAtomicNETRootDir() { return atomicNETRootDir_; }
     const String& GetAtomicNETCoreAssemblyDir() { return atomicNETCoreAssemblyDir_; }
@@ -147,7 +147,7 @@ private:
     String iosBuildDir_;
     String webBuildDir_;
 
-    // AtomicNET
+    // EngineNET
     String atomicNETRootDir_;
     String atomicNETCoreAssemblyDir_;
     String atomicNETNuGetBinary_;

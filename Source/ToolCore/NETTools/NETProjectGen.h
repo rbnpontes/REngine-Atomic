@@ -80,14 +80,14 @@ namespace ToolCore
         bool SupportsDesktop() const;
         bool SupportsPlatform(const String& platform, bool explicitCheck = true) const;
 
-        /// Returns true if this project is part of core AtomicNET
+        /// Returns true if this project is part of core EngineNET
         bool GetAtomicNETProject() const { return atomicNETProject_;  }
 
         bool Generate();
 
     private:
 
-        /// Returns true if this project is part of core AtomicNET
+        /// Returns true if this project is part of core EngineNET
         void SetAtomicNETProject(bool value) { atomicNETProject_ = value; }
 
         // Portable Class Library

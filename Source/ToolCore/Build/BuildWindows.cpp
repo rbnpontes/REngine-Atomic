@@ -108,7 +108,7 @@ bool BuildWindows::BuildManaged(const String& buildPath)
     String config = "Release";
 #endif
 
-    String managedBins = projectPath + ToString("AtomicNET/%s/Bin/Desktop/", config.CString());
+    String managedBins = projectPath + ToString("%s/%s/Bin/Desktop/", ENGINE_NET_NAME, config.CString());
     String managedExe = managedBins + settings->GetName() + ".exe";
 
     if (!fileSystem->FileExists(managedExe))
@@ -191,7 +191,7 @@ void BuildWindows::Build(const String& buildPath)
     if (!BuildCreateDirectory(buildPath_))
         return;
 
-    if (!resourcesOnly_ && !BuildCreateDirectory(buildPath_ + ToString("/AtomicPlayer_Resources", ENGINE_PLAYER_TARGET)))
+    if (!resourcesOnly_ && !BuildCreateDirectory(buildPath_ + ToString("/%s_Resources", ENGINE_PLAYER_TARGET)))
         return;
 
     String resourcePackagePath = buildPath_ + ToString("/%s_Resources/Resources%s", ENGINE_PLAYER_TARGET, PAK_EXTENSION);

@@ -24,8 +24,8 @@
 #include <EngineCore/Engine/Engine.h>
 #include <EngineCore/IO/FileSystem.h>
 #include "NETCore.h"
-#include <AtomicNET/NETScript/NETScript.h>
-#include <AtomicNET/NETScript/CSComponentAssembly.h>
+#include <EngineNET/NETScript/NETScript.h>
+#include <EngineNET/NETScript/CSComponentAssembly.h>
 
 #include "NETIPCPlayerApp.h"
 
@@ -83,7 +83,7 @@ namespace Atomic
         // TODO: Proper CSComponent assembly preload
         // For now, user must ensure that assemblies are loaded via
         // referencing their types or load assembly before initializing
-        // AtomicNET in application.  This is commented out as it
+        // EngineNET in application.  This is commented out as it
         // causes an issue with double loading referenced assemblies
         // and the ones in the project file
         // CSComponentAssembly::PreloadClassAssemblies();

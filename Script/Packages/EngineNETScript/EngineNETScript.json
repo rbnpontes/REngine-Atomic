@@ -1,6 +1,6 @@
 {
-	"name" : "AtomicNETScript",
-	"sources" : ["Source/AtomicNET/NETScript"],
+	"name" : "EngineNETScript",
+	"sources" : ["Source/EngineNET/NETScript"],
 	"classes" : ["NETScriptObject", "CSComponent", "CSComponentAssembly"],
 	"excludes" : {
 		"CSharp" : {

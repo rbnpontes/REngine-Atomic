@@ -580,9 +580,9 @@ namespace ToolCore
         configurations.Push("Release");
 #endif
 
-        AtomicNETCopyAssemblies(context_, project->GetProjectPath() + "AtomicNET/Lib/");
+        AtomicNETCopyAssemblies(context_, project->GetProjectPath() + ToString("%s/Lib/", ENGINE_NET_NAME));
 
-        String solutionPath = project->GetProjectPath() + "AtomicNET/Solution/" + project->GetProjectSettings()->GetName() + ".sln";
+        String solutionPath = project->GetProjectPath() + ToString("%s/Solution/%s.sln", ENGINE_NET_NAME, project->GetProjectSettings()->GetName().CString());
 
         NETBuild* build = Build(solutionPath, platforms, configurations);
 

@@ -26,7 +26,7 @@ endif()
 
 if (ENGINE_JAVASCRIPT OR ENGINE_DOTNET)
     if(ENGINE_DOTNET)
-        target_link_libraries(AtomicTool AtomicNETScript)
+        target_link_libraries(AtomicTool ${ENGINE_NET_SCRIPT_TARGET})
     endif()
 
     yarn_get_command()

@@ -22,13 +22,12 @@
 //
 
 #include <EngineCore/Engine/Engine.h>
-#include <EngineCore/Engine/EngineConfig.h>
 #include <EngineCore/IO/FileSystem.h>
-
 #include "NETCore.h"
-#include <AtomicNET/NETScript/NETScript.h>
+#include <EngineNET/NETScript/NETScript.h>
+#include <EngineNET/NETScript/CSComponentAssembly.h>
 
-#include "NETAtomicPlayer.h"
+#include "NETIPCServerApp.h"
 
 #ifdef ENGINE_PLATFORM_MACOS
 #include <unistd.h>
@@ -38,54 +37,32 @@
 #include <stdio.h>
 #endif
 
-// Android: uses SDL_main, defined for IOS only to satifsy linker
-#if defined(__ANDROID__) || defined(IOS)
-
-typedef int(*sdl_entry_callback)();
-
-static sdl_entry_callback sdlEntryCallback = 0;
-
-extern "C" void RegisterSDLEntryCallback(sdl_entry_callback callback)
-{
-    sdlEntryCallback = callback;
-}
-
-extern "C" int SDL_main(int argc, char** argv);
-int SDL_main(int argc, char** argv)
-{
-#if defined(__ANDROID__)
-    Atomic::ParseArguments(argc, argv);
-    if (sdlEntryCallback != 0)
-    {
-        return sdlEntryCallback();
-    }
-#endif    
-    return 0;
-}
-#endif
-
 namespace Atomic
 {
 
-    NETAtomicPlayer::NETAtomicPlayer(Context* context) :
-        PlayerApp(context)
+    NETIPCServerApp::NETIPCServerApp(Context* context) :
+        IPCServerApp(context)
     {
 
     }
 
-    void NETAtomicPlayer::Setup()
+    void NETIPCServerApp::Setup()
     {
-        PlayerApp::Setup();
+        IPCServerApp::Setup();
 
-        engineParameters_["ResourcePaths"] = "AtomicResources";
+        // TODO: we should always have a --project for IPCPlayer, however it is doing 
+        // double duty right now as managed player
+        StringVector args = GetArguments();
+        if (!args.Contains("--project"))
+        {
+            engineParameters_["ResourcePrefixPaths"] = "AtomicPlayer_Resources";
+            engineParameters_["ResourcePaths"] = "AtomicResources";
+        }
     }
 
-    int NETAtomicPlayer::Initialize()
+    int NETIPCServerApp::Initialize()
     {
         Setup();
-
-        // Read the engine configuration
-        ReadEngineConfig();
 
         RegisterNETScriptLibrary(context_);
 
@@ -105,35 +82,10 @@ namespace Atomic
 
         return 0;
     }
-
-    void NETAtomicPlayer::Stop()
+    
+    NETIPCServerApp* NETIPCServerApp::CreateInternal()
     {
-        PlayerApp::Stop();
+        return new NETIPCServerApp(NETCore::GetContext());
     }
-
-    NETAtomicPlayer* NETAtomicPlayer::CreateInternal()
-    {
-        return new NETAtomicPlayer(NETCore::GetContext());
-    }
-
-    void NETAtomicPlayer::ReadEngineConfig()
-    {
-        FileSystem* fileSystem = GetSubsystem<FileSystem>();
-
-#ifdef ENGINE_PLATFORM_MACOS
-        String filename = fileSystem->GetProgramDir() + "../Resources/Settings/Engine.json";
-#else
-        String filename = fileSystem->GetProgramDir() + "Settings/Engine.json";
-#endif
-
-        if (!fileSystem->FileExists(filename))
-            return;
-
-        if (EngineConfig::LoadFromFile(context_, filename))
-        {
-            EngineConfig::ApplyConfig(engineParameters_, true);
-        }
-    }
-
 
 }

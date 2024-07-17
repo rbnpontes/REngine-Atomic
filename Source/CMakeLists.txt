@@ -16,7 +16,7 @@ endif ()
 if (ENGINE_JAVASCRIPT OR ENGINE_DOTNET)
     add_subdirectory(EngineApp)
     if (ENGINE_DOTNET)
-        add_subdirectory(AtomicNET)
+        add_subdirectory(EngineNET)
     endif()
 endif ()
 
