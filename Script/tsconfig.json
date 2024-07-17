@@ -17,7 +17,7 @@
         "./AtomicEditor/**/*.ts",
         "./TypeScript/**/*.ts",
         "!./TypeScript/dist/*.ts",
-        "!./TypeScript/AtomicNET.d.ts"
+        "!./TypeScript/EngineNET.d.ts"
     ],
     "atom": {
         "rewriteTsconfig": true

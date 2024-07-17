@@ -1,6 +1,6 @@
 {
-	"name" : "AtomicNETNative",
-	"sources" : ["Source/AtomicNET/NETNative", "Source/AtomicNET/NETNative/Desktop"],
+	"name" : "EngineNETNative",
+	"sources" : ["Source/EngineNET/NETNative", "Source/EngineNET/NETNative/Desktop"],
 	"classes" : ["NETCore", "NETAtomicPlayer","NETIPCPlayerApp", "NETIPCServerApp", "NETServiceApplication"],
 	"classExcludes" : {
 		"NETIPCPlayerApp" : ["ANDROID", "IOS", "WEB"],

@@ -1,31 +1,31 @@
 {
     "solution" : {
-        "name" : "AtomicNET",
-        "outputPath" : "$ATOMIC_ROOT$/Artifacts/AtomicNET/Build/"
+        "name" : "EngineNET",
+        "outputPath" : "$ATOMIC_ROOT$/Artifacts/EngineNET/Build/"
     },
     "projects" : [
         {
-            "name": "AtomicNET.Shared",
+            "name": "EngineNET.Shared",
             "atomicNET" : true,
             "outputType" : "Shared",
             "projectGuid" : "C74A8ECC-7517-11E6-A1D7-005056C00008",
             "sources" : [
-                "$ATOMIC_ROOT$/Script/AtomicNET/AtomicNETCore/",
-                "$ATOMIC_ROOT$/Script/AtomicNET/AtomicNET/",
+                "$ATOMIC_ROOT$/Script/EngineNET/AtomicNETCore/",
+                "$ATOMIC_ROOT$/Script/EngineNET/EngineNET/",
                 "$ATOMIC_ROOT$/Artifacts/Build/Source/Generated/CSharp/Packages/Atomic/Managed/",
-                "$ATOMIC_ROOT$/Artifacts/Build/Source/Generated/CSharp/Packages/AtomicNETScript/Managed/",
-                "$ATOMIC_ROOT$/Artifacts/Build/Source/Generated/CSharp/Packages/AtomicNETNative/Managed/",
-                "$ATOMIC_ROOT$/Artifacts/Build/Source/Generated/CSharp/Packages/AtomicApp/Managed/",
-                "$ATOMIC_ROOT$/Artifacts/Build/Source/Generated/CSharp/Packages/AtomicPlayer/Managed/"
+                "$ATOMIC_ROOT$/Artifacts/Build/Source/Generated/CSharp/Packages/EngineNETScript/Managed/",
+                "$ATOMIC_ROOT$/Artifacts/Build/Source/Generated/CSharp/Packages/EngineNETNative/Managed/",
+                "$ATOMIC_ROOT$/Artifacts/Build/Source/Generated/CSharp/Packages/EngineApp/Managed/",
+                "$ATOMIC_ROOT$/Artifacts/Build/Source/Generated/CSharp/Packages/EnginePlayer/Managed/"
             ]
         },
         {
-            "name": "AtomicNET",
+            "name": "EngineNET",
             "atomicNET" : true,
             "outputType" : "Library",
-            "defineConstants" : ["ATOMIC_PROFILING"],
+            "defineConstants" : [],
             "rootNamespace" : "AtomicEngine",
-            "assemblyName" : "AtomicNET",
+            "assemblyName" : "EngineNET",
             "assemblyOutputPath" : "..\\..\\$ATOMIC_CONFIG$\\Portable\\",
             "projectGuid" : "C74A8ECD-7517-11E6-9B0E-005056C00008",
             "projectTypeGuids" : ["786C830F-07A1-408B-BD7F-6EE04809D6DB", "FAE04EC0-301F-11D3-BF4B-00C04F79EFBC"],
@@ -33,40 +33,40 @@
             "references" : [
             ],
             "sharedReferences" : [
-                "AtomicNET.Shared"
+                "EngineNET.Shared"
             ],
             "importProjects" : [],
             "sources" : []
         },
         {
-            "name": "AtomicNET.Desktop",
+            "name": "EngineNET.Desktop",
             "atomicNET" : true,
             "assemblyDocFile" : true,
             "platforms" : ["desktop"],
             "outputType" : "Library",
-            "defineConstants" : ["ATOMIC_DESKTOP", "ATOMIC_PROFILING"],
+            "defineConstants" : ["ATOMIC_DESKTOP"],
             "rootNamespace" : "AtomicGameEngine",
-            "assemblyName" : "AtomicNET",
+            "assemblyName" : "EngineNET",
             "assemblyOutputPath" : "..\\..\\$ATOMIC_CONFIG$\\Desktop\\",
             "projectGuid" : "C74AB5E6-7517-11E6-8979-005056C00008",
             "references" : [],
             "sharedReferences" : [
-                "AtomicNET.Shared"
+                "EngineNET.Shared"
             ],
             "sources" : [
             ]
         },
         {
-            "name": "AtomicNET.Android.SDL",
+            "name": "EngineNET.Android.SDL",
             "atomicNET" : true,
             "platforms" : ["android"],
             "outputType" : "Library",
             "rootNamespace" : "AtomicGameEngine",
-            "assemblyName" : "AtomicNET.Android.SDL",
+            "assemblyName" : "EngineNET.Android.SDL",
             "projectTypeGuids" : ["10368E6C-D01B-4462-8E8B-01FC667A7035", "FAE04EC0-301F-11D3-BF4B-00C04F79EFBC"],
             "importProjects" : ["$(MSBuildExtensionsPath)\\Xamarin\\Android\\Xamarin.Android.Bindings.targets"],
-            "libraryProjectZips" : ["$ATOMIC_ROOT$/Script/AtomicNET/Platform/Android/JavaSDLBin/atomicjavasdl-release.aar"],
-            "transformFiles" : ["$ATOMIC_ROOT$/Script/AtomicNET/Platform/Android/JavaSDL/Metadata.xml"],
+            "libraryProjectZips" : ["$ATOMIC_ROOT$/Script/EngineNET/Platform/Android/JavaSDLBin/atomicjavasdl-release.aar"],
+            "transformFiles" : ["$ATOMIC_ROOT$/Script/EngineNET/Platform/Android/JavaSDL/Metadata.xml"],
             "assemblyOutputPath" : "..\\..\\$ATOMIC_CONFIG$\\Android\\",
             "projectGuid" : "C74AB5E7-7517-11E6-BF7F-005056C00008",
             "references" : [
@@ -76,46 +76,46 @@
             ]
         },
         {
-            "name": "AtomicNET.Android",
+            "name": "EngineNET.Android",
             "atomicNET" : true,
             "platforms" : ["android"],
             "outputType" : "Library",
-            "defineConstants" : ["ATOMIC_ANDROID", "ATOMIC_PROFILING"],
+            "defineConstants" : ["ATOMIC_ANDROID"],
             "rootNamespace" : "AtomicGameEngine",
-            "assemblyName" : "AtomicNET",
+            "assemblyName" : "EngineNET",
             "assemblyOutputPath" : "..\\..\\$ATOMIC_CONFIG$\\Android\\",
             "projectGuid" : "C74AB5E8-7517-11E6-B3CD-005056C00008",
             "references" : [
                 "Mono.Android",
-                "AtomicNET.Android.SDL"
+                "EngineNET.Android.SDL"
             ],
             "sharedReferences" : [
-                "AtomicNET.Shared"
+                "EngineNET.Shared"
             ],
             "sources" : [
-                "$ATOMIC_ROOT$/Script/AtomicNET/Platform/Android/"
+                "$ATOMIC_ROOT$/Script/EngineNET/Platform/Android/"
             ]
         },
         {
-            "name": "AtomicNET.iOS",
+            "name": "EngineNET.iOS",
             "atomicNET" : true,
             "platforms" : ["ios"],
             "outputType" : "Library",
             "projectTypeGuids" :[ "8FFB629D-F513-41CE-95D2-7ECE97B6EEEC", "FAE04EC0-301F-11D3-BF4B-00C04F79EFBC" ],
-            "defineConstants" : ["ATOMIC_IOS", "ATOMIC_PROFILING"],
+            "defineConstants" : ["ATOMIC_IOS"],
             "rootNamespace" : "AtomicGameEngine",
-            "assemblyName" : "AtomicNET",
+            "assemblyName" : "EngineNET",
             "assemblyOutputPath" : "..\\..\\$ATOMIC_CONFIG$\\iOS\\",
             "projectGuid" : "C74AB5E8-7517-11E6-AE3F-005056C00008",
-            "objcBindingApiDefinition" : "$ATOMIC_ROOT$/Script/AtomicNET/Platform/iOS/ApiDefinition/ApiDefinition.cs",
+            "objcBindingApiDefinition" : "$ATOMIC_ROOT$/Script/EngineNET/Platform/iOS/ApiDefinition/ApiDefinition.cs",
             "references" : [
                 "Xamarin.iOS"
             ],
             "sharedReferences" : [
-                "AtomicNET.Shared"
+                "EngineNET.Shared"
             ],
             "sources" : [
-                "$ATOMIC_ROOT$/Script/AtomicNET/Platform/iOS/AtomicNET"
+                "$ATOMIC_ROOT$/Script/EngineNET/Platform/iOS/EngineNET"
             ],
             "importProjects" : ["$(MSBuildExtensionsPath)\\Xamarin\\iOS\\Xamarin.iOS.ObjCBinding.CSharp.targets"]
         },
@@ -128,10 +128,10 @@
             "assemblyName" : "AtomicNETService",
             "assemblyOutputPath" : "..\\..\\$ATOMIC_CONFIG$\\AtomicNETService\\",
             "projectGuid": "C74AB5E9-7517-11E6-AA19-005056C00008",
-            "projectReferences" : ["AtomicNET.Desktop"],
+            "projectReferences" : ["EngineNET.Desktop"],
             "references" : [],
             "sources" : [
-                "$ATOMIC_ROOT$/Script/AtomicNET/AtomicNETService/"
+                "$ATOMIC_ROOT$/Script/EngineNET/AtomicNETService/"
             ],
             "packages" : []
         }

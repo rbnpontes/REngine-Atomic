@@ -37,11 +37,11 @@ namespace AtomicEngine
 
         public IntPtr GetVoidPtr(string key)
         {
-            return csi_Atomic_AtomicNET_ScriptVariantMap_GetVoidPtr(nativeInstance, key);
+            return csi_Atomic_EngineNET_ScriptVariantMap_GetVoidPtr(nativeInstance, key);
         }
 
         [DllImport(Constants.LIBNAME, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
-        private static extern IntPtr csi_Atomic_AtomicNET_ScriptVariantMap_GetVoidPtr(IntPtr self, string key);
+        private static extern IntPtr csi_Atomic_EngineNET_ScriptVariantMap_GetVoidPtr(IntPtr self, string key);
 
     }
 

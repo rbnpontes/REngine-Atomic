@@ -75,7 +75,7 @@ public class SDLActivity {
             mSingleton = activity;
 
             if (!mIsSharedLibraryLoaded) {
-                System.loadLibrary("AtomicNETNative");
+                System.loadLibrary("EngineNETNative");
                 mIsSharedLibraryLoaded = true;
             }
             // Set up the surface

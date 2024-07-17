@@ -8,6 +8,7 @@ var spawnSync = require('child_process').spawnSync;
 
 var host = require("./Host");
 var config = require('./BuildConfig');
+const constants = require('./Constants');
 
 var atomicRoot = config.atomicRoot;
 var jsDocFolder = config.artifactsRoot + "Build/JSDoc/";
@@ -96,7 +97,7 @@ namespace('build', function () {
 
         // compile
         cmds.push(node + " " + tsc + " -p ./Script");
-        cmds.push(node + " " + tsc + " -p ./Script/AtomicWebViewEditor");
+        cmds.push(node + " " + tsc + " -p ./Script/" + constants.engine_web_view_editor);
 
         // generate combined atomic.d.ts
         cmds.push(node + " " + dtsGenerator + " --name Atomic --project ./Script/TypeScript --out ./Script/TypeScript/dist/Atomic.d.ts");
@@ -169,7 +170,7 @@ namespace('build', function () {
         // Compile AtomicNET assemblies
         var cmds = [];
 
-        cmds.push(host.atomicTool + " net compile " + atomicRoot + "Script/AtomicNET/AtomicNETProject.json -platform " + platform + " -config " + configuration);
+        cmds.push(host.atomicTool + " net compile " + atomicRoot + `Script/${constants.engine_net_name}/${constants.engine_net_project_json} -platform ` + platform + " -config " + configuration);
 
         jake.exec(cmds, function () {
 
