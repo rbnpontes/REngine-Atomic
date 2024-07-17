@@ -53,7 +53,7 @@ namespace Atomic
     void jsapi_init_webview(JSVM* vm, const VariantMap& engineParameters);
 #endif
 #ifdef ENGINE_DOTNET
-    extern void jsb_package_atomicnetscript_init(JSVM* vm);
+    extern void jsb_package_enginenetscript_init(JSVM* vm);
 #endif
 }
 
@@ -166,7 +166,7 @@ namespace AtomicEditor
         JSVM::RegisterPackage(jsapi_init_toolcore);
         JSVM::RegisterPackage(jsapi_init_editor);
 #ifdef ENGINE_DOTNET
-        JSVM::RegisterPackage(jsb_package_atomicnetscript_init);
+        JSVM::RegisterPackage(jsb_package_enginenetscript_init);
 #endif
 #ifdef ENGINE_WEBVIEW
         JSVM::RegisterPackage(jsapi_init_webview, engineParameters_);

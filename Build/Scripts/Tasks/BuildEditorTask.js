@@ -90,7 +90,8 @@ async function editorBuildFirstPhase() {
                 [
                     config.config,
                     vs_tools_path,
-                    constants.engine_solution_name
+                    constants.engine_solution_name,
+                    constants.engine_native_lib
                 ], { cwd: build_dir });
         },
         linux: async () => {

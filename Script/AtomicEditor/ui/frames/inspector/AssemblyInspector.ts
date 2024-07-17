@@ -50,7 +50,7 @@ class AssemblyInspector extends InspectorWidget {
         // Assembly Section
         var assemblyLayout = this.createSection(rootLayout, "NETAssembly", 1);
 
-        var assemblyFile = <AtomicNETScript.CSComponentAssembly> asset.importer.getResource();
+        var assemblyFile = <EngineNETScript.CSComponentAssembly> asset.importer.getResource();
 
         var container = InspectorUtils.createContainer();
         container.gravity = Atomic.UI_GRAVITY.UI_GRAVITY_ALL;

@@ -179,15 +179,15 @@ class CSComponentSection extends ComponentSection {
 
         this.subscribeToEvent(this, Editor.AttributeEditResourceChangedEvent((ev) => this.handleAttributeEditResourceChanged(ev)));
 
-        this.subscribeToEvent(AtomicNETScript.CSComponentAssemblyChangedEvent((ev) => this.handleCSComponentAssemblyChanged(ev)));
+        this.subscribeToEvent(EngineNETScript.CSComponentAssemblyChangedEvent((ev) => this.handleCSComponentAssemblyChanged(ev)));
 
-        this.subscribeToEvent(AtomicNETScript.CSComponentClassChangedEvent((ev) => this.handleCSComponentClassChanged(ev)));
+        this.subscribeToEvent(EngineNETScript.CSComponentClassChangedEvent((ev) => this.handleCSComponentClassChanged(ev)));
 
     }
 
     private handleCSComponentAssemblyChanged(ev) {
 
-        var csc = <AtomicNETScript.CSComponent>this.editType.getFirstObject();
+        var csc = <EngineNETScript.CSComponent>this.editType.getFirstObject();
 
         if (!csc)
           return;
@@ -203,7 +203,7 @@ class CSComponentSection extends ComponentSection {
 
     private handleCSComponentClassChanged(ev) {
 
-        var csc = <AtomicNETScript.CSComponent>this.editType.getFirstObject();
+        var csc = <EngineNETScript.CSComponent>this.editType.getFirstObject();
 
         if (!csc)
           return;
@@ -218,7 +218,7 @@ class CSComponentSection extends ComponentSection {
     private handleAttributeEditResourceChanged(ev: Editor.AttributeEditResourceChangedEvent) {
 
 
-        var csc = <AtomicNETScript.CSComponent>this.editType.getFirstObject();
+        var csc = <EngineNETScript.CSComponent>this.editType.getFirstObject();
 
         if (!csc)
             return;
