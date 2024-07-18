@@ -501,6 +501,7 @@ class CustomCompletionProvider extends BuiltinServiceProviderOverride implements
             positionOffset: model.getOffsetAt(position)
         };
 
+        //@ts-ignore
         return this.extension.workerRequest(WorkerProcessTypes.MonacoProvideCompletionItemsResponse, message)
             .then((e: WorkerProcessTypes.MonacoProvideCompletionItemsResponseMessageData) => {
                 // Need to map the TS completion kind to the monaco completion kind

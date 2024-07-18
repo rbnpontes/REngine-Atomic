@@ -61,7 +61,7 @@ window.atomicQueryPromise = function(messageType: string, data?: {}): Promise<{}
         window.atomicQuery({
             request: JSON.stringify(queryMessage),
             persistent: false,
-            onSuccess: resolve,
+            onSuccess: ()=> resolve(void(0)),
             onFailure: (error_code, error_message) => reject({ error_code: error_code, error_message: error_message })
         });
     });

@@ -437,7 +437,7 @@ export default class TypescriptLanguageServiceWebWorker {
                     completionKind: completion.kind,
                     kind: -1,
                     positionOffset: eventData.positionOffset
-                };
+                } as any;
                 return completionItem;
             });
         }

@@ -18,6 +18,7 @@ declare module SharedWorker {
     }
 }
 
+//@ts-ignore
 declare var SharedWorker: {
     prototype: SharedWorker.SharedWorker;
     /***
