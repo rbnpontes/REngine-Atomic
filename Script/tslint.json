@@ -37,12 +37,6 @@
     "radix": false,
     "semicolon": true,
     "triple-equals": [false, "allow-null-check"],
-    "variable-name": false,
-    "whitespace": [true,
-      "check-branch",
-      "check-decl",
-      "check-operator",
-      "check-separator"
-    ]
+    "variable-name": false
   }
 }

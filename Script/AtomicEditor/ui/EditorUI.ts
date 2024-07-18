@@ -126,7 +126,7 @@ class EditorUI extends Atomic.ScriptObject {
   }
 
   showEditorStatus(message: string) {
-      console.log('[EditorUI]: Editor Status: '+message);
+      console.log("[EditorUI]: Editor Status: "+message);
       this.mainframe.showStatusText(message);
   }
 

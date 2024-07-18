@@ -46,6 +46,7 @@
     "cef:prepare:macos-x86-64": "node ./Scripts/Bootstrap.js --task=cef:prepare:macos-x86-64",
     "bindings:gen": "node ./Scripts/Bootstrap.js --task=bindings:gen",
     "bindings:build": "node ./Scripts/Bootstrap.js --task=bindings:build",
+    "bindings:lint" : "node ./Scripts/Bootstrap.js --task=bindings:lint",
     "bindings:all": "node ./Scripts/Bootstrap.js --task=bindings:all"
   },
   "dependencies": {

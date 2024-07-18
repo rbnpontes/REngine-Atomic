@@ -1,10 +1,14 @@
 const path = require('path');
 const fs = require('fs');
 const os = require('os');
+const { glob } = require('glob');
+const TsLint = require('tslint');
+
 const { engineGetRoot, engineGetArtifactsRoot } = require("../Utils/EngineUtils");
 const { execAsync } = require('../Utils/ProcessUtils');
-const constants = require('../Constants');
 const { getUnsupportedEnvironmentError } = require('../Exceptions');
+
+const constants = require('../Constants');
 const engine_root = engineGetRoot();
 const engine_tool = (()=> {
     const artifacts = engineGetArtifactsRoot();
@@ -147,10 +151,67 @@ async function bindingsBuildTypescript() {
         await execAsync('node', [tsc_path, '--project', tsc_proj]);
     }
 
+    console.log('- Generating Combined engine.d.ts');
+    const dts_gen_args = [
+        path.resolve(engine_root, 'Build/node_modules/dts-generator/bin/dts-generator'),
+        '--name', constants.engine_typescript_definitions,
+        '--project', path.resolve(engine_root, 'Script/TypeScript'),
+        '--out', path.resolve(
+            engineGetArtifactsRoot(), 
+            'Script/TypeScript/dist', 
+            constants.engine_typescript_definitions + '.d.ts'
+        )
+    ];
+    await execAsync('node', dts_gen_args);
     console.log('- Finished TypeScript Build Scripts');
+}
+
+async function bindingsLintTypescript() {
+    const typescript_projects = [
+        'AtomicEditor/**/*.ts',
+        'AtomicWebViewEditor/**/*.ts'
+    ];
+    const file_mask = '{' + typescript_projects.join(',') +'}';
+    const script_path = path.resolve(engine_root, 'Script');
+    
+    console.log('TSLINT: Linting files in '+file_mask);
+
+    const lint_cfg = JSON.parse(fs.readFileSync(path.join(script_path, 'tslint.json')));
+    const tslint_cfg = {
+        configuration: lint_cfg,
+        formatter: 'prose'
+    };
+
+    // TODO: change this to eslint
+    // lint
+    // Since TSLint does not yet support recursively searching for files, then we need to
+    // create a command per file.  The main issue with this is that it will abort on the first error instead
+    // of listing out all lint errors
+    const results = await glob(file_mask, { cwd : script_path });
+    const lint_errors = [];
+
+    results.forEach(filename => {
+        // skip declaration types
+        if(filename.endsWith('.d.ts'))
+            return;
+        const contents = fs.readFileSync(path.resolve(script_path, filename), 'utf-8');
+        const lint_instance = new TsLint(filename, contents, tslint_cfg);
+        const result = lint_instance.lint();
+        if(result.failureCount > 0)
+            lint_errors.push(result.output);
+    });
+
+    if(lint_errors.length > 0) {
+        console.warn('TSLINT: WARNING - Lint errors detected');
+        console.warn(lint_errors.join(' '));
+        throw new Error('TSLint errors detected');
+    }
+
+    console.log('TSLINT: Success!');
 }
 
 module.exports = {
     bindingsGenerate,
-    bindingsBuildTypescript
+    bindingsBuildTypescript,
+    bindingsLintTypescript
 }

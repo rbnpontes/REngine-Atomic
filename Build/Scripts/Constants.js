@@ -9,5 +9,6 @@ module.exports = {
     engine_project_json: 'AtomicProject.json',
     engine_net_project_json: 'EngineNETProject.json',
     engine_web_view_editor: 'AtomicWebViewEditor',
+    engine_typescript_definitions: 'Atomic',
     cmake_option_prefix: 'ENGINE'
 };
