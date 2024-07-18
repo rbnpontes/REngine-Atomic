@@ -4,7 +4,6 @@ file(GLOB_RECURSE SOURCE_FILES *.cpp *.h)
 list(REMOVE_ITEM SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/WebView/WebProcessHelperMac.cpp)
 file(GLOB JAVASCRIPT_BINDINGS_SOURCE ${ENGINE_SOURCE_DIR}/Artifacts/Build/Source/Generated/Javascript/Packages/Editor/*.cpp)
 set(SOURCE_FILES ${SOURCE_FILES} ${JAVASCRIPT_BINDINGS_SOURCE})
-set(SOURCE_FILES ${SOURCE_FILES} ${CSHARP_BINDINGS_SOURCE} ${CSHARPATOMICPLAYER_BINDINGS_SOURCE} ${CSHARPATOMICNET_BINDINGS_SOURCE})
 
 if (APPLE)
     file(GLOB_RECURSE OBJC_FILES *.mm *.h)
@@ -150,7 +149,7 @@ endif()
 
 if (APPLE)
     set(TARGET_PROPERTIES MACOSX_BUNDLE_INFO_PLIST "${ENGINE_SOURCE_DIR}/Build/CMake/Modules/EngineEditorInfo.plist.template")
-    set(MACOSX_BUNDLE_GUI_IDENTIFIER "com.rengine.editor")
+    set(MACOSX_BUNDLE_GUI_IDENTIFIER "${ENGINE_MACOSX_IDENTIFIER}")
     set(MACOSX_BUNDLE_BUNDLE_NAME "${ENGINE_EDITOR_TARGET}")
     target_link_libraries(${ENGINE_EDITOR_TARGET})
 elseif (LINUX)
@@ -166,7 +165,7 @@ endif ()
 
 target_link_libraries(${ENGINE_EDITOR_TARGET} ${ENGINE_CORE_LIB_TARGET})
 
-add_dependencies(${CEF_TARGET} AtomicToolCheckScripts)
+add_dependencies(${CEF_TARGET} EngineToolCheckScripts)
 
 GroupSources("Application")
 GroupSources("EditorMode")

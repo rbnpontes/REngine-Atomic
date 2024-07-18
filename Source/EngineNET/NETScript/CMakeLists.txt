@@ -11,7 +11,7 @@ target_link_libraries(${ENGINE_NET_SCRIPT_TARGET} ${ENGINE_CORE_LIB_TARGET})
 add_library(${ENGINE_NET_SCRIPT_BINDINGS_TARGET} ${NET_SCRIPT_BINDINGS_SOURCE})
 target_link_libraries(${ENGINE_NET_SCRIPT_BINDINGS_TARGET} ${ENGINE_CORE_LIB_TARGET})
 if (ENGINE_DESKTOP)
-    add_dependencies(${ENGINE_NET_SCRIPT_BINDINGS_TARGET} AtomicToolCheckScripts)
+    add_dependencies(${ENGINE_NET_SCRIPT_BINDINGS_TARGET} EngineToolCheckScripts)
 endif ()
 
 vs_add_to_grp(${ENGINE_NET_SCRIPT_TARGET} "${VS_GRP_ENGINE_SRC}")

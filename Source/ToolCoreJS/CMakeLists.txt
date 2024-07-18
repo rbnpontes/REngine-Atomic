@@ -9,7 +9,7 @@ add_library(ToolCoreJS ${SOURCE_FILES})
 
 target_link_libraries(ToolCoreJS ToolCore Assimp)
 
-add_dependencies(ToolCoreJS AtomicToolCheckScripts)
+add_dependencies(ToolCoreJS EngineToolCheckScripts)
 
 # Put it back C++ version
 set (CMAKE_CXX_STANDARD 20)

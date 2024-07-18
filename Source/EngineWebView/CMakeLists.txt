@@ -17,7 +17,7 @@ target_link_libraries(${ENGINE_WEB_VIEW_TARGET} ${ENGINE_CORE_LIB_TARGET})
 target_compile_definitions(${ENGINE_WEB_VIEW_TARGET} PRIVATE -DENGINE_WEB_VIEW_TARGET="${ENGINE_WEB_VIEW_TARGET}")
 
 if (ENGINE_JAVASCRIPT OR ENGINE_DOTNET)
-    add_dependencies(${ENGINE_WEB_VIEW_TARGET} AtomicToolCheckScripts)
+    add_dependencies(${ENGINE_WEB_VIEW_TARGET} EngineToolCheckScripts)
 endif()
 
 vs_add_to_grp(${ENGINE_WEB_VIEW_TARGET} "${VS_GRP_ENGINE_SRC}")

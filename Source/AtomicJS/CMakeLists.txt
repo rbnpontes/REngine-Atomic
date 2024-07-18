@@ -15,7 +15,7 @@ set (SOURCE_FILES ${JAVASCRIPT_SOURCE} ${JAVASCRIPT_BINDINGS_SOURCE})
 add_library(AtomicJS ${SOURCE_FILES})
 target_link_libraries(AtomicJS ${ENGINE_CORE_LIB_TARGET})
 if (ENGINE_DESKTOP)
-    add_dependencies(AtomicJS AtomicToolCheckScripts)
+    add_dependencies(AtomicJS EngineToolCheckScripts)
 endif ()
 
 vs_add_to_grp(AtomicJS "${VS_GRP_ENGINE_SRC}")

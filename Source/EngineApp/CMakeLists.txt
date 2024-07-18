@@ -10,7 +10,7 @@ target_compile_definitions(${ENGINE_APP_TARGET} PUBLIC
 
 if (ENGINE_DESKTOP)
     if(ENGINE_JAVASCRIPT OR ENGINE_DOTNET)
-        add_dependencies(${ENGINE_APP_TARGET} AtomicToolCheckScripts)
+        add_dependencies(${ENGINE_APP_TARGET} EngineToolCheckScripts)
     endif()
 endif ()
 if(ENGINE_JAVASCRIPT)

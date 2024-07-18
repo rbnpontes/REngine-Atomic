@@ -21,7 +21,7 @@ if (ENGINE_JAVASCRIPT OR ENGINE_DOTNET)
 endif ()
 
 if (ENGINE_DESKTOP)
-    add_subdirectory(AtomicTool)
+    add_subdirectory(EngineTool)
     add_subdirectory(Tools)
     add_subdirectory(ToolCore)
     if (ENGINE_JAVASCRIPT)

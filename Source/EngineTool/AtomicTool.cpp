@@ -268,7 +268,7 @@ void AtomicTool::Start()
         if (!netService->Start())
         {
             netService = nullptr;
-            ErrorExit(ToString("Unable to start AtomicNETService"));
+            ErrorExit(ToString("Unable to start %s", ENGINE_NET_SERVICE_NAME));
             return;
         }
 

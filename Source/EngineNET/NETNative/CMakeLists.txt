@@ -25,7 +25,7 @@ endif()
 
 add_library(${ENGINE_NET_NATIVE_TARGET} SHARED ${SOURCE_FILES} ${CSHARP_BINDINGS_SOURCE})
 if (ENGINE_DESKTOP)
-    add_dependencies(${ENGINE_NET_NATIVE_TARGET} AtomicToolCheckScripts)
+    add_dependencies(${ENGINE_NET_NATIVE_TARGET} EngineToolCheckScripts)
 endif ()
 
 target_link_libraries(${ENGINE_NET_NATIVE_TARGET} 

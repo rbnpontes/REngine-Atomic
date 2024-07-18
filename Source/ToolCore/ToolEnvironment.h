@@ -74,7 +74,7 @@ public:
 
     const String& GetToolDataDir() { return toolDataDir_; }
 
-    // Returns true if we running from a command line tool (aka: AtomicTool)
+    // Returns true if we running from a command line tool (aka: EngineTool)
     bool GetCLI() { return cli_; }
 
     // EngineNET
@@ -98,7 +98,7 @@ private:
 
     bool InitFromDistribution();
 
-    // Whether we are running from a command line tool, such as AtomicTool
+    // Whether we are running from a command line tool, such as EngineTool
     bool cli_;
 
     // root source directory (for development builds)
@@ -116,7 +116,7 @@ private:
     // path to Atomic player app (OSX)
     String playerAppFolder_;
 
-    // path to the AtomicTool command line binary
+    // path to the EngineTool command line binary
     String toolBinary_;
 
     String toolDataDir_;
