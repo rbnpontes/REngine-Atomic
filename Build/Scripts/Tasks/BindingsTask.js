@@ -1,5 +1,5 @@
 const path = require('path');
-const fs = require('fs');
+const fs = require('fs-extra');
 const os = require('os');
 const { glob } = require('glob');
 const TsLint = require('tslint');
@@ -163,12 +163,63 @@ async function bindingsBuildTypescript() {
         )
     ];
     await execAsync('node', dts_gen_args);
+
+    console.log('- Copying Generated files to Artifacts');
+
+    const editor_modules_dir = path.resolve(engineGetArtifactsRoot(), 'Build/Resources/EditorData/EditorScripts/', constants.engine_editor_name, 'modules');
+    const web_editor_modules_dir = path.resolve(engine_root, 'Data/CodeEditor/source/editorCore/modules');
+    const node_modules_dir = path.resolve(engine_root, 'Build/node_modules');
+
+    fs.mkdirSync(editor_modules_dir);
+    // TypeScript
+    fs.copySync(
+        path.resolve(node_modules_dir, 'typescript/lib/typescript.js'), 
+        path.resolve(web_editor_modules_dir, 'typescript.js')
+    );
+
+    // copy lib.core.d.ts into the tool data directory
+    fs.mkdirSync(
+        path.resolve(
+            engineGetArtifactsRoot(), 
+            'Build/Resources/EditorData/EditorScripts', 
+            constants.engine_editor_name, 
+            'TypeScriptSupport'
+        )
+    );
+    // copy the combined EngineCore.d.ts to the tool data directory
+    fs.copySync(
+        path.resolve(engineGetArtifactsRoot(), 'Script/TypeScript/dist/', constants.engine_typescript_definitions+'.d.ts'),
+        path.resolve(engineGetArtifactsRoot(), 'Data/TypeScriptSupport/', constants.engine_typescript_definitions+'.d.ts')
+    );
     console.log('- Finished TypeScript Build Scripts');
+}
+
+async function bindingsCleanTypescript() {
+    const exclude_list = [
+        'Work.d.ts',
+        'duktape.d.ts',
+        'tsconfig.json',
+        'README.md'
+    ];
+    const typescript_build_dir = path.resolve(engine_root, 'Script/TypeScript');
+    
+    console.log('- Cleaning TypeScript definition directory');
+
+    let cleared_count = 0;
+    fs.readdirSync(typescript_build_dir).forEach(x => {
+        const filepath = path.join(typescript_build_dir, x);
+        if(exclude_list.find(x => x.endsWith(filepath)))
+            return;
+        fs.removeSync(filepath);
+        ++cleared_count;
+    });
+
+    console.log(`- Finished Typescript cleaning definition directory, Removed (${cleared_count}) files.`);
 }
 
 async function bindingsLintTypescript() {
     const typescript_projects = [
-        'AtomicEditor/**/*.ts',
+        constants.engine_editor_name+'/**/*.ts',
         'AtomicWebViewEditor/**/*.ts'
     ];
     const file_mask = '{' + typescript_projects.join(',') +'}';
@@ -213,5 +264,6 @@ async function bindingsLintTypescript() {
 module.exports = {
     bindingsGenerate,
     bindingsBuildTypescript,
-    bindingsLintTypescript
+    bindingsLintTypescript,
+    bindingsCleanTypescript
 }

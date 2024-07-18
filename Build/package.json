@@ -47,6 +47,7 @@
     "bindings:gen": "node ./Scripts/Bootstrap.js --task=bindings:gen",
     "bindings:build": "node ./Scripts/Bootstrap.js --task=bindings:build",
     "bindings:lint" : "node ./Scripts/Bootstrap.js --task=bindings:lint",
+    "bindings:clean" : "node ./Scripts/Bootstrap.js --task=bindings:clean",
     "bindings:all": "node ./Scripts/Bootstrap.js --task=bindings:all"
   },
   "dependencies": {
