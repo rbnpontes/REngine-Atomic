@@ -1,8 +1,8 @@
 
 {
-  "name" : "Editor",
+  "name" : "EngineEditor",
   "namespace" : "AtomicEditor",
   "dependencies" : ["Script/Packages/WebView"],
-  "modules" : ["Editor"],
+  "modules" : ["EngineEditor"],
   "platforms" : ["WINDOWS", "MACOSX", "LINUX"]
 }

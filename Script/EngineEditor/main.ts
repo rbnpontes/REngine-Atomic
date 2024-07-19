@@ -19,11 +19,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
-
-/// <reference path="../TypeScript/Atomic.d.ts" />
-/// <reference path="../TypeScript/ToolCore.d.ts" />
-/// <reference path="../TypeScript/Editor.d.ts" />
-/// <reference path="../TypeScript/AtomicWork.d.ts" />
+/// <reference path="../TypeScript/EngineWork.d.ts" />
 
 // Bring in AtomicEventLoop so the editor has access to the timer apis.  This
 // attaches the timer apis to the global object so they are available everywhere from this point.

@@ -1,6 +1,6 @@
 
 {
-	"name" : "Atomic",
+	"name" : "EngineCore",
 	"namespace" : "Atomic",
 	"modules" : ["Container", "Math", "Core", "Scene", "Graphics", "Atomic2D", "Audio",
 		"Physics", "Navigation", "Input", "UI", "Resource", "Network", "IO",

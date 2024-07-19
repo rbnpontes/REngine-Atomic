@@ -1,0 +1,17 @@
+{
+    "compilerOptions": {
+        "target": "es5",
+        "module": "commonjs",
+        "declaration": false,
+        "noImplicitAny": false,
+        "removeComments": true,
+        "noLib": false,
+        "moduleResolution": "classic",
+        "sourceMap": true,
+        "experimentalDecorators": true,
+        "forceConsistentCasingInFileNames": true
+    },
+    "atom": {
+        "rewriteTsconfig": true
+    }
+}

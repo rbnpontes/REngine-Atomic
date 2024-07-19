@@ -2,7 +2,7 @@
 {
   "name" : "EngineNETScript",
   "namespace" : "Atomic",
-  "dependencies" : ["Script/Packages/Atomic"],
+  "dependencies" : ["Script/Packages/EngineCore"],
   "modules" : ["EngineNETScript"],
   "platforms" : ["WINDOWS", "MACOSX","LINUX", "ANDROID"]
 }

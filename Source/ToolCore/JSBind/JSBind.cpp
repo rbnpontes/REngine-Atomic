@@ -113,6 +113,20 @@ bool JSBind::GenerateJavaScriptBindings()
         ErrorExit(error.CString());
     }
 
+    if(!fs->CreateDirs(sourceRootFolder_, "Artifacts/Build/TypeScript") 
+        || !fs->DirExists(sourceRootFolder_ + "/Artifacts/Build/TypeScript"))
+    {
+        String error = "Unable to create typescript definitions output folder: Artifacts/Build/TypeScript";
+        ErrorExit(error.CString());
+    }
+
+    if(!fs->CreateDirs(sourceRootFolder_, "Artifacts/Build/Haxe") 
+        || !fs->DirExists(sourceRootFolder_ + "/Artifacts/Build/Haxe"))
+    {
+        String error = "Unable to create haxe definitions output folder: Artifacts/Build/Haxe";
+        ErrorExit(error.CString());
+    }
+
     destScriptFolder_ = String::EMPTY;
     destNativeFolder_ = outputFolder;
 

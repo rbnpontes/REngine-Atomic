@@ -19,6 +19,7 @@ Data/Deployment/Web/AtomicPlayer.html.mem
 Data/Deployment/IOS/*.app/*
 node_modules/*
 /.project
+Script/tsconfig.json
 Script/TypeScript/**/*.d.ts
 !Script/TypeScript/**/*Work.d.ts
 Script/Haxe/*

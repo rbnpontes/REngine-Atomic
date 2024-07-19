@@ -2,6 +2,6 @@
 {
   "name" : "EnginePlayer",
   "namespace" : "AtomicPlayer",
-  "dependencies" : ["Script/Packages/Atomic"],
+  "dependencies" : ["Script/Packages/EngineCore"],
   "modules" : ["Player"]
 }

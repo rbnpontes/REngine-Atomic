@@ -2,7 +2,7 @@
 {
   "name" : "ToolCore",
   "namespace" : "ToolCore",
-  "dependencies" : ["Script/Packages/Atomic"],
+  "dependencies" : ["Script/Packages/EngineCore"],
   "modules" : ["ToolCore"],
   "platforms" : ["WINDOWS", "MACOSX", "LINUX"]
 }

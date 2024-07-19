@@ -100,9 +100,9 @@ void JSBTypeScript::Begin()
 
     source_ += "// Atomic TypeScript Definitions\n\n";
 
-    if (package_->GetName() != "Atomic")
+    if (package_->GetName() != ENGINE_TYPESCRIPT_DEFINITIONS_NAME)
     {
-        source_ += "/// <reference path=\"Atomic.d.ts\" />\n\n";
+        source_.AppendWithFormat("/// <reference path=\"%s.d.ts\" />\n\n", ENGINE_TYPESCRIPT_DEFINITIONS_NAME);
     }
 
     source_ += "declare module "+ package_->GetName() + " {\n\n";

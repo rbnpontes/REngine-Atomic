@@ -6,8 +6,8 @@ namespace('bindings', ()=> {
     task('lint', async ()=> await bindingsLintTypescript());
     task('clean', async ()=> await bindingsCleanTypescript());
     task('all', async ()=> {
-        await bindingsGenerate();
         await bindingsCleanTypescript();
+        await bindingsGenerate();
         await bindingsLintTypescript();
         await bindingsBuildTypescript();
     });

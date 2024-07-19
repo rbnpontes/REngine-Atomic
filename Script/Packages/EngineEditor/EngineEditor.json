@@ -1,5 +1,5 @@
 {
-	"name" : "Editor",
+	"name" : "EngineEditor",
 	"includes" : ["<EngineCore/Graphics/DebugRenderer.h>", "<EngineWebView/UIWebView.h>"],
 	"sources" : ["Source/EngineEditor/Application", "Source/EngineEditor/Utils",
 							 "Source/EngineEditor/EditorMode", "Source/EngineEditor/PlayerMode",

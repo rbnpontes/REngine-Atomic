@@ -1,6 +1,6 @@
-/// <reference path="Atomic.d.ts" />
+/// <reference path="EngineCore.d.ts" />
 /// <reference path="ToolCore.d.ts" />
-/// <reference path="Editor.d.ts" />
+/// <reference path="EngineEditor.d.ts" />
 /// <reference path="EnginePlayer.d.ts" />
 
 declare module Atomic {

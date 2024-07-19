@@ -46,8 +46,8 @@
     "cef:prepare:macos-x86-64": "node ./Scripts/Bootstrap.js --task=cef:prepare:macos-x86-64",
     "bindings:gen": "node ./Scripts/Bootstrap.js --task=bindings:gen",
     "bindings:build": "node ./Scripts/Bootstrap.js --task=bindings:build",
-    "bindings:lint" : "node ./Scripts/Bootstrap.js --task=bindings:lint",
-    "bindings:clean" : "node ./Scripts/Bootstrap.js --task=bindings:clean",
+    "bindings:lint": "node ./Scripts/Bootstrap.js --task=bindings:lint",
+    "bindings:clean": "node ./Scripts/Bootstrap.js --task=bindings:clean",
     "bindings:all": "node ./Scripts/Bootstrap.js --task=bindings:all"
   },
   "dependencies": {
@@ -58,6 +58,7 @@
     "glob": "^10.3.12",
     "jake": "^10.8.7",
     "monaco-editor": "^0.9.0",
+    "mustache": "^4.2.0",
     "node-7z": "^3.0.0",
     "tslint": "^3.2.0",
     "typescript": "^5.5.3",

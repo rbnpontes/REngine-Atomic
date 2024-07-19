@@ -287,10 +287,10 @@ void JSPackageWriter::PostProcess()
     jdoc.Emit(package_, jsbind->GetSourceRootFolder() + "Artifacts/Build/JSDoc/" + package_->GetName() + ".js");
 
     JSBTypeScript ts;
-    ts.Emit(package_, jsbind->GetSourceRootFolder() + "Script/TypeScript/" + package_->GetName() + ".d.ts");
+    ts.Emit(package_, jsbind->GetSourceRootFolder() + "Artifacts/Build/TypeScript/" + package_->GetName() + ".d.ts");
 
     JSBHaxe hx;
-    hx.Emit(package_, jsbind->GetSourceRootFolder() + "Script/Haxe/" + package_->GetName() + ".hx");
+    hx.Emit(package_, jsbind->GetSourceRootFolder() + "Artifacts/Build/Haxe/" + package_->GetName() + ".hx");
 
 }
 

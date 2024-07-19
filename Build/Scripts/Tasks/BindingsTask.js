@@ -1,7 +1,7 @@
 const path = require('path');
 const fs = require('fs-extra');
 const os = require('os');
-const { glob } = require('glob');
+const { glob, globSync } = require('glob');
 const TsLint = require('tslint');
 
 const { engineGetRoot, engineGetArtifactsRoot } = require("../Utils/EngineUtils");
@@ -21,6 +21,8 @@ const engine_tool = (()=> {
     }
     getUnsupportedEnvironmentError();
 })();
+const script_dir = path.resolve(engine_root, 'Script');
+const typescript_generated_types_path = path.resolve(engineGetArtifactsRoot(), 'Build/TypeScript');
 
 /**
  * @typedef {Object} PackageModuleExcludeDesc
@@ -50,7 +52,7 @@ const engine_tool = (()=> {
  * Get Script Packages used that will be generate bindings
  * @returns {Array<string>}
  */
-function getScriptPackages() {
+function _getScriptPackages() {
     const target = path.resolve(engine_root, 'Script/Packages');
     return fs.readdirSync(target).filter(
         (file) => {
@@ -63,10 +65,10 @@ function getScriptPackages() {
         }
     );
 }
-function getScriptModules() {
+function _getScriptModules() {
     /** @type {{ [key: string]: ScriptModule }} */
     const modules = {};
-    const script_packages = getScriptPackages();
+    const script_packages = _getScriptPackages();
     script_packages.forEach(script_pkg => {
         /** @type {PackageDesc} */
         const pkg = JSON.parse(
@@ -100,11 +102,62 @@ function getScriptModules() {
 
     return modules;
 }
+function _genTsConfig() {
+    console.log('- Generating TsConfig');
+    const output_tsconfig_path = path.join(script_dir, 'tsconfig.json');
+
+    if(fs.existsSync(output_tsconfig_path))
+        fs.unlinkSync(output_tsconfig_path);
+
+    const base_ts_config = JSON.parse(
+        fs.readFileSync(path.join(script_dir, 'tsconfig.base.json'))
+    );
+
+    const files_glob = [
+        './ToolCore/**/*.ts',
+        `./${constants.engine_editor_name}/**/*.ts`,
+        './TypeScript/**/*.ts',
+        '!./TypeScript/dist/*.ts',
+        `!./TypeScript/${constants.engine_net_name}.d.ts`,
+        path.join(typescript_generated_types_path, '*.ts'),
+        ...base_ts_config.files_glob ?? [],
+    ];
+    const target_ts_files = [constants.engine_editor_name+'/**/*.ts', 'ToolCore/**/*.ts'];
+    const code_files = globSync(['{', target_ts_files.join(','), '}'].join(''), { cwd : script_dir });
+    const generated_files = fs.readdirSync(typescript_generated_types_path)
+        .map(x => {
+            return path.resolve(typescript_generated_types_path, x);
+        }).filter(x => fs.statSync(x).isFile() && x.endsWith('.d.ts'));
+
+    const ts_config_files = [
+        ...code_files.map(x => './'+x),
+        ...generated_files,
+        ...(base_ts_config.files ?? [])
+    ];
+
+    const output_dir = path.resolve(engineGetArtifactsRoot(), 'Build/Resources/EditorData/EditorScripts');
+
+    base_ts_config.compilerOptions.outDir = output_dir;
+    base_ts_config.filesGlob = files_glob;
+    base_ts_config.files = ts_config_files;
+
+    fs.writeFileSync(
+        path.join(script_dir, 'tsconfig.json'),
+        JSON.stringify(base_ts_config, null, '\t')
+    );
+
+    console.log('- TsConfig generated with success!');
+}
 
 async function bindingsGenerate() {
     console.log('- Generating Bindings');
 
-    const script_modules = getScriptModules();
+    if(fs.existsSync(typescript_generated_types_path)) {
+        console.log('- Clearing Generated Definitions Files');
+        fs.removeSync(typescript_generated_types_path);
+    }
+
+    const script_modules = _getScriptModules();
     const binding_calls = Object.keys(script_modules).map(module_name => {
         return async ()=> {
             console.log(`- Generating ${module_name} Bindings`);
@@ -129,6 +182,9 @@ async function bindingsBuildTypescript() {
     const excluded_items = new Set([
         'TypeScript'
     ]);
+
+    _genTsConfig();
+
     console.log('- Building TypeScript Scripts');
     
     // find directory that contains tsconfig.json and build
@@ -208,7 +264,7 @@ async function bindingsCleanTypescript() {
     let cleared_count = 0;
     fs.readdirSync(typescript_build_dir).forEach(x => {
         const filepath = path.join(typescript_build_dir, x);
-        if(exclude_list.find(x => x.endsWith(filepath)))
+        if(exclude_list.find(file => filepath.endsWith(file)))
             return;
         fs.removeSync(filepath);
         ++cleared_count;

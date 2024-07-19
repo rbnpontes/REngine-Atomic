@@ -2,7 +2,7 @@
 {
   "name" : "WebView",
   "namespace" : "Atomic",
-  "dependencies" : ["Script/Packages/Atomic"],
+  "dependencies" : ["Script/Packages/EngineCore"],
   "modules" : ["WebView"],
   "platforms" : ["WINDOWS", "MACOSX", "LINUX"]
 }

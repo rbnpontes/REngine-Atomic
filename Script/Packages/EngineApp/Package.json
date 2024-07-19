@@ -2,6 +2,6 @@
 {
   "name" : "EngineApp",
   "namespace" : "Atomic",
-  "dependencies" : ["Script/Packages/Atomic"],
+  "dependencies" : ["Script/Packages/EngineCore"],
   "modules" : ["EngineApp"]
 }
