@@ -29,11 +29,11 @@ class AssemblyInspector extends InspectorWidget {
 
         super();
 
-        this.subscribeToEvent(this, Atomic.UIWidgetEvent((data) => this.handleWidgetEvent(data)));
+        this.subscribeToEvent(this, EngineCore.UIWidgetEvent((data) => this.handleWidgetEvent(data)));
 
     }
 
-    handleWidgetEvent(ev: Atomic.UIWidgetEvent):boolean {
+    handleWidgetEvent(ev: EngineCore.UIWidgetEvent):boolean {
 
       return false;
 
@@ -53,13 +53,13 @@ class AssemblyInspector extends InspectorWidget {
         var assemblyFile = <EngineNETScript.CSComponentAssembly> asset.importer.getResource();
 
         var container = InspectorUtils.createContainer();
-        container.gravity = Atomic.UI_GRAVITY.UI_GRAVITY_ALL;
+        container.gravity = EngineCore.UI_GRAVITY.UI_GRAVITY_ALL;
         assemblyLayout.addChild(container);
 
-        var panel = new Atomic.UILayout();
-        panel.axis = Atomic.UI_AXIS.UI_AXIS_Y;
-        panel.layoutSize = Atomic.UI_LAYOUT_SIZE.UI_LAYOUT_SIZE_PREFERRED;
-        panel.layoutPosition = Atomic.UI_LAYOUT_POSITION.UI_LAYOUT_POSITION_LEFT_TOP;
+        var panel = new EngineCore.UILayout();
+        panel.axis              = EngineCore.UI_AXIS.UI_AXIS_Y;
+        panel.layoutSize        = EngineCore.UI_LAYOUT_SIZE.UI_LAYOUT_SIZE_PREFERRED;
+        panel.layoutPosition    = EngineCore.UI_LAYOUT_POSITION.UI_LAYOUT_POSITION_LEFT_TOP;
         container.addChild(panel);
 
         var label = InspectorUtils.createAttrName("CSComponents:");

@@ -47,7 +47,7 @@ class NodeSection extends SelectionSection {
         this.transformEdits.push(this.attrEdits["Rotation"]);
         this.transformEdits.push(this.attrEdits["Scale"]);
 
-        this.subscribeToEvent(Atomic.UpdateEvent((ev) => this.handleUpdate(ev)));
+        this.subscribeToEvent(EngineCore.UpdateEvent((ev) => this.handleUpdate(ev)));
 
     }
 
@@ -59,13 +59,13 @@ class NodeSection extends SelectionSection {
 
             this.updateDelta = 0.1;
 
-            Atomic.ui.blockChangedEvents = true;
+            EngineCore.ui.blockChangedEvents = true;
 
             for (var i in this.transformEdits) {
                 this.transformEdits[i].refresh();
             }
 
-            Atomic.ui.blockChangedEvents = false;
+            EngineCore.ui.blockChangedEvents = false;
 
         }
 
@@ -81,7 +81,7 @@ class ComponentSection extends SelectionSection {
 
         super(editType);
 
-        var deleteButton = new Atomic.UIButton();
+        var deleteButton = new EngineCore.UIButton();
         deleteButton.text = "Delete Component";
         deleteButton.fontDescription = SelectionSection.fontDesc;
 
@@ -92,7 +92,7 @@ class ComponentSection extends SelectionSection {
 
         };
 
-        var copyButton = new Atomic.UIButton();
+        var copyButton = new EngineCore.UIButton();
         copyButton.text = "Copy Settings";
 
         copyButton.onClick = () => {
@@ -102,7 +102,7 @@ class ComponentSection extends SelectionSection {
 
         };
 
-        var pasteButton = new Atomic.UIButton();
+        var pasteButton = new EngineCore.UIButton();
         pasteButton.text = "Paste Settings";
 
         pasteButton.onClick = () => {
@@ -137,13 +137,13 @@ class JSComponentSection extends ComponentSection {
 
         this.hasDynamicAttr = true;
 
-        this.subscribeToEvent(this, Editor.AttributeEditResourceChangedEvent((ev) => this.handleAttributeEditResourceChanged(ev)));
+        this.subscribeToEvent(this, EngineEditor.AttributeEditResourceChangedEvent((ev) => this.handleAttributeEditResourceChanged(ev)));
         this.updateTitleFromComponentClass();
     }
 
-    private handleAttributeEditResourceChanged(ev: Editor.AttributeEditResourceChangedEvent) {
+    private handleAttributeEditResourceChanged(ev: EngineEditor.AttributeEditResourceChangedEvent) {
 
-        var jsc = <Atomic.JSComponent>this.editType.getFirstObject();
+        var jsc = <EngineCore.JSComponent>this.editType.getFirstObject();
 
         if (!jsc)
             return;
@@ -155,10 +155,10 @@ class JSComponentSection extends ComponentSection {
 
     private updateTitleFromComponentClass() {
         this.text = this.editType.typeName;
-        let jsc = this.editType.getFirstObject() as Atomic.JSComponent;
+        let jsc = this.editType.getFirstObject() as EngineCore.JSComponent;
         if (jsc && jsc.componentFile) {
             this.text = jsc.componentFile.name.split("/").pop();
-            let jscf = <Atomic.JSComponentFile> jsc.componentFile;
+            let jscf = <EngineCore.JSComponentFile> jsc.componentFile;
             if (jscf.typeScriptClass) {
                 this.text = this.text.replace(".js", ".ts");
             }
@@ -177,7 +177,7 @@ class CSComponentSection extends ComponentSection {
 
         this.hasDynamicAttr = true;
 
-        this.subscribeToEvent(this, Editor.AttributeEditResourceChangedEvent((ev) => this.handleAttributeEditResourceChanged(ev)));
+        this.subscribeToEvent(this, EngineEditor.AttributeEditResourceChangedEvent((ev) => this.handleAttributeEditResourceChanged(ev)));
 
         this.subscribeToEvent(EngineNETScript.CSComponentAssemblyChangedEvent((ev) => this.handleCSComponentAssemblyChanged(ev)));
 
@@ -192,7 +192,7 @@ class CSComponentSection extends ComponentSection {
         if (!csc)
           return;
 
-        if (csc.componentFile == <Atomic.ScriptComponentFile> ev.resource) {
+        if (csc.componentFile == <EngineCore.ScriptComponentFile> ev.resource) {
 
           var attrInfos = csc.getAttributes();
           this.updateDynamicAttrInfos(attrInfos);
@@ -215,7 +215,7 @@ class CSComponentSection extends ComponentSection {
     }
 
 
-    private handleAttributeEditResourceChanged(ev: Editor.AttributeEditResourceChangedEvent) {
+    private handleAttributeEditResourceChanged(ev: EngineEditor.AttributeEditResourceChangedEvent) {
 
 
         var csc = <EngineNETScript.CSComponent>this.editType.getFirstObject();
@@ -245,52 +245,52 @@ class CSComponentSection extends ComponentSection {
 
 class SelectionInspector extends ScriptWidget {
 
-    component: Atomic.Component;
+    component: EngineCore.Component;
 
-    constructor(sceneEditor: Editor.SceneEditor3D) {
+    constructor(sceneEditor: EngineEditor.SceneEditor3D) {
 
         super();
 
         this.sceneEditor = sceneEditor;
 
-        var mainLayout = this.mainLayout = new Atomic.UILayout();
+        var mainLayout = this.mainLayout = new EngineCore.UILayout();
         mainLayout.spacing = 4;
 
-        var lp = new Atomic.UILayoutParams();
+        var lp = new EngineCore.UILayoutParams();
         lp.width = 304;
 
-        mainLayout.layoutDistribution = Atomic.UI_LAYOUT_DISTRIBUTION.UI_LAYOUT_DISTRIBUTION_GRAVITY;
-        mainLayout.layoutPosition = Atomic.UI_LAYOUT_POSITION.UI_LAYOUT_POSITION_LEFT_TOP;
+        mainLayout.layoutDistribution   = EngineCore.UI_LAYOUT_DISTRIBUTION.UI_LAYOUT_DISTRIBUTION_GRAVITY;
+        mainLayout.layoutPosition       = EngineCore.UI_LAYOUT_POSITION.UI_LAYOUT_POSITION_LEFT_TOP;
         mainLayout.layoutParams = lp;
-        mainLayout.axis = Atomic.UI_AXIS.UI_AXIS_Y;
+        mainLayout.axis                 = EngineCore.UI_AXIS.UI_AXIS_Y;
 
         this.addChild(mainLayout);
 
-        var noticeLayout = this.multipleSelectNotice = new Atomic.UILayout();
-        noticeLayout.axis = Atomic.UI_AXIS.UI_AXIS_Y;
+        var noticeLayout = this.multipleSelectNotice = new EngineCore.UILayout();
+        noticeLayout.axis = EngineCore.UI_AXIS.UI_AXIS_Y;
         noticeLayout.layoutParams = lp;
-        var noticeText = new Atomic.UITextField();
-        noticeText.textAlign = Atomic.UI_TEXT_ALIGN.UI_TEXT_ALIGN_CENTER;
+        var noticeText = new EngineCore.UITextField();
+        noticeText.textAlign = EngineCore.UI_TEXT_ALIGN.UI_TEXT_ALIGN_CENTER;
         noticeText.skinBg = "InspectorTextAttrName";
         noticeText.text = "Multiple Selection - Some components are hidden";
         noticeText.fontDescription = SelectionSection.fontDesc;
-        noticeText.gravity = Atomic.UI_GRAVITY.UI_GRAVITY_LEFT_RIGHT;
+        noticeText.gravity = EngineCore.UI_GRAVITY.UI_GRAVITY_LEFT_RIGHT;
         noticeText.layoutParams = lp;
         noticeLayout.addChild(noticeText);
-        noticeLayout.visibility = Atomic.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_GONE;
+        noticeLayout.visibility = EngineCore.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_GONE;
         mainLayout.addChild(noticeLayout);
 
         this.createComponentButton = new CreateComponentButton();
         mainLayout.addChild(this.createComponentButton);
 
-        this.subscribeToEvent(sceneEditor.scene, Editor.SceneEditStateChangesBeginEvent((data) => this.handleSceneEditStateChangesBeginEvent()));
-        this.subscribeToEvent(Editor.SceneEditStateChangeEvent((data) => this.handleSceneEditStateChangeEvent(data)));
-        this.subscribeToEvent(sceneEditor.scene, Editor.SceneEditStateChangesEndEvent((data) => this.handleSceneEditStateChangesEndEvent()));
+        this.subscribeToEvent(sceneEditor.scene, EngineEditor.SceneEditStateChangesBeginEvent((data) => this.handleSceneEditStateChangesBeginEvent()));
+        this.subscribeToEvent(EngineEditor.SceneEditStateChangeEvent((data) => this.handleSceneEditStateChangeEvent(data)));
+        this.subscribeToEvent(sceneEditor.scene, EngineEditor.SceneEditStateChangesEndEvent((data) => this.handleSceneEditStateChangesEndEvent()));
 
-        this.subscribeToEvent(sceneEditor.scene, Editor.SceneEditNodeRemovedEvent((ev: Editor.SceneEditNodeRemovedEvent) => this.handleSceneEditNodeRemoved(ev)));
-        this.subscribeToEvent(sceneEditor.scene, Editor.SceneEditComponentAddedRemovedEvent((ev) => this.handleSceneEditComponentAddedRemovedEvent(ev)));
+        this.subscribeToEvent(sceneEditor.scene, EngineEditor.SceneEditNodeRemovedEvent((ev: EngineEditor.SceneEditNodeRemovedEvent) => this.handleSceneEditNodeRemoved(ev)));
+        this.subscribeToEvent(sceneEditor.scene, EngineEditor.SceneEditComponentAddedRemovedEvent((ev) => this.handleSceneEditComponentAddedRemovedEvent(ev)));
 
-        this.subscribeToEvent(this.createComponentButton, Editor.SelectionCreateComponentEvent((data) => this.handleSelectionCreateComponent(data)));
+        this.subscribeToEvent(this.createComponentButton, EngineEditor.SelectionCreateComponentEvent((data) => this.handleSelectionCreateComponent(data)));
 
     }
 
@@ -344,7 +344,7 @@ class SelectionInspector extends ScriptWidget {
 
     suppressSections() {
 
-        this.multipleSelectNotice.visibility = Atomic.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_GONE;
+        this.multipleSelectNotice.visibility = EngineCore.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_GONE;
 
         for (var i in this.sections) {
 
@@ -365,7 +365,7 @@ class SelectionInspector extends ScriptWidget {
             }
 
             if (suppressed)
-                this.multipleSelectNotice.visibility = Atomic.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_VISIBLE;
+                this.multipleSelectNotice.visibility = EngineCore.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_VISIBLE;
 
             section.suppress(suppressed);
 
@@ -375,7 +375,7 @@ class SelectionInspector extends ScriptWidget {
 
     refresh() {
 
-        Atomic.ui.blockChangedEvents = true;
+        EngineCore.ui.blockChangedEvents = true;
 
         this.pruneSections();
         this.suppressSections();
@@ -390,7 +390,7 @@ class SelectionInspector extends ScriptWidget {
             this.nodeSection.prefabWidget.updateSelection(this.nodes);
         }
 
-        Atomic.ui.blockChangedEvents = false;
+        EngineCore.ui.blockChangedEvents = false;
 
     }
 
@@ -479,7 +479,7 @@ class SelectionInspector extends ScriptWidget {
 
     }
 
-    removeSerializable(serial: Atomic.Serializable) {
+    removeSerializable(serial: EngineCore.Serializable) {
 
         for (var i in this.sections) {
 
@@ -497,7 +497,7 @@ class SelectionInspector extends ScriptWidget {
 
             if (serial.typeName == "Node") {
 
-                index = e.nodes.indexOf(<Atomic.Node>serial);
+                index = e.nodes.indexOf(<EngineCore.Node>serial);
 
                 if (index != -1) {
 
@@ -510,7 +510,7 @@ class SelectionInspector extends ScriptWidget {
 
     }
 
-    addSerializable(serial: Atomic.Serializable): SerializableEditType {
+    addSerializable(serial: EngineCore.Serializable): SerializableEditType {
 
         var editType = this.getEditType(serial);
 
@@ -534,7 +534,7 @@ class SelectionInspector extends ScriptWidget {
 
     }
 
-    getEditType(serial: Atomic.Serializable): SerializableEditType {
+    getEditType(serial: EngineCore.Serializable): SerializableEditType {
 
         var typeName = serial.typeName;
 
@@ -547,7 +547,7 @@ class SelectionInspector extends ScriptWidget {
 
     }
 
-    addNode(node: Atomic.Node) {
+    addNode(node: EngineCore.Node) {
 
         var index = this.nodes.indexOf(node);
 
@@ -567,7 +567,7 @@ class SelectionInspector extends ScriptWidget {
         }
     }
 
-    removeNode(node: Atomic.Node) {
+    removeNode(node: EngineCore.Node) {
 
         var index = this.nodes.indexOf(node);
 
@@ -599,13 +599,13 @@ class SelectionInspector extends ScriptWidget {
 
     }
 
-    handleSceneEditNodeRemoved(ev: Editor.SceneEditNodeRemovedEvent) {
+    handleSceneEditNodeRemoved(ev: EngineEditor.SceneEditNodeRemovedEvent) {
 
         this.removeNode(ev.node);
 
     }
 
-    handleSceneEditComponentAddedRemovedEvent(ev: Editor.SceneEditComponentAddedRemovedEvent) {
+    handleSceneEditComponentAddedRemovedEvent(ev: EngineEditor.SceneEditComponentAddedRemovedEvent) {
 
         if (this.filterComponent(ev.component)) {
             // still refresh as may affect UI (for example PrefabComponents)
@@ -648,11 +648,11 @@ class SelectionInspector extends ScriptWidget {
 
     onComponentDelete(editType: SerializableEditType) {
 
-        var removed: Atomic.Component[] = [];
+        var removed: EngineCore.Component[] = [];
 
         for (var i in editType.objects) {
 
-            var c = <Atomic.Component>editType.objects[i];
+            var c = <EngineCore.Component>editType.objects[i];
             removed.push(c);
 
         }
@@ -675,7 +675,7 @@ class SelectionInspector extends ScriptWidget {
 
         if (removed.length) {
 
-            this.sceneEditor.scene.sendEvent(Editor.SceneEditEndEventType);
+            this.sceneEditor.scene.sendEvent(EngineEditor.SceneEditEndEventType);
             this.refresh();
 
         }
@@ -684,11 +684,11 @@ class SelectionInspector extends ScriptWidget {
 
     onComponentCopy(editType: SerializableEditType) {
 
-        var copy: Atomic.Component[] = [];
+        var copy: EngineCore.Component[] = [];
 
         for (var i in editType.objects) {
 
-            var c = <Atomic.Component>editType.objects[i];
+            var c = <EngineCore.Component>editType.objects[i];
             copy.push(c);
 
         }
@@ -699,18 +699,18 @@ class SelectionInspector extends ScriptWidget {
 
             this.component = c;
 
-            this.sceneEditor.scene.sendEvent(Editor.SceneEditComponentCopyEventData({ component: this.component }));
+            this.sceneEditor.scene.sendEvent(EngineEditor.SceneEditComponentCopyEventData({ component: this.component }));
             this.refresh();
 
         }
     }
 
     onComponentPaste(editType: SerializableEditType) {
-        var paste: Atomic.Component[] = [];
+        var paste: EngineCore.Component[] = [];
 
         for (var i in editType.objects) {
 
-            var c = <Atomic.Component>editType.objects[i];
+            var c = <EngineCore.Component>editType.objects[i];
             paste.push(c);
 
         }
@@ -721,7 +721,7 @@ class SelectionInspector extends ScriptWidget {
 
             this.component = c;
 
-            this.sceneEditor.scene.sendEvent(Editor.SceneEditComponentPasteEventData({ component: this.component , end: false}));
+            this.sceneEditor.scene.sendEvent(EngineEditor.SceneEditComponentPasteEventData({ component: this.component , end: false}));
             this.refresh();
         }
 
@@ -779,7 +779,7 @@ class SelectionInspector extends ScriptWidget {
     }
 
 
-    handleSceneEditStateChangeEvent(ev: Editor.SceneEditStateChangeEvent) {
+    handleSceneEditStateChangeEvent(ev: EngineEditor.SceneEditStateChangeEvent) {
 
         if (!this.stateChangesInProgress)
             return;
@@ -790,10 +790,10 @@ class SelectionInspector extends ScriptWidget {
 
     }
 
-    getPrefabComponent(node: Atomic.Node): Atomic.PrefabComponent {
+    getPrefabComponent(node: EngineCore.Node): EngineCore.PrefabComponent {
 
         if (node.getComponent("PrefabComponent"))
-            return <Atomic.PrefabComponent>node.getComponent("PrefabComponent");
+            return <EngineCore.PrefabComponent>node.getComponent("PrefabComponent");
 
         if (node.parent)
             return this.getPrefabComponent(node.parent);
@@ -802,7 +802,7 @@ class SelectionInspector extends ScriptWidget {
 
     }
 
-    filterComponent(component: Atomic.Component): boolean {
+    filterComponent(component: EngineCore.Component): boolean {
 
         if (component.typeName == "PrefabComponent") {
             return true;
@@ -814,7 +814,7 @@ class SelectionInspector extends ScriptWidget {
 
     handleSceneEditStateChangesEndEvent() {
 
-        Atomic.ui.blockChangedEvents = true;
+        EngineCore.ui.blockChangedEvents = true;
 
         var sections: SelectionSection[] = [];
 
@@ -849,26 +849,25 @@ class SelectionInspector extends ScriptWidget {
 
         }
 
-        Atomic.ui.blockChangedEvents = false;
+        EngineCore.ui.blockChangedEvents = false;
         this.stateChanges = [];
         this.stateChangesInProgress = false;
 
     }
 
 
-    mainLayout: Atomic.UILayout;
+    mainLayout          : EngineCore.UILayout;
+    multipleSelectNotice: EngineCore.UILayout;
 
-    multipleSelectNotice: Atomic.UILayout;
-
-    sceneEditor: Editor.SceneEditor3D;
-    nodes: Atomic.Node[] = [];
+    sceneEditor: EngineEditor.SceneEditor3D;
+    nodes: EngineCore.Node[] = [];
     sections: SelectionSection[] = [];
 
     createComponentButton: CreateComponentButton;
     nodeSection: NodeSection;
 
     stateChangesInProgress: boolean = false;
-    stateChanges: Atomic.Serializable[] = [];
+    stateChanges: EngineCore.Serializable[] = [];
 
     // ------------------------------------
 

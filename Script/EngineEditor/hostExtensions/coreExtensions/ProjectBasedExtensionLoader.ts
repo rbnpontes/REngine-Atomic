@@ -20,16 +20,14 @@
 // THE SOFTWARE.
 //
 
-/// <reference path="../../../TypeScript/duktape.d.ts" />
-
 /**
  * Resource extension that supports the web view typescript extension
  */
-export default class ProjectBasedExtensionLoader extends Atomic.ScriptObject implements Editor.HostExtensions.ProjectServicesEventListener {
+export default class ProjectBasedExtensionLoader extends EngineCore.ScriptObject implements EngineEditor.HostExtensions.ProjectServicesEventListener {
     name: string = "ProjectBasedExtensionLoader";
     description: string = "This service supports loading extensions that reside in the project under {ProjectRoot}/Editor and named '*.Service.js'.";
 
-    private serviceRegistry: Editor.HostExtensions.HostServiceLocator = null;
+    private serviceRegistry: EngineEditor.HostExtensions.HostServiceLocator = null;
     private modSearchRewritten = false;
 
     /**
@@ -42,7 +40,7 @@ export default class ProjectBasedExtensionLoader extends Atomic.ScriptObject imp
      * Inject this language service into the registry
      * @return {[type]}             True if successful
      */
-    initialize(serviceLocator: Editor.HostExtensions.HostServiceLocator) {
+    initialize(serviceLocator: EngineEditor.HostExtensions.HostServiceLocator) {
 
         // Let's rewrite the mod search
         this.rewriteModSearch();
@@ -72,8 +70,8 @@ export default class ProjectBasedExtensionLoader extends Atomic.ScriptObject imp
                     if (system.project && path.indexOf(system.project.projectPath) == 0) {
                         console.log(`Searching for project based include: ${path}`);
                         // we have a project based require
-                        if (Atomic.fileSystem.fileExists(path)) {
-                            let include = new Atomic.File(path, Atomic.FileMode.FILE_READ);
+                        if (EngineCore.fileSystem.fileExists(path)) {
+                            let include = new EngineCore.File(path, EngineCore.FileMode.FILE_READ);
                             try {
                                 // add a newline to handle situations where sourcemaps are used.  Duktape
                                 // doesn't like not having a trailing newline and the sourcemap process doesn't
@@ -98,15 +96,15 @@ export default class ProjectBasedExtensionLoader extends Atomic.ScriptObject imp
      * Called when the project is being loaded to allow the typescript language service to reset and
      * possibly compile
      */
-    projectLoaded(ev: Editor.EditorLoadProjectEvent) {
+    projectLoaded(ev: EngineEditor.EditorLoadProjectEvent) {
         // got a load, we need to reset the language service
         console.log(`${this.name}: received a project loaded event for project at ${ev.path}`);
         let system = ToolCore.getToolSystem();
         if (system.project) {
-            let fileSystem = Atomic.getFileSystem();
-            let editorScriptsPath = Atomic.addTrailingSlash(system.project.resourcePath) + "EditorData/";
+            let fileSystem = EngineCore.getFileSystem();
+            let editorScriptsPath = EngineCore.addTrailingSlash(system.project.resourcePath) + "EditorData/";
             if (fileSystem.dirExists(editorScriptsPath)) {
-                let filenames = fileSystem.scanDir(editorScriptsPath, "*.js", Atomic.SCAN_FILES, true);
+                let filenames = fileSystem.scanDir(editorScriptsPath, "*.js", EngineCore.SCAN_FILES, true);
                 filenames.forEach((filename) => {
                     // Filtered search in Atomic doesn't due true wildcarding, only handles extension filters
                     // in the future this may be better handled with some kind of manifest file
@@ -124,7 +122,7 @@ export default class ProjectBasedExtensionLoader extends Atomic.ScriptObject imp
 
                         // Handle situation where the service is either exposed by a typescript default export
                         // or as the module.export (depends on if it is being written in typescript, javascript, es6, etc.)
-                        let resourceService: Editor.HostExtensions.HostEditorService = null;
+                        let resourceService: EngineEditor.HostExtensions.HostEditorService = null;
                         if (resourceServiceModule.default) {
                             resourceService = resourceServiceModule.default;
                         } else {

@@ -26,11 +26,11 @@ import SelectionSectionUI = require("./SelectionSectionUI");
 
 import "./ComponentAttributeUI";
 
-abstract class SelectionSection extends Atomic.UISection {
+abstract class SelectionSection extends EngineCore.UISection {
 
     hasDynamicAttr: boolean = false;
     editType: SerializableEditType;
-    attrLayout: Atomic.UILayout;
+    attrLayout: EngineCore.UILayout;
     suppressed: boolean = false;
     customUI: SelectionSectionUI;
 
@@ -48,7 +48,7 @@ abstract class SelectionSection extends Atomic.UISection {
 
     }
 
-    contains(serial:Atomic.Serializable):boolean {
+    contains(serial:EngineCore.Serializable):boolean {
 
         return this.editType.objects.indexOf(serial) == -1;
 
@@ -75,23 +75,23 @@ abstract class SelectionSection extends Atomic.UISection {
 
         this.suppressed = value;
         if (value) {
-            this.visibility = Atomic.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_GONE;
+            this.visibility = EngineCore.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_GONE;
         } else {
-            this.visibility = Atomic.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_VISIBLE;
+            this.visibility = EngineCore.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_VISIBLE;
         }
 
     }
 
-    updateDynamicAttrInfos(attrInfos: Atomic.AttributeInfo[]) {
+    updateDynamicAttrInfos(attrInfos: EngineCore.AttributeInfo[]) {
 
-        Atomic.ui.blockChangedEvents = true;
+        EngineCore.ui.blockChangedEvents = true;
 
         this.editType.attrInfos = attrInfos;
 
         var attrEdit: AttributeInfoEdit;
         var remove: AttributeInfoEdit[] = [];
 
-        var addWidget: Atomic.UIWidget;
+        var addWidget: EngineCore.UIWidget;
 
         for (var name in this.attrEdits) {
 
@@ -121,7 +121,7 @@ abstract class SelectionSection extends Atomic.UISection {
                 continue;
             }
 
-            if (attr.mode & Atomic.AM_NOEDIT)
+            if (attr.mode & EngineCore.AM_NOEDIT)
                 continue;
 
             var attrEdit = AttributeInfoEdit.createAttrEdit(this.editType, attr);
@@ -143,16 +143,16 @@ abstract class SelectionSection extends Atomic.UISection {
 
         this.refresh();
 
-        Atomic.ui.blockChangedEvents = false;
+        EngineCore.ui.blockChangedEvents = false;
 
     }
 
     createUI() {
 
-        var attrLayout = this.attrLayout = new Atomic.UILayout(Atomic.UI_AXIS.UI_AXIS_Y);
+        var attrLayout = this.attrLayout = new EngineCore.UILayout(EngineCore.UI_AXIS.UI_AXIS_Y);
         attrLayout.spacing = 3;
-        attrLayout.layoutPosition = Atomic.UI_LAYOUT_POSITION.UI_LAYOUT_POSITION_LEFT_TOP;
-        attrLayout.layoutSize = Atomic.UI_LAYOUT_SIZE.UI_LAYOUT_SIZE_AVAILABLE;
+        attrLayout.layoutPosition = EngineCore.UI_LAYOUT_POSITION.UI_LAYOUT_POSITION_LEFT_TOP;
+        attrLayout.layoutSize = EngineCore.UI_LAYOUT_SIZE.UI_LAYOUT_SIZE_AVAILABLE;
 
         this.contentRoot.addChild(attrLayout);
 
@@ -160,7 +160,7 @@ abstract class SelectionSection extends Atomic.UISection {
 
             var attr = this.editType.attrInfos[i];
 
-            if (attr.mode & Atomic.AM_NOEDIT)
+            if (attr.mode & EngineCore.AM_NOEDIT)
                 continue;
 
             var attrEdit = AttributeInfoEdit.createAttrEdit(this.editType, attr);
@@ -184,7 +184,7 @@ abstract class SelectionSection extends Atomic.UISection {
 
     }
 
-    static fontDesc: Atomic.UIFontDescription;
+    static fontDesc: EngineCore.UIFontDescription;
 
     static customSectionUI: { [typeName: string]: typeof SelectionSectionUI } = {};
 
@@ -197,7 +197,7 @@ abstract class SelectionSection extends Atomic.UISection {
 
     private static Ctor = (() => {
 
-        var fd = SelectionSection.fontDesc = new Atomic.UIFontDescription();
+        var fd = SelectionSection.fontDesc = new EngineCore.UIFontDescription();
         fd.id = "Vera";
         fd.size = 11;
 

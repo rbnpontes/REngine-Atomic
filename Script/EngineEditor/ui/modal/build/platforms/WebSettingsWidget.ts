@@ -22,7 +22,7 @@
 
 import BuildSettingsWindow = require("../BuildSettingsWindow");
 
-class WebSettingsWidget extends Atomic.UIWidget implements BuildSettingsWindow.BuildSettingsWidget {
+class WebSettingsWidget extends EngineCore.UIWidget implements BuildSettingsWindow.BuildSettingsWidget {
 
   constructor() {
 
@@ -32,33 +32,33 @@ class WebSettingsWidget extends Atomic.UIWidget implements BuildSettingsWindow.B
 
       this.load("editor/ui/buildsettings_html5.tb.txt");
 
-      this.appNameEdit = <Atomic.UIEditField>this.getWidget("app_name");
-      this.radioDark = <Atomic.UICheckBox>this.getWidget("web_dark");
-      this.radioLight = <Atomic.UICheckBox>this.getWidget("web_light");
-      this.radioAtomic = <Atomic.UICheckBox>this.getWidget("web_atomic");
-      this.radioLake = <Atomic.UICheckBox>this.getWidget("web_lake");
-      this.radioFireworks = <Atomic.UICheckBox>this.getWidget("web_fireworks");
-      this.radioRetro = <Atomic.UICheckBox>this.getWidget("web_retro");
-      this.faviconName = <Atomic.UIEditField>this.getWidget("favicon_name");
-      this.gameWidth = <Atomic.UIEditField>this.getWidget("web_game_width");
-      this.gameHeight = <Atomic.UIEditField>this.getWidget("web_game_height");
+      this.appNameEdit      = <EngineCore.UIEditField>this.getWidget("app_name");
+      this.radioDark        = <EngineCore.UICheckBox>this.getWidget("web_dark");
+      this.radioLight       = <EngineCore.UICheckBox>this.getWidget("web_light");
+      this.radioAtomic      = <EngineCore.UICheckBox>this.getWidget("web_atomic");
+      this.radioLake        = <EngineCore.UICheckBox>this.getWidget("web_lake");
+      this.radioFireworks   = <EngineCore.UICheckBox>this.getWidget("web_fireworks");
+      this.radioRetro       = <EngineCore.UICheckBox>this.getWidget("web_retro");
+      this.faviconName      = <EngineCore.UIEditField>this.getWidget("favicon_name");
+      this.gameWidth        = <EngineCore.UIEditField>this.getWidget("web_game_width");
+      this.gameHeight       = <EngineCore.UIEditField>this.getWidget("web_game_height");
 
       this.refreshWidgets();
 
-      this.subscribeToEvent(this, Atomic.UIWidgetEvent((ev) => this.handleWidgetEvent(ev)));
+      this.subscribeToEvent(this, EngineCore.UIWidgetEvent((ev) => this.handleWidgetEvent(ev)));
     }
 
-    handleWidgetEvent(ev: Atomic.UIWidgetEvent): boolean {
+    handleWidgetEvent(ev: EngineCore.UIWidgetEvent): boolean {
 
         if (ev.target.id == "favicon_choose") {
-            var fileUtils = new Editor.FileUtils();
+            var fileUtils = new EngineEditor.FileUtils();
             var path = fileUtils.findFile("", "");
             if ( path.length > 0 )
                 this.faviconName.text = path;
             return true;
         }
 
-        if (ev.type == Atomic.UI_EVENT_TYPE.UI_EVENT_TYPE_CLICK) {
+        if (ev.type == EngineCore.UI_EVENT_TYPE.UI_EVENT_TYPE_CLICK) {
 
             if (ev.target.id == "web_dark") {
                 this.settings.pageTheme = 0;
@@ -117,17 +117,17 @@ class WebSettingsWidget extends Atomic.UIWidget implements BuildSettingsWindow.B
         if ( this.radioRetro.value == 1 ) this.settings.pageTheme = 5;
     }
 
-    appNameEdit: Atomic.UIEditField;
-    radioRetro: Atomic.UICheckBox;
-    radioDark: Atomic.UICheckBox;
-    radioLight: Atomic.UICheckBox;
-    radioAtomic: Atomic.UICheckBox;
-    radioLake: Atomic.UICheckBox;
-    radioFireworks: Atomic.UICheckBox;
-    faviconChoose: Atomic.UIButton;
-    faviconName: Atomic.UIEditField;
-    gameWidth: Atomic.UIEditField;
-    gameHeight: Atomic.UIEditField;
+    appNameEdit     : EngineCore.UIEditField;
+    radioRetro      : EngineCore.UICheckBox;
+    radioDark       : EngineCore.UICheckBox;
+    radioLight      : EngineCore.UICheckBox;
+    radioAtomic     : EngineCore.UICheckBox;
+    radioLake       : EngineCore.UICheckBox;
+    radioFireworks  : EngineCore.UICheckBox;
+    faviconChoose   : EngineCore.UIButton;
+    faviconName     : EngineCore.UIEditField;
+    gameWidth       : EngineCore.UIEditField;
+    gameHeight      : EngineCore.UIEditField;
 
     settings: ToolCore.WebBuildSettings;
 

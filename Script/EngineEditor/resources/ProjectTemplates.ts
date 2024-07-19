@@ -46,11 +46,11 @@ var projectLanguages = ["CSharp", "JavaScript", "TypeScript"];
 export function getNewProjectTemplateDefinition(projectType: string): ProjectTemplateDefinition {
 
     var env = ToolCore.toolEnvironment;
-    let fileSystem = Atomic.fileSystem;
+    let fileSystem = EngineCore.fileSystem;
     let exampleInfoDir = env.toolDataDir + "ExampleInfo/";
     var projectTemplateFolder = env.toolDataDir + "ProjectTemplates/";
     var projectTemplateJsonFile = projectTemplateFolder + "ProjectTemplates.json";
-    let jsonFile = new Atomic.File(projectTemplateJsonFile, Atomic.FileMode.FILE_READ);
+    let jsonFile = new EngineCore.File(projectTemplateJsonFile, EngineCore.FileMode.FILE_READ);
 
     if (!jsonFile.isOpen()) {
         return null;
@@ -87,10 +87,10 @@ export function getNewProjectTemplateDefinition(projectType: string): ProjectTem
 export function getExampleProjectTemplateDefinitions(): ProjectTemplateDefinition[] {
 
     let env = ToolCore.toolEnvironment;
-    let fileSystem = Atomic.fileSystem;
+    let fileSystem = EngineCore.fileSystem;
     let exampleInfoDir = env.toolDataDir + "ExampleInfo/";
     let exampleJsonFile = exampleInfoDir + "Examples.json";
-    let jsonFile = new Atomic.File(exampleJsonFile, Atomic.FileMode.FILE_READ);
+    let jsonFile = new EngineCore.File(exampleJsonFile, EngineCore.FileMode.FILE_READ);
 
     if (!jsonFile.isOpen()) {
         return;
@@ -106,11 +106,11 @@ export function getExampleProjectTemplateDefinitions(): ProjectTemplateDefinitio
     // Update all the paths to a more fully qualified path
     exampleFolders.forEach(exampleFolder => {
 
-        let folder = Atomic.addTrailingSlash(env.toolDataDir + "EngineExamples/" + exampleFolder);
+        let folder = EngineCore.addTrailingSlash(env.toolDataDir + "EngineExamples/" + exampleFolder);
 
         // if we're building from source tree, adjust the path
-        if (Atomic.AtomicBuildInfo.getDevBuild()) {
-            folder = Atomic.addTrailingSlash(env.rootSourceDir + "Submodules/EngineExamples/" + exampleFolder);
+        if (EngineCore.AtomicBuildInfo.getDevBuild()) {
+            folder = EngineCore.addTrailingSlash(env.rootSourceDir + "Submodules/EngineExamples/" + exampleFolder);
         }
 
         let screenshot = folder + "Screenshot.png";
@@ -127,7 +127,7 @@ export function getExampleProjectTemplateDefinitions(): ProjectTemplateDefinitio
             return;
         }
 
-        jsonFile = new Atomic.File(exampleJsonFilename, Atomic.FileMode.FILE_READ);
+        jsonFile = new EngineCore.File(exampleJsonFilename, EngineCore.FileMode.FILE_READ);
 
         if (!jsonFile.isOpen()) {
             console.log("Unable to open example json", exampleJsonFilename);
@@ -173,9 +173,9 @@ export function getExampleProjectTemplateDefinitions(): ProjectTemplateDefinitio
  * @param  {string} fileTemplateType
  * @return {[FileTemplateDefinition]}
  */
-export function GetNewFileTemplateDefinitions(fileTemplateType: string) : Editor.Templates.FileTemplateDefinition[] {
+export function GetNewFileTemplateDefinitions(fileTemplateType: string) : EngineEditor.Templates.FileTemplateDefinition[] {
     const templateDefinitions = "AtomicEditor/templates/file_template_definitions.json";
-    const file = Atomic.cache.getFile(templateDefinitions);
+    const file = EngineCore.cache.getFile(templateDefinitions);
 
     if (!file) {
         return [];
@@ -205,7 +205,7 @@ var atomicNETProjectInfo:AtomicNETProjectInfo;
  */
 function processAtomicNETTemplate(filename:string, templateFilename:string) : boolean {
 
-    let file = new Atomic.File(templateFilename, Atomic.FileMode.FILE_READ);
+    let file = new EngineCore.File(templateFilename, EngineCore.FileMode.FILE_READ);
 
     if (!file.isOpen()) {
         console.log("Failed to open: ", templateFilename);
@@ -229,7 +229,7 @@ function processAtomicNETTemplate(filename:string, templateFilename:string) : bo
     text = text.split("$$APPLICATION_APPDELEGATECLASS$$").join(appDelegateClass);
     text = text.split("$$APPLICATION_NAMESPACE$$").join(_namespace);
 
-    let fileOut = new Atomic.File(filename, Atomic.FileMode.FILE_WRITE);
+    let fileOut = new EngineCore.File(filename, EngineCore.FileMode.FILE_WRITE);
 
     if (!fileOut.isOpen()) {
         console.log("Failed to open for write: ", filename);
@@ -250,11 +250,11 @@ function processAtomicNETTemplate(filename:string, templateFilename:string) : bo
 function generateAtomicNETAndroidProject():boolean {
 
     let env = ToolCore.toolEnvironment;
-    let utils = new Editor.FileUtils();
-    let templateFolder = env.toolDataDir + "AtomicNET/ProjectTemplate/";
-    let androidFolder = Atomic.addTrailingSlash(atomicNETProjectInfo.projectFolder) + "Project/AtomicNET/Platforms/Android/";
+    let utils = new EngineEditor.FileUtils();
+    let templateFolder = env.toolDataDir + "EngineNET/ProjectTemplate/";
+    let androidFolder = EngineCore.addTrailingSlash(atomicNETProjectInfo.projectFolder) + "Project/EngineNET/Platforms/Android/";
 
-    let fileSystem = Atomic.fileSystem;
+    let fileSystem = EngineCore.fileSystem;
 
     // Create necessary folders
     let folders = ["Properties", "Resources/drawable", "Resources/values"];
@@ -280,7 +280,7 @@ function generateAtomicNETAndroidProject():boolean {
         let templateName = templateFolder + "Platforms/Android/" + files[i];
         let filename = androidFolder + files[i];
 
-        if (textFiles.indexOf(Atomic.getExtension(templateName)) == -1) {
+        if (textFiles.indexOf(EngineCore.getExtension(templateName)) == -1) {
 
             if (!fileSystem.copy(templateName, filename)) {
 
@@ -308,11 +308,11 @@ function generateAtomicNETAndroidProject():boolean {
 function generateAtomicNETIOSProject():boolean {
 
     let env = ToolCore.toolEnvironment;
-    let utils = new Editor.FileUtils();
-    let templateFolder = env.toolDataDir + "AtomicNET/ProjectTemplate/";
-    let iosFolder = Atomic.addTrailingSlash(atomicNETProjectInfo.projectFolder) + "Project/AtomicNET/Platforms/iOS/";
+    let utils = new EngineEditor.FileUtils();
+    let templateFolder = env.toolDataDir + "EngineNET/ProjectTemplate/";
+    let iosFolder = EngineCore.addTrailingSlash(atomicNETProjectInfo.projectFolder) + "Project/EngineNET/Platforms/iOS/";
 
-    let fileSystem = Atomic.fileSystem;
+    let fileSystem = EngineCore.fileSystem;
 
     // Create necessary folders
     let folders = ["Properties", "Resources"];
@@ -338,7 +338,7 @@ function generateAtomicNETIOSProject():boolean {
         let templateName = templateFolder + "Platforms/iOS/" + files[i];
         let filename = iosFolder + files[i];
 
-        if (textFiles.indexOf(Atomic.getExtension(templateName)) == -1) {
+        if (textFiles.indexOf(EngineCore.getExtension(templateName)) == -1) {
 
             if (!fileSystem.copy(templateName, filename)) {
 
@@ -367,11 +367,11 @@ function generateAtomicNETIOSProject():boolean {
 function generateAtomicNETDesktopProject():boolean {
 
     let env = ToolCore.toolEnvironment;
-    let utils = new Editor.FileUtils();
-    let templateFolder = env.toolDataDir + "AtomicNET/ProjectTemplate/";
-    let desktopFolder = Atomic.addTrailingSlash(atomicNETProjectInfo.projectFolder) + "Project/AtomicNET/Platforms/Desktop/";
+    let utils = new EngineEditor.FileUtils();
+    let templateFolder = env.toolDataDir + "EngineNET/ProjectTemplate/";
+    let desktopFolder = EngineCore.addTrailingSlash(atomicNETProjectInfo.projectFolder) + "Project/EngineNET/Platforms/Desktop/";
 
-    let fileSystem = Atomic.fileSystem;
+    let fileSystem = EngineCore.fileSystem;
 
     if (!fileSystem.dirExists(desktopFolder)) {
 
@@ -397,11 +397,11 @@ export function generateAtomicNETProject(projectInfo:AtomicNETProjectInfo):boole
     atomicNETProjectInfo = projectInfo;
 
     let env = ToolCore.toolEnvironment;
-    let templateFolder = env.toolDataDir + "AtomicNET/ProjectTemplate/";
-    let platformsFolder = Atomic.addTrailingSlash(projectInfo.projectFolder) + "Project/AtomicNET/Platforms/";
+    let templateFolder = env.toolDataDir + "EngineNET/ProjectTemplate/";
+    let platformsFolder = EngineCore.addTrailingSlash(projectInfo.projectFolder) + "Project/EngineNET/Platforms/";
 
-    let utils = new Editor.FileUtils();
-    let fileSystem = Atomic.fileSystem;
+    let utils = new EngineEditor.FileUtils();
+    let fileSystem = EngineCore.fileSystem;
 
     if (!fileSystem.dirExists(platformsFolder)) {
 

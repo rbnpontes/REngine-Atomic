@@ -32,11 +32,11 @@ class PrefabInspector extends InspectorWidget {
         this.fd.id = "Vera";
         this.fd.size = 11;
 
-        this.subscribeToEvent(this, Atomic.UIWidgetEvent((data) => this.handleWidgetEvent(data)));
+        this.subscribeToEvent(this, EngineCore.UIWidgetEvent((data) => this.handleWidgetEvent(data)));
 
     }
 
-    handleWidgetEvent(ev: Atomic.UIWidgetEvent):boolean {
+    handleWidgetEvent(ev: EngineCore.UIWidgetEvent):boolean {
 
       return false;
 
@@ -64,13 +64,13 @@ class PrefabInspector extends InspectorWidget {
         var prefabLayout = this.createSection(rootLayout, "Prefab", 1);
 
         var container = InspectorUtils.createContainer();
-        container.gravity = Atomic.UI_GRAVITY.UI_GRAVITY_ALL;
+        container.gravity = EngineCore.UI_GRAVITY.UI_GRAVITY_ALL;
         prefabLayout.addChild(container);
 
-        var panel = new Atomic.UILayout();
-        panel.axis = Atomic.UI_AXIS.UI_AXIS_Y;
-        panel.layoutSize = Atomic.UI_LAYOUT_SIZE.UI_LAYOUT_SIZE_PREFERRED;
-        panel.layoutPosition = Atomic.UI_LAYOUT_POSITION.UI_LAYOUT_POSITION_LEFT_TOP;
+        var panel = new EngineCore.UILayout();
+        panel.axis = EngineCore.UI_AXIS.UI_AXIS_Y;
+        panel.layoutSize = EngineCore.UI_LAYOUT_SIZE.UI_LAYOUT_SIZE_PREFERRED;
+        panel.layoutPosition = EngineCore.UI_LAYOUT_POSITION.UI_LAYOUT_POSITION_LEFT_TOP;
         container.addChild(panel);
 
         // Name Edit
@@ -95,11 +95,11 @@ class PrefabInspector extends InspectorWidget {
 
     }
 
-    nameEdit: Atomic.UIEditField;
+    nameEdit: EngineCore.UIEditField;
 
     asset: ToolCore.Asset;
     importer: ToolCore.PrefabImporter;
-    fd: Atomic.UIFontDescription = new Atomic.UIFontDescription();
+    fd: EngineCore.UIFontDescription = new EngineCore.UIFontDescription();
 
 }
 

@@ -20,85 +20,85 @@
 // THE SOFTWARE.
 //
 
-var audioCreateSource = new Atomic.UIMenuItemSource();
+var audioCreateSource = new EngineCore.UIMenuItemSource();
 
-audioCreateSource.addItem(new Atomic.UIMenuItem("SoundListener", "SoundListener"));
-audioCreateSource.addItem(new Atomic.UIMenuItem("SoundSource", "SoundSource"));
-audioCreateSource.addItem(new Atomic.UIMenuItem("SoundSource3D", "SoundSource3D"));
+audioCreateSource.addItem(new EngineCore.UIMenuItem("SoundListener", "SoundListener"));
+audioCreateSource.addItem(new EngineCore.UIMenuItem("SoundSource", "SoundSource"));
+audioCreateSource.addItem(new EngineCore.UIMenuItem("SoundSource3D", "SoundSource3D"));
 
-var _2DCreateSource = new Atomic.UIMenuItemSource();
-_2DCreateSource.addItem(new Atomic.UIMenuItem("PhysicsWorld2D", "PhysicsWorld2D"));
-_2DCreateSource.addItem(new Atomic.UIMenuItem("StaticSprite2D", "StaticSprite2D"));
-_2DCreateSource.addItem(new Atomic.UIMenuItem("AnimatedSprite2D", "AnimatedSprite2D"));
-_2DCreateSource.addItem(new Atomic.UIMenuItem("ParticleEmitter2D", "ParticleEmitter2D"));
-_2DCreateSource.addItem(new Atomic.UIMenuItem("PointLight2D", "PointLight2D"));
-_2DCreateSource.addItem(new Atomic.UIMenuItem("DirectionalLight2D", "DirectionalLight2D"));
-_2DCreateSource.addItem(new Atomic.UIMenuItem("RigidBody2D", "RigidBody2D"));
-_2DCreateSource.addItem(new Atomic.UIMenuItem("CollisionBox2D", "CollisionBox2D"));
-_2DCreateSource.addItem(new Atomic.UIMenuItem("CollisionCircle2D", "CollisionCircle2D"));
-_2DCreateSource.addItem(new Atomic.UIMenuItem("TileMap2D", "TileMap2D"));
+var _2DCreateSource = new EngineCore.UIMenuItemSource();
+_2DCreateSource.addItem(new EngineCore.UIMenuItem("PhysicsWorld2D", "PhysicsWorld2D"));
+_2DCreateSource.addItem(new EngineCore.UIMenuItem("StaticSprite2D", "StaticSprite2D"));
+_2DCreateSource.addItem(new EngineCore.UIMenuItem("AnimatedSprite2D", "AnimatedSprite2D"));
+_2DCreateSource.addItem(new EngineCore.UIMenuItem("ParticleEmitter2D", "ParticleEmitter2D"));
+_2DCreateSource.addItem(new EngineCore.UIMenuItem("PointLight2D", "PointLight2D"));
+_2DCreateSource.addItem(new EngineCore.UIMenuItem("DirectionalLight2D", "DirectionalLight2D"));
+_2DCreateSource.addItem(new EngineCore.UIMenuItem("RigidBody2D", "RigidBody2D"));
+_2DCreateSource.addItem(new EngineCore.UIMenuItem("CollisionBox2D", "CollisionBox2D"));
+_2DCreateSource.addItem(new EngineCore.UIMenuItem("CollisionCircle2D", "CollisionCircle2D"));
+_2DCreateSource.addItem(new EngineCore.UIMenuItem("TileMap2D", "TileMap2D"));
 
-var geometryCreateSource = new Atomic.UIMenuItemSource();
+var geometryCreateSource = new EngineCore.UIMenuItemSource();
 
-geometryCreateSource.addItem(new Atomic.UIMenuItem("StaticModel", "StaticModel"));
-geometryCreateSource.addItem(new Atomic.UIMenuItem("AnimatedModel", "AnimatedModel"));
-geometryCreateSource.addItem(new Atomic.UIMenuItem("AnimationController", "AnimationController"));
-geometryCreateSource.addItem(new Atomic.UIMenuItem("BillboardSet", "BillboardSet"));
-geometryCreateSource.addItem(new Atomic.UIMenuItem("CustomGeometry", "CustomGeometry"));
-geometryCreateSource.addItem(new Atomic.UIMenuItem("ParticleEmitter", "ParticleEmitter"));
-geometryCreateSource.addItem(new Atomic.UIMenuItem("RibbonTrail", "RibbonTrail"));
-geometryCreateSource.addItem(new Atomic.UIMenuItem("Skybox", "SkyBox"));
-geometryCreateSource.addItem(new Atomic.UIMenuItem("StaticModelGroup", "StaticModelGroup"));
-geometryCreateSource.addItem(new Atomic.UIMenuItem("Terrain", "Terrain"));
-geometryCreateSource.addItem(new Atomic.UIMenuItem("Text3D", "create component"));
-geometryCreateSource.addItem(new Atomic.UIMenuItem("Water", "Water"));
+geometryCreateSource.addItem(new EngineCore.UIMenuItem("StaticModel", "StaticModel"));
+geometryCreateSource.addItem(new EngineCore.UIMenuItem("AnimatedModel", "AnimatedModel"));
+geometryCreateSource.addItem(new EngineCore.UIMenuItem("AnimationController", "AnimationController"));
+geometryCreateSource.addItem(new EngineCore.UIMenuItem("BillboardSet", "BillboardSet"));
+geometryCreateSource.addItem(new EngineCore.UIMenuItem("CustomGeometry", "CustomGeometry"));
+geometryCreateSource.addItem(new EngineCore.UIMenuItem("ParticleEmitter", "ParticleEmitter"));
+geometryCreateSource.addItem(new EngineCore.UIMenuItem("RibbonTrail", "RibbonTrail"));
+geometryCreateSource.addItem(new EngineCore.UIMenuItem("Skybox", "SkyBox"));
+geometryCreateSource.addItem(new EngineCore.UIMenuItem("StaticModelGroup", "StaticModelGroup"));
+geometryCreateSource.addItem(new EngineCore.UIMenuItem("Terrain", "Terrain"));
+geometryCreateSource.addItem(new EngineCore.UIMenuItem("Text3D", "create component"));
+geometryCreateSource.addItem(new EngineCore.UIMenuItem("Water", "Water"));
 
-var logicCreateSource = new Atomic.UIMenuItemSource();
+var logicCreateSource = new EngineCore.UIMenuItemSource();
 
-logicCreateSource.addItem(new Atomic.UIMenuItem("JSComponent", "JSComponent"));
-logicCreateSource.addItem(new Atomic.UIMenuItem("CSComponent", "CSComponent"));
-logicCreateSource.addItem(new Atomic.UIMenuItem("AnimationController", "AnimationController"));
-logicCreateSource.addItem(new Atomic.UIMenuItem("SplinePath", "SplinePath"));
+logicCreateSource.addItem(new EngineCore.UIMenuItem("JSComponent", "JSComponent"));
+logicCreateSource.addItem(new EngineCore.UIMenuItem("CSComponent", "CSComponent"));
+logicCreateSource.addItem(new EngineCore.UIMenuItem("AnimationController", "AnimationController"));
+logicCreateSource.addItem(new EngineCore.UIMenuItem("SplinePath", "SplinePath"));
 
-var navigationCreateSource = new Atomic.UIMenuItemSource();
+var navigationCreateSource = new EngineCore.UIMenuItemSource();
 
-navigationCreateSource.addItem(new Atomic.UIMenuItem("CrowdAgent", "CrowdAgent"));
-navigationCreateSource.addItem(new Atomic.UIMenuItem("CrowdManager", "CrowdManager"));
-navigationCreateSource.addItem(new Atomic.UIMenuItem("NavArea", "NavArea"));
-navigationCreateSource.addItem(new Atomic.UIMenuItem("Navigable", "Navigable"));
-navigationCreateSource.addItem(new Atomic.UIMenuItem("NavigationMesh", "NavigationMesh"));
-navigationCreateSource.addItem(new Atomic.UIMenuItem("DynamicNavigationMesh", "DynamicNavigationMesh"));
-navigationCreateSource.addItem(new Atomic.UIMenuItem("Obstacle", "Obstacle"));
-navigationCreateSource.addItem(new Atomic.UIMenuItem("OffMeshConnection", "OffMeshConnection"));
+navigationCreateSource.addItem(new EngineCore.UIMenuItem("CrowdAgent", "CrowdAgent"));
+navigationCreateSource.addItem(new EngineCore.UIMenuItem("CrowdManager", "CrowdManager"));
+navigationCreateSource.addItem(new EngineCore.UIMenuItem("NavArea", "NavArea"));
+navigationCreateSource.addItem(new EngineCore.UIMenuItem("Navigable", "Navigable"));
+navigationCreateSource.addItem(new EngineCore.UIMenuItem("NavigationMesh", "NavigationMesh"));
+navigationCreateSource.addItem(new EngineCore.UIMenuItem("DynamicNavigationMesh", "DynamicNavigationMesh"));
+navigationCreateSource.addItem(new EngineCore.UIMenuItem("Obstacle", "Obstacle"));
+navigationCreateSource.addItem(new EngineCore.UIMenuItem("OffMeshConnection", "OffMeshConnection"));
 
-var networkCreateSource = new Atomic.UIMenuItemSource();
+var networkCreateSource = new EngineCore.UIMenuItemSource();
 
-networkCreateSource.addItem(new Atomic.UIMenuItem("Network Priority", "create component"));
+networkCreateSource.addItem(new EngineCore.UIMenuItem("Network Priority", "create component"));
 
-var physicsCreateSource = new Atomic.UIMenuItemSource();
+var physicsCreateSource = new EngineCore.UIMenuItemSource();
 
-physicsCreateSource.addItem(new Atomic.UIMenuItem("CollisionShape", "CollisionShape"));
-physicsCreateSource.addItem(new Atomic.UIMenuItem("Constraint", "Constraint"));
-physicsCreateSource.addItem(new Atomic.UIMenuItem("RigidBody", "RigidBody"));
+physicsCreateSource.addItem(new EngineCore.UIMenuItem("CollisionShape", "CollisionShape"));
+physicsCreateSource.addItem(new EngineCore.UIMenuItem("Constraint", "Constraint"));
+physicsCreateSource.addItem(new EngineCore.UIMenuItem("RigidBody", "RigidBody"));
 
-var sceneCreateSource = new Atomic.UIMenuItemSource();
+var sceneCreateSource = new EngineCore.UIMenuItemSource();
 
-sceneCreateSource.addItem(new Atomic.UIMenuItem("Camera", "Camera"));
-sceneCreateSource.addItem(new Atomic.UIMenuItem("Light", "Light"));
-sceneCreateSource.addItem(new Atomic.UIMenuItem("Zone", "Zone"));
+sceneCreateSource.addItem(new EngineCore.UIMenuItem("Camera", "Camera"));
+sceneCreateSource.addItem(new EngineCore.UIMenuItem("Light", "Light"));
+sceneCreateSource.addItem(new EngineCore.UIMenuItem("Zone", "Zone"));
 
-var subsystemCreateSource = new Atomic.UIMenuItemSource();
+var subsystemCreateSource = new EngineCore.UIMenuItemSource();
 
-subsystemCreateSource.addItem(new Atomic.UIMenuItem("DebugRenderer", "create component"));
-subsystemCreateSource.addItem(new Atomic.UIMenuItem("Octree", "create component"));
-subsystemCreateSource.addItem(new Atomic.UIMenuItem("PhysicsWorld", "create component"));
+subsystemCreateSource.addItem(new EngineCore.UIMenuItem("DebugRenderer", "create component"));
+subsystemCreateSource.addItem(new EngineCore.UIMenuItem("Octree", "create component"));
+subsystemCreateSource.addItem(new EngineCore.UIMenuItem("PhysicsWorld", "create component"));
 
-var editorCreateSource = new Atomic.UIMenuItemSource();
+var editorCreateSource = new EngineCore.UIMenuItemSource();
 
-editorCreateSource.addItem(new Atomic.UIMenuItem("CubemapGenerator", "CubemapGenerator"));
+editorCreateSource.addItem(new EngineCore.UIMenuItem("CubemapGenerator", "CubemapGenerator"));
 
 
-var componentCreateSource = new Atomic.UIMenuItemSource();
+var componentCreateSource = new EngineCore.UIMenuItemSource();
 
 var sources = {
     Audio: audioCreateSource,
@@ -115,14 +115,14 @@ var sources = {
 
 for (var sub in sources) {
 
-    var item = new Atomic.UIMenuItem(sub);
+    var item = new EngineCore.UIMenuItem(sub);
     item.subSource = sources[sub];
     componentCreateSource.addItem(item);
 
 }
 
 
-class CreateComponentButton extends Atomic.UIButton {
+class CreateComponentButton extends EngineCore.UIButton {
 
     constructor() {
 
@@ -133,26 +133,26 @@ class CreateComponentButton extends Atomic.UIButton {
 
         this.text = "Create Component";
 
-        this.subscribeToEvent(Atomic.UIWidgetEvent((data) => this.handleWidgetEvent(data)));
+        this.subscribeToEvent(EngineCore.UIWidgetEvent((data) => this.handleWidgetEvent(data)));
 
     }
 
     // note instance method
     onClick = () => {
 
-        var menu = new Atomic.UIMenuWindow(this, "create component popup");
+        var menu = new EngineCore.UIMenuWindow(this, "create component popup");
         menu.fontDescription = this.fd;
         menu.show(componentCreateSource);
     };
 
-    handleWidgetEvent(ev: Atomic.UIWidgetEvent) {
+    handleWidgetEvent(ev: EngineCore.UIWidgetEvent) {
 
-        if (ev.type != Atomic.UI_EVENT_TYPE.UI_EVENT_TYPE_CLICK)
+        if (ev.type != EngineCore.UI_EVENT_TYPE.UI_EVENT_TYPE_CLICK)
             return;
 
         if (ev.target && ev.target.id == "create component popup") {
 
-            this.sendEvent(Editor.SelectionCreateComponentEventData({ componentTypeName : ev.refid}));
+            this.sendEvent(EngineEditor.SelectionCreateComponentEventData({ componentTypeName : ev.refid}));
 
             return true;
 
@@ -160,7 +160,7 @@ class CreateComponentButton extends Atomic.UIButton {
 
     }
 
-    fd: Atomic.UIFontDescription = new Atomic.UIFontDescription();
+    fd: EngineCore.UIFontDescription = new EngineCore.UIFontDescription();
 
 }
 

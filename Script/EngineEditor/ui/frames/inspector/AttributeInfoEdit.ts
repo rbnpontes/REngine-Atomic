@@ -25,12 +25,12 @@ import InspectorUtils = require("./InspectorUtils");
 import SerializableEditType = require("./SerializableEditType");
 import ColorChooser = require("./ColorChooser");
 
-class AttributeInfoEdit extends Atomic.UILayout {
+class AttributeInfoEdit extends EngineCore.UILayout {
 
-    attrInfo: Atomic.AttributeInfo;
+    attrInfo: EngineCore.AttributeInfo;
     editType: SerializableEditType;
 
-    editWidget: Atomic.UIWidget;
+    editWidget: EngineCore.UIWidget;
 
     nameOverride: string;
     hideName: boolean = false;
@@ -43,7 +43,7 @@ class AttributeInfoEdit extends Atomic.UILayout {
 
     }
 
-    initialize(editType: SerializableEditType, attrInfo: Atomic.AttributeInfo): boolean {
+    initialize(editType: SerializableEditType, attrInfo: EngineCore.AttributeInfo): boolean {
 
         this.editType = editType;
         this.attrInfo = attrInfo;
@@ -54,7 +54,7 @@ class AttributeInfoEdit extends Atomic.UILayout {
 
     }
 
-    handleWidgetEvent(ev: Atomic.UIWidgetEvent): boolean {
+    handleWidgetEvent(ev: EngineCore.UIWidgetEvent): boolean {
 
         return false;
 
@@ -64,7 +64,7 @@ class AttributeInfoEdit extends Atomic.UILayout {
 
         this.createEditWidget();
 
-        this.editWidget.subscribeToEvent(this.editWidget, Atomic.UIWidgetEvent((data) => this.handleWidgetEvent(data)));
+        this.editWidget.subscribeToEvent(this.editWidget, EngineCore.UIWidgetEvent((data) => this.handleWidgetEvent(data)));
 
         if (this.attrInfo.tooltip) {
             this.editWidget.tooltip = this.attrInfo.tooltip;
@@ -73,19 +73,19 @@ class AttributeInfoEdit extends Atomic.UILayout {
         var attr = this.attrInfo;
         var attrNameLP = AttributeInfoEdit.attrNameLP;
 
-        this.layoutDistribution = Atomic.UI_LAYOUT_DISTRIBUTION.UI_LAYOUT_DISTRIBUTION_GRAVITY;
+        this.layoutDistribution = EngineCore.UI_LAYOUT_DISTRIBUTION.UI_LAYOUT_DISTRIBUTION_GRAVITY;
 
-        if (attr.type == Atomic.VariantType.VAR_VECTOR3  ||
-            attr.type == Atomic.VariantType.VAR_QUATERNION) {
-            this.axis = Atomic.UI_AXIS.UI_AXIS_Y;
-            this.layoutPosition = Atomic.UI_LAYOUT_POSITION.UI_LAYOUT_POSITION_LEFT_TOP;
+        if (attr.type == EngineCore.VariantType.VAR_VECTOR3  ||
+            attr.type == EngineCore.VariantType.VAR_QUATERNION) {
+            this.axis  = EngineCore.UI_AXIS.UI_AXIS_Y;
+            this.layoutPosition = EngineCore.UI_LAYOUT_POSITION.UI_LAYOUT_POSITION_LEFT_TOP;
             this.skinBg = "InspectorVectorAttrLayout";
         }
 
         if (!this.hideName) {
 
-            var name = new Atomic.UITextField();
-            name.textAlign = Atomic.UI_TEXT_ALIGN.UI_TEXT_ALIGN_LEFT;
+            var name = new EngineCore.UITextField();
+            name.textAlign = EngineCore.UI_TEXT_ALIGN.UI_TEXT_ALIGN_LEFT;
             name.skinBg = "InspectorTextAttrName";
             name.layoutParams = attrNameLP;
             var bname = attr.name;
@@ -122,7 +122,7 @@ class AttributeInfoEdit extends Atomic.UILayout {
 
     }
 
-    static createAttrEdit(editType: SerializableEditType, attrInfo: Atomic.AttributeInfo, nameOverride:string = undefined, typeOverride:Atomic.VariantType = undefined ): AttributeInfoEdit {
+    static createAttrEdit(editType: SerializableEditType, attrInfo: EngineCore.AttributeInfo, nameOverride:string = undefined, typeOverride:EngineCore.VariantType = undefined ): AttributeInfoEdit {
 
         var type: typeof AttributeInfoEdit;
         var customTypes = AttributeInfoEdit.customAttrEditTypes[editType.typeName];
@@ -156,8 +156,8 @@ class AttributeInfoEdit extends Atomic.UILayout {
     }
 
     // atttribute name layout param
-    static attrNameLP: Atomic.UILayoutParams;
-    static fontDesc: Atomic.UIFontDescription;
+    static attrNameLP   : EngineCore.UILayoutParams;
+    static fontDesc     : EngineCore.UIFontDescription;
 
     static standardAttrEditTypes: { [variantType: number /*Atomic.VariantType*/]: typeof AttributeInfoEdit } = {};
 
@@ -175,10 +175,10 @@ class AttributeInfoEdit extends Atomic.UILayout {
 
     private static Ctor = (() => {
 
-        var attrNameLP = AttributeInfoEdit.attrNameLP = new Atomic.UILayoutParams();
+        var attrNameLP = AttributeInfoEdit.attrNameLP = new EngineCore.UILayoutParams();
         attrNameLP.width = 120;
 
-        var fd = AttributeInfoEdit.fontDesc = new Atomic.UIFontDescription();
+        var fd = AttributeInfoEdit.fontDesc = new EngineCore.UIFontDescription();
         fd.id = "Vera";
         fd.size = 11;
 
@@ -190,7 +190,7 @@ class BoolAttributeEdit extends AttributeInfoEdit {
 
     createEditWidget() {
 
-        var box = new Atomic.UICheckBox();
+        var box = new EngineCore.UICheckBox();
         this.editWidget = box;
     }
 
@@ -215,9 +215,9 @@ class BoolAttributeEdit extends AttributeInfoEdit {
 
     }
 
-    handleWidgetEvent(ev: Atomic.UIWidgetEvent): boolean {
+    handleWidgetEvent(ev: EngineCore.UIWidgetEvent): boolean {
 
-        if (ev.type == Atomic.UI_EVENT_TYPE.UI_EVENT_TYPE_CHANGED) {
+        if (ev.type == EngineCore.UI_EVENT_TYPE.UI_EVENT_TYPE_CHANGED) {
 
             this.editType.onAttributeInfoEdited(this.attrInfo, this.editWidget.value ? true : false, -1, true, this.arrayIndex);
             this.refresh();
@@ -235,15 +235,15 @@ class StringAttributeEdit extends AttributeInfoEdit {
 
     createEditWidget() {
 
-        var field = new Atomic.UIEditField();
-        field.textAlign = Atomic.UI_TEXT_ALIGN.UI_TEXT_ALIGN_LEFT;
+        var field = new EngineCore.UIEditField();
+        field.textAlign = EngineCore.UI_TEXT_ALIGN.UI_TEXT_ALIGN_LEFT;
         field.skinBg = "TBAttrEditorField";
         field.fontDescription = AttributeInfoEdit.fontDesc;
-        var lp = new Atomic.UILayoutParams();
+        var lp = new EngineCore.UILayoutParams();
         lp.width = 160;
         field.layoutParams = lp;
 
-        field.subscribeToEvent(field, Atomic.UIWidgetEditCompleteEvent((ev) => this.handleUIWidgetEditCompleteEvent(ev)));
+        field.subscribeToEvent(field, EngineCore.UIWidgetEditCompleteEvent((ev) => this.handleUIWidgetEditCompleteEvent(ev)));
 
         this.editWidget = field;
     }
@@ -275,9 +275,9 @@ class StringAttributeEdit extends AttributeInfoEdit {
     }
 
 
-    handleWidgetEvent(ev: Atomic.UIWidgetEvent): boolean {
+    handleWidgetEvent(ev: EngineCore.UIWidgetEvent): boolean {
 
-        if (ev.type == Atomic.UI_EVENT_TYPE.UI_EVENT_TYPE_CHANGED) {
+        if (ev.type == EngineCore.UI_EVENT_TYPE.UI_EVENT_TYPE_CHANGED) {
 
             return true;
         }
@@ -290,7 +290,7 @@ class StringAttributeEdit extends AttributeInfoEdit {
 
 class IntAttributeEdit extends AttributeInfoEdit {
 
-    enumSource: Atomic.UISelectItemSource;
+    enumSource: EngineCore.UISelectItemSource;
 
     createEditWidget() {
 
@@ -298,18 +298,18 @@ class IntAttributeEdit extends AttributeInfoEdit {
 
         if (attrInfo.enumNames.length) {
 
-            var enumSource = this.enumSource = new Atomic.UISelectItemSource();
+            var enumSource = this.enumSource = new EngineCore.UISelectItemSource();
 
             for (var i in attrInfo.enumNames) {
 
-                enumSource.addItem(new Atomic.UISelectItem(attrInfo.enumNames[i], (Number(i) + 1).toString()));
+                enumSource.addItem(new EngineCore.UISelectItem(attrInfo.enumNames[i], (Number(i) + 1).toString()));
 
             }
 
-            var button = new Atomic.UIButton();
+            var button = new EngineCore.UIButton();
             button.fontDescription = AttributeInfoEdit.fontDesc;
             button.text = "Enum Value!";
-            var lp = new Atomic.UILayoutParams();
+            var lp = new EngineCore.UILayoutParams();
             lp.width = 140;
             button.layoutParams = lp;
 
@@ -318,15 +318,15 @@ class IntAttributeEdit extends AttributeInfoEdit {
         } else {
 
 
-            var field = new Atomic.UIEditField();
-            field.textAlign = Atomic.UI_TEXT_ALIGN.UI_TEXT_ALIGN_CENTER;
+            var field = new EngineCore.UIEditField();
+            field.textAlign = EngineCore.UI_TEXT_ALIGN.UI_TEXT_ALIGN_CENTER;
             field.skinBg = "TBAttrEditorField";
             field.fontDescription = AttributeInfoEdit.fontDesc;
-            var lp = new Atomic.UILayoutParams();
+            var lp = new EngineCore.UILayoutParams();
             lp.width = 140;
             field.layoutParams = lp;
 
-            field.subscribeToEvent(field, Atomic.UIWidgetEditCompleteEvent((ev) => this.handleUIWidgetEditCompleteEvent(ev)));
+            field.subscribeToEvent(field, EngineCore.UIWidgetEditCompleteEvent((ev) => this.handleUIWidgetEditCompleteEvent(ev)));
 
             this.editWidget = field;
         }
@@ -375,14 +375,14 @@ class IntAttributeEdit extends AttributeInfoEdit {
     }
 
 
-    handleWidgetEvent(ev: Atomic.UIWidgetEvent): boolean {
+    handleWidgetEvent(ev: EngineCore.UIWidgetEvent): boolean {
 
-        if (ev.type == Atomic.UI_EVENT_TYPE.UI_EVENT_TYPE_CHANGED) {
+        if (ev.type == EngineCore.UI_EVENT_TYPE.UI_EVENT_TYPE_CHANGED) {
 
             return true;
         }
 
-        if (ev.type == Atomic.UI_EVENT_TYPE.UI_EVENT_TYPE_CLICK) {
+        if (ev.type == EngineCore.UI_EVENT_TYPE.UI_EVENT_TYPE_CLICK) {
 
             var id = this.attrInfo.name + " enum popup";
 
@@ -397,7 +397,7 @@ class IntAttributeEdit extends AttributeInfoEdit {
 
 
                 if (this.enumSource) {
-                    var menu = new Atomic.UIMenuWindow(ev.target, id);
+                    var menu = new EngineCore.UIMenuWindow(ev.target, id);
                     menu.show(this.enumSource);
                 }
 
@@ -419,15 +419,15 @@ class FloatAttributeEdit extends AttributeInfoEdit {
 
         var attrInfo = this.attrInfo;
 
-        var field = new Atomic.UIEditField();
-        field.textAlign = Atomic.UI_TEXT_ALIGN.UI_TEXT_ALIGN_CENTER;
+        var field = new EngineCore.UIEditField();
+        field.textAlign = EngineCore.UI_TEXT_ALIGN.UI_TEXT_ALIGN_CENTER;
         field.skinBg = "TBAttrEditorField";
         field.fontDescription = AttributeInfoEdit.fontDesc;
-        var lp = new Atomic.UILayoutParams();
+        var lp = new EngineCore.UILayoutParams();
         lp.width = 140;
         field.layoutParams = lp;
 
-        field.subscribeToEvent(field, Atomic.UIWidgetEditCompleteEvent((ev) => this.handleUIWidgetEditCompleteEvent(ev)));
+        field.subscribeToEvent(field, EngineCore.UIWidgetEditCompleteEvent((ev) => this.handleUIWidgetEditCompleteEvent(ev)));
 
         this.editWidget = field;
 
@@ -472,9 +472,9 @@ class FloatAttributeEdit extends AttributeInfoEdit {
     }
 
 
-    handleWidgetEvent(ev: Atomic.UIWidgetEvent): boolean {
+    handleWidgetEvent(ev: EngineCore.UIWidgetEvent): boolean {
 
-        if (ev.type == Atomic.UI_EVENT_TYPE.UI_EVENT_TYPE_CHANGED) {
+        if (ev.type == EngineCore.UI_EVENT_TYPE.UI_EVENT_TYPE_CHANGED) {
 
             return true;
         }
@@ -487,7 +487,7 @@ class FloatAttributeEdit extends AttributeInfoEdit {
 
 class NumberArrayAttributeEdit extends AttributeInfoEdit {
 
-    selects: Atomic.UIInlineSelect[] = [];
+    selects: EngineCore.UIInlineSelect[] = [];
 
     private numElements: number;
 
@@ -503,15 +503,15 @@ class NumberArrayAttributeEdit extends AttributeInfoEdit {
 
         var attrInfo = this.attrInfo;
 
-        var layout = new Atomic.UILayout();
+        var layout = new EngineCore.UILayout();
         layout.spacing = 0;
 
-        var lp = new Atomic.UILayoutParams();
+        var lp = new EngineCore.UILayoutParams();
         lp.width = this.numElements != 4 ? 100 : 70;
 
         for (var i = 0; i < this.numElements; i++) {
 
-            var select = new Atomic.UIInlineSelect();
+            var select = new EngineCore.UIInlineSelect();
             this.selects.push(select);
 
             select.id = String(i + 1);
@@ -519,7 +519,7 @@ class NumberArrayAttributeEdit extends AttributeInfoEdit {
             select.skinBg = "InspectorVectorAttrName";
             select.setLimits(-10000000, 10000000);
             if (this.numElements != 4) {
-                var editlp = new Atomic.UILayoutParams();
+                var editlp = new EngineCore.UILayoutParams();
                 editlp.minWidth = 60;
                 select.editFieldLayoutParams = editlp;
             }
@@ -530,8 +530,8 @@ class NumberArrayAttributeEdit extends AttributeInfoEdit {
             select["_dec"] = select.getWidget("dec");
             select["_inc"] = select.getWidget("inc");
 
-            select.subscribeToEvent(select, Atomic.UIWidgetEvent((ev) => this.handleWidgetEvent(ev)));
-            select.subscribeToEvent(select, Atomic.UIWidgetEditCompleteEvent((ev) => this.handleUIWidgetEditCompleteEvent(ev)));
+            select.subscribeToEvent(select, EngineCore.UIWidgetEvent((ev) => this.handleWidgetEvent(ev)));
+            select.subscribeToEvent(select, EngineCore.UIWidgetEditCompleteEvent((ev) => this.handleUIWidgetEditCompleteEvent(ev)));
         }
 
         this.editWidget = layout;
@@ -570,7 +570,7 @@ class NumberArrayAttributeEdit extends AttributeInfoEdit {
 
     }
 
-    handleUIWidgetEditCompleteEvent(ev: Atomic.UIWidgetEditCompleteEvent) {
+    handleUIWidgetEditCompleteEvent(ev: EngineCore.UIWidgetEditCompleteEvent) {
 
         var index = Number(ev.widget.id) - 1;
         this.editType.onAttributeInfoEdited(this.attrInfo, ev.widget.value, index, true, this.arrayIndex);
@@ -578,9 +578,9 @@ class NumberArrayAttributeEdit extends AttributeInfoEdit {
 
     }
 
-    handleWidgetEvent(ev: Atomic.UIWidgetEvent): boolean {
+    handleWidgetEvent(ev: EngineCore.UIWidgetEvent): boolean {
 
-        if (ev.type == Atomic.UI_EVENT_TYPE.UI_EVENT_TYPE_CHANGED) {
+        if (ev.type == EngineCore.UI_EVENT_TYPE.UI_EVENT_TYPE_CHANGED) {
 
             var captured = false;
             for (var i in this.selects) {
@@ -645,7 +645,7 @@ class ColorAttributeEdit extends AttributeInfoEdit {
 
     createLayout() {
 
-        var layout = new Atomic.UILayout();
+        var layout = new EngineCore.UILayout();
         let name = this.attrInfo.name;
         if (this.nameOverride) {
             name = this.nameOverride;
@@ -655,18 +655,18 @@ class ColorAttributeEdit extends AttributeInfoEdit {
         var colorWidget = this.colorWidget = o.colorWidget;
         var selectButton = o.selectButton;
 
-        layout.layoutSize = Atomic.UI_LAYOUT_SIZE.UI_LAYOUT_SIZE_AVAILABLE;
-        layout.gravity = Atomic.UI_GRAVITY.UI_GRAVITY_LEFT_RIGHT;
-        layout.layoutDistribution = Atomic.UI_LAYOUT_DISTRIBUTION.UI_LAYOUT_DISTRIBUTION_GRAVITY;
+        layout.layoutSize           = EngineCore.UI_LAYOUT_SIZE.UI_LAYOUT_SIZE_AVAILABLE;
+        layout.gravity              = EngineCore.UI_GRAVITY.UI_GRAVITY_LEFT_RIGHT;
+        layout.layoutDistribution   = EngineCore.UI_LAYOUT_DISTRIBUTION.UI_LAYOUT_DISTRIBUTION_GRAVITY;
 
-        var lp = new Atomic.UILayoutParams();
+        var lp = new EngineCore.UILayoutParams();
         lp.width = 140;
         lp.height = 24;
         colorWidget.layoutParams = lp;
 
         this.editWidget = layout;
 
-        this.editWidget.subscribeToEvent(this.editWidget, Atomic.UIWidgetEvent((data) => this.handleWidgetEvent(data)));
+        this.editWidget.subscribeToEvent(this.editWidget, EngineCore.UIWidgetEvent((data) => this.handleWidgetEvent(data)));
 
         selectButton.onClick = () => {
 
@@ -683,14 +683,14 @@ class ColorAttributeEdit extends AttributeInfoEdit {
             let restore = null;
             let chooser = new ColorChooser ( color );
 
-            this.subscribeToEvent(chooser, Editor.ColorChooserChangedEvent((ev) => {
+            this.subscribeToEvent(chooser, EngineEditor.ColorChooserChangedEvent((ev) => {
 
                 restore = color;
                 this.updateColor(chooser.getRGBA());
 
             }));
 
-            this.subscribeToEvent(chooser, Atomic.UIWidgetEditCanceledEvent((ev) => {
+            this.subscribeToEvent(chooser, EngineCore.UIWidgetEditCanceledEvent((ev) => {
 
                 if (restore) {
 
@@ -701,7 +701,7 @@ class ColorAttributeEdit extends AttributeInfoEdit {
 
             }));
 
-            this.subscribeToEvent(chooser, Atomic.UIWidgetEditCompleteEvent((ev) => {
+            this.subscribeToEvent(chooser, EngineCore.UIWidgetEditCompleteEvent((ev) => {
 
                 let newColor = chooser.getRGBA();
 
@@ -768,14 +768,14 @@ class ColorAttributeEdit extends AttributeInfoEdit {
 
     }
 
-    colorWidget : Atomic.UIColorWidget;
+    colorWidget : EngineCore.UIColorWidget;
 
 }
 
 class ResourceRefAttributeEdit extends AttributeInfoEdit {
 
     refListIndex: number;
-    editField: Atomic.UIEditField;
+    editField: EngineCore.UIEditField;
 
     constructor(refListIndex: number = -1) {
 
@@ -785,7 +785,7 @@ class ResourceRefAttributeEdit extends AttributeInfoEdit {
 
     }
 
-    onResourceChanged(resource: Atomic.Resource) {
+    onResourceChanged(resource: EngineCore.Resource) {
 
         var parent = this.parent;
 
@@ -801,13 +801,13 @@ class ResourceRefAttributeEdit extends AttributeInfoEdit {
 
         if (parent) {
 
-            parent.sendEvent(Editor.AttributeEditResourceChangedEventData({ attrInfoEdit: this, resource: resource }));
+            parent.sendEvent(EngineEditor.AttributeEditResourceChangedEventData({ attrInfoEdit: this, resource: resource }));
 
         }
 
     }
 
-    initialize(editType: SerializableEditType, attrInfo: Atomic.AttributeInfo): boolean {
+    initialize(editType: SerializableEditType, attrInfo: EngineCore.AttributeInfo): boolean {
 
         if (!attrInfo.resourceTypeName)
             return false;
@@ -834,19 +834,19 @@ class ResourceRefAttributeEdit extends AttributeInfoEdit {
             if (object) {
 
                 // for cached resources, use the asset name, otherwise use the resource path name
-                var resource: Atomic.Resource;
+                var resource: EngineCore.Resource;
                 if (this.refListIndex != -1) {
                     resource = object.getAttribute(this.attrInfo.name).resources[this.refListIndex];
                 } else {
-                    resource = <Atomic.Resource>object.getAttribute(this.attrInfo.name);
+                    resource = <EngineCore.Resource>object.getAttribute(this.attrInfo.name);
                 }
 
                 var text = "";
 
                 if (resource) {
-                    if (resource instanceof Atomic.Animation) {
+                    if (resource instanceof EngineCore.Animation) {
 
-                        text = (<Atomic.Animation>resource).animationName;
+                        text = (<EngineCore.Animation>resource).animationName;
 
                     } else {
 
@@ -858,27 +858,27 @@ class ResourceRefAttributeEdit extends AttributeInfoEdit {
                 }
                 this.editField.text = text;
 
-                this.editField.subscribeToEvent(this.editField, Atomic.UIWidgetEvent((ev: Atomic.UIWidgetEvent) => {
+                this.editField.subscribeToEvent(this.editField, EngineCore.UIWidgetEvent((ev: EngineCore.UIWidgetEvent) => {
 
-                    if (ev.type == Atomic.UI_EVENT_TYPE.UI_EVENT_TYPE_POINTER_DOWN) {
+                    if (ev.type == EngineCore.UI_EVENT_TYPE.UI_EVENT_TYPE_POINTER_DOWN) {
 
-                        resource = <Atomic.Resource>object.getAttribute(this.attrInfo.name, this.arrayIndex);
+                        resource = <EngineCore.Resource>object.getAttribute(this.attrInfo.name, this.arrayIndex);
 
-                        if (resource instanceof Atomic.JSComponentFile) {
+                        if (resource instanceof EngineCore.JSComponentFile) {
 
                             var pathName = resource.name;
-                            this.sendEvent(Editor.InspectorProjectReferenceEventData({ "path": pathName }));
+                            this.sendEvent(EngineEditor.InspectorProjectReferenceEventData({ "path": pathName }));
 
-                        } else if (resource instanceof Atomic.Model) {
+                        } else if (resource instanceof EngineCore.Model) {
 
                             var asset = ToolCore.assetDatabase.getAssetByCachePath(resource.name);
-                            this.sendEvent(Editor.InspectorProjectReferenceEventData({ "path": asset.getRelativePath() }));
+                            this.sendEvent(EngineEditor.InspectorProjectReferenceEventData({ "path": asset.getRelativePath() }));
 
-                        } else if (resource instanceof Atomic.Animation) {
+                        } else if (resource instanceof EngineCore.Animation) {
 
-                             var animCacheReferenceName = resource.name.replace( "_" + (<Atomic.Animation>resource).animationName, "");
+                             var animCacheReferenceName = resource.name.replace( "_" + (<EngineCore.Animation>resource).animationName, "");
                              var asset = ToolCore.assetDatabase.getAssetByCachePath(animCacheReferenceName);
-                             this.sendEvent(Editor.InspectorProjectReferenceEventData({ "path": asset.getRelativePath() }));
+                             this.sendEvent(EngineEditor.InspectorProjectReferenceEventData({ "path": asset.getRelativePath() }));
 
                         } else {
 
@@ -899,15 +899,15 @@ class ResourceRefAttributeEdit extends AttributeInfoEdit {
 
     createEditWidget() {
 
-        var layout = new Atomic.UILayout();
+        var layout = new EngineCore.UILayout();
         var o = InspectorUtils.createAttrEditFieldWithSelectButton("", layout);
         this.editField = o.editField;
 
-        layout.layoutSize = Atomic.UI_LAYOUT_SIZE.UI_LAYOUT_SIZE_AVAILABLE;
-        layout.gravity = Atomic.UI_GRAVITY.UI_GRAVITY_LEFT_RIGHT;
-        layout.layoutDistribution = Atomic.UI_LAYOUT_DISTRIBUTION.UI_LAYOUT_DISTRIBUTION_GRAVITY;
+        layout.layoutSize           = EngineCore.UI_LAYOUT_SIZE.UI_LAYOUT_SIZE_AVAILABLE;
+        layout.gravity              = EngineCore.UI_GRAVITY.UI_GRAVITY_LEFT_RIGHT;
+        layout.layoutDistribution   = EngineCore.UI_LAYOUT_DISTRIBUTION.UI_LAYOUT_DISTRIBUTION_GRAVITY;
 
-        var lp = new Atomic.UILayoutParams();
+        var lp = new EngineCore.UILayoutParams();
         lp.width = 140;
         o.editField.layoutParams = lp;
         o.editField.readOnly = true;
@@ -923,15 +923,15 @@ class ResourceRefAttributeEdit extends AttributeInfoEdit {
 
             EditorUI.getModelOps().showResourceSelection("Select " + resourceTypeName + " Resource", importerName, resourceTypeName, function(retObject: any) {
 
-                var resource: Atomic.Resource = null;
+                var resource: EngineCore.Resource = null;
 
                 if (retObject instanceof ToolCore.Asset) {
 
                     resource = (<ToolCore.Asset>retObject).getResource(resourceTypeName);
 
-                } else if (retObject instanceof Atomic.Resource) {
+                } else if (retObject instanceof EngineCore.Resource) {
 
-                    resource = <Atomic.Resource>retObject;
+                    resource = <EngineCore.Resource>retObject;
 
                 }
 
@@ -944,7 +944,7 @@ class ResourceRefAttributeEdit extends AttributeInfoEdit {
         };
 
         // handle dropping of component on field
-        this.editField.subscribeToEvent(this.editField, Atomic.DragEndedEvent((ev: Atomic.DragEndedEvent) => {
+        this.editField.subscribeToEvent(this.editField, EngineCore.DragEndedEvent((ev: EngineCore.DragEndedEvent) => {
 
             if (ev.target == o.editField) {
 
@@ -982,11 +982,11 @@ class ResourceRefAttributeEdit extends AttributeInfoEdit {
 
 class ResourceRefListAttributeEdit extends AttributeInfoEdit {
 
-    layout: Atomic.UILayout;
+    layout: EngineCore.UILayout;
     refEdits: ResourceRefAttributeEdit[] = [];
-    sizeEdit: Atomic.UIEditField;
+    sizeEdit: EngineCore.UIEditField;
 
-    initialize(editType: SerializableEditType, attrInfo: Atomic.AttributeInfo): boolean {
+    initialize(editType: SerializableEditType, attrInfo: EngineCore.AttributeInfo): boolean {
 
         return super.initialize(editType, attrInfo);
 
@@ -1008,16 +1008,16 @@ class ResourceRefListAttributeEdit extends AttributeInfoEdit {
 
         this.spacing = 0;
 
-        var layout = this.layout = new Atomic.UILayout();
+        var layout = this.layout = new EngineCore.UILayout();
 
-        layout.axis = Atomic.UI_AXIS.UI_AXIS_Y;
+        layout.axis = EngineCore.UI_AXIS.UI_AXIS_Y;
         layout.spacing = 2;
-        layout.layoutSize = Atomic.UI_LAYOUT_SIZE.UI_LAYOUT_SIZE_AVAILABLE;
-        layout.gravity = Atomic.UI_GRAVITY.UI_GRAVITY_LEFT_RIGHT;
-        layout.layoutPosition = Atomic.UI_LAYOUT_POSITION.UI_LAYOUT_POSITION_LEFT_TOP;
-        layout.layoutDistribution = Atomic.UI_LAYOUT_DISTRIBUTION.UI_LAYOUT_DISTRIBUTION_GRAVITY;
+        layout.layoutSize           = EngineCore.UI_LAYOUT_SIZE.UI_LAYOUT_SIZE_AVAILABLE;
+        layout.gravity              = EngineCore.UI_GRAVITY.UI_GRAVITY_LEFT_RIGHT;
+        layout.layoutPosition       = EngineCore.UI_LAYOUT_POSITION.UI_LAYOUT_POSITION_LEFT_TOP;
+        layout.layoutDistribution   = EngineCore.UI_LAYOUT_DISTRIBUTION.UI_LAYOUT_DISTRIBUTION_GRAVITY;
 
-        var lp = new Atomic.UILayoutParams();
+        var lp = new EngineCore.UILayoutParams();
         lp.width = 304;
         layout.layoutParams = lp;
 
@@ -1027,11 +1027,11 @@ class ResourceRefListAttributeEdit extends AttributeInfoEdit {
 
         var sizeEdit = this.sizeEdit = InspectorUtils.createAttrEditField(name, layout);
 
-        lp = new Atomic.UILayoutParams();
+        lp = new EngineCore.UILayoutParams();
         lp.width = 160;
         sizeEdit.layoutParams = lp;
 
-        sizeEdit.subscribeToEvent(sizeEdit, Atomic.UIWidgetEditCompleteEvent((ev) => this.handleUIWidgetEditCompleteEvent(ev)));
+        sizeEdit.subscribeToEvent(sizeEdit, EngineCore.UIWidgetEditCompleteEvent((ev) => this.handleUIWidgetEditCompleteEvent(ev)));
 
         this.editWidget = layout;
 
@@ -1041,7 +1041,7 @@ class ResourceRefListAttributeEdit extends AttributeInfoEdit {
 
         this.createEditWidget();
 
-        this.editWidget.subscribeToEvent(this.editWidget, Atomic.UIWidgetEvent((data) => this.handleWidgetEvent(data)));
+        this.editWidget.subscribeToEvent(this.editWidget, EngineCore.UIWidgetEvent((data) => this.handleWidgetEvent(data)));
 
         this.addChild(this.editWidget);
 
@@ -1096,11 +1096,11 @@ class ResourceRefListAttributeEdit extends AttributeInfoEdit {
         var object = this.editType.getFirstObject();
 
         if (!object) {
-            this.visibility = Atomic.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_GONE;
+            this.visibility = EngineCore.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_GONE;
             return;
         }
 
-        this.visibility = Atomic.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_VISIBLE;
+        this.visibility = EngineCore.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_VISIBLE;
 
         var maxLength = -1;
         var i;
@@ -1119,7 +1119,7 @@ class ResourceRefListAttributeEdit extends AttributeInfoEdit {
         this.sizeEdit.text = maxLength.toString();
 
         if (maxLength == -1) {
-            this.visibility = Atomic.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_GONE;
+            this.visibility = EngineCore.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_GONE;
             return;
         }
 
@@ -1134,11 +1134,11 @@ class ResourceRefListAttributeEdit extends AttributeInfoEdit {
             var refEdit = this.refEdits[i];
 
             if (i < maxLength) {
-                refEdit.visibility = Atomic.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_VISIBLE;
+                refEdit.visibility = EngineCore.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_VISIBLE;
                 refEdit.refresh();
             }
             else {
-                refEdit.visibility = Atomic.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_GONE;
+                refEdit.visibility = EngineCore.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_GONE;
             }
 
         }
@@ -1149,11 +1149,11 @@ class ResourceRefListAttributeEdit extends AttributeInfoEdit {
 
 class ArrayAttributeEdit extends AttributeInfoEdit {
 
-    layout: Atomic.UILayout;
+    layout: EngineCore.UILayout;
     indexEdits: AttributeInfoEdit[] = [];
-    sizeEdit: Atomic.UIEditField;
+    sizeEdit: EngineCore.UIEditField;
 
-    initialize(editType: SerializableEditType, attrInfo: Atomic.AttributeInfo): boolean {
+    initialize(editType: SerializableEditType, attrInfo: EngineCore.AttributeInfo): boolean {
 
         return super.initialize(editType, attrInfo);
 
@@ -1174,16 +1174,16 @@ class ArrayAttributeEdit extends AttributeInfoEdit {
 
         this.spacing = 0;
 
-        var layout = this.layout = new Atomic.UILayout();
+        var layout = this.layout = new EngineCore.UILayout();
 
-        layout.axis = Atomic.UI_AXIS.UI_AXIS_Y;
+        layout.axis = EngineCore.UI_AXIS.UI_AXIS_Y;
         layout.spacing = 2;
-        layout.layoutSize = Atomic.UI_LAYOUT_SIZE.UI_LAYOUT_SIZE_AVAILABLE;
-        layout.gravity = Atomic.UI_GRAVITY.UI_GRAVITY_LEFT_RIGHT;
-        layout.layoutPosition = Atomic.UI_LAYOUT_POSITION.UI_LAYOUT_POSITION_LEFT_TOP;
-        layout.layoutDistribution = Atomic.UI_LAYOUT_DISTRIBUTION.UI_LAYOUT_DISTRIBUTION_GRAVITY;
+        layout.layoutSize = EngineCore.UI_LAYOUT_SIZE.UI_LAYOUT_SIZE_AVAILABLE;
+        layout.gravity = EngineCore.UI_GRAVITY.UI_GRAVITY_LEFT_RIGHT;
+        layout.layoutPosition = EngineCore.UI_LAYOUT_POSITION.UI_LAYOUT_POSITION_LEFT_TOP;
+        layout.layoutDistribution = EngineCore.UI_LAYOUT_DISTRIBUTION.UI_LAYOUT_DISTRIBUTION_GRAVITY;
 
-        var lp = new Atomic.UILayoutParams();
+        var lp = new EngineCore.UILayoutParams();
         lp.width = 304;
         layout.layoutParams = lp;
 
@@ -1197,11 +1197,11 @@ class ArrayAttributeEdit extends AttributeInfoEdit {
             sizeEdit.disable();
         }
 
-        lp = new Atomic.UILayoutParams();
+        lp = new EngineCore.UILayoutParams();
         lp.width = 160;
         sizeEdit.layoutParams = lp;
 
-        sizeEdit.subscribeToEvent(sizeEdit, Atomic.UIWidgetEditCompleteEvent((ev) => this.handleUIWidgetEditCompleteEvent(ev)));
+        sizeEdit.subscribeToEvent(sizeEdit, EngineCore.UIWidgetEditCompleteEvent((ev) => this.handleUIWidgetEditCompleteEvent(ev)));
 
         this.editWidget = layout;
 
@@ -1211,7 +1211,7 @@ class ArrayAttributeEdit extends AttributeInfoEdit {
 
         this.createEditWidget();
 
-        this.editWidget.subscribeToEvent(this.editWidget, Atomic.UIWidgetEvent((data) => this.handleWidgetEvent(data)));
+        this.editWidget.subscribeToEvent(this.editWidget, EngineCore.UIWidgetEvent((data) => this.handleWidgetEvent(data)));
 
         this.addChild(this.editWidget);
 
@@ -1232,7 +1232,7 @@ class ArrayAttributeEdit extends AttributeInfoEdit {
 
             var object = editType.objects[i];
 
-            var vector = <Atomic.ScriptVector>(object.getAttribute(this.attrInfo.name));
+            var vector = <EngineCore.ScriptVector>(object.getAttribute(this.attrInfo.name));
 
             if (vector.size != size) {
 
@@ -1242,8 +1242,8 @@ class ArrayAttributeEdit extends AttributeInfoEdit {
                 // record for undo/redo
                 let scene = this.editType.getEditScene();
                 if (scene) {
-                    scene.sendEvent(Editor.SceneEditEndEventType);
-                    scene.sendEvent(Editor.ComponentEditEndEventType);
+                    scene.sendEvent(EngineEditor.SceneEditEndEventType);
+                    scene.sendEvent(EngineEditor.ComponentEditEndEventType);
                 }
 
                 refresh = true;
@@ -1263,11 +1263,11 @@ class ArrayAttributeEdit extends AttributeInfoEdit {
         var object = this.editType.getFirstObject();
 
         if (!object) {
-            this.visibility = Atomic.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_GONE;
+            this.visibility = EngineCore.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_GONE;
             return;
         }
 
-        this.visibility = Atomic.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_VISIBLE;
+        this.visibility = EngineCore.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_VISIBLE;
 
         var maxLength = -1;
         var i;
@@ -1275,7 +1275,7 @@ class ArrayAttributeEdit extends AttributeInfoEdit {
 
             object = editType.objects[i];
 
-            var vector = <Atomic.ScriptVector>(object.getAttribute(this.attrInfo.name));
+            var vector = <EngineCore.ScriptVector>(object.getAttribute(this.attrInfo.name));
 
             if (vector.size > maxLength) {
 
@@ -1287,7 +1287,7 @@ class ArrayAttributeEdit extends AttributeInfoEdit {
         this.sizeEdit.text = maxLength.toString();
 
         if (maxLength == -1) {
-            this.visibility = Atomic.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_GONE;
+            this.visibility = EngineCore.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_GONE;
             return;
         }
 
@@ -1302,11 +1302,11 @@ class ArrayAttributeEdit extends AttributeInfoEdit {
             var indexEdit = this.indexEdits[i];
 
             if (i < maxLength) {
-                indexEdit.visibility = Atomic.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_VISIBLE;
+                indexEdit.visibility = EngineCore.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_VISIBLE;
                 indexEdit.refresh();
             }
             else {
-                indexEdit.visibility = Atomic.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_GONE;
+                indexEdit.visibility = EngineCore.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_GONE;
             }
 
         }
@@ -1316,18 +1316,18 @@ class ArrayAttributeEdit extends AttributeInfoEdit {
 }
 
 
-AttributeInfoEdit.standardAttrEditTypes[Atomic.VariantType.VAR_BOOL] = BoolAttributeEdit;
-AttributeInfoEdit.standardAttrEditTypes[Atomic.VariantType.VAR_INT] = IntAttributeEdit;
-AttributeInfoEdit.standardAttrEditTypes[Atomic.VariantType.VAR_FLOAT] = FloatAttributeEdit;
-AttributeInfoEdit.standardAttrEditTypes[Atomic.VariantType.VAR_STRING] = StringAttributeEdit;
+AttributeInfoEdit.standardAttrEditTypes[EngineCore.VariantType.VAR_BOOL] = BoolAttributeEdit;
+AttributeInfoEdit.standardAttrEditTypes[EngineCore.VariantType.VAR_INT] = IntAttributeEdit;
+AttributeInfoEdit.standardAttrEditTypes[EngineCore.VariantType.VAR_FLOAT] = FloatAttributeEdit;
+AttributeInfoEdit.standardAttrEditTypes[EngineCore.VariantType.VAR_STRING] = StringAttributeEdit;
 
-AttributeInfoEdit.standardAttrEditTypes[Atomic.VariantType.VAR_VECTOR2] = Vector2AttributeEdit;
-AttributeInfoEdit.standardAttrEditTypes[Atomic.VariantType.VAR_VECTOR3] = Vector3AttributeEdit;
-AttributeInfoEdit.standardAttrEditTypes[Atomic.VariantType.VAR_QUATERNION] = QuaternionAttributeEdit;
+AttributeInfoEdit.standardAttrEditTypes[EngineCore.VariantType.VAR_VECTOR2] = Vector2AttributeEdit;
+AttributeInfoEdit.standardAttrEditTypes[EngineCore.VariantType.VAR_VECTOR3] = Vector3AttributeEdit;
+AttributeInfoEdit.standardAttrEditTypes[EngineCore.VariantType.VAR_QUATERNION] = QuaternionAttributeEdit;
 
-AttributeInfoEdit.standardAttrEditTypes[Atomic.VariantType.VAR_COLOR] = ColorAttributeEdit;
+AttributeInfoEdit.standardAttrEditTypes[EngineCore.VariantType.VAR_COLOR] = ColorAttributeEdit;
 
-AttributeInfoEdit.standardAttrEditTypes[Atomic.VariantType.VAR_RESOURCEREF] = ResourceRefAttributeEdit;
-AttributeInfoEdit.standardAttrEditTypes[Atomic.VariantType.VAR_RESOURCEREFLIST] = ResourceRefListAttributeEdit;
+AttributeInfoEdit.standardAttrEditTypes[EngineCore.VariantType.VAR_RESOURCEREF] = ResourceRefAttributeEdit;
+AttributeInfoEdit.standardAttrEditTypes[EngineCore.VariantType.VAR_RESOURCEREFLIST] = ResourceRefListAttributeEdit;
 
 export = AttributeInfoEdit;

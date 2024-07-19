@@ -26,9 +26,9 @@ import MenuItemSources = require("./MenuItemSources");
 import Preferences = require("editor/Preferences");
 import ServiceLocator from "../../../hostExtensions/ServiceLocator";
 
-class MainFrameMenu extends Atomic.ScriptObject {
+class MainFrameMenu extends EngineCore.ScriptObject {
 
-    private pluginMenuItemSource: Atomic.UIMenuItemSource;
+    private pluginMenuItemSource: EngineCore.UIMenuItemSource;
 
     constructor() {
 
@@ -43,7 +43,7 @@ class MainFrameMenu extends Atomic.ScriptObject {
         this.goScreenshot = 0;
     }
 
-    createPluginMenuItemSource(id: string, items: any): Atomic.UIMenuItemSource {
+    createPluginMenuItemSource(id: string, items: any): EngineCore.UIMenuItemSource {
         if (!this.pluginMenuItemSource) {
             var developerMenuItemSource = MenuItemSources.getMenuItemSource("menu developer");
             this.pluginMenuItemSource = MenuItemSources.createSubMenuItemSource(developerMenuItemSource, "Plugins", {});
@@ -74,7 +74,7 @@ class MainFrameMenu extends Atomic.ScriptObject {
         }
     }
 
-    handlePopupMenu(target: Atomic.UIWidget, refid: string): boolean {
+    handlePopupMenu(target: EngineCore.UIWidget, refid: string): boolean {
 
         if (target.id == "menu edit popup") {
 
@@ -149,7 +149,7 @@ class MainFrameMenu extends Atomic.ScriptObject {
         } else if (target.id == "menu file popup") {
             if (refid == "quit") {
 
-                this.sendEvent(Atomic.ExitRequestedEventType);
+                this.sendEvent(EngineCore.ExitRequestedEventType);
                 return true;
 
             }
@@ -171,7 +171,7 @@ class MainFrameMenu extends Atomic.ScriptObject {
             }
             if (refid == "file open project") {
 
-                var utils = new Editor.FileUtils();
+                var utils = new EngineEditor.FileUtils();
                 var path = utils.openProjectFileDialog();
 
                 if (path == "") {
@@ -180,18 +180,18 @@ class MainFrameMenu extends Atomic.ScriptObject {
 
                 }
 
-                var requestProjectLoad = () => this.sendEvent(Editor.RequestProjectLoadEventData({ path: path }));
+                var requestProjectLoad = () => this.sendEvent(EngineEditor.RequestProjectLoadEventData({ path: path }));
 
                 if (ToolCore.toolSystem.project) {
 
-                    this.subscribeToEvent(Editor.EditorProjectClosedEvent(() => {
+                    this.subscribeToEvent(EngineEditor.EditorProjectClosedEvent(() => {
 
-                        this.unsubscribeFromEvent(Editor.EditorProjectClosedEventType);
+                        this.unsubscribeFromEvent(EngineEditor.EditorProjectClosedEventType);
                         requestProjectLoad();
 
                     }));
 
-                    this.sendEvent(Editor.EditorCloseProjectEventType);
+                    this.sendEvent(EngineEditor.EditorCloseProjectEventType);
 
                 } else {
 
@@ -205,7 +205,7 @@ class MainFrameMenu extends Atomic.ScriptObject {
 
             if (refid == "file close project") {
 
-                this.sendEvent(Editor.EditorCloseProjectEventType);
+                this.sendEvent(EngineEditor.EditorCloseProjectEventType);
 
                 return true;
 
@@ -222,7 +222,7 @@ class MainFrameMenu extends Atomic.ScriptObject {
             }
 
             if (refid == "file save all") {
-                this.sendEvent(Editor.EditorSaveAllResourcesEventType);
+                this.sendEvent(EngineEditor.EditorSaveAllResourcesEventType);
                 return true;
             }
 
@@ -245,20 +245,20 @@ class MainFrameMenu extends Atomic.ScriptObject {
             }
 
             if ( refid == "screenshot") {
-                this.subscribeToEvent(Atomic.UpdateEvent((ev) => this.handleScreenshot(ev)));
+                this.subscribeToEvent(EngineCore.UpdateEvent((ev) => this.handleScreenshot(ev)));
                 this.goScreenshot = 19;  // number of ticks to wait for the menu to close
                 return true;
             }
 
             if (refid == "developer show console") {
-                Atomic.ui.showConsole(true);
+                EngineCore.ui.showConsole(true);
                 return true;
             }
 
             if (refid == "developer show uidebugger") {
 
-                if (Atomic.engine.debugBuild) {
-                    Atomic.UI.debugShowSettingsWindow(EditorUI.getView());
+                if (EngineCore.engine.debugBuild) {
+                    EngineCore.UI.debugShowSettingsWindow(EditorUI.getView());
                 }
                 else {
                     EditorUI.showModalError("Debug Build Required",
@@ -288,7 +288,7 @@ class MainFrameMenu extends Atomic.ScriptObject {
                 myPrefs.useDefaultConfig();
                 myPrefs.saveEditorWindowData(myPrefs.editorWindow);
                 myPrefs.savePlayerWindowData(myPrefs.playerWindow);
-                Atomic.getEngine().exit();
+                EngineCore.getEngine().exit();
                 return true;
             }
 
@@ -318,21 +318,20 @@ class MainFrameMenu extends Atomic.ScriptObject {
         } else if (target.id == "menu tools popup") {
 
             if (refid == "tools toggle profiler") {
-                Atomic.ui.toggleDebugHud();
+                EngineCore.ui.toggleDebugHud();
                 return true;
             } if (refid == "tools perf profiler") {
-                Atomic.ui.debugHudProfileMode = Atomic.DebugHudProfileMode.DEBUG_HUD_PROFILE_PERFORMANCE;
-                Atomic.ui.showDebugHud(true);
+                EngineCore.ui.debugHudProfileMode = EngineCore.DebugHudProfileMode.DEBUG_HUD_PROFILE_PERFORMANCE;
+                EngineCore.ui.showDebugHud(true);
                 return true;
             } else if (refid == "tools metrics profiler") {
-                Atomic.ui.debugHudProfileMode = Atomic.DebugHudProfileMode.DEBUG_HUD_PROFILE_METRICS;
-                Atomic.ui.showDebugHud(true);
+                EngineCore.ui.debugHudProfileMode = EngineCore.DebugHudProfileMode.DEBUG_HUD_PROFILE_METRICS;
+                EngineCore.ui.showDebugHud(true);
                 return true;
             } else if (refid.indexOf("tools log") != -1) {
-
                 let logName = refid.indexOf("editor") != -1 ? "AtomicEditor" : "AtomicPlayer";
-                let logFolder = Atomic.fileSystem.getAppPreferencesDir(logName, "Logs");
-                Atomic.fileSystem.systemOpen(logFolder);
+                let logFolder = EngineCore.fileSystem.getAppPreferencesDir(logName, "Logs");
+                EngineCore.fileSystem.systemOpen(logFolder);
             }
 
         } else if (target.id == "menu build popup") {
@@ -374,7 +373,7 @@ class MainFrameMenu extends Atomic.ScriptObject {
             };
 
             if (urlLookup[refid]) {
-                Atomic.fileSystem.systemOpen(urlLookup[refid]);
+                EngineCore.fileSystem.systemOpen(urlLookup[refid]);
                 return true;
             }
 

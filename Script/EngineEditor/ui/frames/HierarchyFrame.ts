@@ -27,20 +27,20 @@ import SearchBarFiltering = require("resources/SearchBarFiltering");
 
 var IconTemporary = "ComponentBitmap";
 
-class HierarchyFrame extends Atomic.UIWidget {
+class HierarchyFrame extends EngineCore.UIWidget {
 
-    scene: Atomic.Scene = null;
-    sceneEditor: Editor.SceneEditor3D;
-    hierList: Atomic.UIListView;
+    scene: EngineCore.Scene = null;
+    sceneEditor: EngineEditor.SceneEditor3D;
+    hierList: EngineCore.UIListView;
     menu: HierarchyFrameMenu;
     nodeIDToItemID = {};
     uiSearchBar: SearchBarFiltering.UISearchBar = new SearchBarFiltering.UISearchBar();
     search: boolean = false;
-    searchEdit: Atomic.UIEditField;
-    selectedNode: Atomic.Node;
+    searchEdit: EngineCore.UIEditField;
+    selectedNode: EngineCore.Node;
     canReparent: boolean;
 
-    constructor(parent: Atomic.UIWidget) {
+    constructor(parent: EngineCore.UIWidget) {
 
         super();
 
@@ -48,9 +48,9 @@ class HierarchyFrame extends Atomic.UIWidget {
 
         this.load("editor/ui/hierarchyframe.tb.txt");
 
-        this.gravity = Atomic.UI_GRAVITY.UI_GRAVITY_ALL;
+        this.gravity = EngineCore.UI_GRAVITY.UI_GRAVITY_ALL;
 
-        this.searchEdit = <Atomic.UIEditField>this.getWidget("filter");
+        this.searchEdit = <EngineCore.UIEditField>this.getWidget("filter");
 
         this.canReparent = true;
 
@@ -59,44 +59,44 @@ class HierarchyFrame extends Atomic.UIWidget {
 
         hierarchycontainer = this.getWidget("hierarchycontainer");
 
-        var hierList = this.hierList = new Atomic.UIListView();
+        var hierList = this.hierList = new EngineCore.UIListView();
         hierList.multiSelect = true;
         hierList.rootList.id = "hierList_";
 
-        hierList.subscribeToEvent(Atomic.UIListViewSelectionChangedEvent((event: Atomic.UIListViewSelectionChangedEvent) => this.handleHierListSelectionChangedEvent(event)));
+        hierList.subscribeToEvent(EngineCore.UIListViewSelectionChangedEvent((event: EngineCore.UIListViewSelectionChangedEvent) => this.handleHierListSelectionChangedEvent(event)));
 
         hierarchycontainer.addChild(hierList);
 
-        this.subscribeToEvent(this, Atomic.UIWidgetEvent((data) => this.handleWidgetEvent(data)));
+        this.subscribeToEvent(this, EngineCore.UIWidgetEvent((data) => this.handleWidgetEvent(data)));
 
-        this.subscribeToEvent(Editor.EditorResourceCloseEvent((data) => this.handleEditorResourceClosed(data)));
-        this.subscribeToEvent(Editor.EditorActiveSceneEditorChangeEvent((data) => this.handleActiveSceneEditorChanged(data)));
+        this.subscribeToEvent(EngineEditor.EditorResourceCloseEvent((data) => this.handleEditorResourceClosed(data)));
+        this.subscribeToEvent(EngineEditor.EditorActiveSceneEditorChangeEvent((data) => this.handleActiveSceneEditorChanged(data)));
 
-        this.searchEdit.subscribeToEvent(this.searchEdit, Atomic.UIWidgetEvent((data) => this.handleWidgetEvent(data)));
+        this.searchEdit.subscribeToEvent(this.searchEdit, EngineCore.UIWidgetEvent((data) => this.handleWidgetEvent(data)));
 
         // on mouse up clear the list's drag object
-        this.subscribeToEvent(Atomic.MouseButtonUpEvent(() => {
+        this.subscribeToEvent(EngineCore.MouseButtonUpEvent(() => {
             // handle dropping on hierarchy, moving node, dropping prefabs, etc
-            this.subscribeToEvent(this.hierList.rootList, Atomic.DragEndedEvent((data) => this.handleDragEnded(data)));
+            this.subscribeToEvent(this.hierList.rootList, EngineCore.DragEndedEvent((data) => this.handleDragEnded(data)));
             this.hierList.rootList.dragObject = null;
         }));
 
-        this.subscribeToEvent(Atomic.KeyDownEvent(() => {
+        this.subscribeToEvent(EngineCore.KeyDownEvent(() => {
             this.canReparent = false;
         }));
 
-        this.subscribeToEvent(Atomic.KeyUpEvent(() => {
+        this.subscribeToEvent(EngineCore.KeyUpEvent(() => {
             this.canReparent = true;
         }));
 
-        this.subscribeToEvent(Editor.EditorProjectClosedEvent((ev) => {
+        this.subscribeToEvent(EngineEditor.EditorProjectClosedEvent((ev) => {
 
             this.scene = null;
             this.populate();
 
         }));
 
-        this.subscribeToEvent(Editor.EditorSceneClosedEvent((ev: Editor.EditorSceneClosedEvent) => {
+        this.subscribeToEvent(EngineEditor.EditorSceneClosedEvent((ev: EngineEditor.EditorSceneClosedEvent) => {
 
             if (ev.scene == this.scene) {
 
@@ -108,7 +108,7 @@ class HierarchyFrame extends Atomic.UIWidget {
 
         }));
 
-        this.subscribeToEvent(Atomic.ComponentAddedEvent((ev: Atomic.ComponentAddedEvent) => {
+        this.subscribeToEvent(EngineCore.ComponentAddedEvent((ev: EngineCore.ComponentAddedEvent) => {
 
             if (!ev.component || ev.component.typeName != "PrefabComponent") return;
 
@@ -124,7 +124,7 @@ class HierarchyFrame extends Atomic.UIWidget {
 
         }));
 
-        this.subscribeToEvent(Atomic.ComponentRemovedEvent((ev: Atomic.ComponentRemovedEvent) => {
+        this.subscribeToEvent(EngineCore.ComponentRemovedEvent((ev: EngineCore.ComponentRemovedEvent) => {
 
             if (!ev.component || ev.component.typeName != "PrefabComponent") return;
 
@@ -139,7 +139,7 @@ class HierarchyFrame extends Atomic.UIWidget {
 
         }));
 
-        this.subscribeToEvent(Atomic.TemporaryChangedEvent((ev: Atomic.TemporaryChangedEvent) => {
+        this.subscribeToEvent(EngineCore.TemporaryChangedEvent((ev: EngineCore.TemporaryChangedEvent) => {
 
             // this can happen on a temporary status change on a non-scripted class instance
             if (!ev.serializable) {
@@ -148,7 +148,7 @@ class HierarchyFrame extends Atomic.UIWidget {
 
             if (ev.serializable.typeName == "Node") {
 
-                var node = <Atomic.Node>ev.serializable;
+                var node = <EngineCore.Node>ev.serializable;
 
                 var itemID = this.nodeIDToItemID[node.id];
 
@@ -164,7 +164,7 @@ class HierarchyFrame extends Atomic.UIWidget {
 
     }
 
-    handleSceneEditNodeAdded(ev: Editor.SceneEditNodeAddedEvent) {
+    handleSceneEditNodeAdded(ev: EngineEditor.SceneEditNodeAddedEvent) {
 
         var node = ev.node;
 
@@ -177,7 +177,7 @@ class HierarchyFrame extends Atomic.UIWidget {
         this.nodeIDToItemID[node.id] = childItemID;
     }
 
-    handleSceneEditNodeRemoved(ev: Editor.SceneEditNodeRemovedEvent) {
+    handleSceneEditNodeRemoved(ev: EngineEditor.SceneEditNodeRemovedEvent) {
 
         // on close
         if (!this.scene)
@@ -193,7 +193,7 @@ class HierarchyFrame extends Atomic.UIWidget {
 
     }
 
-    setSceneEditor(sceneEditor:Editor.SceneEditor3D) {
+    setSceneEditor(sceneEditor:EngineEditor.SceneEditor3D) {
 
         if (this.sceneEditor == sceneEditor) {
             return;
@@ -209,16 +209,16 @@ class HierarchyFrame extends Atomic.UIWidget {
 
         if (this.scene) {
 
-            this.subscribeToEvent(this.scene, Editor.SceneNodeSelectedEvent((event: Editor.SceneNodeSelectedEvent) => this.handleSceneNodeSelected(event)));
-            this.subscribeToEvent(this.scene, Editor.SceneEditNodeAddedEvent((ev: Editor.SceneEditNodeAddedEvent) => this.handleSceneEditNodeAdded(ev)));
-            this.subscribeToEvent(this.scene, Editor.SceneEditNodeRemovedEvent((ev: Editor.SceneEditNodeRemovedEvent) => this.handleSceneEditNodeRemoved(ev)));
-            this.subscribeToEvent(this.scene, Atomic.NodeNameChangedEvent((ev: Atomic.NodeNameChangedEvent) => {
+            this.subscribeToEvent(this.scene, EngineEditor.SceneNodeSelectedEvent((event    : EngineEditor.SceneNodeSelectedEvent) => this.handleSceneNodeSelected(event)));
+            this.subscribeToEvent(this.scene, EngineEditor.SceneEditNodeAddedEvent((ev      : EngineEditor.SceneEditNodeAddedEvent) => this.handleSceneEditNodeAdded(ev)));
+            this.subscribeToEvent(this.scene, EngineEditor.SceneEditNodeRemovedEvent((ev    : EngineEditor.SceneEditNodeRemovedEvent) => this.handleSceneEditNodeRemoved(ev)));
+            this.subscribeToEvent(this.scene, EngineCore.NodeNameChangedEvent((ev: EngineCore.NodeNameChangedEvent) => {
 
                 this.hierList.setItemText(ev.node.id.toString(), ev.node.name);
 
             }));
 
-            this.subscribeToEvent(this.scene, Editor.SceneEditNodeReparentEvent((ev) => {
+            this.subscribeToEvent(this.scene, EngineEditor.SceneEditNodeReparentEvent((ev) => {
 
                 if (!ev.added) {
                     delete this.nodeIDToItemID[ev.node.id];
@@ -245,13 +245,13 @@ class HierarchyFrame extends Atomic.UIWidget {
 
     }
 
-    handleActiveSceneEditorChanged(event: Editor.EditorActiveSceneEditorChangeEvent) {
+    handleActiveSceneEditorChanged(event: EngineEditor.EditorActiveSceneEditorChangeEvent) {
 
         this.setSceneEditor(event.sceneEditor);
 
     }
 
-    filterNode(node: Atomic.Node): boolean {
+    filterNode(node: EngineCore.Node): boolean {
 
         if (!node) return false;
 
@@ -261,7 +261,7 @@ class HierarchyFrame extends Atomic.UIWidget {
 
     }
 
-    recursiveAddNode(parentID: number, node: Atomic.Node): number {
+    recursiveAddNode(parentID: number, node: EngineCore.Node): number {
 
         if (this.filterNode(node))
             return;
@@ -297,7 +297,7 @@ class HierarchyFrame extends Atomic.UIWidget {
     }
 
     // Searches folders within folders recursively
-    searchHierarchyFolder(asset: Atomic.Node, parentID: number, searchText: string) {
+    searchHierarchyFolder(asset: EngineCore.Node, parentID: number, searchText: string) {
 
         for (var i = 0; i < asset.getNumChildren(false); i++) {
 
@@ -343,12 +343,12 @@ class HierarchyFrame extends Atomic.UIWidget {
 
     }
 
-    handleDragEnded(ev: Atomic.DragEndedEvent) {
+    handleDragEnded(ev: EngineCore.DragEndedEvent) {
 
         if (!ev.dragObject.object)
             return;
 
-        var dropNode: Atomic.Node = this.scene.getNode(Number(this.hierList.hoverItemID));
+        var dropNode: EngineCore.Node = this.scene.getNode(Number(this.hierList.hoverItemID));
 
         if (!dropNode) return;
 
@@ -361,7 +361,7 @@ class HierarchyFrame extends Atomic.UIWidget {
 
             if (this.sceneEditor.selection.getSelectedNodeCount() < 2) {
 
-                var dragNode = <Atomic.Node>ev.dragObject.object;
+                var dragNode = <EngineCore.Node>ev.dragObject.object;
                 this.sceneEditor.reparentNode(dragNode, dropNode);
 
             } else {
@@ -394,14 +394,14 @@ class HierarchyFrame extends Atomic.UIWidget {
         }
     }
 
-    handleSceneNodeSelected(ev: Editor.SceneNodeSelectedEvent) {
+    handleSceneNodeSelected(ev: EngineEditor.SceneNodeSelectedEvent) {
 
         this.selectedNode = ev.node;    //Stores selection for when the search is cancelled
         this.hierList.selectItemByID(ev.node.id.toString(), ev.selected);
 
     }
 
-    handleHierListSelectionChangedEvent(event: Atomic.UIListViewSelectionChangedEvent) {
+    handleHierListSelectionChangedEvent(event: EngineCore.UIListViewSelectionChangedEvent) {
 
         if (!this.scene)
             return;
@@ -418,11 +418,11 @@ class HierarchyFrame extends Atomic.UIWidget {
         }
     }
 
-    handleWidgetEvent(data: Atomic.UIWidgetEvent): boolean {
+    handleWidgetEvent(data: EngineCore.UIWidgetEvent): boolean {
 
         if (!this.scene) return;
 
-        if (data.type == Atomic.UI_EVENT_TYPE.UI_EVENT_TYPE_KEY_UP) {
+        if (data.type == EngineCore.UI_EVENT_TYPE.UI_EVENT_TYPE_KEY_UP) {
 
             // activates search while user is typing in search widget
             if (data.target == this.searchEdit) {
@@ -436,11 +436,11 @@ class HierarchyFrame extends Atomic.UIWidget {
             }
 
             // node deletion
-            if (data.key == Atomic.KEY_DELETE || data.key == Atomic.KEY_BACKSPACE) {
+            if (data.key == EngineCore.KEY_DELETE || data.key == EngineCore.KEY_BACKSPACE) {
                 this.sceneEditor.selection.delete();
             }
 
-        } else if (data.type == Atomic.UI_EVENT_TYPE.UI_EVENT_TYPE_POINTER_DOWN) {
+        } else if (data.type == EngineCore.UI_EVENT_TYPE.UI_EVENT_TYPE_POINTER_DOWN) {
 
             if (data.target == this.hierList.rootList) {
 
@@ -449,14 +449,14 @@ class HierarchyFrame extends Atomic.UIWidget {
                 if (node) {
 
                     // set the widget's drag object
-                    var dragObject = new Atomic.UIDragObject(node, node.name.length ? "Node: " + node.name : "Node: (Anonymous)");
+                    var dragObject = new EngineCore.UIDragObject(node, node.name.length ? "Node: " + node.name : "Node: (Anonymous)");
                     this.hierList.rootList.dragObject = dragObject;
 
                 }
 
             }
 
-        } else if (data.type == Atomic.UI_EVENT_TYPE.UI_EVENT_TYPE_CLICK) {
+        } else if (data.type == EngineCore.UI_EVENT_TYPE.UI_EVENT_TYPE_CLICK) {
 
             if (this.menu.handleNodeContextMenu(data.target, data.refid, this.sceneEditor)) {
                 return true;
@@ -479,7 +479,7 @@ class HierarchyFrame extends Atomic.UIWidget {
             if (id == "menu create") {
                 if (!ToolCore.toolSystem.project) return;
                 var src = MenuItemSources.getMenuItemSource("hierarchy create items");
-                var menu = new Atomic.UIMenuWindow(data.target, "create popup");
+                var menu = new EngineCore.UIMenuWindow(data.target, "create popup");
                 menu.show(src);
                 return true;
 
@@ -504,10 +504,10 @@ class HierarchyFrame extends Atomic.UIWidget {
             }
 
 
-        } else if (data.type == Atomic.UI_EVENT_TYPE.UI_EVENT_TYPE_RIGHT_POINTER_UP) {
+        } else if (data.type == EngineCore.UI_EVENT_TYPE.UI_EVENT_TYPE_RIGHT_POINTER_UP) {
 
             var id = data.target.id;
-            var node: Atomic.Node;
+            var node: EngineCore.Node;
 
             if (id == "hierList_")
                 node = this.scene.getNode(Number(this.hierList.hoverItemID));

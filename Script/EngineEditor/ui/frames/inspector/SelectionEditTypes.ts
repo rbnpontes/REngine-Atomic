@@ -34,8 +34,8 @@ class JSComponentEditType extends SerializableEditType {
         if (!multiSelect)
             return false;
 
-        var jsc1 = <Atomic.JSComponent>(otherType.objects[0]);
-        var jsc2 = <Atomic.JSComponent>(this.objects[0]);
+        var jsc1 = <EngineCore.JSComponent>(otherType.objects[0]);
+        var jsc2 = <EngineCore.JSComponent>(this.objects[0]);
 
         return jsc1.componentFile == jsc2.componentFile;
 

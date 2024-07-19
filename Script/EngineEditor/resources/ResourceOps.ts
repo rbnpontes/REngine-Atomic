@@ -23,7 +23,7 @@
 import EditorUI = require("../ui/EditorUI");
 import ProjectTemplates = require("ProjectTemplates");
 
-class ResourceOps extends Atomic.ScriptObject {
+class ResourceOps extends EngineCore.ScriptObject {
 
     constructor() {
 
@@ -31,29 +31,29 @@ class ResourceOps extends Atomic.ScriptObject {
 
         this.subscribeToEvent(ToolCore.AssetImportErrorEvent((ev: ToolCore.AssetImportErrorEvent) => {
 
-            resourceOps.sendEvent(Editor.EditorModalEventData({ type: Editor.EDITOR_MODALERROR, title: "Asset Import Error", message: ev.error }));
+            resourceOps.sendEvent(EngineEditor.EditorModalEventData({ type: EngineEditor.EDITOR_MODALERROR, title: "Asset Import Error", message: ev.error }));
 
         }));
 
-        this.subscribeToEvent(Editor.RequestProjectLoadEvent((ev: Editor.RequestProjectLoadEvent) => { this.handleRequestProjectLoad(ev); }));
+        this.subscribeToEvent(EngineEditor.RequestProjectLoadEvent((ev: EngineEditor.RequestProjectLoadEvent) => { this.handleRequestProjectLoad(ev); }));
 
     }
 
-    handleRequestProjectLoad(ev:Editor.RequestProjectLoadEvent) {
+    handleRequestProjectLoad(ev:EngineEditor.RequestProjectLoadEvent) {
 
-        var fs = Atomic.fileSystem;
-        var projectPath = Atomic.addTrailingSlash(Atomic.getPath(ev.path));
+        var fs = EngineCore.fileSystem;
+        var projectPath = EngineCore.addTrailingSlash(EngineCore.getPath(ev.path));
 
-        var openProject = () => this.sendEvent(Editor.EditorLoadProjectEventData({ path: ev.path }));
+        var openProject = () => this.sendEvent(EngineEditor.EditorLoadProjectEventData({ path: ev.path }));
 
         // Check whether there is a cache folder, if so, this project has been loaded before
-        if (Atomic.fileSystem.dirExists(projectPath + "Cache")) {
+        if (EngineCore.fileSystem.dirExists(projectPath + "Cache")) {
             openProject();
             return;
         } else {
 
             // this may be an example
-            var parentPath = Atomic.getParentPath(projectPath);
+            var parentPath = EngineCore.getParentPath(projectPath);
             var exampleInfoPath = parentPath + "AtomicExample.json";
 
             if (!fs.fileExists(exampleInfoPath)) {
@@ -62,7 +62,7 @@ class ResourceOps extends Atomic.ScriptObject {
                 return;
             }
 
-            var jsonFile = new Atomic.File(exampleInfoPath, Atomic.FileMode.FILE_READ);
+            var jsonFile = new EngineCore.File(exampleInfoPath, EngineCore.FileMode.FILE_READ);
 
             if (!jsonFile.isOpen()) {
                 return;
@@ -111,11 +111,11 @@ export function CreateNewFolder(resourcePath: string, reportError: boolean = tru
 
     var title = "New Folder Error";
 
-    var fs = Atomic.getFileSystem();
+    var fs = EngineCore.getFileSystem();
 
     if (fs.dirExists(resourcePath) || fs.fileExists(resourcePath)) {
         if (reportError)
-            resourceOps.sendEvent(Editor.EditorModalEventData({ type: Editor.EDITOR_MODALERROR, title: title, message: "Already exists: " + resourcePath }));
+            resourceOps.sendEvent(EngineEditor.EditorModalEventData({ type: EngineEditor.EDITOR_MODALERROR, title: title, message: "Already exists: " + resourcePath }));
         return false;
 
     }
@@ -123,7 +123,7 @@ export function CreateNewFolder(resourcePath: string, reportError: boolean = tru
     if (!fs.createDir(resourcePath)) {
 
         if (reportError)
-            resourceOps.sendEvent(Editor.EditorModalEventData({ type: Editor.EDITOR_MODALERROR, title: title, message: "Could not create " + resourcePath }));
+            resourceOps.sendEvent(EngineEditor.EditorModalEventData({ type: EngineEditor.EDITOR_MODALERROR, title: title, message: "Could not create " + resourcePath }));
 
         return false;
     }
@@ -135,37 +135,37 @@ export function CreateNewFolder(resourcePath: string, reportError: boolean = tru
 
 }
 
-export function CreateNewComponent(resourcePath: string, componentName: string, template: Editor.Templates.FileTemplateDefinition, reportError: boolean = true): boolean {
+export function CreateNewComponent(resourcePath: string, componentName: string, template: EngineEditor.Templates.FileTemplateDefinition, reportError: boolean = true): boolean {
 
     var title = "New Component Error";
 
-    var fs = Atomic.fileSystem;
+    var fs = EngineCore.fileSystem;
 
     if (fs.dirExists(resourcePath) || fs.fileExists(resourcePath)) {
         if (reportError)
-            resourceOps.sendEvent(Editor.EditorModalEventData({ type: Editor.EDITOR_MODALERROR, title: title, message: "Already exists: " + resourcePath }));
+            resourceOps.sendEvent(EngineEditor.EditorModalEventData({ type: EngineEditor.EDITOR_MODALERROR, title: title, message: "Already exists: " + resourcePath }));
         return false;
 
     }
 
     var templateFilename = template.filename;
-    var file = Atomic.cache.getFile(templateFilename);
+    var file = EngineCore.cache.getFile(templateFilename);
 
     if (!file) {
 
         if (reportError)
-            resourceOps.sendEvent(Editor.EditorModalEventData({ type: Editor.EDITOR_MODALERROR, title: title, message: "Failed to open template: " + templateFilename }));
+            resourceOps.sendEvent(EngineEditor.EditorModalEventData({ type: EngineEditor.EDITOR_MODALERROR, title: title, message: "Failed to open template: " + templateFilename }));
         return false;
 
     }
 
-    var out = new Atomic.File(resourcePath, Atomic.FileMode.FILE_WRITE);
+    var out = new EngineCore.File(resourcePath, EngineCore.FileMode.FILE_WRITE);
     var success = out.copy(file);
     out.close();
 
     if (!success) {
         if (reportError)
-            resourceOps.sendEvent(Editor.EditorModalEventData({ type: Editor.EDITOR_MODALERROR, title: title, message: "Failed template copy: " + templateFilename + " -> " + resourcePath }));
+            resourceOps.sendEvent(EngineEditor.EditorModalEventData({ type: EngineEditor.EDITOR_MODALERROR, title: title, message: "Failed template copy: " + templateFilename + " -> " + resourcePath }));
         return false;
     }
 
@@ -175,37 +175,37 @@ export function CreateNewComponent(resourcePath: string, componentName: string, 
 
 }
 
-export function CreateNewScript(resourcePath: string, scriptName: string, template: Editor.Templates.FileTemplateDefinition, reportError: boolean = true): boolean {
+export function CreateNewScript(resourcePath: string, scriptName: string, template: EngineEditor.Templates.FileTemplateDefinition, reportError: boolean = true): boolean {
 
     var title = "New Script Error";
 
-    var fs = Atomic.fileSystem;
+    var fs = EngineCore.fileSystem;
 
     if (fs.dirExists(resourcePath) || fs.fileExists(resourcePath)) {
         if (reportError)
-            resourceOps.sendEvent(Editor.EditorModalEventData({ type: Editor.EDITOR_MODALERROR, title: title, message: "Already exists: " + resourcePath }));
+            resourceOps.sendEvent(EngineEditor.EditorModalEventData({ type: EngineEditor.EDITOR_MODALERROR, title: title, message: "Already exists: " + resourcePath }));
         return false;
 
     }
 
     var templateFilename = template.filename;
-    var file = Atomic.cache.getFile(templateFilename);
+    var file = EngineCore.cache.getFile(templateFilename);
 
     if (!file) {
 
         if (reportError)
-            resourceOps.sendEvent(Editor.EditorModalEventData({ type: Editor.EDITOR_MODALERROR, title: title, message: "Failed to open template: " + templateFilename }));
+            resourceOps.sendEvent(EngineEditor.EditorModalEventData({ type: EngineEditor.EDITOR_MODALERROR, title: title, message: "Failed to open template: " + templateFilename }));
         return false;
 
     }
 
-    var out = new Atomic.File(resourcePath, Atomic.FileMode.FILE_WRITE);
+    var out = new EngineCore.File(resourcePath, EngineCore.FileMode.FILE_WRITE);
     var success = out.copy(file);
     out.close();
 
     if (!success) {
         if (reportError)
-            resourceOps.sendEvent(Editor.EditorModalEventData({ type: Editor.EDITOR_MODALERROR, title: title, message: "Failed template copy: " + templateFilename + " -> " + resourcePath }));
+            resourceOps.sendEvent(EngineEditor.EditorModalEventData({ type: EngineEditor.EDITOR_MODALERROR, title: title, message: "Failed template copy: " + templateFilename + " -> " + resourcePath }));
         return false;
     }
 
@@ -219,33 +219,33 @@ export function CreateNewScene(resourcePath: string, sceneName: string, reportEr
 
     var title = "New Scene Error";
 
-    var fs = Atomic.fileSystem;
+    var fs = EngineCore.fileSystem;
 
     if (fs.dirExists(resourcePath) || fs.fileExists(resourcePath)) {
         if (reportError)
-            resourceOps.sendEvent(Editor.EditorModalEventData({ type: Editor.EDITOR_MODALERROR, title: title, message: "Already exists: " + resourcePath }));
+            resourceOps.sendEvent(EngineEditor.EditorModalEventData({ type: EngineEditor.EDITOR_MODALERROR, title: title, message: "Already exists: " + resourcePath }));
         return false;
 
     }
 
-    var templateFilename = "AtomicEditor/templates/template_scene.scene";
-    var file = Atomic.cache.getFile(templateFilename);
+    var templateFilename = "EngineEditor/templates/template_scene.scene";
+    var file = EngineCore.cache.getFile(templateFilename);
 
     if (!file) {
 
         if (reportError)
-            resourceOps.sendEvent(Editor.EditorModalEventData({ type: Editor.EDITOR_MODALERROR, title: title, message: "Failed to open template: " + templateFilename }));
+            resourceOps.sendEvent(EngineEditor.EditorModalEventData({ type: EngineEditor.EDITOR_MODALERROR, title: title, message: "Failed to open template: " + templateFilename }));
         return false;
 
     }
 
-    var out = new Atomic.File(resourcePath, Atomic.FileMode.FILE_WRITE);
+    var out = new EngineCore.File(resourcePath, EngineCore.FileMode.FILE_WRITE);
     var success = out.copy(file);
     out.close();
 
     if (!success) {
         if (reportError)
-            resourceOps.sendEvent(Editor.EditorModalEventData({ type: Editor.EDITOR_MODALERROR, title: title, message: "Failed template copy: " + templateFilename + " -> " + resourcePath }));
+            resourceOps.sendEvent(EngineEditor.EditorModalEventData({ type: EngineEditor.EDITOR_MODALERROR, title: title, message: "Failed template copy: " + templateFilename + " -> " + resourcePath }));
         return false;
     }
 
@@ -259,33 +259,33 @@ export function CreateNewMaterial(resourcePath: string, materialName: string, re
 
     var title = "New Material Error";
 
-    var fs = Atomic.fileSystem;
+    var fs = EngineCore.fileSystem;
 
     if (fs.dirExists(resourcePath) || fs.fileExists(resourcePath)) {
         if (reportError)
-            resourceOps.sendEvent(Editor.EditorModalEventData({ type: Editor.EDITOR_MODALERROR, title: title, message: "Already exists: " + resourcePath }));
+            resourceOps.sendEvent(EngineEditor.EditorModalEventData({ type: EngineEditor.EDITOR_MODALERROR, title: title, message: "Already exists: " + resourcePath }));
         return false;
 
     }
 
-    var templateFilename = "AtomicEditor/templates/template_material.material";
-    var file = Atomic.cache.getFile(templateFilename);
+    var templateFilename = "EngineEditor/templates/template_material.material";
+    var file = EngineCore.cache.getFile(templateFilename);
 
     if (!file) {
 
         if (reportError)
-            resourceOps.sendEvent(Editor.EditorModalEventData({ type: Editor.EDITOR_MODALERROR, title: title, message: "Failed to open template: " + templateFilename }));
+            resourceOps.sendEvent(EngineEditor.EditorModalEventData({ type: EngineEditor.EDITOR_MODALERROR, title: title, message: "Failed to open template: " + templateFilename }));
         return false;
 
     }
 
-    var out = new Atomic.File(resourcePath, Atomic.FileMode.FILE_WRITE);
+    var out = new EngineCore.File(resourcePath, EngineCore.FileMode.FILE_WRITE);
     var success = out.copy(file);
     out.close();
 
     if (!success) {
         if (reportError)
-            resourceOps.sendEvent(Editor.EditorModalEventData({ type: Editor.EDITOR_MODALERROR, title: title, message: "Failed template copy: " + templateFilename + " -> " + resourcePath }));
+            resourceOps.sendEvent(EngineEditor.EditorModalEventData({ type: EngineEditor.EDITOR_MODALERROR, title: title, message: "Failed template copy: " + templateFilename + " -> " + resourcePath }));
         return false;
     }
 
@@ -300,25 +300,25 @@ export function CreateNewAnimationPreviewScene(reportError: boolean = true): boo
 
     var title = "Animation Viewer Error";
 
-    var templateFilename = "AtomicEditor/templates/template_scene.scene";
-    var templateFile = Atomic.cache.getFile(templateFilename);
+    var templateFilename = "EngineEditor/templates/template_scene.scene";
+    var templateFile = EngineCore.cache.getFile(templateFilename);
 
 
     if (!templateFile) {
 
         if (reportError)
-            resourceOps.sendEvent(Editor.EditorModalEventData({ type: Editor.EDITOR_MODALERROR, title: title, message: "Failed to open template scene: " + templateFile }));
+            resourceOps.sendEvent(EngineEditor.EditorModalEventData({ type: EngineEditor.EDITOR_MODALERROR, title: title, message: "Failed to open template scene: " + templateFile }));
         return false;
 
     }
 
-    var animFilename = "AtomicEditor/templates/animation_viewer.scene";
-    var animFile = Atomic.cache.getFile(animFilename);
+    var animFilename = "EngineEditor/templates/animation_viewer.scene";
+    var animFile = EngineCore.cache.getFile(animFilename);
 
     if (!animFile) {
 
         if (reportError)
-            resourceOps.sendEvent(Editor.EditorModalEventData({ type: Editor.EDITOR_MODALERROR, title: title, message: "Failed to open animation viewer: " + animFilename }));
+            resourceOps.sendEvent(EngineEditor.EditorModalEventData({ type: EngineEditor.EDITOR_MODALERROR, title: title, message: "Failed to open animation viewer: " + animFilename }));
         return false;
 
     }
@@ -326,7 +326,7 @@ export function CreateNewAnimationPreviewScene(reportError: boolean = true): boo
     //Reset the animation viewer scene to a blank scene
     animFile = templateFile;
 
-    resourceOps.sendEvent(Editor.EditorEditResourceEventData({ path: animFilename, lineNumber: 0 }));
+    resourceOps.sendEvent(EngineEditor.EditorEditResourceEventData({ path: animFilename, lineNumber: 0 }));
 
     return true;
 

@@ -34,7 +34,7 @@ class BuildOutput extends ModalWindow {
 
         this.init("Build Output", "editor/ui/programoutput.tb.txt");
 
-        this.outputField = <Atomic.UIEditField>this.getWidget("output");
+        this.outputField = <EngineCore.UIEditField>this.getWidget("output");
 
         this.resizeToFitContent();
         this.center();
@@ -55,9 +55,9 @@ class BuildOutput extends ModalWindow {
 
     }
 
-    handleWidgetEvent(ev: Atomic.UIWidgetEvent): boolean {
+    handleWidgetEvent(ev: EngineCore.UIWidgetEvent): boolean {
 
-        if (ev.type == Atomic.UI_EVENT_TYPE.UI_EVENT_TYPE_CLICK) {
+        if (ev.type == EngineCore.UI_EVENT_TYPE.UI_EVENT_TYPE_CLICK) {
 
             if (ev.target.id == "cancel") {
                 this.hide();
@@ -76,7 +76,7 @@ class BuildOutput extends ModalWindow {
 
     textOutput: string = "";
     buildBase: ToolCore.BuildBase;
-    outputField: Atomic.UIEditField;
+    outputField: EngineCore.UIEditField;
 
 }
 

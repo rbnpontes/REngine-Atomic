@@ -38,13 +38,13 @@ class TextureInspector extends InspectorWidget {
 
     }
 
-    handleWidgetEvent(ev: Atomic.UIWidgetEvent): boolean {
+    handleWidgetEvent(ev: EngineCore.UIWidgetEvent): boolean {
 
         return false;
 
     }
 
-    getTextureThumbnail(texture: Atomic.Texture2D): Atomic.Texture {
+    getTextureThumbnail(texture: EngineCore.Texture2D): EngineCore.Texture {
 
         if (!texture) return null;
 
@@ -55,9 +55,9 @@ class TextureInspector extends InspectorWidget {
             return texture;
 
         var thumbnail = asset.cachePath + "_thumbnail.png";
-        var cache = Atomic.getResourceCache();
+        var cache = EngineCore.getResourceCache();
 
-        var thumb = <Atomic.Texture2D>cache.getTempResource("Texture2D", thumbnail);
+        var thumb = <EngineCore.Texture2D>cache.getTempResource("Texture2D", thumbnail);
 
         if (thumb)
             return thumb;
@@ -66,32 +66,32 @@ class TextureInspector extends InspectorWidget {
 
     }
 
-    createTextureSection(): Atomic.UISection {
+    createTextureSection(): EngineCore.UISection {
 
-        var section = new Atomic.UISection();
+        var section = new EngineCore.UISection();
         section.text = "Texture Image";
         section.value = 1;
         section.fontDescription = this.fd;
 
-        var attrsVerticalLayout = new Atomic.UILayout(Atomic.UI_AXIS.UI_AXIS_Y);
+        var attrsVerticalLayout = new EngineCore.UILayout(EngineCore.UI_AXIS.UI_AXIS_Y);
         attrsVerticalLayout.spacing = 3;
-        attrsVerticalLayout.layoutPosition = Atomic.UI_LAYOUT_POSITION.UI_LAYOUT_POSITION_CENTER;
-        attrsVerticalLayout.layoutSize = Atomic.UI_LAYOUT_SIZE.UI_LAYOUT_SIZE_AVAILABLE;
+        attrsVerticalLayout.layoutPosition  = EngineCore.UI_LAYOUT_POSITION.UI_LAYOUT_POSITION_CENTER;
+        attrsVerticalLayout.layoutSize      = EngineCore.UI_LAYOUT_SIZE.UI_LAYOUT_SIZE_AVAILABLE;
 
         section.contentRoot.addChild(attrsVerticalLayout);
 
-        var attrLayout = new Atomic.UILayout();
-        attrLayout.layoutDistribution = Atomic.UI_LAYOUT_DISTRIBUTION.UI_LAYOUT_DISTRIBUTION_PREFERRED;
+        var attrLayout = new EngineCore.UILayout();
+        attrLayout.layoutDistribution = EngineCore.UI_LAYOUT_DISTRIBUTION.UI_LAYOUT_DISTRIBUTION_PREFERRED;
 
-        var textureWidget = new Atomic.UITextureWidget();
+        var textureWidget = new EngineCore.UITextureWidget();
 
-        var tlp = new Atomic.UILayoutParams();
+        var tlp = new EngineCore.UILayoutParams();
         tlp.width = 200;
         tlp.height = 200;
         textureWidget.layoutParams = tlp;
         textureWidget.texture = this.getTextureThumbnail(this.texture);
 
-        var textureButton = new Atomic.UIButton();
+        var textureButton = new EngineCore.UIButton();
         textureButton.skinBg = "TBButton.flatoutline";
         textureButton["textureWidget"] = textureWidget;
 
@@ -105,40 +105,40 @@ class TextureInspector extends InspectorWidget {
 
     }
 
-    inspect(texture: Atomic.Texture2D, asset: ToolCore.Asset) {
+    inspect(texture: EngineCore.Texture2D, asset: ToolCore.Asset) {
 
         this.texture = texture;
         this.asset = asset;
         this.importer = <ToolCore.TextureImporter>asset.importer;
 
-        var mlp = new Atomic.UILayoutParams();
+        var mlp = new EngineCore.UILayoutParams();
         mlp.width = 310;
 
-        var textureLayout = new Atomic.UILayout();
+        var textureLayout = new EngineCore.UILayout();
         textureLayout.spacing = 4;
 
-        textureLayout.layoutDistribution = Atomic.UI_LAYOUT_DISTRIBUTION.UI_LAYOUT_DISTRIBUTION_GRAVITY;
-        textureLayout.layoutPosition = Atomic.UI_LAYOUT_POSITION.UI_LAYOUT_POSITION_LEFT_TOP;
+        textureLayout.layoutDistribution    = EngineCore.UI_LAYOUT_DISTRIBUTION.UI_LAYOUT_DISTRIBUTION_GRAVITY;
+        textureLayout.layoutPosition        = EngineCore.UI_LAYOUT_POSITION.UI_LAYOUT_POSITION_LEFT_TOP;
         textureLayout.layoutParams = mlp;
-        textureLayout.axis = Atomic.UI_AXIS.UI_AXIS_Y;
+        textureLayout.axis = EngineCore.UI_AXIS.UI_AXIS_Y;
 
-        var textureSection = new Atomic.UISection();
+        var textureSection = new EngineCore.UISection();
         textureSection.text = "Texture";
         textureSection.value = 1;
         textureSection.fontDescription = this.fd;
         textureLayout.addChild(textureSection);
 
-        var attrsVerticalLayout = new Atomic.UILayout(Atomic.UI_AXIS.UI_AXIS_Y);
+        var attrsVerticalLayout = new EngineCore.UILayout(EngineCore.UI_AXIS.UI_AXIS_Y);
         attrsVerticalLayout.spacing = 3;
-        attrsVerticalLayout.layoutPosition = Atomic.UI_LAYOUT_POSITION.UI_LAYOUT_POSITION_LEFT_TOP;
-        attrsVerticalLayout.layoutSize = Atomic.UI_LAYOUT_SIZE.UI_LAYOUT_SIZE_PREFERRED;
+        attrsVerticalLayout.layoutPosition = EngineCore.UI_LAYOUT_POSITION.UI_LAYOUT_POSITION_LEFT_TOP;
+        attrsVerticalLayout.layoutSize = EngineCore.UI_LAYOUT_SIZE.UI_LAYOUT_SIZE_PREFERRED;
 
         // NAME
-        var nameLayout = new Atomic.UILayout();
-        nameLayout.layoutDistribution = Atomic.UI_LAYOUT_DISTRIBUTION.UI_LAYOUT_DISTRIBUTION_GRAVITY;
+        var nameLayout = new EngineCore.UILayout();
+        nameLayout.layoutDistribution = EngineCore.UI_LAYOUT_DISTRIBUTION.UI_LAYOUT_DISTRIBUTION_GRAVITY;
 
-        var name = new Atomic.UITextField();
-        name.textAlign = Atomic.UI_TEXT_ALIGN.UI_TEXT_ALIGN_LEFT;
+        var name = new EngineCore.UITextField();
+        name.textAlign = EngineCore.UI_TEXT_ALIGN.UI_TEXT_ALIGN_LEFT;
         name.skinBg = "InspectorTextAttrName";
 
         name.text = "Name";
@@ -146,22 +146,22 @@ class TextureInspector extends InspectorWidget {
 
         nameLayout.addChild(name);
 
-        var field = new Atomic.UIEditField();
-        field.textAlign = Atomic.UI_TEXT_ALIGN.UI_TEXT_ALIGN_LEFT;
+        var field = new EngineCore.UIEditField();
+        field.textAlign = EngineCore.UI_TEXT_ALIGN.UI_TEXT_ALIGN_LEFT;
         field.skinBg = "TBAttrEditorField";
         field.fontDescription = this.fd;
-        var lp = new Atomic.UILayoutParams();
+        var lp = new EngineCore.UILayoutParams();
         lp.width = 160;
         field.layoutParams = lp;
 
-        field.text = Atomic.splitPath(asset.name).fileName;
+        field.text = EngineCore.splitPath(asset.name).fileName;
 
         nameLayout.addChild(field);
 
         attrsVerticalLayout.addChild(nameLayout);
 
-        var maxSizeLayout = new Atomic.UILayout();
-        maxSizeLayout.layoutDistribution = Atomic.UI_LAYOUT_DISTRIBUTION.UI_LAYOUT_DISTRIBUTION_GRAVITY;
+        var maxSizeLayout = new EngineCore.UILayout();
+        maxSizeLayout.layoutDistribution = EngineCore.UI_LAYOUT_DISTRIBUTION.UI_LAYOUT_DISTRIBUTION_GRAVITY;
 
         //COMPRESSION SIZE
         var maxSize = InspectorUtils.createAttrName("Max Size");
@@ -190,11 +190,11 @@ class TextureInspector extends InspectorWidget {
     }
 
     populateCompressionSizeList() {
-        this.compressionSize = new Atomic.UISelectDropdown();
-        this.compressionSizeSource = new Atomic.UISelectItemSource();
+        this.compressionSize = new EngineCore.UISelectDropdown();
+        this.compressionSizeSource = new EngineCore.UISelectItemSource();
 
         for (var i = 0; i < this.compressionSizes.length; i ++) {
-            var size = new Atomic.UISelectItem();
+            var size = new EngineCore.UISelectItem();
             size.setString(this.compressionSizes[i].toString());
             this.compressionSizeSource.addItem(size);
         }
@@ -209,15 +209,15 @@ class TextureInspector extends InspectorWidget {
         }
     }
 
-    texture: Atomic.Texture2D;
+    texture: EngineCore.Texture2D;
 
-    techniqueButton: Atomic.UIButton;
-    material: Atomic.Material;
+    techniqueButton: EngineCore.UIButton;
+    material: EngineCore.Material;
     asset: ToolCore.Asset;
-    nameTextField: Atomic.UITextField;
-    compressionSize: Atomic.UISelectDropdown;
-    compressionSizeSource: Atomic.UISelectItemSource;
-    fd: Atomic.UIFontDescription = new Atomic.UIFontDescription();
+    nameTextField: EngineCore.UITextField;
+    compressionSize: EngineCore.UISelectDropdown;
+    compressionSizeSource: EngineCore.UISelectItemSource;
+    fd: EngineCore.UIFontDescription = new EngineCore.UIFontDescription();
     importer: ToolCore.TextureImporter;
     compressionSizes: number[] = [32, 64, 128, 256, 512, 1024, 2048, 4096, 8192];
 

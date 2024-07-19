@@ -20,9 +20,9 @@
 // THE SOFTWARE.
 //
 
-class BuildComplete extends Atomic.UIWindow {
+class BuildComplete extends EngineCore.UIWindow {
 
-    constructor(parent: Atomic.UIWidget, ev: ToolCore.BuildCompleteEvent) {
+    constructor(parent: EngineCore.UIWidget, ev: ToolCore.BuildCompleteEvent) {
 
         super();
 
@@ -36,25 +36,25 @@ class BuildComplete extends Atomic.UIWindow {
         this.resizeToFitContent();
         this.center();
 
-        var reveal = <Atomic.UIButton>this.getWidget("reveal");
+        var reveal = <EngineCore.UIButton>this.getWidget("reveal");
 
         if (!ev.success)
-            reveal.setState(Atomic.UI_WIDGET_STATE.UI_WIDGET_STATE_DISABLED, true);
+            reveal.setState(EngineCore.UI_WIDGET_STATE.UI_WIDGET_STATE_DISABLED, true);
 
 
-        this.subscribeToEvent(this, Atomic.UIWidgetEvent((data) => this.handleWidgetEvent(data)));
+        this.subscribeToEvent(this, EngineCore.UIWidgetEvent((data) => this.handleWidgetEvent(data)));
 
     }
 
-    handleWidgetEvent(ev: Atomic.UIWidgetEvent): boolean {
+    handleWidgetEvent(ev: EngineCore.UIWidgetEvent): boolean {
 
-        if (ev.type == Atomic.UI_EVENT_TYPE.UI_EVENT_TYPE_CLICK) {
+        if (ev.type == EngineCore.UI_EVENT_TYPE.UI_EVENT_TYPE_CLICK) {
 
             if (ev.target.id == "reveal") {
 
                 console.log("REVEAL!");
 
-                var utils = new Editor.FileUtils();
+                var utils = new EngineEditor.FileUtils();
                 utils.revealInFinder(this.buildFolder);
 
             }

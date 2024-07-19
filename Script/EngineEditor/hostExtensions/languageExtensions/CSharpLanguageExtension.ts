@@ -25,7 +25,7 @@ import EditorUI = require("ui/EditorUI");
 /**
 * Resource extension that supports the web view typescript extension
 */
-export default class CSharpLanguageExtension extends Atomic.ScriptObject implements Editor.HostExtensions.ResourceServicesEventListener, Editor.HostExtensions.ProjectServicesEventListener {
+export default class CSharpLanguageExtension extends EngineCore.ScriptObject implements EngineEditor.HostExtensions.ResourceServicesEventListener, EngineEditor.HostExtensions.ProjectServicesEventListener {
     name: string = "HostCSharpLanguageExtension";
     description: string = "This service supports the csharp language.";
 
@@ -34,11 +34,11 @@ export default class CSharpLanguageExtension extends Atomic.ScriptObject impleme
     * @type {Boolean}
     */
     private isNETProject = false;
-    private serviceRegistry: Editor.HostExtensions.HostServiceLocator = null;
+    private serviceRegistry: EngineEditor.HostExtensions.HostServiceLocator = null;
 
     private menuCreated = false;
     /** Reference to the compileOnSaveMenuItem */
-    private compileOnSaveMenuItem: Atomic.UIMenuItem;
+    private compileOnSaveMenuItem: EngineCore.UIMenuItem;
 
     /**
     * Determines if the file name/path provided is something we care about
@@ -46,7 +46,7 @@ export default class CSharpLanguageExtension extends Atomic.ScriptObject impleme
     * @return {boolean}
     */
     private isValidFiletype(path: string): boolean {
-        const ext = Atomic.getExtension(path);
+        const ext = EngineCore.getExtension(path);
         if (ext == ".cs" || ext == ".dll") {
             return true;
         }
@@ -64,10 +64,10 @@ export default class CSharpLanguageExtension extends Atomic.ScriptObject impleme
 
             // Build the menu - First build up an empty menu then manually add the items so we can have reference to them
             const menu = this.serviceRegistry.uiServices.createPluginMenuItemSource("AtomicNET", {});
-            menu.addItem(new Atomic.UIMenuItem("Open Solution", `${this.name}.opensolution`));
-            menu.addItem(new Atomic.UIMenuItem("Compile Project", `${this.name}.compileproject`));
-            menu.addItem(new Atomic.UIMenuItem("Generate Solution", `${this.name}.generatesolution`));
-            menu.addItem(new Atomic.UIMenuItem("Package Resources", `${this.name}.packageresources`));
+            menu.addItem(new EngineCore.UIMenuItem("Open Solution", `${this.name}.opensolution`));
+            menu.addItem(new EngineCore.UIMenuItem("Compile Project", `${this.name}.compileproject`));
+            menu.addItem(new EngineCore.UIMenuItem("Generate Solution", `${this.name}.generatesolution`));
+            menu.addItem(new EngineCore.UIMenuItem("Package Resources", `${this.name}.packageresources`));
 
             this.menuCreated = true;
         }
@@ -78,7 +78,7 @@ export default class CSharpLanguageExtension extends Atomic.ScriptObject impleme
     * Inject this language service into the registry
     * @return {[type]}             True if successful
     */
-    initialize(serviceLocator: Editor.HostExtensions.HostServiceLocator) {
+    initialize(serviceLocator: EngineEditor.HostExtensions.HostServiceLocator) {
         // We care about both resource events as well as project events
         serviceLocator.resourceServices.register(this);
         serviceLocator.projectServices.register(this);
@@ -89,9 +89,9 @@ export default class CSharpLanguageExtension extends Atomic.ScriptObject impleme
     /**
     * Handle when a new file is loaded and we have not yet configured the editor for TS.
     * This could be when someone adds a CS or assembly file to a vanilla project
-    * @param  {Editor.EditorEvents.EditResourceEvent} ev
+    * @param  {EngineEditor.EditorEvents.EditResourceEvent} ev
     */
-    edit(ev: Editor.EditorEditResourceEvent) {
+    edit(ev: EngineEditor.EditorEditResourceEvent) {
         if (this.isValidFiletype(ev.path)) {
 
             if (this.isNETProject) {
@@ -104,26 +104,26 @@ export default class CSharpLanguageExtension extends Atomic.ScriptObject impleme
     * Handle the delete.  This should delete the corresponding javascript file
     * @param  {Editor.EditorDeleteResourceEvent} ev
     */
-    delete(ev: Editor.EditorDeleteResourceEvent) {
+    delete(ev: EngineEditor.EditorDeleteResourceEvent) {
 
     }
 
     /**
     * Handle the rename.  Should rename the corresponding .js file
-    * @param  {Editor.EditorRenameResourceNotificationEvent} ev
+    * @param  {EngineEditor.EditorRenameResourceNotificationEvent} ev
     */
-    rename(ev: Editor.EditorRenameResourceNotificationEvent) {
+    rename(ev: EngineEditor.EditorRenameResourceNotificationEvent) {
 
     }
 
     /**
     * Handles the save event and detects if a cs file has been added to a non-csharp project
-    * @param  {Editor.EditorEvents.SaveResourceEvent} ev
+    * @param  {EngineEditor.EditorEvents.SaveResourceEvent} ev
     * @return {[type]}
     */
-    save(ev: Editor.EditorSaveResourceEvent) {
+    save(ev: EngineEditor.EditorSaveResourceEvent) {
 
-        if (Atomic.getExtension(ev.path) != ".cs") {
+        if (EngineCore.getExtension(ev.path) != ".cs") {
             return;
         }
 
@@ -140,16 +140,16 @@ export default class CSharpLanguageExtension extends Atomic.ScriptObject impleme
     * Called when the project is being loaded to allow the typescript language service to reset and
     * possibly compile
     */
-    projectLoaded(ev: Editor.EditorLoadProjectEvent) {
+    projectLoaded(ev: EngineEditor.EditorLoadProjectEvent) {
         // got a load, we need to reset the language service
         this.isNETProject = false;
 
         let found = false;
 
         //scan all the files in the project for any csharp or assembly files so we can determine if this is a csharp project
-        if (Atomic.fileSystem.scanDir(ToolCore.toolSystem.project.resourcePath, "*.cs", Atomic.SCAN_FILES, true).length > 0) {
+        if (EngineCore.fileSystem.scanDir(ToolCore.toolSystem.project.resourcePath, "*.cs", EngineCore.SCAN_FILES, true).length > 0) {
             found = true;
-        } else if (Atomic.fileSystem.scanDir(ToolCore.toolSystem.project.resourcePath, "*.dll", Atomic.SCAN_FILES, true).length > 0) {
+        } else if (EngineCore.fileSystem.scanDir(ToolCore.toolSystem.project.resourcePath, "*.dll", EngineCore.SCAN_FILES, true).length > 0) {
             found = true;
         };
 

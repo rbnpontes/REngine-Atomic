@@ -26,7 +26,7 @@ class Preferences {
         new Preferences();
     })();
 
-    private fileSystem: Atomic.FileSystem;
+    private fileSystem: EngineCore.FileSystem;
 
     private static instance: Preferences;
     private _prefs: PreferencesFormat;
@@ -34,7 +34,7 @@ class Preferences {
     private _cachedProjectPreferences: Object = null;
 
     constructor() {
-        this.fileSystem = Atomic.getFileSystem();
+        this.fileSystem = EngineCore.getFileSystem();
         Preferences.instance = this;
     }
 
@@ -103,7 +103,7 @@ class Preferences {
         }
 
         //Read file
-        jsonFile = new Atomic.File(filePath, Atomic.FileMode.FILE_READ);
+        jsonFile = new EngineCore.File(filePath, EngineCore.FileMode.FILE_READ);
 
         var prefs = null;
 
@@ -134,7 +134,7 @@ class Preferences {
 
     write(): boolean {
         var filePath = this.getPreferencesFullPath();
-        var jsonFile = new Atomic.File(filePath, Atomic.FileMode.FILE_WRITE);
+        var jsonFile = new EngineCore.File(filePath, EngineCore.FileMode.FILE_WRITE);
         if (!jsonFile.isOpen()) return false;
         jsonFile.writeString(JSON.stringify(this._prefs, null, 2));
     }
@@ -164,7 +164,7 @@ class Preferences {
             this.uiData.defaultSkinPath = "resources/default_skin/";
             this.uiData.skinPath = "editor/skin/";
         }
-        var ui = Atomic.ui; // install the new skins, live action
+        var ui = EngineCore.ui; // install the new skins, live action
         ui.loadSkin(this.uiData.skinPath + "/skin.tb.txt", this.uiData.defaultSkinPath + "/skin.tb.txt");
         this.saveEditorUiData(this.uiData); // save preferences
     }
@@ -218,8 +218,8 @@ class Preferences {
      */
     loadUserPrefs() {
         const prefsFileLoc = ToolCore.toolSystem.project.userPrefsFullPath;
-        if (Atomic.fileSystem.fileExists(prefsFileLoc)) {
-            let prefsFile = new Atomic.File(prefsFileLoc, Atomic.FileMode.FILE_READ);
+        if (EngineCore.fileSystem.fileExists(prefsFileLoc)) {
+            let prefsFile = new EngineCore.File(prefsFileLoc, EngineCore.FileMode.FILE_READ);
             try {
                 let prefs = JSON.parse(prefsFile.readText());
                 this._cachedProjectPreferences = prefs;
@@ -264,8 +264,8 @@ class Preferences {
     setGenericPreference(preferencesFilePath: string, settingsGroup: string, preferenceName: string, value: number | boolean | string): Object {
         let prefs = {};
 
-        if (Atomic.fileSystem.fileExists(preferencesFilePath)) {
-            let prefsFile = new Atomic.File(preferencesFilePath, Atomic.FileMode.FILE_READ);
+        if (EngineCore.fileSystem.fileExists(preferencesFilePath)) {
+            let prefsFile = new EngineCore.File(preferencesFilePath, EngineCore.FileMode.FILE_READ);
             try {
                 prefs = JSON.parse(prefsFile.readText());
             } finally {
@@ -276,7 +276,7 @@ class Preferences {
         prefs[settingsGroup] = prefs[settingsGroup] || {};
         prefs[settingsGroup][preferenceName] = value;
 
-        let saveFile = new Atomic.File(preferencesFilePath, Atomic.FileMode.FILE_WRITE);
+        let saveFile = new EngineCore.File(preferencesFilePath, EngineCore.FileMode.FILE_WRITE);
         try {
             saveFile.writeString(JSON.stringify(prefs, null, "  "));
         } finally {
@@ -355,8 +355,8 @@ class Preferences {
         const prefsFileLoc = ToolCore.toolSystem.project.userPrefsFullPath;
         let prefs = {};
 
-        if (Atomic.fileSystem.fileExists(prefsFileLoc)) {
-            let prefsFile = new Atomic.File(prefsFileLoc, Atomic.FileMode.FILE_READ);
+        if (EngineCore.fileSystem.fileExists(prefsFileLoc)) {
+            let prefsFile = new EngineCore.File(prefsFileLoc, EngineCore.FileMode.FILE_READ);
             try {
                 prefs = JSON.parse(prefsFile.readText());
             } finally {
@@ -369,7 +369,7 @@ class Preferences {
             prefs[settingsGroup][preferenceName] = groupPreferenceValues[preferenceName];
         }
 
-        let saveFile = new Atomic.File(prefsFileLoc, Atomic.FileMode.FILE_WRITE);
+        let saveFile = new EngineCore.File(prefsFileLoc, EngineCore.FileMode.FILE_WRITE);
         try {
             saveFile.writeString(JSON.stringify(prefs, null, "  "));
         } finally {
@@ -476,9 +476,9 @@ class PreferencesFormat {
             lastEditorBuildSHA: "Unversioned Build"
         };
 
-        var fileSystem = Atomic.getFileSystem();
+        var fileSystem = EngineCore.getFileSystem();
         var userDocuments = fileSystem.userDocumentsDir;
-        if (Atomic.platform == "MacOSX") userDocuments += "Documents/";
+        if (EngineCore.platform == "MacOSX") userDocuments += "Documents/";
         userDocuments += "AtomicProjects";
 
         this.editorFeatures = {

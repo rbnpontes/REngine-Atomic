@@ -23,19 +23,19 @@
 import strings = require("ui/EditorStrings");
 import EditorUI = require("ui/EditorUI");
 
-var UIMenuItemSource = Atomic.UIMenuItemSource;
-var UIMenuItem = Atomic.UIMenuItem;
+var UIMenuItemSource    = EngineCore.UIMenuItemSource;
+var UIMenuItem          = EngineCore.UIMenuItem;
 var StringID = strings.StringID;
 
 var srcLookup = {};
 
-export function getMenuItemSource(id: string): Atomic.UIMenuItemSource {
+export function getMenuItemSource(id: string): EngineCore.UIMenuItemSource {
 
     return srcLookup[id];
 
 }
 
-function createMenuItemSourceRecursive(items: any): Atomic.UIMenuItemSource {
+function createMenuItemSourceRecursive(items: any): EngineCore.UIMenuItemSource {
 
     var src = new UIMenuItemSource();
 
@@ -95,17 +95,17 @@ function createMenuItemSourceRecursive(items: any): Atomic.UIMenuItemSource {
 
 }
 
-export function createSubMenuItemSource(src: Atomic.UIMenuItemSource, id: string, items: any): Atomic.UIMenuItemSource {
+export function createSubMenuItemSource(src: EngineCore.UIMenuItemSource, id: string, items: any): EngineCore.UIMenuItemSource {
     var subsrc = createMenuItemSourceRecursive(items);
 
-    var item = new Atomic.UIMenuItem(id);
+    var item = new EngineCore.UIMenuItem(id);
     item.subSource = subsrc;
     src.addItem(item);
 
     return subsrc;
 }
 
-export function createMenuItemSource(id: string, items: any): Atomic.UIMenuItemSource {
+export function createMenuItemSource(id: string, items: any): EngineCore.UIMenuItemSource {
 
     srcLookup[id] = createMenuItemSourceRecursive(items);
 

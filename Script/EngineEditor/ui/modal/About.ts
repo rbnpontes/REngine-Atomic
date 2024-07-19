@@ -35,12 +35,12 @@ class About extends ModalWindow {
         this.text = "About the Atomic Game Engine";
         this.load("editor/ui/about.tb.txt");
 
-        this.age_license = <Atomic.UIEditField>this.getWidget("age_license");
-        this.thirdparty_license = <Atomic.UIEditField>this.getWidget("thirdparty_license");
-        this.externaltool_license = <Atomic.UIEditField>this.getWidget("externaltool_license");
-        this.about_text = <Atomic.UIEditField>this.getWidget("about_text");
+        this.age_license            = <EngineCore.UIEditField>this.getWidget("age_license");
+        this.thirdparty_license     = <EngineCore.UIEditField>this.getWidget("thirdparty_license");
+        this.externaltool_license   = <EngineCore.UIEditField>this.getWidget("externaltool_license");
+        this.about_text             = <EngineCore.UIEditField>this.getWidget("about_text");
 
-        var cache = Atomic.cache;
+        var cache = EngineCore.cache;
 
         var file = cache.getFile("AtomicEditor/eulas/atomic_game_engine_eula.txt");
         this.age_license.text = file.readText();
@@ -53,10 +53,10 @@ class About extends ModalWindow {
 
         this.about_text.text = this.generateAboutText();
 
-        var get_pro = <Atomic.UIButton>this.getWidget("purchase_pro");
+        var get_pro = <EngineCore.UIButton>this.getWidget("purchase_pro");
         if (get_pro) {
             get_pro.onClick = function() {
-                Atomic.fileSystem.systemOpen("https://store.atomicgameengine.com/site");
+                EngineCore.fileSystem.systemOpen("https://store.atomicgameengine.com/site");
             };
         }
 
@@ -67,9 +67,9 @@ class About extends ModalWindow {
 
     }
 
-    handleWidgetEvent(ev: Atomic.UIWidgetEvent) {
+    handleWidgetEvent(ev: EngineCore.UIWidgetEvent) {
 
-        if (ev.type == Atomic.UI_EVENT_TYPE.UI_EVENT_TYPE_CLICK) {
+        if (ev.type == EngineCore.UI_EVENT_TYPE.UI_EVENT_TYPE_CLICK) {
 
             var id = ev.target.id;
 
@@ -85,11 +85,11 @@ class About extends ModalWindow {
 
         var text = "";
 
-        var buildName = Atomic.AtomicBuildInfo.getBuildName();
-        var buildDate = Atomic.AtomicBuildInfo.getBuildDate();
-        var buildTime = Atomic.AtomicBuildInfo.getBuildTime();
-        var buildSHA = Atomic.AtomicBuildInfo.getGitSHA();
-        var buildVendor = Atomic.AtomicBuildInfo.getBuildVendor();
+        var buildName   = EngineCore.AtomicBuildInfo.getBuildName();
+        var buildDate   = EngineCore.AtomicBuildInfo.getBuildDate();
+        var buildTime   = EngineCore.AtomicBuildInfo.getBuildTime();
+        var buildSHA    = EngineCore.AtomicBuildInfo.getGitSHA();
+        var buildVendor = EngineCore.AtomicBuildInfo.getBuildVendor();
 
         var buildString = `<color #FFFFFF>'${buildName}' - ${buildDate} ${buildTime}\nGit: ${buildSHA}\nVendor: <color #76D6FF>${buildVendor}</color></color>`;
 
@@ -133,10 +133,10 @@ class About extends ModalWindow {
 
     }
 
-    age_license: Atomic.UIEditField;
-    thirdparty_license: Atomic.UIEditField;
-    externaltool_license: Atomic.UIEditField;
-    about_text: Atomic.UIEditField;
+    age_license         : EngineCore.UIEditField;
+    thirdparty_license  : EngineCore.UIEditField;
+    externaltool_license: EngineCore.UIEditField;
+    about_text          : EngineCore.UIEditField;
 
 }
 

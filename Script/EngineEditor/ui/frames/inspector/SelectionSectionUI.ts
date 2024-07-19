@@ -22,7 +22,7 @@
 
 import SerializableEditType = require("./SerializableEditType");
 
-class SelectionSectionUI extends Atomic.UILayout {
+class SelectionSectionUI extends EngineCore.UILayout {
 
     editType: SerializableEditType;
 

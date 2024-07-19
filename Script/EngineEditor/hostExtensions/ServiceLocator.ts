@@ -30,7 +30,7 @@ import CSharpLanguageExtension from "./languageExtensions/CSharpLanguageExtensio
  * Generic service locator of editor services that may be injected by either a plugin
  * or by the editor itself.
  */
-export class ServiceLocatorType implements Editor.HostExtensions.HostServiceLocator {
+export class ServiceLocatorType implements EngineEditor.HostExtensions.HostServiceLocator {
 
     constructor() {
         this.resourceServices = new HostExtensionServices.ResourceServicesProvider();
@@ -39,14 +39,14 @@ export class ServiceLocatorType implements Editor.HostExtensions.HostServiceLoca
         this.uiServices = new HostExtensionServices.UIServicesProvider();
     }
 
-    private eventDispatcher: Atomic.UIWidget = null;
+    private eventDispatcher: EngineCore.UIWidget = null;
 
     resourceServices: HostExtensionServices.ResourceServicesProvider;
     projectServices: HostExtensionServices.ProjectServicesProvider;
     sceneServices: HostExtensionServices.SceneServicesProvider;
     uiServices: HostExtensionServices.UIServicesProvider;
 
-    loadService(service: Editor.HostExtensions.HostEditorService) {
+    loadService(service: EngineEditor.HostExtensions.HostEditorService) {
         try {
             service.initialize(this);
         } catch (e) {
@@ -58,7 +58,7 @@ export class ServiceLocatorType implements Editor.HostExtensions.HostServiceLoca
      * This is where the top level window will allow the service locator to listen for events and act on them.
      * @param  {Atomic.UIWidget} frame
      */
-    subscribeToEvents(frame: Atomic.UIWidget) {
+    subscribeToEvents(frame: EngineCore.UIWidget) {
         this.eventDispatcher = frame;
         this.resourceServices.subscribeToEvents(this);
         this.projectServices.subscribeToEvents(this);
@@ -71,7 +71,7 @@ export class ServiceLocatorType implements Editor.HostExtensions.HostServiceLoca
      * @param  {string} eventType
      * @param  {any} data
      */
-    sendEvent<T extends Atomic.EventCallbackMetaData>(eventCallbackMetaData:T)
+    sendEvent<T extends EngineCore.EventCallbackMetaData>(eventCallbackMetaData:T)
     sendEvent(eventType: string, data: any)
     sendEvent(eventTypeOrMetaData: any, data?: any) {
         if (this.eventDispatcher) {
@@ -91,7 +91,7 @@ export class ServiceLocatorType implements Editor.HostExtensions.HostServiceLoca
      * @param {Atomic.EventMetaData} wrappedEvent A Atomic pre-wrapped event object
      */
     subscribeToEvent(eventType: string, callback: (data: any) => void);
-    subscribeToEvent(wrappedEvent: Atomic.EventMetaData);
+    subscribeToEvent(wrappedEvent: EngineCore.EventMetaData);
     subscribeToEvent(eventTypeOrWrapped: any, callback?: any) {
         if (this.eventDispatcher) {
             if (callback) {

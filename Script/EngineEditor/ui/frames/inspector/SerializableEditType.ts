@@ -22,20 +22,20 @@
 
 class SerializableEditType {
 
-    constructor(serial: Atomic.Serializable) {
+    constructor(serial: EngineCore.Serializable) {
 
         this.typeName = serial.typeName;
         this.attrInfos = serial.getAttributes();
         this.addSerializable(serial);
     }
 
-    addSerializable(serial: Atomic.Serializable) {
+    addSerializable(serial: EngineCore.Serializable) {
 
         this.objects.push(serial);
 
     }
 
-    getUniformValue(attrInfo: Atomic.AttributeInfo, index: number = -1): boolean {
+    getUniformValue(attrInfo: EngineCore.AttributeInfo, index: number = -1): boolean {
 
         if (this.objects.length <= 1)
             return true;
@@ -51,7 +51,7 @@ class SerializableEditType {
                 value = object.getAttribute(attrInfo.name);
                 if (index >= 0) {
 
-                    if (attrInfo.type == Atomic.VariantType.VAR_RESOURCEREFLIST) {
+                    if (attrInfo.type == EngineCore.VariantType.VAR_RESOURCEREFLIST) {
 
                         value = value.resources[index];
 
@@ -64,7 +64,7 @@ class SerializableEditType {
 
                 var value2 = object.getAttribute(attrInfo.name);
                 if (index >= 0) {
-                    if (attrInfo.type == Atomic.VariantType.VAR_RESOURCEREFLIST) {
+                    if (attrInfo.type == EngineCore.VariantType.VAR_RESOURCEREFLIST) {
 
                         value2 = value2.resources[index];
 
@@ -89,7 +89,7 @@ class SerializableEditType {
      * Updates selected object attribute on edit, index parameter is for the edit type (for example NumberArrayAttributeEdit)
      * attrArrayIndex is for setting which array index to set for array AttributeInfo types
      */
-    onAttributeInfoEdited(attrInfo: Atomic.AttributeInfo, value: any, index: number = -1, genEdit: boolean = true, attrArrayIndex: number = -1) {
+    onAttributeInfoEdited(attrInfo: EngineCore.AttributeInfo, value: any, index: number = -1, genEdit: boolean = true, attrArrayIndex: number = -1) {
 
         let editTypeName = this.objects.length > 0 ? this.objects[0].typeName : "";
 
@@ -101,7 +101,7 @@ class SerializableEditType {
 
                 var idxValue = object.getAttribute(attrInfo.name, attrArrayIndex);
 
-                if (attrInfo.type == Atomic.VariantType.VAR_RESOURCEREFLIST) {
+                if (attrInfo.type == EngineCore.VariantType.VAR_RESOURCEREFLIST) {
 
                     idxValue.resources[index] = value;
                     object.setAttribute(attrInfo.name, idxValue, attrArrayIndex);
@@ -128,11 +128,11 @@ class SerializableEditType {
 
         if (scene) {
 
-            scene.sendEvent(Editor.SceneEditEndEventType);
+            scene.sendEvent(EngineEditor.SceneEditEndEventType);
 
             if (editTypeName != "Node") {
 
-                scene.sendEvent(Editor.ComponentEditEndEventType);
+                scene.sendEvent(EngineEditor.ComponentEditEndEventType);
 
             }
         }
@@ -141,13 +141,13 @@ class SerializableEditType {
 
     }
 
-    getEditScene():Atomic.Scene {
+    getEditScene():EngineCore.Scene {
 
-        var node: Atomic.Node = null;
+        var node: EngineCore.Node = null;
         if (this.nodes.length) {
             node = this.nodes[0];
         } else if (this.objects.length && this.objects[0].typeName == "Node") {
-            node = <Atomic.Node>this.objects[0];
+            node = <EngineCore.Node>this.objects[0];
         }
 
         if (node)
@@ -162,7 +162,7 @@ class SerializableEditType {
 
     }
 
-    addNode(node: Atomic.Node) {
+    addNode(node: EngineCore.Node) {
 
         if (this.nodes.indexOf(node) == -1) {
             this.nodes.push(node);
@@ -170,7 +170,7 @@ class SerializableEditType {
 
     }
 
-    getFirstObject(): Atomic.Serializable {
+    getFirstObject(): EngineCore.Serializable {
 
         if (this.objects.length) {
             return this.objects[0];
@@ -181,10 +181,10 @@ class SerializableEditType {
     }
 
     typeName: string;
-    attrInfos: Atomic.AttributeInfo[];
+    attrInfos: EngineCore.AttributeInfo[];
 
-    nodes: Atomic.Node[] = [];
-    objects: Atomic.Serializable[] = [];
+    nodes: EngineCore.Node[] = [];
+    objects: EngineCore.Serializable[] = [];
 
 }
 

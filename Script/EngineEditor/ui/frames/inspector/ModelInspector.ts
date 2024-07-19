@@ -30,11 +30,11 @@ class ModelInspector extends InspectorWidget {
 
         super();
 
-        this.subscribeToEvent(this, Atomic.UIWidgetEvent((data) => this.handleWidgetEvent(data)));
+        this.subscribeToEvent(this, EngineCore.UIWidgetEvent((data) => this.handleWidgetEvent(data)));
 
     }
 
-    handleWidgetEvent(ev: Atomic.UIWidgetEvent):boolean {
+    handleWidgetEvent(ev: EngineCore.UIWidgetEvent):boolean {
 
       return false;
 
@@ -87,15 +87,15 @@ class ModelInspector extends InspectorWidget {
 
         var editField = InspectorUtils.createAttrEditField("Name", modelLayout);
 
-        var lp = new Atomic.UILayoutParams();
+        var lp = new EngineCore.UILayoutParams();
         editField.readOnly = true;
         editField.text = asset.name;
 
         //This should preferably be onClick
-        editField.subscribeToEvent(editField, Atomic.UIWidgetFocusChangedEvent((ev: Atomic.UIWidgetFocusChangedEvent) => {
+        editField.subscribeToEvent(editField, EngineCore.UIWidgetFocusChangedEvent((ev: EngineCore.UIWidgetFocusChangedEvent) => {
 
             if (ev.widget == editField && editField.focus) {
-                this.sendEvent(Editor.InspectorProjectReferenceEventData({ "path": asset.getRelativePath() }));
+                this.sendEvent(EngineEditor.InspectorProjectReferenceEventData({ "path": asset.getRelativePath() }));
             }
 
         }));
@@ -117,18 +117,18 @@ class ModelInspector extends InspectorWidget {
 
         this.importAnimationArray.onCountChanged = (count) => this.onAnimationCountChanged(count);
 
-        var nlp = new Atomic.UILayoutParams();
+        var nlp = new EngineCore.UILayoutParams();
         nlp.width = 310;
 
-        var animLayout = this.animationInfoLayout = new Atomic.UILayout();
+        var animLayout = this.animationInfoLayout = new EngineCore.UILayout();
 
         animLayout.spacing = 4;
 
-        animLayout.layoutDistribution = Atomic.UI_LAYOUT_DISTRIBUTION.UI_LAYOUT_DISTRIBUTION_GRAVITY;
-        animLayout.layoutPosition = Atomic.UI_LAYOUT_POSITION.UI_LAYOUT_POSITION_LEFT_TOP;
+        animLayout.layoutDistribution   = EngineCore.UI_LAYOUT_DISTRIBUTION.UI_LAYOUT_DISTRIBUTION_GRAVITY;
+        animLayout.layoutPosition       = EngineCore.UI_LAYOUT_POSITION.UI_LAYOUT_POSITION_LEFT_TOP;
         animLayout.layoutParams = nlp;
-        animLayout.axis = Atomic.UI_AXIS.UI_AXIS_Y;
-        animLayout.gravity = Atomic.UI_GRAVITY.UI_GRAVITY_ALL;
+        animLayout.axis                 = EngineCore.UI_AXIS.UI_AXIS_Y;
+        animLayout.gravity              = EngineCore.UI_GRAVITY.UI_GRAVITY_ALL;
 
         animationLayout.addChild(animLayout);
 
@@ -192,17 +192,17 @@ class ModelInspector extends InspectorWidget {
     }
 
     // model
-    scaleEdit: Atomic.UIEditField;
+    scaleEdit           : EngineCore.UIEditField;
 
     // animation
-    importAnimationBox: Atomic.UICheckBox;
-    importMaterials: Atomic.UICheckBox;
+    importAnimationBox  : EngineCore.UICheckBox;
+    importMaterials     : EngineCore.UICheckBox;
     importAnimationArray: ArrayEditWidget;
-    animationInfoLayout: Atomic.UILayout;
+    animationInfoLayout : EngineCore.UILayout;
 
-    nameEdits: Atomic.UIEditField[];
-    startEdits: Atomic.UIEditField[];
-    endEdits: Atomic.UIEditField[];
+    nameEdits           : EngineCore.UIEditField[];
+    startEdits          : EngineCore.UIEditField[];
+    endEdits            : EngineCore.UIEditField[];
 
     asset: ToolCore.Asset;
     importer: ToolCore.ModelImporter;

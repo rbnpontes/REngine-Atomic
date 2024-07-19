@@ -22,9 +22,9 @@
 
 import EditorUI = require("ui/EditorUI");
 
-class CSComponentClassSelector extends Atomic.UIWindow {
+class CSComponentClassSelector extends EngineCore.UIWindow {
 
-    constructor(editField: Atomic.UIEditField, component: EngineNETScript.CSComponent) {
+    constructor(editField: EngineCore.UIEditField, component: EngineNETScript.CSComponent) {
 
         super();
 
@@ -34,22 +34,22 @@ class CSComponentClassSelector extends Atomic.UIWindow {
 
         this.rect = [0, 0, 400, 512];
 
-        var mainLayout = new Atomic.UILayout();
-        mainLayout.gravity = Atomic.UI_GRAVITY.UI_GRAVITY_ALL;
-        mainLayout.layoutDistribution = Atomic.UI_LAYOUT_DISTRIBUTION.UI_LAYOUT_DISTRIBUTION_AVAILABLE;
-        mainLayout.axis = Atomic.UI_AXIS.UI_AXIS_Y;
+        var mainLayout = new EngineCore.UILayout();
+        mainLayout.gravity = EngineCore.UI_GRAVITY.UI_GRAVITY_ALL;
+        mainLayout.layoutDistribution = EngineCore.UI_LAYOUT_DISTRIBUTION.UI_LAYOUT_DISTRIBUTION_AVAILABLE;
+        mainLayout.axis = EngineCore.UI_AXIS.UI_AXIS_Y;
         this.contentRoot.addChild(mainLayout);
 
         // really want a grid container
-        var scrollContainer = new Atomic.UIScrollContainer();
-        scrollContainer.gravity = Atomic.UI_GRAVITY.UI_GRAVITY_ALL;
-        scrollContainer.scrollMode = Atomic.UI_SCROLL_MODE.UI_SCROLL_MODE_Y_AUTO;
+        var scrollContainer = new EngineCore.UIScrollContainer();
+        scrollContainer.gravity = EngineCore.UI_GRAVITY.UI_GRAVITY_ALL;
+        scrollContainer.scrollMode = EngineCore.UI_SCROLL_MODE.UI_SCROLL_MODE_Y_AUTO;
         scrollContainer.adaptContentSize = true;
 
-        var scrollLayout = new Atomic.UILayout();
-        scrollLayout.layoutPosition = Atomic.UI_LAYOUT_POSITION.UI_LAYOUT_POSITION_LEFT_TOP;
-        scrollLayout.layoutDistributionPosition = Atomic.UI_LAYOUT_DISTRIBUTION_POSITION.UI_LAYOUT_DISTRIBUTION_POSITION_LEFT_TOP;
-        scrollLayout.axis = Atomic.UI_AXIS.UI_AXIS_Y;
+        var scrollLayout = new EngineCore.UILayout();
+        scrollLayout.layoutPosition = EngineCore.UI_LAYOUT_POSITION.UI_LAYOUT_POSITION_LEFT_TOP;
+        scrollLayout.layoutDistributionPosition = EngineCore.UI_LAYOUT_DISTRIBUTION_POSITION.UI_LAYOUT_DISTRIBUTION_POSITION_LEFT_TOP;
+        scrollLayout.axis = EngineCore.UI_AXIS.UI_AXIS_Y;
 
         scrollContainer.contentRoot.addChild(scrollLayout);
 
@@ -58,7 +58,7 @@ class CSComponentClassSelector extends Atomic.UIWindow {
         for (var i in assemblyFile.classNames) {
 
             var classname = assemblyFile.classNames[i];
-            var button = new Atomic.UIButton();
+            var button = new EngineCore.UIButton();
             button.text = classname;
 
             button.onClick = function() {
@@ -76,13 +76,13 @@ class CSComponentClassSelector extends Atomic.UIWindow {
 
         this.center();
 
-        this.subscribeToEvent(Atomic.UIWidgetEvent((data) => this.handleWidgetEvent(data)));
+        this.subscribeToEvent(EngineCore.UIWidgetEvent((data) => this.handleWidgetEvent(data)));
 
     }
 
-    handleWidgetEvent(ev: Atomic.UIWidgetEvent) {
+    handleWidgetEvent(ev: EngineCore.UIWidgetEvent) {
 
-        if (ev.type == Atomic.UI_EVENT_TYPE.UI_EVENT_TYPE_CLICK) {
+        if (ev.type == EngineCore.UI_EVENT_TYPE.UI_EVENT_TYPE_CLICK) {
 
             if (ev.target != this && !this.isAncestorOf(ev.target)) {
 

@@ -25,9 +25,9 @@ import ModalWindow = require("./ModalWindow");
 
 class ExtensionWindow extends ModalWindow {
 
-    private handleWidgetEventCB: (ev: Atomic.UIWidgetEvent) => void;
+    private handleWidgetEventCB: (ev: EngineCore.UIWidgetEvent) => void;
 
-    constructor(windowText: string, uifilename: string, handleWidgetEventCB: (ev: Atomic.UIWidgetEvent) => void) {
+    constructor(windowText: string, uifilename: string, handleWidgetEventCB: (ev: EngineCore.UIWidgetEvent) => void) {
 
         super();
 
@@ -36,7 +36,7 @@ class ExtensionWindow extends ModalWindow {
         this.handleWidgetEventCB = handleWidgetEventCB;
     }
 
-    handleWidgetEvent(ev: Atomic.UIWidgetEvent) {
+    handleWidgetEvent(ev: EngineCore.UIWidgetEvent) {
         if (this.handleWidgetEventCB)
             this.handleWidgetEventCB(ev);
     }

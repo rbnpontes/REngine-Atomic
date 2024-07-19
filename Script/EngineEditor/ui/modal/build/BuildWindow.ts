@@ -39,8 +39,8 @@ class BuildWindow extends ModalWindow {
 
         this.init("Build Settings", "editor/ui/build.tb.txt");
 
-        this.buildPathField = <Atomic.UITextField>this.getWidget("build_path");
-        this.platformIndicator = <Atomic.UISkinImage>this.getWidget("current_platform_indicator");
+        this.buildPathField     = <EngineCore.UITextField>this.getWidget("build_path");
+        this.platformIndicator  = <EngineCore.UISkinImage>this.getWidget("current_platform_indicator");
 
         var currentPlatform = ToolCore.toolSystem.currentPlatform;
 
@@ -57,12 +57,12 @@ class BuildWindow extends ModalWindow {
 
         }
 
-        this.subscribeToEvent(this, Atomic.UIWidgetEvent((ev) => this.handleWidgetEvent(ev)));
+        this.subscribeToEvent(this, EngineCore.UIWidgetEvent((ev) => this.handleWidgetEvent(ev)));
     }
 
-    handleWidgetEvent(ev: Atomic.UIWidgetEvent): boolean {
+    handleWidgetEvent(ev: EngineCore.UIWidgetEvent): boolean {
 
-        if (ev.type == Atomic.UI_EVENT_TYPE.UI_EVENT_TYPE_CLICK) {
+        if (ev.type == EngineCore.UI_EVENT_TYPE.UI_EVENT_TYPE_CLICK) {
 
             if (ev.target.id == "cancel") {
                 this.hide();
@@ -81,9 +81,9 @@ class BuildWindow extends ModalWindow {
 
               }
 
-              if (!userPrefs.lastBuildPath.length || !Atomic.fileSystem.dirExists(userPrefs.lastBuildPath)) {
+              if (!userPrefs.lastBuildPath.length || !EngineCore.fileSystem.dirExists(userPrefs.lastBuildPath)) {
 
-                  new Atomic.UIMessageWindow(this, "modal_error").show("Build Folder", "Please select an existing build folder", Atomic.UI_MESSAGEWINDOW_SETTINGS.UI_MESSAGEWINDOW_SETTINGS_OK, true, 480, 240);
+                  new EngineCore.UIMessageWindow(this, "modal_error").show("Build Folder", "Please select an existing build folder", EngineCore.UI_MESSAGEWINDOW_SETTINGS.UI_MESSAGEWINDOW_SETTINGS_OK, true, 480, 240);
                   return true;
               }
 
@@ -94,7 +94,7 @@ class BuildWindow extends ModalWindow {
 
             if (ev.target.id == "choose_path") {
 
-                var utils = new Editor.FileUtils();
+                var utils = new EngineEditor.FileUtils();
                 var buildPath = utils.getBuildPath("");
                 if (buildPath && buildPath.length)
                     this.buildPathField.text = buildPath;
@@ -127,8 +127,8 @@ class BuildWindow extends ModalWindow {
 
     }
 
-    buildPathField: Atomic.UITextField;
-    platformIndicator: Atomic.UISkinImage;
+    buildPathField      : EngineCore.UITextField;
+    platformIndicator   : EngineCore.UISkinImage;
 }
 
 export = BuildWindow;

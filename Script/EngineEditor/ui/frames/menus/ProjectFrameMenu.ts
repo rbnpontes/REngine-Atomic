@@ -25,11 +25,11 @@ import EditorUI = require("ui/EditorUI");
 import MenuItemSources = require("./MenuItemSources");
 import ServiceLocator from "../../../hostExtensions/ServiceLocator";
 
-class ProjectFrameMenus extends Atomic.ScriptObject {
+class ProjectFrameMenus extends EngineCore.ScriptObject {
 
     contentFolder: string;
 
-    private contextMenuItemSource: Atomic.UIMenuItemSource = null;
+    private contextMenuItemSource: EngineCore.UIMenuItemSource = null;
 
     constructor() {
 
@@ -39,13 +39,13 @@ class ProjectFrameMenus extends Atomic.ScriptObject {
         this.contextMenuItemSource = MenuItemSources.createMenuItemSource("asset context general", assetGeneralContextItems);
         MenuItemSources.createMenuItemSource("project create items", createItems);
 
-        this.subscribeToEvent(Editor.ContentFolderChangedEvent((ev: Editor.ContentFolderChangedEvent) => {
+        this.subscribeToEvent(EngineEditor.ContentFolderChangedEvent((ev: EngineEditor.ContentFolderChangedEvent) => {
             this.contentFolder = ev.path;
         }));
 
     }
 
-    handleAssetContextMenu(target: Atomic.UIWidget, refid: string):boolean {
+    handleAssetContextMenu(target: EngineCore.UIWidget, refid: string):boolean {
 
         if (target.id == "asset context menu" || target.id == "create popup") {
 
@@ -94,7 +94,7 @@ class ProjectFrameMenus extends Atomic.ScriptObject {
             }
 
             if (refid == "reveal_folder") {
-                var utils = new Editor.FileUtils();
+                var utils = new EngineEditor.FileUtils();
                 utils.revealInFinder(path);
                 return true;
             }
@@ -106,7 +106,7 @@ class ProjectFrameMenus extends Atomic.ScriptObject {
             }
 
             if (refid == "import_asset") {
-                var fileUtils = new Editor.FileUtils();
+                var fileUtils = new EngineEditor.FileUtils();
                 var myassets = fileUtils.findFile("" , "");
                 if (  myassets.length > 0 ) {
                     this.sendEvent("ImportAssetEvent", { "file" : myassets, "destination" : path });
@@ -127,14 +127,14 @@ class ProjectFrameMenus extends Atomic.ScriptObject {
 
     }
 
-    createFolderContextMenu(parent: Atomic.UIWidget, id: string, folder: ToolCore.Asset, x: number, y: number) {
+    createFolderContextMenu(parent: EngineCore.UIWidget, id: string, folder: ToolCore.Asset, x: number, y: number) {
 
 
     }
 
-    createAssetContextMenu(parent: Atomic.UIWidget, asset: ToolCore.Asset, x: number, y: number) {
+    createAssetContextMenu(parent: EngineCore.UIWidget, asset: ToolCore.Asset, x: number, y: number) {
 
-        var menu = new Atomic.UIMenuWindow(parent, "asset context menu");
+        var menu = new EngineCore.UIMenuWindow(parent, "asset context menu");
         menu["asset"] = asset;
 
         var srcName: string;
@@ -150,7 +150,7 @@ class ProjectFrameMenus extends Atomic.ScriptObject {
 
     }
 
-    handlePopupMenu(target: Atomic.UIWidget, refid: string): boolean {
+    handlePopupMenu(target: EngineCore.UIWidget, refid: string): boolean {
 
         if (!target || !refid) return;
 
@@ -164,7 +164,7 @@ class ProjectFrameMenus extends Atomic.ScriptObject {
 
     }
 
-    createPluginItemSource(id: string, items: any): Atomic.UIMenuItemSource {
+    createPluginItemSource(id: string, items: any): EngineCore.UIMenuItemSource {
         return MenuItemSources.createSubMenuItemSource(this.contextMenuItemSource , id, items);
     }
 
@@ -182,10 +182,10 @@ var StringID = strings.StringID;
 //Change the words "Reveal in Finder" based on platform
 var showInFs = "Reveal in File Manager";
 
-if (Atomic.platform == "Windows") {
+if (EngineCore.platform == "Windows") {
     showInFs = "Reveal in Explorer";
 }
-else if (Atomic.platform == "MacOSX") {
+else if (EngineCore.platform == "MacOSX") {
     showInFs = "Reveal in Finder";
 }
 

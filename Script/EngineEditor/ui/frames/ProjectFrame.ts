@@ -29,21 +29,21 @@ import EditorUI = require("ui/EditorUI");
 
 class ProjectFrame extends ScriptWidget {
 
-    folderList: Atomic.UIListView;
+    folderList: EngineCore.UIListView;
     menu: ProjectFrameMenu;
     currentFolder: ToolCore.Asset;
     resourceFolder: ToolCore.Asset;
     assetGUIDToItemID = {};
     resourcesID: number = -1;
     assetReferencePath: string = null;
-    currentReferencedButton: Atomic.UIButton = null;
+    currentReferencedButton: EngineCore.UIButton = null;
     containerScrollToHeight: number;
     containerScrollToHeightCounter: number;
     uiSearchBar: SearchBarFiltering.UISearchBar = new SearchBarFiltering.UISearchBar();
     search: boolean = false;
-    searchEdit: Atomic.UIEditField;
+    searchEdit: EngineCore.UIEditField;
 
-    constructor(parent: Atomic.UIWidget) {
+    constructor(parent: EngineCore.UIWidget) {
 
         super();
 
@@ -51,9 +51,9 @@ class ProjectFrame extends ScriptWidget {
 
         this.load("editor/ui/projectframe.tb.txt");
 
-        this.gravity = Atomic.UI_GRAVITY.UI_GRAVITY_TOP_BOTTOM;
+        this.gravity = EngineCore.UI_GRAVITY.UI_GRAVITY_TOP_BOTTOM;
 
-        this.searchEdit = <Atomic.UIEditField>this.getWidget("filter");
+        this.searchEdit = <EngineCore.UIEditField>this.getWidget("filter");
 
         var projectviewcontainer = parent.getWidget("projectviewcontainer");
 
@@ -61,7 +61,7 @@ class ProjectFrame extends ScriptWidget {
 
         var foldercontainer = this.getWidget("foldercontainer");
 
-        var folderList = this.folderList = new Atomic.UIListView();
+        var folderList = this.folderList = new EngineCore.UIListView();
 
         folderList.rootList.id = "folderList_";
 
@@ -69,22 +69,22 @@ class ProjectFrame extends ScriptWidget {
 
         // events
         this.subscribeToEvent(ToolCore.ProjectLoadedEvent((data) => this.handleProjectLoaded(data)));
-        this.subscribeToEvent(Editor.ProjectUnloadedNotificationEvent((data) => this.handleProjectUnloaded(data)));
-        this.subscribeToEvent(Atomic.DragEndedEvent((data: Atomic.DragEndedEvent) => this.handleDragEnded(data)));
+        this.subscribeToEvent(EngineEditor.ProjectUnloadedNotificationEvent((data) => this.handleProjectUnloaded(data)));
+        this.subscribeToEvent(EngineCore.DragEndedEvent((data: EngineCore.DragEndedEvent) => this.handleDragEnded(data)));
 
         this.subscribeToEvent(ToolCore.ResourceAddedEvent((ev: ToolCore.ResourceAddedEvent) => this.handleResourceAdded(ev)));
         this.subscribeToEvent(ToolCore.ResourceRemovedEvent((ev: ToolCore.ResourceRemovedEvent) => this.handleResourceRemoved(ev)));
         this.subscribeToEvent(ToolCore.AssetRenamedEvent((ev: ToolCore.AssetRenamedEvent) => this.handleAssetRenamed(ev)));
-        this.subscribeToEvent(Editor.InspectorProjectReferenceEvent((ev: Editor.InspectorProjectReferenceEvent) => { this.handleInspectorProjectReferenceHighlight(ev.path); }));
+        this.subscribeToEvent(EngineEditor.InspectorProjectReferenceEvent((ev: EngineEditor.InspectorProjectReferenceEvent) => { this.handleInspectorProjectReferenceHighlight(ev.path); }));
 
-        this.searchEdit.subscribeToEvent(this.searchEdit, Atomic.UIWidgetEvent((data) => this.handleWidgetEvent(data)));
+        this.searchEdit.subscribeToEvent(this.searchEdit, EngineCore.UIWidgetEvent((data) => this.handleWidgetEvent(data)));
 
-        folderList.subscribeToEvent(Atomic.UIListViewSelectionChangedEvent((event: Atomic.UIListViewSelectionChangedEvent) => this.handleFolderListSelectionChangedEvent(event)));
+        folderList.subscribeToEvent(EngineCore.UIListViewSelectionChangedEvent((event: EngineCore.UIListViewSelectionChangedEvent) => this.handleFolderListSelectionChangedEvent(event)));
 
         // this.subscribeToEvent(EditorEvents.ResourceFolderCreated, (ev: EditorEvents.ResourceFolderCreatedEvent) => this.handleResourceFolderCreated(ev));
 
         // this uses FileWatcher which doesn't catch subfolder creation
-        this.subscribeToEvent(Atomic.FileChangedEvent((data) => {
+        this.subscribeToEvent(EngineCore.FileChangedEvent((data) => {
 
             // console.log("File CHANGED! ", data.fileName);
 
@@ -99,10 +99,10 @@ class ProjectFrame extends ScriptWidget {
 
         this.subscribeToEvent("ImportAssetEvent", (data) => {
             if (data.file.length > 0) {  // imported an asset file 
-                var fileSystem = Atomic.getFileSystem();
+                var fileSystem = EngineCore.getFileSystem();
                 var srcFilename = data.file;
-                var pathInfo = Atomic.splitPath(srcFilename);
-                var destFilename = Atomic.addTrailingSlash(data.destination);
+                var pathInfo = EngineCore.splitPath(srcFilename);
+                var destFilename = EngineCore.addTrailingSlash(data.destination);
                 destFilename += pathInfo.fileName + pathInfo.ext;
                 if ( fileSystem.copy(srcFilename, destFilename) ) {
                     EditorUI.showEditorStatus ( "Copied Asset " + pathInfo.fileName + " into project as " + destFilename);
@@ -119,7 +119,7 @@ class ProjectFrame extends ScriptWidget {
 
     handleAssetRenamed(ev: ToolCore.AssetRenamedEvent) {
 
-        var container: Atomic.UILayout = <Atomic.UILayout>this.getWidget("contentcontainer");
+        var container: EngineCore.UILayout = <EngineCore.UILayout>this.getWidget("contentcontainer");
 
         for (var widget = container.firstChild; widget; widget = widget.next) {
 
@@ -127,7 +127,7 @@ class ProjectFrame extends ScriptWidget {
 
                 if (widget["assetButton"]) {
                     widget["assetButton"].text = ev.asset.name + ev.asset.extension;
-                    widget["assetButton"].dragObject = new Atomic.UIDragObject(ev.asset, ev.asset.name);
+                    widget["assetButton"].dragObject = new EngineCore.UIDragObject(ev.asset, ev.asset.name);
                 }
 
                 break;
@@ -141,7 +141,7 @@ class ProjectFrame extends ScriptWidget {
         var folderList = this.folderList;
         folderList.deleteItemByID(ev.guid);
 
-        var container: Atomic.UILayout = <Atomic.UILayout>this.getWidget("contentcontainer");
+        var container: EngineCore.UILayout = <EngineCore.UILayout>this.getWidget("contentcontainer");
 
         for (var widget = container.firstChild; widget; widget = widget.next) {
 
@@ -181,30 +181,30 @@ class ProjectFrame extends ScriptWidget {
 
         } else if (parent == this.currentFolder) {
 
-            var container: Atomic.UILayout = <Atomic.UILayout>this.getWidget("contentcontainer");
+            var container: EngineCore.UILayout = <EngineCore.UILayout>this.getWidget("contentcontainer");
             container.addChild(this.createButtonLayout(asset));
 
         }
 
     }
 
-    handleWidgetEvent(data: Atomic.UIWidgetEvent): boolean {
+    handleWidgetEvent(data: EngineCore.UIWidgetEvent): boolean {
 
         if (!ToolCore.toolSystem.project) return;
 
-        if (data.type == Atomic.UI_EVENT_TYPE.UI_EVENT_TYPE_KEY_UP) {
+        if (data.type == EngineCore.UI_EVENT_TYPE.UI_EVENT_TYPE_KEY_UP) {
 
             // Activates search while user is typing in search widget
             if (data.target == this.searchEdit) {
 
-                if (data.type == Atomic.UI_EVENT_TYPE.UI_EVENT_TYPE_KEY_UP) {
+                if (data.type == EngineCore.UI_EVENT_TYPE.UI_EVENT_TYPE_KEY_UP) {
                     this.search = true;
                     this.refreshContent(this.currentFolder);
                 }
             }
         }
 
-        if (data.type == Atomic.UI_EVENT_TYPE.UI_EVENT_TYPE_RIGHT_POINTER_UP) {
+        if (data.type == EngineCore.UI_EVENT_TYPE.UI_EVENT_TYPE_RIGHT_POINTER_UP) {
 
             var id = data.target.id;
             var db = ToolCore.getAssetDatabase();
@@ -225,7 +225,7 @@ class ProjectFrame extends ScriptWidget {
 
         }
 
-        if (data.type == Atomic.UI_EVENT_TYPE.UI_EVENT_TYPE_CLICK) {
+        if (data.type == EngineCore.UI_EVENT_TYPE.UI_EVENT_TYPE_CLICK) {
 
             var id = data.target.id;
 
@@ -243,20 +243,20 @@ class ProjectFrame extends ScriptWidget {
             if (id == "menu create") {
                 if (!ToolCore.toolSystem.project) return;
                 var src = MenuItemSources.getMenuItemSource("project create items");
-                var menu = new Atomic.UIMenuWindow(data.target, "create popup");
+                var menu = new EngineCore.UIMenuWindow(data.target, "create popup");
                 menu.show(src);
                 return true;
 
             }
 
             var db = ToolCore.getAssetDatabase();
-            var fs = Atomic.getFileSystem();
+            var fs = EngineCore.getFileSystem();
 
             if (data.target && data.target.id.length) {
 
                 if (id == "folderList_") {
 
-                    var list = <Atomic.UISelectList>data.target;
+                    var list = <EngineCore.UISelectList>data.target;
 
                     var selectedId = list.selectedItemID;
 
@@ -285,7 +285,7 @@ class ProjectFrame extends ScriptWidget {
 
                     } else {
 
-                        this.sendEvent(Editor.EditorEditResourceEventData({ "path": asset.path, lineNumber: 0 }));
+                        this.sendEvent(EngineEditor.EditorEditResourceEventData({ "path": asset.path, lineNumber: 0 }));
                     }
 
                 }
@@ -323,7 +323,7 @@ class ProjectFrame extends ScriptWidget {
 
     }
 
-    handleFolderListSelectionChangedEvent(event: Atomic.UIListViewSelectionChangedEvent) {
+    handleFolderListSelectionChangedEvent(event: EngineCore.UIListViewSelectionChangedEvent) {
 
         var selectedId = this.folderList.selectedItemID;
 
@@ -339,13 +339,13 @@ class ProjectFrame extends ScriptWidget {
         }
     }
 
-    handleDragEnded(data: Atomic.DragEndedEvent) {
+    handleDragEnded(data: EngineCore.DragEndedEvent) {
 
         var asset: ToolCore.Asset;
 
         if (data.target) {
 
-            var container: Atomic.UILayout = <Atomic.UILayout>this.getWidget("contentcontainer");
+            var container: EngineCore.UILayout = <EngineCore.UILayout>this.getWidget("contentcontainer");
 
             if (data.target.id == "contentcontainerscroll" || container.isAncestorOf(data.target)) {
 
@@ -379,9 +379,9 @@ class ProjectFrame extends ScriptWidget {
 
         if (dragObject.object && dragObject.object.typeName == "Node") {
 
-            var node = <Atomic.Node>dragObject.object;
+            var node = <EngineCore.Node>dragObject.object;
 
-            var prefabComponent = <Atomic.PrefabComponent>node.getComponent("PrefabComponent");
+            var prefabComponent = <EngineCore.PrefabComponent>node.getComponent("PrefabComponent");
 
             if (prefabComponent) {
 
@@ -389,9 +389,9 @@ class ProjectFrame extends ScriptWidget {
 
             }
             else {
-                var destFilename = Atomic.addTrailingSlash(asset.path);
+                var destFilename = EngineCore.addTrailingSlash(asset.path);
                 destFilename += node.name + ".prefab";
-                var file = new Atomic.File(destFilename, Atomic.FileMode.FILE_WRITE);
+                var file = new EngineCore.File(destFilename, EngineCore.FileMode.FILE_WRITE);
                 node.saveXML(file);
                 file.close();
             }
@@ -405,7 +405,7 @@ class ProjectFrame extends ScriptWidget {
             var dragAsset = <ToolCore.Asset>dragObject.object;
 
             // get the folder we dragged on
-            var destPath = Atomic.addTrailingSlash(asset.path);
+            var destPath = EngineCore.addTrailingSlash(asset.path);
 
             dragAsset.move(destPath + dragAsset.name + dragAsset.extension);
 
@@ -420,16 +420,16 @@ class ProjectFrame extends ScriptWidget {
         if (!filenames.length)
             return;
 
-        var fileSystem = Atomic.getFileSystem();
+        var fileSystem = EngineCore.getFileSystem();
 
 
         for (var i in filenames) {
 
             var srcFilename = filenames[i];
 
-            var pathInfo = Atomic.splitPath(srcFilename);
+            var pathInfo = EngineCore.splitPath(srcFilename);
 
-            var destFilename = Atomic.addTrailingSlash(asset.path);
+            var destFilename = EngineCore.addTrailingSlash(asset.path);
 
             destFilename += pathInfo.fileName + pathInfo.ext;
 
@@ -462,7 +462,7 @@ class ProjectFrame extends ScriptWidget {
         this.folderList.deleteAllItems();
         this.resourceFolder = null;
 
-        var container: Atomic.UILayout = <Atomic.UILayout>this.getWidget("contentcontainer");
+        var container: EngineCore.UILayout = <EngineCore.UILayout>this.getWidget("contentcontainer");
         container.deleteAllChildren();
 
     }
@@ -480,7 +480,7 @@ class ProjectFrame extends ScriptWidget {
     }
 
     // Searches folders within folders recursively
-    searchProjectFolder(folderPath: string, container: Atomic.UILayout, searchText: string, db: ToolCore.AssetDatabase) {
+    searchProjectFolder(folderPath: string, container: EngineCore.UILayout, searchText: string, db: ToolCore.AssetDatabase) {
 
         if (folderPath == "")
             return;
@@ -503,7 +503,7 @@ class ProjectFrame extends ScriptWidget {
 
         if (this.currentFolder != folder) {
 
-            this.sendEvent(Editor.ContentFolderChangedEventData({ path: folder.path }));
+            this.sendEvent(EngineEditor.ContentFolderChangedEventData({ path: folder.path }));
 
         }
 
@@ -511,7 +511,7 @@ class ProjectFrame extends ScriptWidget {
 
         var db = ToolCore.getAssetDatabase();
 
-        var container: Atomic.UILayout = <Atomic.UILayout>this.getWidget("contentcontainer");
+        var container: EngineCore.UILayout = <EngineCore.UILayout>this.getWidget("contentcontainer");
         container.deleteAllChildren();
 
         if (this.currentFolder != null) {
@@ -531,18 +531,18 @@ class ProjectFrame extends ScriptWidget {
             }
         }
 
-        var containerScroll: Atomic.UIScrollContainer = <Atomic.UIScrollContainer>this.getWidget("contentcontainerscroll");
+        var containerScroll: EngineCore.UIScrollContainer = <EngineCore.UIScrollContainer>this.getWidget("contentcontainerscroll");
         containerScroll.scrollTo(0, this.containerScrollToHeight);
         this.search = false;
     }
 
-    private createButtonLayout(asset: ToolCore.Asset): Atomic.UILayout {
+    private createButtonLayout(asset: ToolCore.Asset): EngineCore.UILayout {
 
         var system = ToolCore.getToolSystem();
         var project = system.project;
-        var fs = Atomic.getFileSystem();
+        var fs = EngineCore.getFileSystem();
 
-        var pathinfo = Atomic.splitPath(asset.path);
+        var pathinfo = EngineCore.splitPath(asset.path);
 
         var bitmapID = "Folder.icon";
 
@@ -559,23 +559,23 @@ class ProjectFrame extends ScriptWidget {
             }
         }
 
-        var blayout = new Atomic.UILayout();
+        var blayout = new EngineCore.UILayout();
         blayout.id = asset.guid;
 
-        blayout.gravity = Atomic.UI_GRAVITY.UI_GRAVITY_LEFT;
+        blayout.gravity = EngineCore.UI_GRAVITY.UI_GRAVITY_LEFT;
 
-        var spacer = new Atomic.UIWidget();
+        var spacer = new EngineCore.UIWidget();
         spacer.rect = [0, 0, 8, 8];
         blayout.addChild(spacer);
 
-        var button = new Atomic.UIButton();
+        var button = new EngineCore.UIButton();
 
 
 
         // setup the drag object
-        button.dragObject = new Atomic.UIDragObject(asset, asset.name);
+        button.dragObject = new EngineCore.UIDragObject(asset, asset.name);
 
-        var lp = new Atomic.UILayoutParams;
+        var lp = new EngineCore.UILayoutParams;
         var buttonHeight = lp.height = 20;
 
         //Get the path of the button and compare it to the asset's path to highlight
@@ -590,15 +590,15 @@ class ProjectFrame extends ScriptWidget {
 
         }
 
-        var fd = new Atomic.UIFontDescription();
+        var fd = new EngineCore.UIFontDescription();
         fd.id = "Vera";
         fd.size = 11;
 
-        button.gravity = Atomic.UI_GRAVITY.UI_GRAVITY_LEFT;
+        button.gravity = EngineCore.UI_GRAVITY.UI_GRAVITY_LEFT;
 
-        var image = new Atomic.UISkinImage(bitmapID);
+        var image = new EngineCore.UISkinImage(bitmapID);
         image.rect = [0, 0, 12, 12];
-        image.gravity = Atomic.UI_GRAVITY.UI_GRAVITY_RIGHT;
+        image.gravity = EngineCore.UI_GRAVITY.UI_GRAVITY_RIGHT;
         blayout.addChild(image);
         image["asset"] = asset;
 

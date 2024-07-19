@@ -30,11 +30,11 @@ class SnapSettingsWindow extends ModalWindow {
 
         this.init("Snap Settings", "editor/ui/snapsettings.tb.txt");
 
-        this.transXEditField = <Atomic.UIEditField>this.getWidget("trans_x");
-        this.transYEditField = <Atomic.UIEditField>this.getWidget("trans_y");
-        this.transZEditField = <Atomic.UIEditField>this.getWidget("trans_z");
-        this.rotateEditField = <Atomic.UIEditField>this.getWidget("rotation");
-        this.scaleEditField = <Atomic.UIEditField>this.getWidget("scale");
+        this.transXEditField = <EngineCore.UIEditField>this.getWidget("trans_x");
+        this.transYEditField = <EngineCore.UIEditField>this.getWidget("trans_y");
+        this.transZEditField = <EngineCore.UIEditField>this.getWidget("trans_z");
+        this.rotateEditField = <EngineCore.UIEditField>this.getWidget("rotation");
+        this.scaleEditField  = <EngineCore.UIEditField>this.getWidget("scale");
 
         this.refreshWidgets();
 
@@ -66,9 +66,9 @@ class SnapSettingsWindow extends ModalWindow {
 
     }
 
-    handleWidgetEvent(ev: Atomic.UIWidgetEvent) {
+    handleWidgetEvent(ev: EngineCore.UIWidgetEvent) {
 
-        if (ev.type == Atomic.UI_EVENT_TYPE.UI_EVENT_TYPE_CLICK) {
+        if (ev.type == EngineCore.UI_EVENT_TYPE.UI_EVENT_TYPE_CLICK) {
 
             var id = ev.target.id;
 
@@ -91,11 +91,11 @@ class SnapSettingsWindow extends ModalWindow {
 
     }
 
-    transXEditField: Atomic.UIEditField;
-    transYEditField: Atomic.UIEditField;
-    transZEditField: Atomic.UIEditField;
-    rotateEditField: Atomic.UIEditField;
-    scaleEditField: Atomic.UIEditField;
+    transXEditField: EngineCore.UIEditField;
+    transYEditField: EngineCore.UIEditField;
+    transZEditField: EngineCore.UIEditField;
+    rotateEditField: EngineCore.UIEditField;
+    scaleEditField : EngineCore.UIEditField;
 
 }
 

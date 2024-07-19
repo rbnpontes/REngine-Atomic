@@ -24,23 +24,23 @@
 import EditorUI = require("ui/EditorUI");
 import Preferences = require("editor/Preferences");
 
-class ColorChooser extends Atomic.UIWindow {
+class ColorChooser extends EngineCore.UIWindow {
 
     rgbhsla : number[] = [ 0, 0, 0, 0, 0, 0, 255 ]; // 0=R, 1=G , 2=B, 3=H, 4=S, 5=L, 6=Alpha
-    r_ils : Atomic.UIInlineSelect;
-    g_ils : Atomic.UIInlineSelect;
-    b_ils : Atomic.UIInlineSelect;
-    a_ils : Atomic.UIInlineSelect;
-    r_sld : Atomic.UISlider;
-    g_sld : Atomic.UISlider;
-    b_sld : Atomic.UISlider;
-    a_sld : Atomic.UISlider;
-    oldcolor : Atomic.UIColorWidget;
-    newcolor : Atomic.UIColorWidget;
-    wheel : Atomic.UIColorWheel;
-    lslide : Atomic.UISlider;
-    infohex : Atomic.UIEditField;
-    infohsl : Atomic.UIEditField;
+    r_ils       : EngineCore.UIInlineSelect;
+    g_ils       : EngineCore.UIInlineSelect;
+    b_ils       : EngineCore.UIInlineSelect;
+    a_ils       : EngineCore.UIInlineSelect;
+    r_sld       : EngineCore.UISlider;
+    g_sld       : EngineCore.UISlider;
+    b_sld       : EngineCore.UISlider;
+    a_sld       : EngineCore.UISlider;
+    oldcolor    : EngineCore.UIColorWidget;
+    newcolor    : EngineCore.UIColorWidget;
+    wheel       : EngineCore.UIColorWheel;
+    lslide      : EngineCore.UISlider;
+    infohex     : EngineCore.UIEditField;
+    infohsl     : EngineCore.UIEditField;
 
     constructor( startRGBA:number[] ) {
 
@@ -52,45 +52,43 @@ class ColorChooser extends Atomic.UIWindow {
         this.text = "Color Chooser";
         this.load("editor/ui/colorchooser.tb.txt");
 
-        this.r_ils = <Atomic.UIInlineSelect>this.getWidget("redselect");
-        this.g_ils = <Atomic.UIInlineSelect>this.getWidget("greenselect");
-        this.b_ils = <Atomic.UIInlineSelect>this.getWidget("blueselect");
-        this.a_ils = <Atomic.UIInlineSelect>this.getWidget("alphaselect");
-        this.r_sld = <Atomic.UISlider>this.getWidget("redslider");
-        this.g_sld = <Atomic.UISlider>this.getWidget("greenslider");
-        this.b_sld = <Atomic.UISlider>this.getWidget("blueslider");
-        this.a_sld = <Atomic.UISlider>this.getWidget("alphaslider");
-        this.newcolor = <Atomic.UIColorWidget>this.getWidget("colornew" );
-        this.oldcolor = <Atomic.UIColorWidget>this.getWidget("colorold" );
-        this.infohex = <Atomic.UIEditField>this.getWidget("infohex" );
-        this.infohsl = <Atomic.UIEditField>this.getWidget("infohsl" );
-        this.wheel = <Atomic.UIColorWheel>this.getWidget("colorwheel" );
-        this.lslide = <Atomic.UISlider>this.getWidget("lslider");
+        this.r_ils      = <EngineCore.UIInlineSelect>this.getWidget("redselect");
+        this.g_ils      = <EngineCore.UIInlineSelect>this.getWidget("greenselect");
+        this.b_ils      = <EngineCore.UIInlineSelect>this.getWidget("blueselect");
+        this.a_ils      = <EngineCore.UIInlineSelect>this.getWidget("alphaselect");
+        this.r_sld      = <EngineCore.UISlider>this.getWidget("redslider");
+        this.g_sld      = <EngineCore.UISlider>this.getWidget("greenslider");
+        this.b_sld      = <EngineCore.UISlider>this.getWidget("blueslider");
+        this.a_sld      = <EngineCore.UISlider>this.getWidget("alphaslider");
+        this.newcolor   = <EngineCore.UIColorWidget>this.getWidget("colornew" );
+        this.oldcolor   = <EngineCore.UIColorWidget>this.getWidget("colorold" );
+        this.infohex    = <EngineCore.UIEditField>this.getWidget("infohex" );
+        this.infohsl    = <EngineCore.UIEditField>this.getWidget("infohsl" );
+        this.wheel      = <EngineCore.UIColorWheel>this.getWidget("colorwheel" );
+        this.lslide     = <EngineCore.UISlider>this.getWidget("lslider");
 
-        (<Atomic.UIButton>this.getWidget("ccancelbutton")).onClick = () => {
+        (<EngineCore.UIButton>this.getWidget("ccancelbutton")).onClick = () => {
 
-            this.sendEvent(Atomic.UIWidgetEditCanceledEventData({ widget : this }));
-            this.unsubscribeFromEvent(Atomic.UIWidgetDeletedEventType);
+            this.sendEvent(EngineCore.UIWidgetEditCanceledEventData({ widget : this }));
+            this.unsubscribeFromEvent(EngineCore.UIWidgetDeletedEventType);
             this.close();
 
         };
 
-        (<Atomic.UIButton>this.getWidget("cokbutton")).onClick = () => {
+        (<EngineCore.UIButton>this.getWidget("cokbutton")).onClick = () => {
 
             Preferences.getInstance().addColorHistory(this.infohex.text);
 
-            this.sendEvent(Atomic.UIWidgetEditCompleteEventData({ widget : this }));
-            this.unsubscribeFromEvent(Atomic.UIWidgetDeletedEventType);
+            this.sendEvent(EngineCore.UIWidgetEditCompleteEventData({ widget : this }));
+            this.unsubscribeFromEvent(EngineCore.UIWidgetDeletedEventType);
             this.close();
         };
 
-        this.subscribeToEvent(this, Atomic.UIWidgetDeletedEvent((event: Atomic.UIWidgetDeletedEvent) => {
-
-            this.sendEvent(Atomic.UIWidgetEditCanceledEventData({ widget : this }));
-
+        this.subscribeToEvent(this, EngineCore.UIWidgetDeletedEvent((event: EngineCore.UIWidgetDeletedEvent) => {
+            this.sendEvent(EngineCore.UIWidgetEditCanceledEventData({ widget : this }));
         }));
 
-        this.subscribeToEvent(this, Atomic.UIWidgetEvent((data) => this.handleWidgetEvent(data)));
+        this.subscribeToEvent(this, EngineCore.UIWidgetEvent((data) => this.handleWidgetEvent(data)));
 
         this.resizeToFitContent();
         this.center();
@@ -122,29 +120,29 @@ class ColorChooser extends Atomic.UIWindow {
         this.update_rgbwidgets();
         this.update_hslwidgets();
 
-        Atomic.ui.blockChangedEvents = true;
+        EngineCore.ui.blockChangedEvents = true;
 
         var colorhist = Preferences.getInstance().colorHistory;
-        (<Atomic.UIColorWidget>this.getWidget("chistory0")).setColorString(colorhist[0]);
-        (<Atomic.UIColorWidget>this.getWidget("chistory1")).setColorString(colorhist[1]);
-        (<Atomic.UIColorWidget>this.getWidget("chistory2")).setColorString(colorhist[2]);
-        (<Atomic.UIColorWidget>this.getWidget("chistory3")).setColorString(colorhist[3]);
-        (<Atomic.UIColorWidget>this.getWidget("chistory4")).setColorString(colorhist[4]);
-        (<Atomic.UIColorWidget>this.getWidget("chistory5")).setColorString(colorhist[5]);
-        (<Atomic.UIColorWidget>this.getWidget("chistory6")).setColorString(colorhist[6]);
-        (<Atomic.UIColorWidget>this.getWidget("chistory7")).setColorString(colorhist[7]);
+        (<EngineCore.UIColorWidget>this.getWidget("chistory0")).setColorString(colorhist[0]);
+        (<EngineCore.UIColorWidget>this.getWidget("chistory1")).setColorString(colorhist[1]);
+        (<EngineCore.UIColorWidget>this.getWidget("chistory2")).setColorString(colorhist[2]);
+        (<EngineCore.UIColorWidget>this.getWidget("chistory3")).setColorString(colorhist[3]);
+        (<EngineCore.UIColorWidget>this.getWidget("chistory4")).setColorString(colorhist[4]);
+        (<EngineCore.UIColorWidget>this.getWidget("chistory5")).setColorString(colorhist[5]);
+        (<EngineCore.UIColorWidget>this.getWidget("chistory6")).setColorString(colorhist[6]);
+        (<EngineCore.UIColorWidget>this.getWidget("chistory7")).setColorString(colorhist[7]);
 
         this.oldcolor.setAlpha( startRGBA[3] * 255 );
         this.a_sld.setValue(this.rgbhsla[6]);
 
-        Atomic.ui.blockChangedEvents = false;
+        EngineCore.ui.blockChangedEvents = false;
 
     }
 
-    handleWidgetEvent(ev: Atomic.UIWidgetEvent) {
+    handleWidgetEvent(ev: EngineCore.UIWidgetEvent) {
 
         let changed = false;
-        if (ev.type == Atomic.UI_EVENT_TYPE.UI_EVENT_TYPE_CHANGED) {
+        if (ev.type == EngineCore.UI_EVENT_TYPE.UI_EVENT_TYPE_CHANGED) {
             let hsltargets = ["colorwheel", "lslider"];
             let rgbtargets = {
                 "redselect" : 0,
@@ -177,7 +175,7 @@ class ColorChooser extends Atomic.UIWindow {
             }
         }
 
-        if (ev.type == Atomic.UI_EVENT_TYPE.UI_EVENT_TYPE_CLICK) {
+        if (ev.type == EngineCore.UI_EVENT_TYPE.UI_EVENT_TYPE_CLICK) {
 
             if ( ev.target.id == "history0" || ev.target.id == "history1"
                     || ev.target.id == "history2" || ev.target.id == "history3"
@@ -192,7 +190,7 @@ class ColorChooser extends Atomic.UIWindow {
 
         if (changed) {
 
-            this.sendEvent(Editor.ColorChooserChangedEventData({ widget : this }));
+            this.sendEvent(EngineEditor.ColorChooserChangedEventData({ widget : this }));
 
         }
 
@@ -226,7 +224,7 @@ class ColorChooser extends Atomic.UIWindow {
             this.fixcolor();
             this.update_hslwidgets();
             this.update_rgbwidgets();
-            this.sendEvent(Editor.ColorChooserChangedEventData({ widget : this }));
+            this.sendEvent(EngineEditor.ColorChooserChangedEventData({ widget : this }));
 
         }
 
@@ -300,21 +298,21 @@ class ColorChooser extends Atomic.UIWindow {
     }
 
     update_rgbwidgets() {
-        Atomic.ui.blockChangedEvents = true;
+        EngineCore.ui.blockChangedEvents = true;
         this.r_ils.setValue(this.rgbhsla[0]);
         this.g_ils.setValue(this.rgbhsla[1]);
         this.b_ils.setValue(this.rgbhsla[2]);
         this.r_sld.setValue(this.rgbhsla[0]);
         this.g_sld.setValue(this.rgbhsla[1]);
         this.b_sld.setValue(this.rgbhsla[2]);
-        Atomic.ui.blockChangedEvents = false;
+        EngineCore.ui.blockChangedEvents = false;
     }
 
     update_hslwidgets() {
-        Atomic.ui.blockChangedEvents = true;
+        EngineCore.ui.blockChangedEvents = true;
         this.wheel.setHueSaturation (this.rgbhsla[3], this.rgbhsla[4]);
         this.lslide.setValue(this.rgbhsla[5] * 128);
-        Atomic.ui.blockChangedEvents = false;
+        EngineCore.ui.blockChangedEvents = false;
    }
 
     fixcolor() {

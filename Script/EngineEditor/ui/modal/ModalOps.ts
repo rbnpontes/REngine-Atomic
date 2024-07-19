@@ -45,15 +45,15 @@ import ProjectTemplates = require("../../resources/ProjectTemplates");
 import NewBuildWindow = require("./info/NewBuildWindow");
 import AtomicNETWindow = require("./info/AtomicNETWindow");
 
-class ModalOps extends Atomic.ScriptObject {
+class ModalOps extends EngineCore.ScriptObject {
 
     constructor() {
 
         super();
 
-        this.dimmer = new Atomic.UIDimmer();
+        this.dimmer = new EngineCore.UIDimmer();
 
-        this.subscribeToEvent(Atomic.WindowClosedEvent((e) => {
+        this.subscribeToEvent(EngineCore.WindowClosedEvent((e) => {
             if (e.window == this.opWindow) {
                 this.opWindow = null;
                 if (this.dimmer.parent) {
@@ -257,14 +257,14 @@ class ModalOps extends Atomic.ScriptObject {
     }
 
     // TODO: standardize  to same pattern as other modal windows
-    showError(windowText: string, message: string):Atomic.UIMessageWindow {
+    showError(windowText: string, message: string):EngineCore.UIMessageWindow {
         var view = EditorUI.getView();
-        var window = new Atomic.UIMessageWindow(view, "modal_error");
-        window.show(windowText, message, Atomic.UI_MESSAGEWINDOW_SETTINGS.UI_MESSAGEWINDOW_SETTINGS_OK, true, 640, 360);
+        var window = new EngineCore.UIMessageWindow(view, "modal_error");
+        window.show(windowText, message, EngineCore.UI_MESSAGEWINDOW_SETTINGS.UI_MESSAGEWINDOW_SETTINGS_OK, true, 640, 360);
         return window;
     }
 
-    showExtensionWindow(windowText: string, uifilename: string, handleWidgetEventCB: (ev: Atomic.UIWidgetEvent) => void, modal: boolean = true): Editor.Modal.ExtensionWindow {
+    showExtensionWindow(windowText: string, uifilename: string, handleWidgetEventCB: (ev: EngineCore.UIWidgetEvent) => void, modal: boolean = true): EngineEditor.Modal.ExtensionWindow {
         if (this.show(modal)) {
 
             this.opWindow = new ExtensionWindow(windowText, uifilename, handleWidgetEventCB);
@@ -321,7 +321,7 @@ class ModalOps extends Atomic.ScriptObject {
 
     }
 
-    dimmer: Atomic.UIDimmer;
+    dimmer: EngineCore.UIDimmer;
     opWindow: ModalWindow;
 
 }

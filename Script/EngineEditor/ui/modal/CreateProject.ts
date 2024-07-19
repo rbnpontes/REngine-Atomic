@@ -39,11 +39,11 @@ class CreateProject extends ModalWindow {
 
         this.init("Create Project", "editor/ui/createproject.tb.txt");
 
-        this.projectPathField = <Atomic.UIEditField>this.getWidget("project_path");
-        this.projectNameField = <Atomic.UIEditField>this.getWidget("project_name");
-        this.appIDField = <Atomic.UIEditField>this.getWidget("app_id");
-        this.projectLanguageField = <Atomic.UISelectDropdown>this.getWidget("project_language");
-        this.image = <Atomic.UIImageWidget>this.getWidget("project_image");
+        this.projectPathField       = <EngineCore.UIEditField>this.getWidget("project_path");
+        this.projectNameField       = <EngineCore.UIEditField>this.getWidget("project_name");
+        this.appIDField             = <EngineCore.UIEditField>this.getWidget("app_id");
+        this.projectLanguageField   = <EngineCore.UISelectDropdown>this.getWidget("project_language");
+        this.image                  = <EngineCore.UIImageWidget>this.getWidget("project_image");
 
         this.desktopButton = this.addPlatformButton("desktop", "editor/images/Desktop128.png");
         this.desktopButton.value = 1;
@@ -52,7 +52,7 @@ class CreateProject extends ModalWindow {
         this.html5Button = this.addPlatformButton("html5", "editor/images/HTML5128.png");
 
         if (!projectTemplate.screenshot)
-            this.image.visibility = Atomic.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_GONE;
+            this.image.visibility = EngineCore.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_GONE;
         else
             this.image.image = projectTemplate.screenshot;
 
@@ -73,39 +73,39 @@ class CreateProject extends ModalWindow {
 
     }
 
-    addPlatformButton(platformName:string, platformLogo:string):Atomic.UIButton {
+    addPlatformButton(platformName:string, platformLogo:string):EngineCore.UIButton {
 
-        var platformcontainer = <Atomic.UILayout>this.getWidget("platformcontainer");
+        var platformcontainer = <EngineCore.UILayout>this.getWidget("platformcontainer");
 
         // IMAGE BUTTON
 
         var id = platformName;
         var size = 92;
 
-        var button = new Atomic.UIButton();
+        var button = new EngineCore.UIButton();
         button.id = id;
         button.toggleMode = true;
 
-        var lp = new Atomic.UILayoutParams();
+        var lp = new EngineCore.UILayoutParams();
         lp.minWidth = size;
         lp.minHeight = size;
 
         button.layoutParams = lp;
 
-        button.gravity = Atomic.UI_GRAVITY.UI_GRAVITY_ALL;
+        button.gravity = EngineCore.UI_GRAVITY.UI_GRAVITY_ALL;
 
-        var image = new Atomic.UIImageWidget();
+        var image = new EngineCore.UIImageWidget();
         image.image = platformLogo;
         var rect = [0, 0, size, size];
         image.rect = rect;
         button.addChild(image);
 
         if (platformName != "desktop") {
-            var greenplus = new Atomic.UIImageWidget();
+            var greenplus = new EngineCore.UIImageWidget();
             greenplus.image = "editor/images/green_plus.png";
             rect = [size - 18, 2, size - 2, 18];
             greenplus.rect = rect;
-            greenplus.visibility = Atomic.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_INVISIBLE;
+            greenplus.visibility = EngineCore.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_INVISIBLE;
             button.addChild(greenplus);
             button["greenPlus"] = greenplus;
         }
@@ -140,7 +140,7 @@ class CreateProject extends ModalWindow {
             return false;
         }
 
-        var fileSystem = Atomic.getFileSystem();
+        var fileSystem = EngineCore.getFileSystem();
 
         if (!projectPath) {
 
@@ -155,7 +155,7 @@ class CreateProject extends ModalWindow {
             }
         }
 
-        folder = Atomic.addTrailingSlash(folder);
+        folder = EngineCore.addTrailingSlash(folder);
 
         // Determine if we have a language template for the selected language.
         let selectedLanguage = this.projectLanguageField.text;
@@ -191,7 +191,7 @@ class CreateProject extends ModalWindow {
                 }
             }
 
-            var utils = new Editor.FileUtils();
+            var utils = new EngineEditor.FileUtils();
 
             utils.createDirs(folder + "Cache");
             utils.createDirs(folder + "Settings");
@@ -203,17 +203,17 @@ class CreateProject extends ModalWindow {
             }
 
             // Look for the .atomic project file and if it exists, then rename it
-            let fileResults = fileSystem.scanDir(folder, "*.atomic", Atomic.SCAN_FILES, false);
+            let fileResults = fileSystem.scanDir(folder, "*.atomic", EngineCore.SCAN_FILES, false);
             if (fileResults.length === 1) {
                 fileSystem.rename(folder + fileResults[0], folder + name + ".atomic");
             } else {
                 // Just create the file.  We either don't have one existing, or we have more than one and don't know which one to rename
-                var file = new Atomic.File(folder + name + ".atomic", Atomic.FileMode.FILE_WRITE);
+                var file = new EngineCore.File(folder + name + ".atomic", EngineCore.FileMode.FILE_WRITE);
                 file.close();
             }
 
             // Look for a .userprefs file and if it exists, then rename it
-            fileResults = fileSystem.scanDir(folder, "*.userprefs", Atomic.SCAN_FILES, false);
+            fileResults = fileSystem.scanDir(folder, "*.userprefs", EngineCore.SCAN_FILES, false);
             if (fileResults.length === 1) {
                 fileSystem.rename(folder + fileResults[0], folder + name + ".userprefs");
             }
@@ -235,7 +235,7 @@ class CreateProject extends ModalWindow {
                 platforms : platforms
             };
 
-            var jsonFile = new Atomic.File(folder + "Settings/Project.json", Atomic.FileMode.FILE_WRITE);
+            var jsonFile = new EngineCore.File(folder + "Settings/Project.json", EngineCore.FileMode.FILE_WRITE);
             if (jsonFile.isOpen()) {
                 jsonFile.writeString(JSON.stringify(projectSettings, null, 2));
                 jsonFile.flush();
@@ -259,7 +259,7 @@ class CreateProject extends ModalWindow {
 
             this.hide();
 
-            this.sendEvent(Editor.EditorLoadProjectEventData({ path: folder }));
+            this.sendEvent(EngineEditor.EditorLoadProjectEventData({ path: folder }));
             return true;
         } else {
             let message = [
@@ -281,22 +281,22 @@ class CreateProject extends ModalWindow {
 
         if (selectedLanguage == "CSharp" || selectedLanguage == "C#") {
 
-            this.html5Button["greenPlus"].visibility = Atomic.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_INVISIBLE;
+            this.html5Button["greenPlus"].visibility = EngineCore.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_INVISIBLE;
             this.html5Button.value = 0;
             this.html5Button.disable();
 
         } else {
 
             this.html5Button.enable();
-            this.html5Button["greenPlus"].visibility = this.html5Button.value == 1 ? Atomic.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_VISIBLE : Atomic.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_INVISIBLE;
+            this.html5Button["greenPlus"].visibility = this.html5Button.value == 1 ? EngineCore.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_VISIBLE : EngineCore.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_INVISIBLE;
 
         }
 
     }
 
-    handleWidgetEvent(ev: Atomic.UIWidgetEvent) {
+    handleWidgetEvent(ev: EngineCore.UIWidgetEvent) {
 
-        if (ev.type == Atomic.UI_EVENT_TYPE.UI_EVENT_TYPE_CLICK) {
+        if (ev.type == EngineCore.UI_EVENT_TYPE.UI_EVENT_TYPE_CLICK) {
 
             var id = ev.target.id;
 
@@ -305,7 +305,7 @@ class CreateProject extends ModalWindow {
                 return true;
             }
             else if (id == "choose_path") {
-                var utils = new Editor.FileUtils();
+                var utils = new EngineEditor.FileUtils();
                 var path = utils.newProjectFileDialog();
 
                 if (path.length)
@@ -332,7 +332,7 @@ class CreateProject extends ModalWindow {
                 return true;
 
             }
-        } else if (ev.type == Atomic.UI_EVENT_TYPE.UI_EVENT_TYPE_CHANGED) {
+        } else if (ev.type == EngineCore.UI_EVENT_TYPE.UI_EVENT_TYPE_CHANGED) {
 
             // handle language change
             if (ev.target.id == "project_language") {
@@ -345,7 +345,7 @@ class CreateProject extends ModalWindow {
                 this.desktopButton.value = 1;
 
             } else if (ev.target["greenPlus"]) {
-                ev.target["greenPlus"].visibility = ev.target.value == 1 ? Atomic.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_VISIBLE : Atomic.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_INVISIBLE;
+                ev.target["greenPlus"].visibility = ev.target.value == 1 ? EngineCore.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_VISIBLE : EngineCore.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_INVISIBLE;
             }
 
 
@@ -361,7 +361,7 @@ class CreateProject extends ModalWindow {
         this.projectLanguageFieldSource.clear();
 
         this.projectTemplate.languages.forEach(language => {
-            this.projectLanguageFieldSource.addItem(new Atomic.UISelectItem(language));
+            this.projectLanguageFieldSource.addItem(new EngineCore.UISelectItem(language));
         });
 
         this.projectLanguageField.source = this.projectLanguageFieldSource;
@@ -387,17 +387,17 @@ class CreateProject extends ModalWindow {
         else if ( tsrank > -1 ) this.projectLanguageField.value = tsrank;  // ts is present
     }
 
-    projectPathField: Atomic.UIEditField;
-    projectNameField: Atomic.UIEditField;
-    appIDField: Atomic.UIEditField;
-    projectLanguageField: Atomic.UISelectDropdown;
-    projectLanguageFieldSource: Atomic.UISelectItemSource = new Atomic.UISelectItemSource();
-    image: Atomic.UIImageWidget;
+    projectPathField            : EngineCore.UIEditField;
+    projectNameField            : EngineCore.UIEditField;
+    appIDField                  : EngineCore.UIEditField;
+    projectLanguageField        : EngineCore.UISelectDropdown;
+    projectLanguageFieldSource  : EngineCore.UISelectItemSource = new EngineCore.UISelectItemSource();
+    image                       : EngineCore.UIImageWidget;
 
-    desktopButton: Atomic.UIButton;
-    androidButton: Atomic.UIButton;
-    iosButton: Atomic.UIButton;
-    html5Button: Atomic.UIButton;
+    desktopButton               : EngineCore.UIButton;
+    androidButton               : EngineCore.UIButton;
+    iosButton                   : EngineCore.UIButton;
+    html5Button                 : EngineCore.UIButton;
 
     // if we have specified a projectPath, the dest will not be the combination of path + name
     projectPath: string;

@@ -45,24 +45,24 @@ export class BuildSettingsWindow extends ModalWindow {
 
         this.init("Build Settings", "editor/ui/buildsettings.tb.txt");
 
-        this.settingsContainer = <Atomic.UILayout>this.getWidget("settingscontainer");
-        var platformcontainer = <Atomic.UILayout>this.getWidget("platformcontainer");
-        this.platformIndicator = <Atomic.UISkinImage>this.getWidget("current_platform_indicator");
+        this.settingsContainer  = <EngineCore.UILayout>this.getWidget("settingscontainer");
+        var platformcontainer   = <EngineCore.UILayout>this.getWidget("platformcontainer");
+        this.platformIndicator  = <EngineCore.UISkinImage>this.getWidget("current_platform_indicator");
 
-        var platformSelect = this.platformSelect = new Atomic.UISelectList();
+        var platformSelect = this.platformSelect = new EngineCore.UISelectList();
 
-        var platformSource = new Atomic.UISelectItemSource();
+        var platformSource = new EngineCore.UISelectItemSource();
 
-        platformSource.addItem(new Atomic.UISelectItem("Windows", "WindowsBuildSettings", "LogoWindows"));
-        platformSource.addItem(new Atomic.UISelectItem("Mac", "MacBuildSettings", "LogoMac"));
-        platformSource.addItem(new Atomic.UISelectItem("Android", "AndroidBuildSettings", "LogoAndroid"));
-        platformSource.addItem(new Atomic.UISelectItem("iOS", "iOSBuildSettings", "LogoIOS"));
-        platformSource.addItem(new Atomic.UISelectItem("WebGL", "WebGLBuildSettings", "LogoHTML5"));
-        platformSource.addItem(new Atomic.UISelectItem("Linux", "LinuxBuildSettings", "LogoLinux"));
+        platformSource.addItem(new EngineCore.UISelectItem("Windows", "WindowsBuildSettings", "LogoWindows"));
+        platformSource.addItem(new EngineCore.UISelectItem("Mac", "MacBuildSettings", "LogoMac"));
+        platformSource.addItem(new EngineCore.UISelectItem("Android", "AndroidBuildSettings", "LogoAndroid"));
+        platformSource.addItem(new EngineCore.UISelectItem("iOS", "iOSBuildSettings", "LogoIOS"));
+        platformSource.addItem(new EngineCore.UISelectItem("WebGL", "WebGLBuildSettings", "LogoHTML5"));
+        platformSource.addItem(new EngineCore.UISelectItem("Linux", "LinuxBuildSettings", "LogoLinux"));
 
         platformSelect.setSource(platformSource);
 
-        var lp = new Atomic.UILayoutParams();
+        var lp = new EngineCore.UILayoutParams();
 
         var myh = 74 * platformSource.getItemCount(); // 74 pixels per platform icon
         lp.minWidth = 160;
@@ -70,7 +70,7 @@ export class BuildSettingsWindow extends ModalWindow {
         lp.maxHeight = myh;
 
         platformSelect.layoutParams = lp;
-        platformSelect.gravity = Atomic.UI_GRAVITY.UI_GRAVITY_ALL;
+        platformSelect.gravity = EngineCore.UI_GRAVITY.UI_GRAVITY_ALL;
 
         platformcontainer.addChild(platformSelect);
 
@@ -95,7 +95,7 @@ export class BuildSettingsWindow extends ModalWindow {
 
         }));
 
-        this.subscribeToEvent(this, Atomic.UIWidgetEvent((ev) => this.handleWidgetEvent(ev)));
+        this.subscribeToEvent(this, EngineCore.UIWidgetEvent((ev) => this.handleWidgetEvent(ev)));
     }
 
     commitBuildSettings() {
@@ -110,9 +110,9 @@ export class BuildSettingsWindow extends ModalWindow {
 
     }
 
-    handleWidgetEvent(ev: Atomic.UIWidgetEvent): boolean {
+    handleWidgetEvent(ev: EngineCore.UIWidgetEvent): boolean {
 
-        if (ev.type == Atomic.UI_EVENT_TYPE.UI_EVENT_TYPE_CLICK) {
+        if (ev.type == EngineCore.UI_EVENT_TYPE.UI_EVENT_TYPE_CLICK) {
 
             var toolSystem = ToolCore.toolSystem;
 
@@ -142,13 +142,13 @@ export class BuildSettingsWindow extends ModalWindow {
                 var index = this.platformSelect.value;
 
                 var showMessage = function(target, title, message) {
-                    var window = new Atomic.UIMessageWindow(target, "modal_error");
-                    window.show(title, message, Atomic.UI_MESSAGEWINDOW_SETTINGS.UI_MESSAGEWINDOW_SETTINGS_OK, true, 640, 260);
+                    var window = new EngineCore.UIMessageWindow(target, "modal_error");
+                    window.show(title, message, EngineCore.UI_MESSAGEWINDOW_SETTINGS.UI_MESSAGEWINDOW_SETTINGS_OK, true, 640, 260);
                 };
 
                 for (var name in this.platformInfo) {
 
-                    var info: { widget: Atomic.UIWidget, index: number, logo: string } = this.platformInfo[name];
+                    var info: { widget: EngineCore.UIWidget, index: number, logo: string } = this.platformInfo[name];
 
                     if (info.index == index) {
 
@@ -166,7 +166,7 @@ export class BuildSettingsWindow extends ModalWindow {
 
                             if (platform.platformID == ToolCore.PlatformID.PLATFORMID_IOS || platform.platformID == ToolCore.PlatformID.PLATFORMID_ANDROID) {
 
-                                var ide = Atomic.platform == "Windows" ? "Visual Studio" : "Xamarin Studio";
+                                var ide = EngineCore.platform == "Windows" ? "Visual Studio" : "Xamarin Studio";
                                 var message = `Please open the following solution in ${ide}:\n\n ${ToolCore.netProjectSystem.solutionPath}\n\n`;
                                 message += "HINT: You can open the solution by clicking on any C# script in the project or from the Developer->Plugins->AtomicNET menu\n";
                                 showMessage(this, "IDE Deployment Required", message);
@@ -178,7 +178,7 @@ export class BuildSettingsWindow extends ModalWindow {
 
                             if (platform.platformID == ToolCore.PlatformID.PLATFORMID_IOS) {
 
-                                if (Atomic.platform == "Windows") {
+                                if (EngineCore.platform == "Windows") {
 
                                     showMessage(this, "MacOSX Required", "\niOS Deployment requires running the Atomic Editor on MacOSX\n\n");
                                     return true;
@@ -232,7 +232,7 @@ export class BuildSettingsWindow extends ModalWindow {
 
     }
 
-    addPlatformWidget(name: string, widget: Atomic.UIWidget, logo: string, index: number) {
+    addPlatformWidget(name: string, widget: EngineCore.UIWidget, logo: string, index: number) {
 
         this.platformInfo[name] = { widget: widget, index: index, logo: logo };
         this.settingsContainer.addChild(widget);
@@ -243,14 +243,14 @@ export class BuildSettingsWindow extends ModalWindow {
 
         for (var name in this.platformInfo) {
 
-            this.platformInfo[name].widget.visibility = Atomic.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_GONE;
+            this.platformInfo[name].widget.visibility = EngineCore.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_GONE;
 
         }
 
         if (!platform) return;
 
-        var info: { widget: Atomic.UIWidget, index: number, logo: string } = this.platformInfo[platform.name];
-        info.widget.visibility = Atomic.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_VISIBLE;
+        var info: { widget: EngineCore.UIWidget, index: number, logo: string } = this.platformInfo[platform.name];
+        info.widget.visibility = EngineCore.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_VISIBLE;
         if (this.platformSelect.value != info.index)
             this.platformSelect.value = info.index;
 
@@ -258,8 +258,8 @@ export class BuildSettingsWindow extends ModalWindow {
 
     platformInfo: {} = {};
 
-    settingsContainer: Atomic.UILayout;
-    platformSelect: Atomic.UISelectList;
-    platformIndicator: Atomic.UISkinImage;
+    settingsContainer   : EngineCore.UILayout;
+    platformSelect      : EngineCore.UISelectList;
+    platformIndicator   : EngineCore.UISkinImage;
 
 }

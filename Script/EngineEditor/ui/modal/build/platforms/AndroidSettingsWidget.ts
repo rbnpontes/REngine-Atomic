@@ -22,7 +22,7 @@
 
 import BuildSettingsWindow = require("../BuildSettingsWindow");
 
-class AndroidSettingsWidget extends Atomic.UIWidget implements BuildSettingsWindow.BuildSettingsWidget {
+class AndroidSettingsWidget extends EngineCore.UIWidget implements BuildSettingsWindow.BuildSettingsWidget {
 
     constructor() {
 
@@ -32,50 +32,50 @@ class AndroidSettingsWidget extends Atomic.UIWidget implements BuildSettingsWind
 
         this.settings = ToolCore.toolSystem.project.buildSettings.androidBuildSettings;
 
-        this.sdkPathEdit = <Atomic.UIEditField>this.getWidget("sdk_path");
-        this.sdkTargetSelect = <Atomic.UISelectDropdown>this.getWidget("sdk_target_select");
-        this.appNameEdit = <Atomic.UIEditField>this.getWidget("app_name");
-        this.packageNameEdit = <Atomic.UIEditField>this.getWidget("app_package");
-        this.companyNameEdit = <Atomic.UIEditField>this.getWidget("company_name");
+        this.sdkPathEdit        = <EngineCore.UIEditField>this.getWidget("sdk_path");
+        this.sdkTargetSelect    = <EngineCore.UISelectDropdown>this.getWidget("sdk_target_select");
+        this.appNameEdit        = <EngineCore.UIEditField>this.getWidget("app_name");
+        this.packageNameEdit    = <EngineCore.UIEditField>this.getWidget("app_package");
+        this.companyNameEdit    = <EngineCore.UIEditField>this.getWidget("company_name");
 
 
-        this.jdkRootChooseButton = <Atomic.UIButton>this.getWidget("choose_jdk_root");
-        this.jdkRootEdit = <Atomic.UIEditField>this.getWidget("jdk_root");
+        this.jdkRootChooseButton    = <EngineCore.UIButton>this.getWidget("choose_jdk_root");
+        this.jdkRootEdit            = <EngineCore.UIEditField>this.getWidget("jdk_root");
 
-        var jdkRootText = <Atomic.UITextField>this.getWidget("jdk_root_text");
-        var antPathText = <Atomic.UITextField>this.getWidget("ant_path_text");
+        var jdkRootText             = <EngineCore.UITextField>this.getWidget("jdk_root_text");
+        var antPathText             = <EngineCore.UITextField>this.getWidget("ant_path_text");
 
-        this.releaseChooseButton = <Atomic.UIButton>this.getWidget("choose_and_auth");
-        this.releaseNameEdit = <Atomic.UIEditField>this.getWidget("auth_root");
-        this.releaseCheck = <Atomic.UISelectDropdown>this.getWidget("and_auth_check");
-        this.iconNameEdit = <Atomic.UIEditField>this.getWidget("icon_root");
-        this.iconChooseButton = <Atomic.UIButton>this.getWidget("choose_icon");
-        this.iconImage = <Atomic.UIImageWidget>this.getWidget("and_icon");
-        this.ndkChooseButton = <Atomic.UIButton>this.getWidget("choose_ndk_auth");
-        this.ndkPathEdit = <Atomic.UIEditField>this.getWidget("ndk_root");
+        this.releaseChooseButton    = <EngineCore.UIButton>this.getWidget("choose_and_auth");
+        this.releaseNameEdit        = <EngineCore.UIEditField>this.getWidget("auth_root");
+        this.releaseCheck           = <EngineCore.UISelectDropdown>this.getWidget("and_auth_check");
+        this.iconNameEdit           = <EngineCore.UIEditField>this.getWidget("icon_root");
+        this.iconChooseButton       = <EngineCore.UIButton>this.getWidget("choose_icon");
+        this.iconImage              = <EngineCore.UIImageWidget>this.getWidget("and_icon");
+        this.ndkChooseButton        = <EngineCore.UIButton>this.getWidget("choose_ndk_auth");
+        this.ndkPathEdit            = <EngineCore.UIEditField>this.getWidget("ndk_root");
 
-        if (Atomic.platform == "Windows") {
+        if (EngineCore.platform == "Windows") {
 
             jdkRootText.text = "JDK Root: (Ex. C:\\Program Files\\Java\\jdk1.8.0_31)";
             antPathText.text = "Ant Path: (The folder that contains ant.bat)";
 
         }
 
-        this.antPathEdit = <Atomic.UIEditField>this.getWidget("ant_path");
+        this.antPathEdit = <EngineCore.UIEditField>this.getWidget("ant_path");
 
         this.refreshWidgets();
 
-        this.subscribeToEvent(this, Atomic.UIWidgetEvent((ev) => this.handleWidgetEvent(ev)));
+        this.subscribeToEvent(this, EngineCore.UIWidgetEvent((ev) => this.handleWidgetEvent(ev)));
 
     }
 
-    handleWidgetEvent(ev: Atomic.UIWidgetEvent): boolean {
+    handleWidgetEvent(ev: EngineCore.UIWidgetEvent): boolean {
 
-        if (ev.type == Atomic.UI_EVENT_TYPE.UI_EVENT_TYPE_CLICK) {
+        if (ev.type == EngineCore.UI_EVENT_TYPE.UI_EVENT_TYPE_CLICK) {
 
             if (ev.target.id == "choose_sdk_path") {
 
-                var fileUtils = new Editor.FileUtils();
+                var fileUtils = new EngineEditor.FileUtils();
                 var currsdk = this.sdkPathEdit.text;
                 var path = fileUtils.findPath("Please choose the root folder of your Android SDK" , currsdk );
                 if ( path.length > 0 )
@@ -85,7 +85,7 @@ class AndroidSettingsWidget extends Atomic.UIWidget implements BuildSettingsWind
 
             } else if (ev.target.id == "choose_ant_path") {
 
-                var fileUtils = new Editor.FileUtils();
+                var fileUtils = new EngineEditor.FileUtils();
                 var currant = this.antPathEdit.text;
                 var path = fileUtils.getAntPath(currant);
                 if ( path.length > 0 )
@@ -95,7 +95,7 @@ class AndroidSettingsWidget extends Atomic.UIWidget implements BuildSettingsWind
 
             }  else if (ev.target.id == "choose_jdk_root") {
 
-                var fileUtils = new Editor.FileUtils();
+                var fileUtils = new EngineEditor.FileUtils();
                 var currjdk = this.jdkRootEdit.text;
                 var path = fileUtils.findPath("Please choose the root folder of your JDK" , currjdk );
                 if ( path.length > 0 )
@@ -108,7 +108,7 @@ class AndroidSettingsWidget extends Atomic.UIWidget implements BuildSettingsWind
                 this.refreshAndroidTargets();
 
             }  else if (ev.target.id == "choose_and_auth") {
-                var fileUtils = new Editor.FileUtils();
+                var fileUtils = new EngineEditor.FileUtils();
                 var currauth = this.releaseNameEdit.text;
                 var path = fileUtils.findPath( "Please choose the folder of your ant.properties", currauth );
                 if ( path.length > 0 )
@@ -116,7 +116,7 @@ class AndroidSettingsWidget extends Atomic.UIWidget implements BuildSettingsWind
                 return true;
 
             }  else if (ev.target.id == "choose_icon") {
-                var fileUtils = new Editor.FileUtils();
+                var fileUtils = new EngineEditor.FileUtils();
                 var curricon = this.iconNameEdit.text;
                 var path = fileUtils.findPath("Please choose the folder with drawable folders" , curricon);
                 if ( path.length > 0 ) {
@@ -126,7 +126,7 @@ class AndroidSettingsWidget extends Atomic.UIWidget implements BuildSettingsWind
                 return true;
 
             }  else if (ev.target.id == "choose_ndk_auth") {
-                var fileUtils = new Editor.FileUtils();
+                var fileUtils = new EngineEditor.FileUtils();
                 var currauth = this.ndkPathEdit.text;
                 var path = fileUtils.findPath( "Please choose the folder of your NDK", currauth );
                 if ( path.length > 0 )
@@ -154,7 +154,7 @@ class AndroidSettingsWidget extends Atomic.UIWidget implements BuildSettingsWind
 
             for (var i in targets) {
 
-                this.sdkTargetSource.addItem(new Atomic.UISelectItem(targets[i]));
+                this.sdkTargetSource.addItem(new EngineCore.UISelectItem(targets[i]));
             }
 
             this.sdkTargetSelect.source = this.sdkTargetSource;
@@ -169,7 +169,7 @@ class AndroidSettingsWidget extends Atomic.UIWidget implements BuildSettingsWind
 
     updateIconButton() {
 
-        var fileSystem = Atomic.getFileSystem();
+        var fileSystem = EngineCore.getFileSystem();
 
         if ( this.iconNameEdit.text.length > 0 ) {
 
@@ -227,27 +227,27 @@ class AndroidSettingsWidget extends Atomic.UIWidget implements BuildSettingsWind
     }
 
     settings: ToolCore.AndroidBuildSettings;
-    sdkTargetSource: Atomic.UISelectItemSource = new Atomic.UISelectItemSource();
-    sdkTargetSelect: Atomic.UISelectDropdown;
-    sdkPathEdit: Atomic.UIEditField;
+    sdkTargetSource         : EngineCore.UISelectItemSource = new EngineCore.UISelectItemSource();
+    sdkTargetSelect         : EngineCore.UISelectDropdown;
+    sdkPathEdit             : EngineCore.UIEditField;
 
-    jdkRootChooseButton: Atomic.UIButton;
-    jdkRootEdit: Atomic.UIEditField;
+    jdkRootChooseButton     : EngineCore.UIButton;
+    jdkRootEdit             : EngineCore.UIEditField;
 
-    antPathEdit: Atomic.UIEditField;
+    antPathEdit             : EngineCore.UIEditField;
 
-    appNameEdit: Atomic.UIEditField;
-    packageNameEdit: Atomic.UIEditField;
-    companyNameEdit: Atomic.UIEditField;
+    appNameEdit             : EngineCore.UIEditField;
+    packageNameEdit         : EngineCore.UIEditField;
+    companyNameEdit         : EngineCore.UIEditField;
 
-    releaseNameEdit : Atomic.UIEditField;
-    releaseChooseButton : Atomic.UIButton;
-    releaseCheck : Atomic.UISelectDropdown;
-    iconNameEdit : Atomic.UIEditField;
-    iconChooseButton : Atomic.UIButton;
-    iconImage : Atomic.UIImageWidget;
-    ndkPathEdit : Atomic.UIEditField;
-    ndkChooseButton : Atomic.UIButton;
+    releaseNameEdit         : EngineCore.UIEditField;
+    releaseChooseButton     : EngineCore.UIButton;
+    releaseCheck            : EngineCore.UISelectDropdown;
+    iconNameEdit            : EngineCore.UIEditField;
+    iconChooseButton        : EngineCore.UIButton;
+    iconImage               : EngineCore.UIImageWidget;
+    ndkPathEdit             : EngineCore.UIEditField;
+    ndkChooseButton         : EngineCore.UIButton;
 
 }
 

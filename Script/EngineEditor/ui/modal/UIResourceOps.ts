@@ -33,7 +33,7 @@ export class ResourceDelete extends ModalWindow {
 
         this.asset = asset;
         this.init("Delete Resource", "editor/ui/resourcedelete.tb.txt");
-        var message = <Atomic.UIEditField>this.getWidget("message");
+        var message = <EngineCore.UIEditField>this.getWidget("message");
 
         var text = "Are you sure you want to delete resource:\n\n";
         text += asset.path;
@@ -46,9 +46,9 @@ export class ResourceDelete extends ModalWindow {
 
     }
 
-    handleWidgetEvent(ev: Atomic.UIWidgetEvent) {
+    handleWidgetEvent(ev: EngineCore.UIWidgetEvent) {
 
-        if (ev.type == Atomic.UI_EVENT_TYPE.UI_EVENT_TYPE_CLICK) {
+        if (ev.type == EngineCore.UI_EVENT_TYPE.UI_EVENT_TYPE_CLICK) {
 
             var id = ev.target.id;
 
@@ -63,7 +63,7 @@ export class ResourceDelete extends ModalWindow {
                 var db = ToolCore.getAssetDatabase();
                 db.deleteAsset(this.asset);
 
-                this.sendEvent(Editor.EditorDeleteResourceNotificationEventData(eventData));
+                this.sendEvent(EngineEditor.EditorDeleteResourceNotificationEventData(eventData));
 
                 return true;
             }
@@ -91,18 +91,18 @@ export class CreateFolder extends ModalWindow {
 
         this.resourcePath = resourcePath;
         this.init("New Folder", "editor/ui/resourcenewfolder.tb.txt");
-        this.nameField = <Atomic.UIEditField>this.getWidget("folder_name");
+        this.nameField = <EngineCore.UIEditField>this.getWidget("folder_name");
     }
 
-    handleWidgetEvent(ev: Atomic.UIWidgetEvent) {
+    handleWidgetEvent(ev: EngineCore.UIWidgetEvent) {
 
-        if (ev.type == Atomic.UI_EVENT_TYPE.UI_EVENT_TYPE_CLICK) {
+        if (ev.type == EngineCore.UI_EVENT_TYPE.UI_EVENT_TYPE_CLICK) {
 
             var id = ev.target.id;
 
             if (id == "create") {
 
-                var resourcePath = Atomic.addTrailingSlash(this.resourcePath) + this.nameField.text;
+                var resourcePath = EngineCore.addTrailingSlash(this.resourcePath) + this.nameField.text;
 
                 if (ResourceOps.CreateNewFolder(resourcePath)) {
 
@@ -126,7 +126,7 @@ export class CreateFolder extends ModalWindow {
     }
 
     resourcePath: string;
-    nameField: Atomic.UIEditField;
+    nameField: EngineCore.UIEditField;
 
 }
 
@@ -138,8 +138,8 @@ export class CreateComponent extends ModalWindow {
 
         this.resourcePath = resourcePath;
         this.init("New Component", "editor/ui/resourcecreatecomponent.tb.txt");
-        this.nameField = <Atomic.UIEditField>this.getWidget("component_name");
-        this.templateField = <Atomic.UISelectDropdown>this.getWidget("template_list");
+        this.nameField = <EngineCore.UIEditField>this.getWidget("component_name");
+        this.templateField = <EngineCore.UISelectDropdown>this.getWidget("template_list");
         this.loadTemplatesList();
     }
 
@@ -152,24 +152,24 @@ export class CreateComponent extends ModalWindow {
         this.templateFieldSource.clear();
 
         this.templates.forEach( template => {
-            this.templateFieldSource.addItem(new Atomic.UISelectItem(template.name));
+            this.templateFieldSource.addItem(new EngineCore.UISelectItem(template.name));
         });
 
         this.templateField.source = this.templateFieldSource;
         this.templateField.value = 0;
     }
 
-    handleWidgetEvent(ev: Atomic.UIWidgetEvent) {
+    handleWidgetEvent(ev: EngineCore.UIWidgetEvent) {
 
-        if (ev.type == Atomic.UI_EVENT_TYPE.UI_EVENT_TYPE_CLICK) {
+        if (ev.type == EngineCore.UI_EVENT_TYPE.UI_EVENT_TYPE_CLICK) {
 
             var id = ev.target.id;
 
             if (id == "create") {
 
                 var componentName = this.nameField.text;
-                var outputFile = Atomic.addTrailingSlash(this.resourcePath) + componentName;
-                let selectedTemplate : Editor.Templates.FileTemplateDefinition = null;
+                var outputFile = EngineCore.addTrailingSlash(this.resourcePath) + componentName;
+                let selectedTemplate : EngineEditor.Templates.FileTemplateDefinition = null;
                 this.templates.forEach(t => {
                     if (t.name == this.templateField.text) {
                         selectedTemplate = t;
@@ -186,7 +186,7 @@ export class CreateComponent extends ModalWindow {
 
                         this.hide();
 
-                        this.sendEvent(Editor.EditorEditResourceEventData({ path: outputFile, lineNumber: 0 }));
+                        this.sendEvent(EngineEditor.EditorEditResourceEventData({ path: outputFile, lineNumber: 0 }));
 
                     }
 
@@ -208,11 +208,11 @@ export class CreateComponent extends ModalWindow {
 
     }
 
-    templates: Editor.Templates.FileTemplateDefinition[];
+    templates: EngineEditor.Templates.FileTemplateDefinition[];
     resourcePath: string;
-    nameField: Atomic.UIEditField;
-    templateField: Atomic.UISelectDropdown;
-    templateFieldSource: Atomic.UISelectItemSource = new Atomic.UISelectItemSource();
+    nameField: EngineCore.UIEditField;
+    templateField: EngineCore.UISelectDropdown;
+    templateFieldSource: EngineCore.UISelectItemSource = new EngineCore.UISelectItemSource();
 
 }
 
@@ -224,8 +224,8 @@ export class CreateScript extends ModalWindow {
 
         this.resourcePath = resourcePath;
         this.init("New Script", "editor/ui/resourcecreatescript.tb.txt");
-        this.nameField = <Atomic.UIEditField>this.getWidget("script_name");
-        this.templateField = <Atomic.UISelectDropdown>this.getWidget("template_list");
+        this.nameField = <EngineCore.UIEditField>this.getWidget("script_name");
+        this.templateField = <EngineCore.UISelectDropdown>this.getWidget("template_list");
         this.loadTemplatesList();
     }
 
@@ -238,24 +238,24 @@ export class CreateScript extends ModalWindow {
         this.templateFieldSource.clear();
 
         this.templates.forEach( template => {
-            this.templateFieldSource.addItem(new Atomic.UISelectItem(template.name));
+            this.templateFieldSource.addItem(new EngineCore.UISelectItem(template.name));
         });
 
         this.templateField.source = this.templateFieldSource;
         this.templateField.value = 0;
     }
 
-    handleWidgetEvent(ev: Atomic.UIWidgetEvent) {
+    handleWidgetEvent(ev: EngineCore.UIWidgetEvent) {
 
-        if (ev.type == Atomic.UI_EVENT_TYPE.UI_EVENT_TYPE_CLICK) {
+        if (ev.type == EngineCore.UI_EVENT_TYPE.UI_EVENT_TYPE_CLICK) {
 
             var id = ev.target.id;
 
             if (id == "create") {
 
                 var scriptName = this.nameField.text;
-                var outputFile = Atomic.addTrailingSlash(this.resourcePath) + scriptName;
-                let selectedTemplate : Editor.Templates.FileTemplateDefinition = null;
+                var outputFile = EngineCore.addTrailingSlash(this.resourcePath) + scriptName;
+                let selectedTemplate : EngineEditor.Templates.FileTemplateDefinition = null;
                 this.templates.forEach(t => {
                     if (t.name == this.templateField.text) {
                         selectedTemplate = t;
@@ -272,7 +272,7 @@ export class CreateScript extends ModalWindow {
 
                         this.hide();
 
-                        this.sendEvent(Editor.EditorEditResourceEventData({ path: outputFile, lineNumber: 0 }));
+                        this.sendEvent(EngineEditor.EditorEditResourceEventData({ path: outputFile, lineNumber: 0 }));
 
                     }
 
@@ -294,11 +294,11 @@ export class CreateScript extends ModalWindow {
 
     }
 
-    templates: Editor.Templates.FileTemplateDefinition[];
+    templates: EngineEditor.Templates.FileTemplateDefinition[];
     resourcePath: string;
-    nameField: Atomic.UIEditField;
-    templateField: Atomic.UISelectDropdown;
-    templateFieldSource: Atomic.UISelectItemSource = new Atomic.UISelectItemSource();
+    nameField: EngineCore.UIEditField;
+    templateField: EngineCore.UISelectDropdown;
+    templateFieldSource: EngineCore.UISelectItemSource = new EngineCore.UISelectItemSource();
 
 }
 
@@ -310,19 +310,19 @@ export class CreateScene extends ModalWindow {
 
         this.resourcePath = resourcePath;
         this.init("New Scene", "editor/ui/resourcecreateresource.tb.txt");
-        this.nameField = <Atomic.UIEditField>this.getWidget("component_name");
+        this.nameField = <EngineCore.UIEditField>this.getWidget("component_name");
     }
 
-    handleWidgetEvent(ev: Atomic.UIWidgetEvent) {
+    handleWidgetEvent(ev: EngineCore.UIWidgetEvent) {
 
-        if (ev.type == Atomic.UI_EVENT_TYPE.UI_EVENT_TYPE_CLICK) {
+        if (ev.type == EngineCore.UI_EVENT_TYPE.UI_EVENT_TYPE_CLICK) {
 
             var id = ev.target.id;
 
             if (id == "create") {
 
                 var sceneName = this.nameField.text;
-                var outputFile = Atomic.addTrailingSlash(this.resourcePath) + sceneName;
+                var outputFile = EngineCore.addTrailingSlash(this.resourcePath) + sceneName;
 
                 if (outputFile.indexOf(".scene") == -1) outputFile += ".scene";
 
@@ -330,7 +330,7 @@ export class CreateScene extends ModalWindow {
 
                     this.hide();
 
-                    this.sendEvent(Editor.EditorEditResourceEventData({ path: outputFile, lineNumber: 0 }));
+                    this.sendEvent(EngineEditor.EditorEditResourceEventData({ path: outputFile, lineNumber: 0 }));
 
                 }
 
@@ -350,7 +350,7 @@ export class CreateScene extends ModalWindow {
     }
 
     resourcePath: string;
-    nameField: Atomic.UIEditField;
+    nameField: EngineCore.UIEditField;
 
 }
 
@@ -362,19 +362,19 @@ export class CreateMaterial extends ModalWindow {
 
         this.resourcePath = resourcePath;
         this.init("New Material", "editor/ui/resourcecreateresource.tb.txt");
-        this.nameField = <Atomic.UIEditField>this.getWidget("component_name");
+        this.nameField = <EngineCore.UIEditField>this.getWidget("component_name");
     }
 
-    handleWidgetEvent(ev: Atomic.UIWidgetEvent) {
+    handleWidgetEvent(ev: EngineCore.UIWidgetEvent) {
 
-        if (ev.type == Atomic.UI_EVENT_TYPE.UI_EVENT_TYPE_CLICK) {
+        if (ev.type == EngineCore.UI_EVENT_TYPE.UI_EVENT_TYPE_CLICK) {
 
             var id = ev.target.id;
 
             if (id == "create") {
 
                 var materialName = this.nameField.text;
-                var outputFile = Atomic.addTrailingSlash(this.resourcePath) + materialName;
+                var outputFile = EngineCore.addTrailingSlash(this.resourcePath) + materialName;
 
                 if (outputFile.indexOf(".material") == -1) outputFile += ".material";
 
@@ -382,7 +382,7 @@ export class CreateMaterial extends ModalWindow {
 
                     this.hide();
 
-                    this.sendEvent(Editor.EditorEditResourceEventData({ path: outputFile, lineNumber: 0 }));
+                    this.sendEvent(EngineEditor.EditorEditResourceEventData({ path: outputFile, lineNumber: 0 }));
 
                 }
 
@@ -402,7 +402,7 @@ export class CreateMaterial extends ModalWindow {
     }
 
     resourcePath: string;
-    nameField: Atomic.UIEditField;
+    nameField: EngineCore.UIEditField;
 
 }
 
@@ -415,8 +415,8 @@ export class RenameAsset extends ModalWindow {
         this.asset = asset;
         this.init("Rename Resource", "editor/ui/renameasset.tb.txt");
 
-        var currentName = <Atomic.UITextField>this.getWidget("current_name");
-        this.nameEdit = <Atomic.UIEditField>this.getWidget("new_name");
+        var currentName = <EngineCore.UITextField>this.getWidget("current_name");
+        this.nameEdit = <EngineCore.UIEditField>this.getWidget("new_name");
 
         currentName.text = asset.name;
         this.nameEdit.text = asset.name;
@@ -427,9 +427,9 @@ export class RenameAsset extends ModalWindow {
         this.nameEdit.setFocus();
     }
 
-    handleWidgetEvent(ev: Atomic.UIWidgetEvent) {
+    handleWidgetEvent(ev: EngineCore.UIWidgetEvent) {
 
-        if (ev.type == Atomic.UI_EVENT_TYPE.UI_EVENT_TYPE_CLICK) {
+        if (ev.type == EngineCore.UI_EVENT_TYPE.UI_EVENT_TYPE_CLICK) {
 
             var id = ev.target.id;
 
@@ -441,14 +441,14 @@ export class RenameAsset extends ModalWindow {
                     let oldPath = this.asset.path;
                     this.asset.rename(this.nameEdit.text);
 
-                    let eventData: Editor.EditorRenameResourceNotificationEvent = {
+                    let eventData: EngineEditor.EditorRenameResourceNotificationEvent = {
                         path: oldPath,
                         newPath: this.asset.path,
                         newName: this.nameEdit.text,
                         asset: this.asset
                     };
 
-                    this.sendEvent(Editor.EditorRenameResourceNotificationEventData(eventData));
+                    this.sendEvent(EngineEditor.EditorRenameResourceNotificationEventData(eventData));
                 }
 
                 return true;
@@ -465,7 +465,7 @@ export class RenameAsset extends ModalWindow {
 
     }
 
-    nameEdit: Atomic.UIEditField;
+    nameEdit: EngineCore.UIEditField;
     asset: ToolCore.Asset;
 
 }

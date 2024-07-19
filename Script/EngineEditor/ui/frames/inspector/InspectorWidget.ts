@@ -30,25 +30,25 @@ class InspectorWidget extends ScriptWidget {
 
         super();
 
-        var fd = this.attrFontDesc = new Atomic.UIFontDescription();
+        var fd = this.attrFontDesc = new EngineCore.UIFontDescription();
         fd.id = "Vera";
         fd.size = 11;
 
-        var nlp = new Atomic.UILayoutParams();
+        var nlp = new EngineCore.UILayoutParams();
         nlp.width = 310;
 
-        var layout = this.rootLayout = new Atomic.UILayout();
+        var layout = this.rootLayout = new EngineCore.UILayout();
         layout.spacing = 4;
 
-        layout.layoutDistribution = Atomic.UI_LAYOUT_DISTRIBUTION.UI_LAYOUT_DISTRIBUTION_GRAVITY;
-        layout.layoutPosition = Atomic.UI_LAYOUT_POSITION.UI_LAYOUT_POSITION_LEFT_TOP;
+        layout.layoutDistribution = EngineCore.UI_LAYOUT_DISTRIBUTION.UI_LAYOUT_DISTRIBUTION_GRAVITY;
+        layout.layoutPosition     = EngineCore.UI_LAYOUT_POSITION.UI_LAYOUT_POSITION_LEFT_TOP;
         layout.layoutParams = nlp;
-        layout.axis = Atomic.UI_AXIS.UI_AXIS_Y;
+        layout.axis = EngineCore.UI_AXIS.UI_AXIS_Y;
 
-        this.gravity = Atomic.UI_GRAVITY.UI_GRAVITY_ALL;
+        this.gravity = EngineCore.UI_GRAVITY.UI_GRAVITY_ALL;
         this.addChild(layout);
 
-        this.subscribeToEvent(Atomic.UIWidgetEvent((data) => this.handleWidgetEvent(data)));
+        this.subscribeToEvent(EngineCore.UIWidgetEvent((data) => this.handleWidgetEvent(data)));
 
     }
 
@@ -56,19 +56,19 @@ class InspectorWidget extends ScriptWidget {
       console.log("Apply Pressed!");
     }
 
-    createAttrName(name:string):Atomic.UITextField {
+    createAttrName(name:string):EngineCore.UITextField {
 
-      var nameField = new Atomic.UITextField();
-      nameField.textAlign = Atomic.UI_TEXT_ALIGN.UI_TEXT_ALIGN_LEFT;
+      var nameField = new EngineCore.UITextField();
+      nameField.textAlign = EngineCore.UI_TEXT_ALIGN.UI_TEXT_ALIGN_LEFT;
       nameField.skinBg = "InspectorTextAttrName";
       nameField.text = name;
       nameField.fontDescription = this.attrFontDesc;
       return nameField;
     }
 
-    createSection(parent:Atomic.UIWidget, text:string, expanded:number):Atomic.UILayout {
+    createSection(parent:EngineCore.UIWidget, text:string, expanded:number):EngineCore.UILayout {
 
-      var section = new Atomic.UISection();
+      var section = new EngineCore.UISection();
 
       section.text = text;
       section.value = expanded;
@@ -82,22 +82,22 @@ class InspectorWidget extends ScriptWidget {
 
     }
 
-    createVerticalAttrLayout():Atomic.UILayout {
+    createVerticalAttrLayout():EngineCore.UILayout {
 
-      var layout = new Atomic.UILayout(Atomic.UI_AXIS.UI_AXIS_Y);
+      var layout = new EngineCore.UILayout(EngineCore.UI_AXIS.UI_AXIS_Y);
       layout.spacing = 3;
-      layout.layoutPosition = Atomic.UI_LAYOUT_POSITION.UI_LAYOUT_POSITION_LEFT_TOP;
-      layout.layoutSize = Atomic.UI_LAYOUT_SIZE.UI_LAYOUT_SIZE_AVAILABLE;
+      layout.layoutPosition = EngineCore.UI_LAYOUT_POSITION.UI_LAYOUT_POSITION_LEFT_TOP;
+      layout.layoutSize = EngineCore.UI_LAYOUT_SIZE.UI_LAYOUT_SIZE_AVAILABLE;
 
       return layout;
 
     }
 
-    createApplyButton():Atomic.UIButton {
+    createApplyButton():EngineCore.UIButton {
 
-      var button = new Atomic.UIButton();
+      var button = new EngineCore.UIButton();
       button.fontDescription = this.attrFontDesc;
-      button.gravity = Atomic.UI_GRAVITY.UI_GRAVITY_RIGHT;
+      button.gravity = EngineCore.UI_GRAVITY.UI_GRAVITY_RIGHT;
       button.text = "Apply";
 
       button.onClick = function() {
@@ -110,15 +110,15 @@ class InspectorWidget extends ScriptWidget {
 
     }
 
-    createAttrCheckBox(name:string, parent:Atomic.UIWidget):Atomic.UICheckBox {
+    createAttrCheckBox(name:string, parent:EngineCore.UIWidget):EngineCore.UICheckBox {
 
-      var attrLayout = new Atomic.UILayout();
-      attrLayout.layoutDistribution = Atomic.UI_LAYOUT_DISTRIBUTION.UI_LAYOUT_DISTRIBUTION_GRAVITY;
+      var attrLayout = new EngineCore.UILayout();
+      attrLayout.layoutDistribution = EngineCore.UI_LAYOUT_DISTRIBUTION.UI_LAYOUT_DISTRIBUTION_GRAVITY;
 
       var _name = this.createAttrName(name);
       attrLayout.addChild(_name);
 
-      var box = new Atomic.UICheckBox();
+      var box = new EngineCore.UICheckBox();
       box.skinBg = "TBCheckBox";
       attrLayout.addChild(box);
       parent.addChild(attrLayout);
@@ -127,19 +127,19 @@ class InspectorWidget extends ScriptWidget {
 
     }
 
-    createAttrEditField(name:string, parent:Atomic.UIWidget):Atomic.UIEditField {
+    createAttrEditField(name:string, parent:EngineCore.UIWidget):EngineCore.UIEditField {
 
-      var attrLayout = new Atomic.UILayout();
-      attrLayout.layoutDistribution = Atomic.UI_LAYOUT_DISTRIBUTION.UI_LAYOUT_DISTRIBUTION_GRAVITY;
+      var attrLayout = new EngineCore.UILayout();
+      attrLayout.layoutDistribution = EngineCore.UI_LAYOUT_DISTRIBUTION.UI_LAYOUT_DISTRIBUTION_GRAVITY;
 
       var _name = this.createAttrName(name);
       attrLayout.addChild(_name);
 
-      var edit = new Atomic.UIEditField();
-      edit.textAlign = Atomic.UI_TEXT_ALIGN.UI_TEXT_ALIGN_LEFT;
+      var edit = new EngineCore.UIEditField();
+      edit.textAlign = EngineCore.UI_TEXT_ALIGN.UI_TEXT_ALIGN_LEFT;
       edit.skinBg = "TBAttrEditorField";
       edit.fontDescription = this.attrFontDesc;
-      var lp = new Atomic.UILayoutParams();
+      var lp = new EngineCore.UILayoutParams();
       lp.width = 140;
       edit.layoutParams = lp;
 
@@ -150,17 +150,17 @@ class InspectorWidget extends ScriptWidget {
 
     }
 
-    handleWidgetEvent(ev: Atomic.UIWidgetEvent):boolean {
+    handleWidgetEvent(ev: EngineCore.UIWidgetEvent):boolean {
 
       return false;
 
     }
 
-    createPreviewAnimationButton(asset: ToolCore.Asset): Atomic.UIButton {
+    createPreviewAnimationButton(asset: ToolCore.Asset): EngineCore.UIButton {
 
-        var button = new Atomic.UIButton();
+        var button = new EngineCore.UIButton();
         button.fontDescription = this.attrFontDesc;
-        button.gravity = Atomic.UI_GRAVITY.UI_GRAVITY_RIGHT;
+        button.gravity = EngineCore.UI_GRAVITY.UI_GRAVITY_RIGHT;
         button.text = "Preview Animation";
 
         button.onClick = function () {
@@ -179,8 +179,8 @@ class InspectorWidget extends ScriptWidget {
         mainFrame.showAnimationToolbar(asset);
     }
 
-    rootLayout:Atomic.UILayout;
-    attrFontDesc:Atomic.UIFontDescription;
+    rootLayout:EngineCore.UILayout;
+    attrFontDesc:EngineCore.UIFontDescription;
 }
 
 export  = InspectorWidget;

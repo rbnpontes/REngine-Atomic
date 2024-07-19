@@ -29,7 +29,7 @@ class AtomicNETWindow extends ModalWindow {
 
         super();
 
-        this.settings = Atomic.UI_WINDOW_SETTINGS.UI_WINDOW_SETTINGS_DEFAULT & ~Atomic.UI_WINDOW_SETTINGS.UI_WINDOW_SETTINGS_CLOSE_BUTTON;
+        this.settings = EngineCore.UI_WINDOW_SETTINGS.UI_WINDOW_SETTINGS_DEFAULT & ~EngineCore.UI_WINDOW_SETTINGS.UI_WINDOW_SETTINGS_CLOSE_BUTTON;
 
         // we're not calling this.init here as it calls resizeToFitContent
         // and center, which screw up the generated About text being resized
@@ -37,9 +37,9 @@ class AtomicNETWindow extends ModalWindow {
         this.text = "Atomic C# Requirements";
         this.load("editor/ui/atomicnetwindow.tb.txt");
 
-        this.downloadButton = <Atomic.UIButton>this.getWidget("download_button");
+        this.downloadButton = <EngineCore.UIButton>this.getWidget("download_button");
 
-        this.atomicnet_text = <Atomic.UIEditField>this.getWidget("atomicnet_text");
+        this.atomicnet_text = <EngineCore.UIEditField>this.getWidget("atomicnet_text");
         this.atomicnet_text.text = this.generateAtomicNETText();
 
         this.resizeToFitContent();
@@ -47,9 +47,9 @@ class AtomicNETWindow extends ModalWindow {
 
     }
 
-    handleWidgetEvent(ev: Atomic.UIWidgetEvent) {
+    handleWidgetEvent(ev: EngineCore.UIWidgetEvent) {
 
-        if (ev.type == Atomic.UI_EVENT_TYPE.UI_EVENT_TYPE_CLICK) {
+        if (ev.type == EngineCore.UI_EVENT_TYPE.UI_EVENT_TYPE_CLICK) {
 
             var id = ev.target.id;
 
@@ -64,14 +64,14 @@ class AtomicNETWindow extends ModalWindow {
 
                 this.hide();
 
-                if ( Atomic.platform == "Windows")
-                    Atomic.fileSystem.systemOpen( "https://www.visualstudio.com/vs/community/" );
+                if (EngineCore.platform == "Windows")
+                    EngineCore.fileSystem.systemOpen( "https://www.visualstudio.com/vs/community/" );
 
-                if ( Atomic.platform == "MacOSX")
-                    Atomic.fileSystem.systemOpen( "https://www.xamarin.com/download/");
+                if (EngineCore.platform == "MacOSX")
+                    EngineCore.fileSystem.systemOpen( "https://www.xamarin.com/download/");
 
-                if ( Atomic.platform == "Linux")
-                    Atomic.fileSystem.systemOpen( "https://github.com/AtomicGameEngine/AtomicGameEngine/wiki/Detailed-instructions-for-building-on-Linux");
+                if (EngineCore.platform == "Linux")
+                    EngineCore.fileSystem.systemOpen( "https://github.com/AtomicGameEngine/AtomicGameEngine/wiki/Detailed-instructions-for-building-on-Linux");
 
             }
         }
@@ -81,13 +81,13 @@ class AtomicNETWindow extends ModalWindow {
     generateAtomicNETText(): string {
         // start at Atomic.platform == "Windows"
         let ideText:string = "Visual Studio";
-        if ( Atomic.platform == "MacOSX") ideText = "Visual Studio for Mac";
-        if ( Atomic.platform == "Linux") ideText = "MonoDevelop";
+        if (EngineCore.platform == "MacOSX") ideText = "Visual Studio for Mac";
+        if (EngineCore.platform == "Linux") ideText = "MonoDevelop";
 
 
         let installText = `Please install ${ideText} with <color #D4FB79>Xamarin.Android</color> and <color #D4FB79>Xamarin.iOS</color>`;
 
-        if ( Atomic.platform != "Linux" )
+        if (EngineCore.platform != "Linux" )
             this.downloadButton.text = `Download ${ideText}`;
         else
             this.downloadButton.text = `Install ${ideText}`;
@@ -105,8 +105,8 @@ ${installText}
 
     }
 
-    atomicnet_text: Atomic.UIEditField;
-    downloadButton: Atomic.UIButton;
+    atomicnet_text: EngineCore.UIEditField;
+    downloadButton: EngineCore.UIButton;
 }
 
 export = AtomicNETWindow;

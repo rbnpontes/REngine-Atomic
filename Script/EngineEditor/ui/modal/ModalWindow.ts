@@ -22,27 +22,27 @@
 
 import EditorUI = require("../EditorUI");
 
-class ModalWindow extends Atomic.UIWindow {
+class ModalWindow extends EngineCore.UIWindow {
 
     constructor(disableClose:boolean = false) {
 
         super();
 
         if (disableClose)
-          this.settings = Atomic.UI_WINDOW_SETTINGS.UI_WINDOW_SETTINGS_DEFAULT & ~Atomic.UI_WINDOW_SETTINGS.UI_WINDOW_SETTINGS_CLOSE_BUTTON;
+          this.settings = EngineCore.UI_WINDOW_SETTINGS.UI_WINDOW_SETTINGS_DEFAULT & ~EngineCore.UI_WINDOW_SETTINGS.UI_WINDOW_SETTINGS_CLOSE_BUTTON;
 
         var view = EditorUI.getView();
         view.addChild(this);
 
         this.setFocus();
 
-        this.subscribeToEvent(this, Atomic.UIWidgetDeletedEvent((event: Atomic.UIWidgetDeletedEvent) => {
+        this.subscribeToEvent(this, EngineCore.UIWidgetDeletedEvent((event: EngineCore.UIWidgetDeletedEvent) => {
 
             this.hide();
 
         }));
 
-        this.subscribeToEvent(this, Atomic.UIWidgetEvent((data) => this.handleWidgetEvent(data)));
+        this.subscribeToEvent(this, EngineCore.UIWidgetEvent((data) => this.handleWidgetEvent(data)));
 
     }
 
@@ -53,7 +53,7 @@ class ModalWindow extends Atomic.UIWindow {
 
     }
 
-    handleWidgetEvent(ev: Atomic.UIWidgetEvent) {
+    handleWidgetEvent(ev: EngineCore.UIWidgetEvent) {
 
     }
 

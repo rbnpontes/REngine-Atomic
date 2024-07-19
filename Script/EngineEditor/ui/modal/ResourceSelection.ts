@@ -27,12 +27,12 @@ import SearchBarFiltering = require("resources/SearchBarFiltering");
 class ResourceSelection extends ModalWindow {
 
     uiSearchBar: SearchBarFiltering.UISearchBar = new SearchBarFiltering.UISearchBar();
-    folderList: Atomic.UIListView;
+    folderList: EngineCore.UIListView;
     callback: (returnObject: any, args: any) => void;
     args: any;
     resourceType: string;
     importerType: string;
-    searchEdit: Atomic.UIEditField;
+    searchEdit: EngineCore.UIEditField;
 
 
     constructor(windowText: string, importerType: string, resourceType: string, callback: (asset: ToolCore.Asset, args: any) => void, args: any) {
@@ -44,14 +44,14 @@ class ResourceSelection extends ModalWindow {
         this.callback = callback;
         this.args = args;
         this.load("editor/ui/resourceselection.tb.txt");
-        this.searchEdit = <Atomic.UIEditField>this.getWidget("filter");
+        this.searchEdit = <EngineCore.UIEditField>this.getWidget("filter");
         this.populate(importerType, resourceType, false);
 
         this.text = windowText;
         this.setSize(800, 600);
         this.center();
 
-        this.searchEdit.subscribeToEvent(this.searchEdit, Atomic.UIWidgetEvent((data) => this.handleWidgetEvent(data)));
+        this.searchEdit.subscribeToEvent(this.searchEdit, EngineCore.UIWidgetEvent((data) => this.handleWidgetEvent(data)));
 
     }
 
@@ -66,7 +66,7 @@ class ResourceSelection extends ModalWindow {
 
         //Constructor Stuff
         var foldercontainer = this.getWidget("resourcecontainer");
-        var folderList = this.folderList = new Atomic.UIListView();
+        var folderList = this.folderList = new EngineCore.UIListView();
         folderList.rootList.id = "resourceList_";
         foldercontainer.addChild(folderList);
 
@@ -113,7 +113,7 @@ class ResourceSelection extends ModalWindow {
 
     }
 
-    handleWidgetEvent(ev: Atomic.UIWidgetEvent) {
+    handleWidgetEvent(ev: EngineCore.UIWidgetEvent) {
 
         if (ev.count >= 2) {
             var id = ev.target.id;
@@ -122,7 +122,7 @@ class ResourceSelection extends ModalWindow {
             }
         }
 
-        if (ev.type == Atomic.UI_EVENT_TYPE.UI_EVENT_TYPE_KEY_UP) {
+        if (ev.type == EngineCore.UI_EVENT_TYPE.UI_EVENT_TYPE_KEY_UP) {
 
             //Activates the search as the user types
             if (ev.target == this.searchEdit)
@@ -130,7 +130,7 @@ class ResourceSelection extends ModalWindow {
 
         }
 
-        if (ev.type == Atomic.UI_EVENT_TYPE.UI_EVENT_TYPE_CLICK) {
+        if (ev.type == EngineCore.UI_EVENT_TYPE.UI_EVENT_TYPE_CLICK) {
             var id = ev.target.id;
 
             if (id == "select") {
@@ -166,7 +166,7 @@ class ResourceSelection extends ModalWindow {
         if (this.resourceType == "Animation") {
 
           if (id.length) {
-              this.callback(Atomic.cache.getResource("Animation", id), this.args);
+              this.callback(EngineCore.cache.getResource("Animation", id), this.args);
               this.hide();
               return true;
           }

@@ -22,24 +22,24 @@
 
 import EditorUI = require("../EditorUI");
 
-class ProgressModal extends Atomic.UIWindow {
+class ProgressModal extends EngineCore.UIWindow {
 
     constructor(title: string, message: string) {
 
         super();
 
-        this.settings = Atomic.UI_WINDOW_SETTINGS.UI_WINDOW_SETTINGS_DEFAULT & ~Atomic.UI_WINDOW_SETTINGS.UI_WINDOW_SETTINGS_CLOSE_BUTTON;
+        this.settings = EngineCore.UI_WINDOW_SETTINGS.UI_WINDOW_SETTINGS_DEFAULT & ~EngineCore.UI_WINDOW_SETTINGS.UI_WINDOW_SETTINGS_CLOSE_BUTTON;
 
         this.text = title;
         this.load("editor/ui/progressmodal.tb.txt");
 
-        var messageField = <Atomic.UITextField> this.getWidget("message");
+        var messageField = <EngineCore.UITextField> this.getWidget("message");
         messageField.text = message;
 
         this.resizeToFitContent();
         this.center();
 
-        this.dimmer = new Atomic.UIDimmer();
+        this.dimmer = new EngineCore.UIDimmer();
 
     }
 
@@ -61,7 +61,7 @@ class ProgressModal extends Atomic.UIWindow {
 
     }
 
-    dimmer: Atomic.UIDimmer;
+    dimmer: EngineCore.UIDimmer;
 
 }
 

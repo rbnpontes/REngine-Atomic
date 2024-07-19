@@ -23,7 +23,7 @@
 import EditorUI = require("../ui/EditorUI");
 import Preferences = require("editor/Preferences");
 
-class EditorLicense extends Atomic.ScriptObject {
+class EditorLicense extends EngineCore.ScriptObject {
 
     constructor() {
 
@@ -43,10 +43,10 @@ class EditorLicense extends Atomic.ScriptObject {
 
     handleLicenseEulaAccepted(eventData) {
 
-        if (!Atomic.AtomicBuildInfo.getDistBuild())
+        if (!EngineCore.AtomicBuildInfo.getDistBuild())
             return;
 
-        var sha = Atomic.AtomicBuildInfo.getGitSHA();
+        var sha = EngineCore.AtomicBuildInfo.getGitSHA();
 
         if (sha == "Unversioned Build" || Preferences.getInstance().editorBuildData.lastEditorBuildSHA == sha)
             return;

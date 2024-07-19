@@ -29,7 +29,7 @@ import ResourceOps = require("../resources/ResourceOps");
 /**
  * Generic registry for storing Editor Extension Services
  */
-export class ServicesProvider<T extends Editor.Extensions.ServiceEventListener> implements Editor.Extensions.ServicesProvider<T> {
+export class ServicesProvider<T extends EngineEditor.Extensions.ServiceEventListener> implements EngineEditor.Extensions.ServicesProvider<T> {
     registeredServices: T[] = [];
 
     /**
@@ -53,13 +53,13 @@ export interface ServiceEventSubscriber {
      * Allow this service registry to subscribe to events that it is interested in
      * @param  {Atomic.UIWidget} topLevelWindow The top level window that will be receiving these events
      */
-    subscribeToEvents(topLevelWindow: Atomic.UIWidget);
+    subscribeToEvents(topLevelWindow: EngineCore.UIWidget);
 }
 
 /**
  * Registry for service extensions that are concerned about project events
  */
-export class ProjectServicesProvider extends ServicesProvider<Editor.HostExtensions.ProjectServicesEventListener> implements Editor.HostExtensions.ProjectServicesProvider {
+export class ProjectServicesProvider extends ServicesProvider<EngineEditor.HostExtensions.ProjectServicesEventListener> implements EngineEditor.HostExtensions.ProjectServicesProvider {
     constructor() {
         super();
     }
@@ -68,10 +68,10 @@ export class ProjectServicesProvider extends ServicesProvider<Editor.HostExtensi
      * Allow this service registry to subscribe to events that it is interested in
      * @param  {Atomic.UIWidget} topLevelWindow The top level window that will be receiving these events
      */
-    subscribeToEvents(eventDispatcher: Editor.Extensions.EventDispatcher) {
-        eventDispatcher.subscribeToEvent(Editor.LoadProjectNotificationEvent((ev) => this.projectLoaded(ev)));
-        eventDispatcher.subscribeToEvent(Editor.EditorCloseProjectEvent((ev) => this.projectUnloaded(ev)));
-        eventDispatcher.subscribeToEvent(Editor.EditorPlayRequestEvent(() => this.playerStarted()));
+    subscribeToEvents(eventDispatcher: EngineEditor.Extensions.EventDispatcher) {
+        eventDispatcher.subscribeToEvent(EngineEditor.LoadProjectNotificationEvent((ev) => this.projectLoaded(ev)));
+        eventDispatcher.subscribeToEvent(EngineEditor.EditorCloseProjectEvent((ev) => this.projectUnloaded(ev)));
+        eventDispatcher.subscribeToEvent(EngineEditor.EditorPlayRequestEvent(() => this.playerStarted()));
     }
 
     /**
@@ -97,7 +97,7 @@ export class ProjectServicesProvider extends ServicesProvider<Editor.HostExtensi
      * Called when the project is loaded
      * @param  {[type]} data Event info from the project unloaded event
      */
-    projectLoaded(ev: Editor.EditorLoadProjectEvent) {
+    projectLoaded(ev: EngineEditor.EditorLoadProjectEvent) {
         // Need to use a for loop and don't cache the length because the list of services *may* change while processing.  Extensions could be appended to the end
         for (let i = 0; i < this.registeredServices.length; i++) {
             let service = this.registeredServices[i];
@@ -188,7 +188,7 @@ export class ProjectServicesProvider extends ServicesProvider<Editor.HostExtensi
 /**
  * Registry for service extensions that are concerned about Resources
  */
-export class ResourceServicesProvider extends ServicesProvider<Editor.HostExtensions.ResourceServicesEventListener> implements Editor.HostExtensions.ResourceServicesProvider {
+export class ResourceServicesProvider extends ServicesProvider<EngineEditor.HostExtensions.ResourceServicesEventListener> implements EngineEditor.HostExtensions.ResourceServicesProvider {
     constructor() {
         super();
     }
@@ -197,11 +197,11 @@ export class ResourceServicesProvider extends ServicesProvider<Editor.HostExtens
      * Allow this service registry to subscribe to events that it is interested in
      * @param  {Atomic.UIWidget} topLevelWindow The top level window that will be receiving these events
      */
-    subscribeToEvents(eventDispatcher: Editor.Extensions.EventDispatcher) {
-        eventDispatcher.subscribeToEvent(Editor.EditorSaveResourceNotificationEvent((ev) => this.saveResource(ev)));
-        eventDispatcher.subscribeToEvent(Editor.EditorDeleteResourceNotificationEvent((ev) => this.deleteResource(ev)));
-        eventDispatcher.subscribeToEvent(Editor.EditorRenameResourceNotificationEvent((ev) => this.renameResource(ev)));
-        eventDispatcher.subscribeToEvent(Editor.EditorEditResourceEvent((ev) => this.editResource(ev)));
+    subscribeToEvents(eventDispatcher: EngineEditor.Extensions.EventDispatcher) {
+        eventDispatcher.subscribeToEvent(EngineEditor.EditorSaveResourceNotificationEvent((ev) => this.saveResource(ev)));
+        eventDispatcher.subscribeToEvent(EngineEditor.EditorDeleteResourceNotificationEvent((ev) => this.deleteResource(ev)));
+        eventDispatcher.subscribeToEvent(EngineEditor.EditorRenameResourceNotificationEvent((ev) => this.renameResource(ev)));
+        eventDispatcher.subscribeToEvent(EngineEditor.EditorEditResourceEvent((ev) => this.editResource(ev)));
 
     }
 
@@ -209,7 +209,7 @@ export class ResourceServicesProvider extends ServicesProvider<Editor.HostExtens
      * Called after a resource has been saved
      * @param  {Editor.EditorEvents.SaveResourceEvent} ev
      */
-    saveResource(ev: Editor.EditorSaveResourceEvent) {
+    saveResource(ev: EngineEditor.EditorSaveResourceEvent) {
         // run through and find any services that can handle this.
         this.registeredServices.forEach((service) => {
             try {
@@ -226,7 +226,7 @@ export class ResourceServicesProvider extends ServicesProvider<Editor.HostExtens
     /**
      * Called when a resource has been deleted
      */
-    deleteResource(ev: Editor.EditorDeleteResourceEvent) {
+    deleteResource(ev: EngineEditor.EditorDeleteResourceEvent) {
         this.registeredServices.forEach((service) => {
             try {
                 // Verify that the service contains the appropriate methods and that it can delete
@@ -243,7 +243,7 @@ export class ResourceServicesProvider extends ServicesProvider<Editor.HostExtens
      * Called when a resource has been renamed
      * @param  ev
      */
-    renameResource(ev: Editor.EditorRenameResourceNotificationEvent) {
+    renameResource(ev: EngineEditor.EditorRenameResourceNotificationEvent) {
         this.registeredServices.forEach((service) => {
             try {
                 // Verify that the service contains the appropriate methods and that it can handle the rename
@@ -260,7 +260,7 @@ export class ResourceServicesProvider extends ServicesProvider<Editor.HostExtens
      * Called when a resource is about to be edited
      * @param  {Editor.EditorEvents.EditResourceEvent} ev
      */
-    editResource(ev: Editor.EditorEditResourceEvent) {
+    editResource(ev: EngineEditor.EditorEditResourceEvent) {
         this.registeredServices.forEach((service) => {
             try {
                 // Verify that the service contains the appropriate methods and that it can handle the edit
@@ -288,7 +288,7 @@ export class ResourceServicesProvider extends ServicesProvider<Editor.HostExtens
 /**
  * Registry for service extensions that are concerned about Scenes
  */
-export class SceneServicesProvider extends ServicesProvider<Editor.HostExtensions.SceneServicesEventListener> implements Editor.HostExtensions.SceneServicesProvider {
+export class SceneServicesProvider extends ServicesProvider<EngineEditor.HostExtensions.SceneServicesEventListener> implements EngineEditor.HostExtensions.SceneServicesProvider {
     constructor() {
         super();
     }
@@ -297,16 +297,16 @@ export class SceneServicesProvider extends ServicesProvider<Editor.HostExtension
      * Allow this service registry to subscribe to events that it is interested in
      * @param  {Atomic.UIWidget} topLevelWindow The top level window that will be receiving these events
      */
-    subscribeToEvents(eventDispatcher: Editor.Extensions.EventDispatcher) {
-        eventDispatcher.subscribeToEvent(Editor.EditorActiveSceneEditorChangeEvent((ev) => this.activeSceneEditorChange(ev)));
-        eventDispatcher.subscribeToEvent(Editor.EditorSceneClosedEvent((ev) => this.sceneClosed(ev)));
+    subscribeToEvents(eventDispatcher: EngineEditor.Extensions.EventDispatcher) {
+        eventDispatcher.subscribeToEvent(EngineEditor.EditorActiveSceneEditorChangeEvent((ev) => this.activeSceneEditorChange(ev)));
+        eventDispatcher.subscribeToEvent(EngineEditor.EditorSceneClosedEvent((ev) => this.sceneClosed(ev)));
     }
 
     /**
      * Called after an active scene editor change
      * @param  {Editor.EditorEvents.ActiveSceneEditorChangeEvent} ev
      */
-    activeSceneEditorChange(ev: Editor.EditorActiveSceneEditorChangeEvent) {
+    activeSceneEditorChange(ev: EngineEditor.EditorActiveSceneEditorChangeEvent) {
         // run through and find any services that can handle this.
         this.registeredServices.forEach((service) => {
             try {
@@ -324,7 +324,7 @@ export class SceneServicesProvider extends ServicesProvider<Editor.HostExtension
      * Called after a scene is closed
      * @param  {Editor.EditorEvents.SceneClosedEvent} ev
      */
-    sceneClosed(ev: Editor.EditorSceneClosedEvent) {
+    sceneClosed(ev: EngineEditor.EditorSceneClosedEvent) {
         // run through and find any services that can handle this.
         this.registeredServices.forEach((service) => {
             try {
@@ -343,7 +343,7 @@ export class SceneServicesProvider extends ServicesProvider<Editor.HostExtension
  * Registry for service extensions that are concerned about and need access to parts of the editor user interface
  * Note: we may want to move this out into it's own file since it has a bunch of editor dependencies
  */
-export class UIServicesProvider extends ServicesProvider<Editor.HostExtensions.UIServicesEventListener> implements Editor.HostExtensions.UIServicesProvider {
+export class UIServicesProvider extends ServicesProvider<EngineEditor.HostExtensions.UIServicesEventListener> implements EngineEditor.HostExtensions.UIServicesProvider {
     constructor() {
         super();
     }
@@ -369,7 +369,7 @@ export class UIServicesProvider extends ServicesProvider<Editor.HostExtensions.U
      * @param  {any} items
      * @return {Atomic.UIMenuItemSource}
      */
-    createPluginMenuItemSource(id: string, items: any): Atomic.UIMenuItemSource {
+    createPluginMenuItemSource(id: string, items: any): EngineCore.UIMenuItemSource {
         return this.mainFrame.menu.createPluginMenuItemSource(id, items);
     }
 
@@ -386,7 +386,7 @@ export class UIServicesProvider extends ServicesProvider<Editor.HostExtensions.U
      * Returns the currently active resource editor or null
      * @return {Editor.ResourceEditor}
      */
-    getCurrentResourceEditor(): Editor.ResourceEditor {
+    getCurrentResourceEditor(): EngineEditor.ResourceEditor {
         return this.mainFrame.resourceframe.currentResourceEditor;
     }
 
@@ -396,8 +396,8 @@ export class UIServicesProvider extends ServicesProvider<Editor.HostExtensions.U
      * @param lineNumber optional line number to navigate to
      * @return {Editor.ResourceEditor}
      */
-    loadResourceEditor(resourcePath: string, lineNumber?: number): Editor.ResourceEditor {
-        this.mainFrame.resourceframe.sendEvent(Editor.EditorEditResourceEventData({path: resourcePath, lineNumber: lineNumber}));
+    loadResourceEditor(resourcePath: string, lineNumber?: number): EngineEditor.ResourceEditor {
+        this.mainFrame.resourceframe.sendEvent(EngineEditor.EditorEditResourceEventData({path: resourcePath, lineNumber: lineNumber}));
         return this.mainFrame.resourceframe.currentResourceEditor;
     }
 
@@ -407,7 +407,7 @@ export class UIServicesProvider extends ServicesProvider<Editor.HostExtensions.U
      * @param  {any} items
      * @return {Atomic.UIMenuItemSource}
      */
-    createHierarchyContextMenuItemSource(id: string, items: any): Atomic.UIMenuItemSource {
+    createHierarchyContextMenuItemSource(id: string, items: any): EngineCore.UIMenuItemSource {
         return this.mainFrame.hierarchyFrame.menu.createPluginItemSource(id, items);
     }
 
@@ -425,7 +425,7 @@ export class UIServicesProvider extends ServicesProvider<Editor.HostExtensions.U
      * @param  {any} items
      * @return {Atomic.UIMenuItemSource}
      */
-    createProjectContextMenuItemSource(id: string, items: any): Atomic.UIMenuItemSource {
+    createProjectContextMenuItemSource(id: string, items: any): EngineCore.UIMenuItemSource {
         return this.mainFrame.projectframe.menu.createPluginItemSource(id, items);
     }
 
@@ -448,7 +448,7 @@ export class UIServicesProvider extends ServicesProvider<Editor.HostExtensions.U
      * Loads Custom Inspector Widget
      * @param  {Atomic.UIWidget} customInspector
      */
-    loadCustomInspector(customInspector: Atomic.UIWidget) {
+    loadCustomInspector(customInspector: EngineCore.UIWidget) {
         if (this.inspectorFrame) {
             this.inspectorFrame.loadCustomInspectorWidget(customInspector);
         }
@@ -458,7 +458,7 @@ export class UIServicesProvider extends ServicesProvider<Editor.HostExtensions.U
      * Disaplays a modal window
      * @param  {Editor.Modal.ModalWindow} window
      */
-    showModalWindow(windowText: string, uifilename: string, handleWidgetEventCB: (ev: Atomic.UIWidgetEvent) => void): Editor.Modal.ExtensionWindow {
+    showModalWindow(windowText: string, uifilename: string, handleWidgetEventCB: (ev: EngineCore.UIWidgetEvent) => void): EngineEditor.Modal.ExtensionWindow {
         return this.modalOps.showExtensionWindow(windowText, uifilename, handleWidgetEventCB, true);
     }
 
@@ -466,7 +466,7 @@ export class UIServicesProvider extends ServicesProvider<Editor.HostExtensions.U
      * Disaplays a modal window
      * @param  {Editor.Modal.ModalWindow} window
      */
-    showNonModalWindow(windowText: string, uifilename: string, handleWidgetEventCB: (ev: Atomic.UIWidgetEvent) => void): Editor.Modal.ExtensionWindow {
+    showNonModalWindow(windowText: string, uifilename: string, handleWidgetEventCB: (ev: EngineCore.UIWidgetEvent) => void): EngineEditor.Modal.ExtensionWindow {
         return this.modalOps.showExtensionWindow(windowText, uifilename, handleWidgetEventCB, false);
     }
 
@@ -475,7 +475,7 @@ export class UIServicesProvider extends ServicesProvider<Editor.HostExtensions.U
      * @param  {string} windowText
      * @param  {string} message
      */
-    showModalError(windowText: string, message: string): Atomic.UIMessageWindow {
+    showModalError(windowText: string, message: string): EngineCore.UIMessageWindow {
         return this.modalOps.showError(windowText, message);
     }
 
@@ -497,7 +497,7 @@ export class UIServicesProvider extends ServicesProvider<Editor.HostExtensions.U
      * Will register a custom editor for a particular file type.
      * @param  {Editor.Extensions.ResourceEditorBuilder} editorBuilder
      */
-    registerCustomEditor(editorBuilder: Editor.Extensions.ResourceEditorBuilder) {
+    registerCustomEditor(editorBuilder: EngineEditor.Extensions.ResourceEditorBuilder) {
         this.mainFrame.resourceframe.resourceEditorProvider.registerCustomEditor(editorBuilder);
     }
 
@@ -505,7 +505,7 @@ export class UIServicesProvider extends ServicesProvider<Editor.HostExtensions.U
      * Will unregister a previously registered editor builder
      * @param  {Editor.Extensions.ResourceEditorBuilder} editorBuilder
      */
-    unregisterCustomEditor(editorBuilder: Editor.Extensions.ResourceEditorBuilder) {
+    unregisterCustomEditor(editorBuilder: EngineEditor.Extensions.ResourceEditorBuilder) {
         this.mainFrame.resourceframe.resourceEditorProvider.unregisterCustomEditor(editorBuilder);
     }
 
@@ -536,7 +536,7 @@ export class UIServicesProvider extends ServicesProvider<Editor.HostExtensions.U
      * @param  {string} refId
      * @type {boolean} return true if handled
      */
-    hierarchyContextItemClicked(node: Atomic.Node, refid: string): boolean {
+    hierarchyContextItemClicked(node: EngineCore.Node, refid: string): boolean {
         if (!node)
             return false;
 
@@ -637,7 +637,7 @@ export class UIServicesProvider extends ServicesProvider<Editor.HostExtensions.U
      * Allow this service registry to subscribe to events that it is interested in
      * @param  {Atomic.UIWidget} topLevelWindow The top level window that will be receiving these events
      */
-    subscribeToEvents(eventDispatcher: Editor.Extensions.EventDispatcher) {
+    subscribeToEvents(eventDispatcher: EngineEditor.Extensions.EventDispatcher) {
         // Placeholder for when UI events published by the editor need to be listened for
         eventDispatcher.subscribeToEvent(WebView.WebMessageEvent((ev) => this.handleWebMessage(ev)));
     }

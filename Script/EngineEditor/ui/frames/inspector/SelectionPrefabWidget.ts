@@ -24,55 +24,55 @@ import EditorUI = require("../../EditorUI");
 
 var breakMode = true;
 
-class SelectionPrefabWidget extends Atomic.UILayout {
+class SelectionPrefabWidget extends EngineCore.UILayout {
 
-    widgetLayout: Atomic.UILayout;
-    noticeLayout: Atomic.UILayout;
-    node: Atomic.Node;
+    widgetLayout: EngineCore.UILayout;
+    noticeLayout: EngineCore.UILayout;
+    node        : EngineCore.Node;
 
     constructor() {
 
         super();
 
-        var fd = new Atomic.UIFontDescription();
+        var fd = new EngineCore.UIFontDescription();
         fd.id = "Vera";
         fd.size = 11;
 
-        var widgetLayout = this.widgetLayout = new Atomic.UILayout();
-        var noticeLayout = this.noticeLayout = new Atomic.UILayout();
+        var widgetLayout = this.widgetLayout = new EngineCore.UILayout();
+        var noticeLayout = this.noticeLayout = new EngineCore.UILayout();
 
-        this.axis = Atomic.UI_AXIS.UI_AXIS_Y;
-        widgetLayout.layoutDistribution = Atomic.UI_LAYOUT_DISTRIBUTION.UI_LAYOUT_DISTRIBUTION_GRAVITY;
-        noticeLayout.layoutDistribution = Atomic.UI_LAYOUT_DISTRIBUTION.UI_LAYOUT_DISTRIBUTION_GRAVITY;
+        this.axis = EngineCore.UI_AXIS.UI_AXIS_Y;
+        widgetLayout.layoutDistribution = EngineCore.UI_LAYOUT_DISTRIBUTION.UI_LAYOUT_DISTRIBUTION_GRAVITY;
+        noticeLayout.layoutDistribution = EngineCore.UI_LAYOUT_DISTRIBUTION.UI_LAYOUT_DISTRIBUTION_GRAVITY;
 
-        var name = new Atomic.UITextField();
-        name.textAlign = Atomic.UI_TEXT_ALIGN.UI_TEXT_ALIGN_LEFT;
+        var name = new EngineCore.UITextField();
+        name.textAlign = EngineCore.UI_TEXT_ALIGN.UI_TEXT_ALIGN_LEFT;
         name.skinBg = "InspectorPrefabTextAttrName";
         name.text = "Prefab";
         name.fontDescription = fd;
 
-        var saveButton = new Atomic.UIButton();
+        var saveButton = new EngineCore.UIButton();
         saveButton.text = "Save";
         saveButton.fontDescription = fd;
 
         saveButton.onClick = () => {
 
-            this.node.scene.sendEvent(Editor.SceneEditPrefabSaveEventData({node : this.node}));
+            this.node.scene.sendEvent(EngineEditor.SceneEditPrefabSaveEventData({node : this.node}));
             return true;
         };
 
-        var undoButton = new Atomic.UIButton();
+        var undoButton = new EngineCore.UIButton();
         undoButton.text = "Revert";
         undoButton.fontDescription = fd;
 
         undoButton.onClick = () => {
 
-            this.node.scene.sendEvent(Editor.SceneEditPrefabRevertEventData({node : this.node}));
+            this.node.scene.sendEvent(EngineEditor.SceneEditPrefabRevertEventData({node : this.node}));
             return true;
 
         };
 
-        var breakButton = new Atomic.UIButton();
+        var breakButton = new EngineCore.UIButton();
         breakButton.text = "Edit Break";
         breakButton.toggleMode = true;
         breakButton.value = breakMode ? 1 : 0;
@@ -94,14 +94,14 @@ class SelectionPrefabWidget extends Atomic.UILayout {
 
         });
 
-        var noticeName = new Atomic.UITextField();
-        noticeName.textAlign = Atomic.UI_TEXT_ALIGN.UI_TEXT_ALIGN_LEFT;
+        var noticeName = new EngineCore.UITextField();
+        noticeName.textAlign = EngineCore.UI_TEXT_ALIGN.UI_TEXT_ALIGN_LEFT;
         noticeName.skinBg = "InspectorTextAttrName";
         noticeName.text = "Prefab";
         noticeName.fontDescription = fd;
 
-        var noticeText = new Atomic.UITextField();
-        noticeText.textAlign = Atomic.UI_TEXT_ALIGN.UI_TEXT_ALIGN_LEFT;
+        var noticeText = new EngineCore.UITextField();
+        noticeText.textAlign = EngineCore.UI_TEXT_ALIGN.UI_TEXT_ALIGN_LEFT;
         noticeText.skinBg = "InspectorTextAttrName";
         noticeText.text = "Multiple Selection";
         noticeText.fontDescription = fd;
@@ -117,11 +117,11 @@ class SelectionPrefabWidget extends Atomic.UILayout {
         this.addChild(this.widgetLayout);
         this.addChild(this.noticeLayout);
 
-        this.visibility = Atomic.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_GONE;
+        this.visibility = EngineCore.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_GONE;
 
     }
 
-    detectPrefab(node: Atomic.Node): boolean {
+    detectPrefab(node: EngineCore.Node): boolean {
 
         if (node.getComponent("PrefabComponent"))
             return true;
@@ -134,7 +134,7 @@ class SelectionPrefabWidget extends Atomic.UILayout {
     }
 
 
-    updateSelection(nodes: Atomic.Node[]) {
+    updateSelection(nodes: EngineCore.Node[]) {
 
         var hasPrefab = false;
         this.node = null;
@@ -150,20 +150,20 @@ class SelectionPrefabWidget extends Atomic.UILayout {
         }
 
         if (!hasPrefab) {
-            this.visibility = Atomic.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_GONE;
+            this.visibility = EngineCore.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_GONE;
             return;
         }
 
-        this.visibility = Atomic.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_VISIBLE;
+        this.visibility = EngineCore.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_VISIBLE;
 
         if (nodes.length > 1) {
-            this.noticeLayout.visibility = Atomic.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_VISIBLE;
-            this.widgetLayout.visibility = Atomic.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_GONE;
+            this.noticeLayout.visibility = EngineCore.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_VISIBLE;
+            this.widgetLayout.visibility = EngineCore.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_GONE;
             return;
         }
 
-        this.noticeLayout.visibility = Atomic.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_GONE;
-        this.widgetLayout.visibility = Atomic.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_VISIBLE;
+        this.noticeLayout.visibility = EngineCore.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_GONE;
+        this.widgetLayout.visibility = EngineCore.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_VISIBLE;
         this.node = nodes[0];
 
     }
@@ -171,34 +171,34 @@ class SelectionPrefabWidget extends Atomic.UILayout {
 
 }
 
-class ConfirmPrefabBreak extends Atomic.UIWindow {
+class ConfirmPrefabBreak extends EngineCore.UIWindow {
 
-    constructor(node:Atomic.Node) {
+    constructor(node:EngineCore.Node) {
 
         super();
 
         this.node = node;
 
-        this.settings = Atomic.UI_WINDOW_SETTINGS.UI_WINDOW_SETTINGS_DEFAULT & ~Atomic.UI_WINDOW_SETTINGS.UI_WINDOW_SETTINGS_CLOSE_BUTTON;
+        this.settings = EngineCore.UI_WINDOW_SETTINGS.UI_WINDOW_SETTINGS_DEFAULT & ~EngineCore.UI_WINDOW_SETTINGS.UI_WINDOW_SETTINGS_CLOSE_BUTTON;
 
         this.text = "Break Prefab Connection";
         this.load("editor/ui/breakprefab.tb.txt");
 
-        var message = <Atomic.UIEditField>this.getWidget("message");
+        var message = <EngineCore.UIEditField>this.getWidget("message");
         message.text = "Editing this node will break the prefab connection.\nThis operation cannot be undone, do you want to continue?";
 
         this.resizeToFitContent();
         this.center();
 
-        this.dimmer = new Atomic.UIDimmer();
+        this.dimmer = new EngineCore.UIDimmer();
 
-        this.subscribeToEvent(Atomic.UIWidgetEvent((ev) => { this.handleWidgetEvent(ev); }));
+        this.subscribeToEvent(EngineCore.UIWidgetEvent((ev) => { this.handleWidgetEvent(ev); }));
 
     }
 
-    handleWidgetEvent(ev: Atomic.UIWidgetEvent) {
+    handleWidgetEvent(ev: EngineCore.UIWidgetEvent) {
 
-        if (ev.type == Atomic.UI_EVENT_TYPE.UI_EVENT_TYPE_CLICK) {
+        if (ev.type == EngineCore.UI_EVENT_TYPE.UI_EVENT_TYPE_CLICK) {
 
             var id = ev.target.id;
 
@@ -206,7 +206,7 @@ class ConfirmPrefabBreak extends Atomic.UIWindow {
 
                 this.hide();
 
-                this.node.scene.sendEvent(Editor.SceneEditPrefabBreakEventData({node : this.node}));
+                this.node.scene.sendEvent(EngineEditor.SceneEditPrefabBreakEventData({node : this.node}));
 
                 return true;
             }
@@ -215,7 +215,7 @@ class ConfirmPrefabBreak extends Atomic.UIWindow {
 
                 this.hide();
 
-                this.node.scene.sendEvent(Editor.SceneEditPrefabRevertEventData({node : this.node}));
+                this.node.scene.sendEvent(EngineEditor.SceneEditPrefabRevertEventData({node : this.node}));
 
                 return true;
             }
@@ -241,8 +241,8 @@ class ConfirmPrefabBreak extends Atomic.UIWindow {
 
     }
 
-    node: Atomic.Node;
-    dimmer: Atomic.UIDimmer;
+    node    : EngineCore.Node;
+    dimmer  : EngineCore.UIDimmer;
 
 }
 

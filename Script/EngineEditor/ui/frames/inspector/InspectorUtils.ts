@@ -24,17 +24,16 @@ class InspectorUtils {
 
   private static Ctor = (() => {
 
-    var fd = InspectorUtils.attrFontDesc = new Atomic.UIFontDescription();
+    var fd = InspectorUtils.attrFontDesc = new EngineCore.UIFontDescription();
     fd.id = "Vera";
     fd.size = 11;
 
   })();
 
-  static createSeparator(parent:Atomic.UIWidget):Atomic.UISeparator {
+  static createSeparator(parent:EngineCore.UIWidget):EngineCore.UISeparator {
 
-    var sep = new Atomic.UISeparator();
-
-    sep.gravity = Atomic.UI_GRAVITY.UI_GRAVITY_LEFT_RIGHT;
+    var sep = new EngineCore.UISeparator();
+    sep.gravity = EngineCore.UI_GRAVITY.UI_GRAVITY_LEFT_RIGHT;
     sep.skinBg = "AESeparator";
 
     parent.addChild(sep);
@@ -42,9 +41,9 @@ class InspectorUtils {
 
   }
 
-  static createContainer():Atomic.UIContainer {
+  static createContainer():EngineCore.UIContainer {
 
-    var container = new Atomic.UIContainer();
+    var container = new EngineCore.UIContainer();
 
     container.skinBg = "AEContainer";
 
@@ -52,30 +51,30 @@ class InspectorUtils {
 
   }
 
-  static createAttrName(name:string):Atomic.UITextField {
+  static createAttrName(name:string):EngineCore.UITextField {
 
-    var nameField = new Atomic.UITextField();
-    nameField.textAlign = Atomic.UI_TEXT_ALIGN.UI_TEXT_ALIGN_LEFT;
+    var nameField = new EngineCore.UITextField();
+    nameField.textAlign = EngineCore.UI_TEXT_ALIGN.UI_TEXT_ALIGN_LEFT;
     nameField.skinBg = "InspectorTextAttrName";
     nameField.text = name;
     nameField.fontDescription = InspectorUtils.attrFontDesc;
 
     // atttribute name layout param
-    var atlp = new Atomic.UILayoutParams();
+    var atlp = new EngineCore.UILayoutParams();
     atlp.width = 120;
     nameField.layoutParams = atlp;
 
     return nameField;
   }
 
-  static createEditField():Atomic.UIEditField {
+  static createEditField():EngineCore.UIEditField {
 
-    var edit = new Atomic.UIEditField();
+    var edit = new EngineCore.UIEditField();
     edit.id = "editfield";
-    edit.textAlign = Atomic.UI_TEXT_ALIGN.UI_TEXT_ALIGN_LEFT;
+    edit.textAlign = EngineCore.UI_TEXT_ALIGN.UI_TEXT_ALIGN_LEFT;
     edit.skinBg = "TBAttrEditorField";
     edit.fontDescription = InspectorUtils.attrFontDesc;
-    var lp = new Atomic.UILayoutParams();
+    var lp = new EngineCore.UILayoutParams();
     lp.width = 160;
     lp.height = 24;
     edit.layoutParams = lp;
@@ -84,12 +83,12 @@ class InspectorUtils {
 
   }
 
-  static createColorWidget():Atomic.UIColorWidget {
+  static createColorWidget():EngineCore.UIColorWidget {
 
-    var colorWidget = new Atomic.UIColorWidget();
+    var colorWidget = new EngineCore.UIColorWidget();
     colorWidget.id = "colorfield";
 
-    var lp = new Atomic.UILayoutParams();
+    var lp = new EngineCore.UILayoutParams();
     lp.width = 160;
     lp.height = 24;
     colorWidget.layoutParams = lp;
@@ -99,13 +98,13 @@ class InspectorUtils {
   }
 
 
-  static createAttrEditField(name:string, parent:Atomic.UIWidget):Atomic.UIEditField {
+  static createAttrEditField(name:string, parent:EngineCore.UIWidget):EngineCore.UIEditField {
 
-    var attrLayout = new Atomic.UILayout();
+    var attrLayout = new EngineCore.UILayout();
 
-    attrLayout.layoutSize = Atomic.UI_LAYOUT_SIZE.UI_LAYOUT_SIZE_AVAILABLE;
-    attrLayout.gravity = Atomic.UI_GRAVITY.UI_GRAVITY_LEFT_RIGHT;
-    attrLayout.layoutDistribution = Atomic.UI_LAYOUT_DISTRIBUTION.UI_LAYOUT_DISTRIBUTION_GRAVITY;
+    attrLayout.layoutSize = EngineCore.UI_LAYOUT_SIZE.UI_LAYOUT_SIZE_AVAILABLE;
+    attrLayout.gravity = EngineCore.UI_GRAVITY.UI_GRAVITY_LEFT_RIGHT;
+    attrLayout.layoutDistribution = EngineCore.UI_LAYOUT_DISTRIBUTION.UI_LAYOUT_DISTRIBUTION_GRAVITY;
 
     var _name = InspectorUtils.createAttrName(name);
     attrLayout.addChild(_name);
@@ -119,18 +118,18 @@ class InspectorUtils {
 
   }
 
-  static createAttrCheckBox(name:string, parent:Atomic.UIWidget):{ textField:Atomic.UITextField, checkBox: Atomic.UICheckBox} {
+  static createAttrCheckBox(name:string, parent:EngineCore.UIWidget):{ textField:EngineCore.UITextField, checkBox: EngineCore.UICheckBox} {
 
-    var attrLayout = new Atomic.UILayout();
+    var attrLayout = new EngineCore.UILayout();
 
-    attrLayout.layoutSize = Atomic.UI_LAYOUT_SIZE.UI_LAYOUT_SIZE_AVAILABLE;
-    attrLayout.gravity = Atomic.UI_GRAVITY.UI_GRAVITY_LEFT_RIGHT;
-    attrLayout.layoutDistribution = Atomic.UI_LAYOUT_DISTRIBUTION.UI_LAYOUT_DISTRIBUTION_GRAVITY;
+    attrLayout.layoutSize = EngineCore.UI_LAYOUT_SIZE.UI_LAYOUT_SIZE_AVAILABLE;
+    attrLayout.gravity = EngineCore.UI_GRAVITY.UI_GRAVITY_LEFT_RIGHT;
+    attrLayout.layoutDistribution = EngineCore.UI_LAYOUT_DISTRIBUTION.UI_LAYOUT_DISTRIBUTION_GRAVITY;
 
     var _name = InspectorUtils.createAttrName(name);
     attrLayout.addChild(_name);
 
-    var checkBox = new Atomic.UICheckBox();
+    var checkBox = new EngineCore.UICheckBox();
 
     attrLayout.addChild(checkBox);
     parent.addChild(attrLayout);
@@ -140,22 +139,22 @@ class InspectorUtils {
   }
 
 
-  static createAttrEditFieldWithSelectButton(name:string, parent:Atomic.UIWidget):{editField:Atomic.UIEditField, selectButton:Atomic.UIButton} {
+  static createAttrEditFieldWithSelectButton(name:string, parent:EngineCore.UIWidget):{editField:EngineCore.UIEditField, selectButton:EngineCore.UIButton} {
 
-    var attrLayout = new Atomic.UILayout();
-    attrLayout.layoutDistributionPosition = Atomic.UI_LAYOUT_DISTRIBUTION_POSITION.UI_LAYOUT_DISTRIBUTION_POSITION_LEFT_TOP;
+    var attrLayout = new EngineCore.UILayout();
+    attrLayout.layoutDistributionPosition = EngineCore.UI_LAYOUT_DISTRIBUTION_POSITION.UI_LAYOUT_DISTRIBUTION_POSITION_LEFT_TOP;
 
     if (name) {
       var _name = InspectorUtils.createAttrName(name);
       attrLayout.addChild(_name);
     }
 
-    var fieldLayout = new Atomic.UILayout();
-    fieldLayout.layoutDistributionPosition = Atomic.UI_LAYOUT_DISTRIBUTION_POSITION.UI_LAYOUT_DISTRIBUTION_POSITION_LEFT_TOP;
+    var fieldLayout = new EngineCore.UILayout();
+    fieldLayout.layoutDistributionPosition = EngineCore.UI_LAYOUT_DISTRIBUTION_POSITION.UI_LAYOUT_DISTRIBUTION_POSITION_LEFT_TOP;
 
     var edit = InspectorUtils.createEditField();
 
-    var selectButton = new Atomic.UIButton();
+    var selectButton = new EngineCore.UIButton();
     selectButton.text = "...";
     selectButton.fontDescription = InspectorUtils.attrFontDesc;
 
@@ -169,22 +168,22 @@ class InspectorUtils {
 
   }
 
-  static createAttrColorFieldWithSelectButton(name:string, parent:Atomic.UIWidget):{colorWidget:Atomic.UIColorWidget, selectButton:Atomic.UIButton} {
+  static createAttrColorFieldWithSelectButton(name:string, parent:EngineCore.UIWidget):{colorWidget:EngineCore.UIColorWidget, selectButton:EngineCore.UIButton} {
 
-    var attrLayout = new Atomic.UILayout();
-    attrLayout.layoutDistributionPosition = Atomic.UI_LAYOUT_DISTRIBUTION_POSITION.UI_LAYOUT_DISTRIBUTION_POSITION_LEFT_TOP;
+    var attrLayout = new EngineCore.UILayout();
+    attrLayout.layoutDistributionPosition = EngineCore.UI_LAYOUT_DISTRIBUTION_POSITION.UI_LAYOUT_DISTRIBUTION_POSITION_LEFT_TOP;
 
     if (name) {
       var _name = InspectorUtils.createAttrName(name);
       attrLayout.addChild(_name);
     }
 
-    var fieldLayout = new Atomic.UILayout();
-    fieldLayout.layoutDistributionPosition = Atomic.UI_LAYOUT_DISTRIBUTION_POSITION.UI_LAYOUT_DISTRIBUTION_POSITION_LEFT_TOP;
+    var fieldLayout = new EngineCore.UILayout();
+    fieldLayout.layoutDistributionPosition = EngineCore.UI_LAYOUT_DISTRIBUTION_POSITION.UI_LAYOUT_DISTRIBUTION_POSITION_LEFT_TOP;
 
     var colorWidget = InspectorUtils.createColorWidget();
 
-    var selectButton = new Atomic.UIButton();
+    var selectButton = new EngineCore.UIButton();
     selectButton.text = "...";
     selectButton.fontDescription = InspectorUtils.attrFontDesc;
 
@@ -199,7 +198,7 @@ class InspectorUtils {
   }
 
   // "static constructor"
-  static attrFontDesc:Atomic.UIFontDescription;
+  static attrFontDesc:EngineCore.UIFontDescription;
 
 }
 

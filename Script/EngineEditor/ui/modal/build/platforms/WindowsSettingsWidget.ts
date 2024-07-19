@@ -22,7 +22,7 @@
 
 import BuildSettingsWindow = require("../BuildSettingsWindow");
 
-class WindowsSettingsWidget extends Atomic.UIWidget implements BuildSettingsWindow.BuildSettingsWidget {
+class WindowsSettingsWidget extends EngineCore.UIWidget implements BuildSettingsWindow.BuildSettingsWidget {
 
   constructor() {
 
@@ -32,10 +32,10 @@ class WindowsSettingsWidget extends Atomic.UIWidget implements BuildSettingsWind
 
       this.load("editor/ui/buildsettings_windows.tb.txt");
 
-      this.appNameEdit = <Atomic.UIEditField>this.getWidget("app_name");
-      this.packageNameEdit = <Atomic.UIEditField>this.getWidget("app_identifier");
-      this.productNameEdit = <Atomic.UIEditField>this.getWidget("product_name");
-      this.companyNameEdit = <Atomic.UIEditField>this.getWidget("company_name");
+      this.appNameEdit      = <EngineCore.UIEditField>this.getWidget("app_name");
+      this.packageNameEdit  = <EngineCore.UIEditField>this.getWidget("app_identifier");
+      this.productNameEdit  = <EngineCore.UIEditField>this.getWidget("product_name");
+      this.companyNameEdit  = <EngineCore.UIEditField>this.getWidget("company_name");
 
       this.refreshWidgets();
 
@@ -58,10 +58,10 @@ class WindowsSettingsWidget extends Atomic.UIWidget implements BuildSettingsWind
 
     }
 
-    appNameEdit: Atomic.UIEditField;
-    packageNameEdit: Atomic.UIEditField;
-    productNameEdit: Atomic.UIEditField;
-    companyNameEdit: Atomic.UIEditField;
+    appNameEdit     : EngineCore.UIEditField;
+    packageNameEdit : EngineCore.UIEditField;
+    productNameEdit : EngineCore.UIEditField;
+    companyNameEdit : EngineCore.UIEditField;
 
     settings: ToolCore.WindowsBuildSettings;
 

@@ -35,17 +35,17 @@ class CollisionShapeSectionUI extends SelectionSectionUI {
 
         this.editType = editType;
 
-        var button = new Atomic.UIButton();
+        var button = new EngineCore.UIButton();
         button.fontDescription = InspectorUtils.attrFontDesc;
-        button.gravity = Atomic.UI_GRAVITY.UI_GRAVITY_RIGHT;
+        button.gravity = EngineCore.UI_GRAVITY.UI_GRAVITY_RIGHT;
         button.text = "Set from StaticModel";
 
         button.onClick = () => {
 
             for (var i in this.editType.objects) {
 
-                var shape = <Atomic.CollisionShape>this.editType.objects[i];
-                var model = <Atomic.Drawable>shape.node.getComponent("StaticModel");
+                var shape = <EngineCore.CollisionShape>this.editType.objects[i];
+                var model = <EngineCore.Drawable>shape.node.getComponent("StaticModel");
 
                 if (model) {
                     var box = model.boundingBox;
@@ -68,9 +68,9 @@ class CubemapGeneratorSectionUI extends SelectionSectionUI {
 
         this.editType = editType;
 
-        var button = new Atomic.UIButton();
+        var button = new EngineCore.UIButton();
         button.fontDescription = InspectorUtils.attrFontDesc;
-        button.gravity = Atomic.UI_GRAVITY.UI_GRAVITY_RIGHT;
+        button.gravity = EngineCore.UI_GRAVITY.UI_GRAVITY_RIGHT;
         button.text = "Render Cubemap";
 
         button.onClick = () => {
@@ -81,19 +81,19 @@ class CubemapGeneratorSectionUI extends SelectionSectionUI {
 
             for (var i in this.editType.objects) {
 
-                var gen = <Editor.CubemapGenerator>this.editType.objects[i];
+                var gen = <EngineEditor.CubemapGenerator>this.editType.objects[i];
 
                 if (!scene) {
 
                     scene = gen.scene;
 
-                    this.subscribeToEvent(scene, Editor.CubemapRenderBeginEvent(() => {
+                    this.subscribeToEvent(scene, EngineEditor.CubemapRenderBeginEvent(() => {
 
                         count++;
 
                     }));
 
-                    this.subscribeToEvent(scene, Editor.CubemapRenderEndEvent(() => {
+                    this.subscribeToEvent(scene, EngineEditor.CubemapRenderEndEvent(() => {
 
                         count--;
 

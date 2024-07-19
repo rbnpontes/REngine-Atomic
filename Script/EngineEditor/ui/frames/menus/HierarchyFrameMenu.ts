@@ -25,11 +25,11 @@ import EditorUI = require("ui/EditorUI");
 import MenuItemSources = require("./MenuItemSources");
 import ServiceLocator from "../../../hostExtensions/ServiceLocator";
 
-class HierarchyFrameMenus extends Atomic.ScriptObject {
+class HierarchyFrameMenus extends EngineCore.ScriptObject {
 
     contentFolder: string;
 
-    private contextMenuItemSource: Atomic.UIMenuItemSource = null;
+    private contextMenuItemSource: EngineCore.UIMenuItemSource = null;
 
     constructor() {
 
@@ -38,19 +38,19 @@ class HierarchyFrameMenus extends Atomic.ScriptObject {
         MenuItemSources.createMenuItemSource("hierarchy create items", createItems);
         this.contextMenuItemSource = MenuItemSources.createMenuItemSource("node context general", nodeGeneralContextItems);
 
-        this.subscribeToEvent(Editor.ContentFolderChangedEvent((ev: Editor.ContentFolderChangedEvent) => {
+        this.subscribeToEvent(EngineEditor.ContentFolderChangedEvent((ev: EngineEditor.ContentFolderChangedEvent) => {
             this.contentFolder = ev.path;
         }));
 
     }
 
-    handlePopupMenu(target: Atomic.UIWidget, refid: string, node: Atomic.Node): boolean {
+    handlePopupMenu(target: EngineCore.UIWidget, refid: string, node: EngineCore.Node): boolean {
 
         if (!target || !refid) return false;
 
         if (target.id == "create popup") {
 
-            var child: Atomic.Node;
+            var child: EngineCore.Node;
 
             if (refid == "create_node") {
 
@@ -73,7 +73,7 @@ class HierarchyFrameMenus extends Atomic.ScriptObject {
             }
 
             if (child) {
-                child.scene.sendEvent(Editor.SceneEditNodeCreatedEventData({ node: child }));
+                child.scene.sendEvent(EngineEditor.SceneEditNodeCreatedEventData({ node: child }));
             }
 
             return true;
@@ -84,11 +84,11 @@ class HierarchyFrameMenus extends Atomic.ScriptObject {
 
     }
 
-    handleNodeContextMenu(target: Atomic.UIWidget, refid: string, editor: Editor.SceneEditor3D): boolean {
+    handleNodeContextMenu(target: EngineCore.UIWidget, refid: string, editor: EngineEditor.SceneEditor3D): boolean {
 
         if (target.id == "node context menu") {
 
-            var node = <Atomic.Node>target["node"];
+            var node = <EngineCore.Node>target["node"];
 
             if (!node) {
                 return false;
@@ -96,14 +96,14 @@ class HierarchyFrameMenus extends Atomic.ScriptObject {
 
             if (refid == "delete_node") {
 
-                if (node instanceof Atomic.Scene)
+                if (node instanceof EngineCore.Scene)
                     return;
 
                 var scene = node.scene;
-                scene.sendEvent(Editor.SceneEditAddRemoveNodesEventData({ end: false }));
-                scene.sendEvent(Editor.SceneEditNodeRemovedEventData({ node: node, parent: node.parent, scene: scene }));
+                scene.sendEvent(EngineEditor.SceneEditAddRemoveNodesEventData({ end: false }));
+                scene.sendEvent(EngineEditor.SceneEditNodeRemovedEventData({ node: node, parent: node.parent, scene: scene }));
                 node.remove();
-                scene.sendEvent(Editor.SceneEditAddRemoveNodesEventData({ end: true }));
+                scene.sendEvent(EngineEditor.SceneEditAddRemoveNodesEventData({ end: true }));
 
                 editor.selection.delete();
 
@@ -111,11 +111,11 @@ class HierarchyFrameMenus extends Atomic.ScriptObject {
 
             } else if (refid == "duplicate_node") {
 
-                if (node instanceof Atomic.Scene)
+                if (node instanceof EngineCore.Scene)
                     return;
 
                 var newnode = node.clone();
-                node.scene.sendEvent(Editor.SceneEditNodeCreatedEventData({ node: newnode }));
+                node.scene.sendEvent(EngineEditor.SceneEditNodeCreatedEventData({ node: newnode }));
 
                 return true;
             }
@@ -129,10 +129,10 @@ class HierarchyFrameMenus extends Atomic.ScriptObject {
     }
 
 
-    createNodeContextMenu(parent: Atomic.UIWidget, node: Atomic.Node, x: number, y: number) {
+    createNodeContextMenu(parent: EngineCore.UIWidget, node: EngineCore.Node, x: number, y: number) {
 
 
-        var menu = new Atomic.UIMenuWindow(parent, "node context menu");
+        var menu = new EngineCore.UIMenuWindow(parent, "node context menu");
 
         menu["node"] = node;
 
@@ -144,7 +144,7 @@ class HierarchyFrameMenus extends Atomic.ScriptObject {
 
     }
 
-    createPluginItemSource(id: string, items: any): Atomic.UIMenuItemSource {
+    createPluginItemSource(id: string, items: any): EngineCore.UIMenuItemSource {
         return MenuItemSources.createSubMenuItemSource(this.contextMenuItemSource , id, items);
     }
 

@@ -38,8 +38,8 @@ import "./SelectionSectionCoreUI";
 
 class InspectorFrame extends ScriptWidget {
 
-    scene: Atomic.Scene = null;
-    sceneEditor: Editor.SceneEditor3D;
+    scene: EngineCore.Scene = null;
+    sceneEditor: EngineEditor.SceneEditor3D;
 
     selectionInspector: SelectionInspector;
 
@@ -47,20 +47,20 @@ class InspectorFrame extends ScriptWidget {
 
         super();
 
-        this.gravity = Atomic.UI_GRAVITY.UI_GRAVITY_TOP_BOTTOM;
+        this.gravity = EngineCore.UI_GRAVITY.UI_GRAVITY_TOP_BOTTOM;
 
         this.load("editor/ui/inspectorframe.tb.txt");
 
         var container = this.getWidget("inspectorcontainer");
 
-        this.subscribeToEvent(Editor.EditorEditResourceEvent((data) => this.handleEditResource(data)));
-        this.subscribeToEvent(Editor.ProjectUnloadedNotificationEvent((data) => this.handleProjectUnloaded(data)));
+        this.subscribeToEvent(EngineEditor.EditorEditResourceEvent((data) => this.handleEditResource(data)));
+        this.subscribeToEvent(EngineEditor.ProjectUnloadedNotificationEvent((data) => this.handleProjectUnloaded(data)));
 
-        this.subscribeToEvent(Editor.EditorActiveSceneEditorChangeEvent((data) => this.handleActiveSceneEditorChanged(data)));
+        this.subscribeToEvent(EngineEditor.EditorActiveSceneEditorChangeEvent((data) => this.handleActiveSceneEditorChanged(data)));
 
     }
 
-    handleActiveSceneEditorChanged(event: Editor.EditorActiveSceneEditorChangeEvent) {
+    handleActiveSceneEditorChanged(event: EngineEditor.EditorActiveSceneEditorChangeEvent) {
 
         if (this.sceneEditor == event.sceneEditor) {
             return;
@@ -82,14 +82,14 @@ class InspectorFrame extends ScriptWidget {
 
         if (this.scene) {
 
-            this.subscribeToEvent(this.scene, Editor.SceneNodeSelectedEvent((event: Editor.SceneNodeSelectedEvent) => this.handleSceneNodeSelected(event)));
+            this.subscribeToEvent(this.scene, EngineEditor.SceneNodeSelectedEvent((event: EngineEditor.SceneNodeSelectedEvent) => this.handleSceneNodeSelected(event)));
 
             // add the current selection
             var selection = this.sceneEditor.selection;
 
             for (var i = 0; i < selection.getSelectedNodeCount(); i++) {
 
-                this.handleSceneNodeSelected( <Editor.SceneNodeSelectedEvent> { node: selection.getSelectedNode(i),  scene: this.scene, selected: true, quiet: true} );
+                this.handleSceneNodeSelected( <EngineEditor.SceneNodeSelectedEvent> { node: selection.getSelectedNode(i),  scene: this.scene, selected: true, quiet: true} );
 
             }
 
@@ -111,7 +111,7 @@ class InspectorFrame extends ScriptWidget {
 
     }
 
-    handleSceneNodeSelected(ev: Editor.SceneNodeSelectedEvent) {
+    handleSceneNodeSelected(ev: EngineEditor.SceneNodeSelectedEvent) {
 
         var selection = this.sceneEditor.selection;
 
@@ -150,7 +150,7 @@ class InspectorFrame extends ScriptWidget {
     }
 
 
-    handleEditResource(ev: Editor.EditorEditResourceEvent) {
+    handleEditResource(ev: EngineEditor.EditorEditResourceEvent) {
 
         var path = ev.path;
 
@@ -184,9 +184,9 @@ class InspectorFrame extends ScriptWidget {
 
         if (asset.importerTypeName == "MaterialImporter") {
 
-            var cache = Atomic.getResourceCache();
+            var cache = EngineCore.getResourceCache();
 
-            var material = <Atomic.Material>cache.getResource("Material", asset.path);
+            var material = <EngineCore.Material>cache.getResource("Material", asset.path);
 
             if (!material) {
                 return;
@@ -209,8 +209,8 @@ class InspectorFrame extends ScriptWidget {
         if (asset.importerTypeName == "TextureImporter") {
 
             var thumbnail = asset.cachePath + "_thumbnail.png";
-            var cache = Atomic.getResourceCache();
-            var texture = <Atomic.Texture2D>cache.getResource("Texture2D", thumbnail);
+            var cache = EngineCore.getResourceCache();
+            var texture = <EngineCore.Texture2D>cache.getResource("Texture2D", thumbnail);
 
             if (!texture) {
                 return;
@@ -237,7 +237,7 @@ class InspectorFrame extends ScriptWidget {
         }
     }
 
-    loadCustomInspectorWidget(rootWidget: Atomic.UIWidget) {
+    loadCustomInspectorWidget(rootWidget: EngineCore.UIWidget) {
 
         var container = this.getWidget("inspectorcontainer");
         container.deleteAllChildren();

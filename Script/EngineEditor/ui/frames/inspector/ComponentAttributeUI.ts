@@ -27,16 +27,16 @@ import SerializableEditType = require("./SerializableEditType");
 
 class LightCascadeAttributeEdit extends AttributeInfoEdit {
 
-    splitFields: Atomic.UIEditField[] = [];
+    splitFields: EngineCore.UIEditField[] = [];
 
     createEditWidget() {
 
-        var panel = new Atomic.UILayout();
-        panel.axis = Atomic.UI_AXIS.UI_AXIS_Y;
-        panel.layoutSize = Atomic.UI_LAYOUT_SIZE.UI_LAYOUT_SIZE_PREFERRED;
-        panel.layoutPosition = Atomic.UI_LAYOUT_POSITION.UI_LAYOUT_POSITION_LEFT_TOP;
+        var panel = new EngineCore.UILayout();
+        panel.axis              = EngineCore.UI_AXIS.UI_AXIS_Y;
+        panel.layoutSize        = EngineCore.UI_LAYOUT_SIZE.UI_LAYOUT_SIZE_PREFERRED;
+        panel.layoutPosition    = EngineCore.UI_LAYOUT_POSITION.UI_LAYOUT_POSITION_LEFT_TOP;
 
-        var lp = new Atomic.UILayoutParams();
+        var lp = new EngineCore.UILayoutParams();
         lp.width = 180;
         panel.layoutParams = lp;
 
@@ -46,29 +46,27 @@ class LightCascadeAttributeEdit extends AttributeInfoEdit {
 
         function createHandler(index, field) {
 
-            return function(ev: Atomic.UIWidgetEditCompleteEvent) {
+            return function(ev: EngineCore.UIWidgetEditCompleteEvent) {
 
                 for (var i in _this.editType.objects) {
-
-                    var o = <Atomic.Light>_this.editType.objects[i];
+                    var o = <EngineCore.Light>_this.editType.objects[i];
                     o.setShadowCascadeParameter(this.index, Number(this.field.text));
-
                 }
 
-                o.scene.sendEvent(Editor.SceneEditEndEventType);
+                o.scene.sendEvent(EngineEditor.SceneEditEndEventType);
                 _this.refresh();
 
             }.bind({ index: index, field: field });
 
         }
 
-        var flp = new Atomic.UILayoutParams();
+        var flp = new EngineCore.UILayoutParams();
         flp.width = 60;
 
         for (var i = 0; i < 4; i++) {
             var field = InspectorUtils.createAttrEditField("Split " + i, panel);
             field.layoutParams = flp;
-            field.subscribeToEvent(field, Atomic.UIWidgetEditCompleteEvent(createHandler(i, field)));
+            field.subscribeToEvent(field, EngineCore.UIWidgetEditCompleteEvent(createHandler(i, field)));
             this.splitFields.push(field);
         }
 
@@ -105,13 +103,10 @@ class LightCascadeAttributeEdit extends AttributeInfoEdit {
 
     }
 
-    handleWidgetEvent(ev: Atomic.UIWidgetEvent): boolean {
-
-        if (ev.type == Atomic.UI_EVENT_TYPE.UI_EVENT_TYPE_CHANGED) {
-
+    handleWidgetEvent(ev: EngineCore.UIWidgetEvent): boolean {
+        if (ev.type == EngineCore.UI_EVENT_TYPE.UI_EVENT_TYPE_CHANGED) {
             return true;
         }
-
         return false;
 
     }
@@ -122,8 +117,8 @@ interface MaterialEdit {
 
     index: number;
     pathReference: string;
-    editField: Atomic.UIEditField;
-    selectButton: Atomic.UIButton;
+    editField: EngineCore.UIEditField;
+    selectButton: EngineCore.UIButton;
 
 }
 
@@ -133,9 +128,9 @@ class SubmeshAttributeEdit extends AttributeInfoEdit {
 
     materialEdits: { [index: number]: MaterialEdit } = {};
 
-    mainLayout: Atomic.UILayout;
-    enabledCheckBox: Atomic.UICheckBox;
-    nameField: Atomic.UITextField;
+    mainLayout: EngineCore.UILayout;
+    enabledCheckBox: EngineCore.UICheckBox;
+    nameField: EngineCore.UITextField;
     name: string;
     matIndex: number;
 
@@ -160,19 +155,19 @@ class SubmeshAttributeEdit extends AttributeInfoEdit {
                 return;
             }
 
-            var resource: Atomic.Resource = null;
+            var resource: EngineCore.Resource = null;
 
             if (retObject instanceof ToolCore.Asset) {
 
                 resource = (<ToolCore.Asset>retObject).getResource(resourceTypeName);
 
-            } else if (retObject instanceof Atomic.Resource) {
+            } else if (retObject instanceof EngineCore.Resource) {
 
-                resource = <Atomic.Resource>retObject;
+                resource = <EngineCore.Resource>retObject;
 
             }
 
-            this.sendEvent(Editor.InspectorProjectReferenceEventData({ "path": resource.name }));
+            this.sendEvent(EngineEditor.InspectorProjectReferenceEventData({ "path": resource.name }));
             this.editType.onAttributeInfoEdited(this.attrInfo, resource, materialIndex);
             this.refresh();
 
@@ -184,7 +179,7 @@ class SubmeshAttributeEdit extends AttributeInfoEdit {
 
         var o = InspectorUtils.createAttrEditFieldWithSelectButton("Material", this.mainLayout);
 
-        var lp = new Atomic.UILayoutParams();
+        var lp = new EngineCore.UILayoutParams();
         lp.width = 140;
         lp.height = 24;
         o.editField.layoutParams = lp;
@@ -207,7 +202,7 @@ class SubmeshAttributeEdit extends AttributeInfoEdit {
         };
 
         // handle dropping of component on field
-        o.editField.subscribeToEvent(o.editField, Atomic.DragEndedEvent((ev: Atomic.DragEndedEvent) => {
+        o.editField.subscribeToEvent(o.editField, EngineCore.DragEndedEvent((ev: EngineCore.DragEndedEvent) => {
 
             if (ev.target == o.editField) {
 
@@ -228,7 +223,7 @@ class SubmeshAttributeEdit extends AttributeInfoEdit {
                 if (importer) {
 
                     var resource = asset.getResource(resourceTypeName);
-                    this.sendEvent(Editor.InspectorProjectReferenceEventData({ "path": resource.name }));
+                    this.sendEvent(EngineEditor.InspectorProjectReferenceEventData({ "path": resource.name }));
                     this.editType.onAttributeInfoEdited(this.attrInfo, resource, materialIndex);
                     this.refresh();
                 }
@@ -236,12 +231,12 @@ class SubmeshAttributeEdit extends AttributeInfoEdit {
 
         }));
 
-        o.editField.subscribeToEvent(o.editField, Atomic.UIWidgetEvent((ev: Atomic.UIWidgetEvent) => {
+        o.editField.subscribeToEvent(o.editField, EngineCore.UIWidgetEvent((ev: EngineCore.UIWidgetEvent) => {
 
-            if (ev.type == Atomic.UI_EVENT_TYPE.UI_EVENT_TYPE_POINTER_DOWN && o.editField.text != "") {
+            if (ev.type == EngineCore.UI_EVENT_TYPE.UI_EVENT_TYPE_POINTER_DOWN && o.editField.text != "") {
 
                 var pathName = materialEdit.pathReference;
-                this.sendEvent(Editor.InspectorProjectReferenceEventData({ "path": pathName }));
+                this.sendEvent(EngineEditor.InspectorProjectReferenceEventData({ "path": pathName }));
 
             } else if (o.editField.text == "") {
 
@@ -253,25 +248,25 @@ class SubmeshAttributeEdit extends AttributeInfoEdit {
 
     createEditWidget() {
 
-        var mainLayout = this.mainLayout = new Atomic.UILayout();
-        mainLayout.axis = Atomic.UI_AXIS.UI_AXIS_Y;
-        mainLayout.layoutSize = Atomic.UI_LAYOUT_SIZE.UI_LAYOUT_SIZE_AVAILABLE;
-        mainLayout.layoutPosition = Atomic.UI_LAYOUT_POSITION.UI_LAYOUT_POSITION_LEFT_TOP;
-        mainLayout.gravity = Atomic.UI_GRAVITY.UI_GRAVITY_LEFT_RIGHT;
-        mainLayout.layoutDistribution = Atomic.UI_LAYOUT_DISTRIBUTION.UI_LAYOUT_DISTRIBUTION_GRAVITY;
+        var mainLayout = this.mainLayout = new EngineCore.UILayout();
+        mainLayout.axis = EngineCore.UI_AXIS.UI_AXIS_Y;
+        mainLayout.layoutSize = EngineCore.UI_LAYOUT_SIZE.UI_LAYOUT_SIZE_AVAILABLE;
+        mainLayout.layoutPosition = EngineCore.UI_LAYOUT_POSITION.UI_LAYOUT_POSITION_LEFT_TOP;
+        mainLayout.gravity = EngineCore.UI_GRAVITY.UI_GRAVITY_LEFT_RIGHT;
+        mainLayout.layoutDistribution = EngineCore.UI_LAYOUT_DISTRIBUTION.UI_LAYOUT_DISTRIBUTION_GRAVITY;
 
         var cb = InspectorUtils.createAttrCheckBox(this.name, mainLayout);
         this.enabledCheckBox = cb.checkBox;
 
-        cb.checkBox.subscribeToEvent(cb.checkBox, Atomic.UIWidgetEvent((ev: Atomic.UIWidgetEvent) => {
+        cb.checkBox.subscribeToEvent(cb.checkBox, EngineCore.UIWidgetEvent((ev: EngineCore.UIWidgetEvent) => {
 
-            if (ev.type == Atomic.UI_EVENT_TYPE.UI_EVENT_TYPE_CHANGED) {
+            if (ev.type == EngineCore.UI_EVENT_TYPE.UI_EVENT_TYPE_CHANGED) {
 
-                var scene: Atomic.Scene;
+                var scene: EngineCore.Scene;
 
                 for (var i in this.editType.objects) {
 
-                    var staticModel = <Atomic.StaticModel>this.editType.objects[i];
+                    var staticModel = <EngineCore.StaticModel>this.editType.objects[i];
 
                     scene = staticModel.scene;
 
@@ -287,7 +282,7 @@ class SubmeshAttributeEdit extends AttributeInfoEdit {
 
                 }
 
-                scene.sendEvent(Editor.SceneEditEndEventType);
+                scene.sendEvent(EngineEditor.SceneEditEndEventType);
 
                 return true;
 
@@ -311,18 +306,18 @@ class SubmeshAttributeEdit extends AttributeInfoEdit {
         var object = this.editType.getFirstObject();
 
         if (!object) {
-            this.visibility = Atomic.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_GONE;
+            this.visibility = EngineCore.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_GONE;
             return;
         }
 
-        this.visibility = Atomic.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_VISIBLE;
+        this.visibility = EngineCore.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_VISIBLE;
 
-        var enabled = (<Atomic.StaticModel>object).getGeometryVisible(this.name);
+        var enabled = (<EngineCore.StaticModel>object).getGeometryVisible(this.name);
         var mixed = false;
         for (var i in editType.objects) {
 
             object = editType.objects[i];
-            var _enabled = (<Atomic.StaticModel>object).getGeometryVisible(this.name);
+            var _enabled = (<EngineCore.StaticModel>object).getGeometryVisible(this.name);
             if (_enabled != enabled) {
                 mixed = true;
                 break;
@@ -360,27 +355,27 @@ class SubmeshAttributeEdit extends AttributeInfoEdit {
                 if (object) {
 
                     // for cached resources, use the asset name, otherwise use the resource path name
-                    var resource: Atomic.Resource;
+                    var resource: EngineCore.Resource;
                     if (matEdit.index != -1) {
                         resource = object.getAttribute(this.attrInfo.name).resources[matEdit.index];
                     } else {
-                        resource = <Atomic.Resource>object.getAttribute(this.attrInfo.name);
+                        resource = <EngineCore.Resource>object.getAttribute(this.attrInfo.name);
                     }
 
                     var text = "";
 
                     if (resource) {
 
-                        if (resource instanceof Atomic.Material) {
+                        if (resource instanceof EngineCore.Material) {
 
-                            text = (<Atomic.Material>resource).name;
+                            text = (<EngineCore.Material>resource).name;
 
                         } else {
                             text = "???";
                         }
                     }
 
-                    var pathinfo = Atomic.splitPath(text);
+                    var pathinfo = EngineCore.splitPath(text);
                     matEdit.editField.text = pathinfo.fileName;
                     matEdit.pathReference = text;
                 }
@@ -398,7 +393,7 @@ class SubmeshAttributeEdit extends AttributeInfoEdit {
 
 class SubmeshListAttributeEdit extends AttributeInfoEdit {
 
-    layout: Atomic.UILayout;
+    layout: EngineCore.UILayout;
 
     submeshEdits: { [name: string]: SubmeshAttributeEdit } = {};
 
@@ -414,21 +409,21 @@ class SubmeshListAttributeEdit extends AttributeInfoEdit {
 
         this.spacing = 0;
 
-        var layout = this.layout = new Atomic.UILayout();
+        var layout = this.layout = new EngineCore.UILayout();
 
-        layout.axis = Atomic.UI_AXIS.UI_AXIS_Y;
+        layout.axis = EngineCore.UI_AXIS.UI_AXIS_Y;
         layout.spacing = 2;
-        layout.layoutSize = Atomic.UI_LAYOUT_SIZE.UI_LAYOUT_SIZE_AVAILABLE;
-        layout.layoutPosition = Atomic.UI_LAYOUT_POSITION.UI_LAYOUT_POSITION_LEFT_TOP;
-        layout.gravity = Atomic.UI_GRAVITY.UI_GRAVITY_LEFT_RIGHT;
-        layout.layoutDistribution = Atomic.UI_LAYOUT_DISTRIBUTION.UI_LAYOUT_DISTRIBUTION_GRAVITY;
+        layout.layoutSize = EngineCore.UI_LAYOUT_SIZE.UI_LAYOUT_SIZE_AVAILABLE;
+        layout.layoutPosition = EngineCore.UI_LAYOUT_POSITION.UI_LAYOUT_POSITION_LEFT_TOP;
+        layout.gravity = EngineCore.UI_GRAVITY.UI_GRAVITY_LEFT_RIGHT;
+        layout.layoutDistribution = EngineCore.UI_LAYOUT_DISTRIBUTION.UI_LAYOUT_DISTRIBUTION_GRAVITY;
 
-        var lp = new Atomic.UILayoutParams();
+        var lp = new EngineCore.UILayoutParams();
         lp.width = 304;
         layout.layoutParams = lp;
 
-        var name = new Atomic.UITextField();
-        name.textAlign = Atomic.UI_TEXT_ALIGN.UI_TEXT_ALIGN_LEFT;
+        var name = new EngineCore.UITextField();
+        name.textAlign = EngineCore.UI_TEXT_ALIGN.UI_TEXT_ALIGN_LEFT;
         name.skinBg = "InspectorTextAttrName";
         name.layoutParams = AttributeInfoEdit.attrNameLP;
         name.text = "Submeshes";
@@ -448,18 +443,18 @@ class SubmeshListAttributeEdit extends AttributeInfoEdit {
         var object = this.editType.getFirstObject();
 
         if (!object) {
-            this.visibility = Atomic.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_GONE;
+            this.visibility = EngineCore.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_GONE;
             return;
         }
 
-        this.visibility = Atomic.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_VISIBLE;
+        this.visibility = EngineCore.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_VISIBLE;
 
         var name: string;
         for (var i in editType.objects) {
 
             // TODO: check for multiple selection with different models and display multiple selection info box
 
-            var staticModel = <Atomic.StaticModel>editType.objects[i];
+            var staticModel = <EngineCore.StaticModel>editType.objects[i];
             var model = staticModel.model;
 
             if (!model)

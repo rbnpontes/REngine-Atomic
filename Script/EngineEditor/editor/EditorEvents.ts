@@ -22,7 +22,7 @@
 
 // These are exposed in EngineApp, but that module is not available to call until the player is playing
 // but we need the event names
-export const IPCPlayerExitRequestEventType: Atomic.EventType = "IPCPlayerExitRequest";
-export const IPCPlayerWindowChangedEventType: Atomic.EventType = "IPCPlayerWindowChanged";
-export const IPCPlayerPauseResumeRequestEventType: Atomic.EventType = "IPCPlayerPauseResumeRequest";
-export const IPCPlayerPauseStepRequestEventType: Atomic.EventType = "IPCPlayerPauseStepRequest";
+export const IPCPlayerExitRequestEventType          : EngineCore.EventType = "IPCPlayerExitRequest";
+export const IPCPlayerWindowChangedEventType        : EngineCore.EventType = "IPCPlayerWindowChanged";
+export const IPCPlayerPauseResumeRequestEventType   : EngineCore.EventType = "IPCPlayerPauseResumeRequest";
+export const IPCPlayerPauseStepRequestEventType     : EngineCore.EventType = "IPCPlayerPauseStepRequest";

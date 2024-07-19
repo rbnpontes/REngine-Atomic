@@ -22,31 +22,31 @@
 
 import InspectorUtils = require("./InspectorUtils");
 
-class ArrayEditWidget extends Atomic.UILayout {
+class ArrayEditWidget extends EngineCore.UILayout {
 
     constructor(title: string) {
 
         super();
 
-        var nlp = new Atomic.UILayoutParams();
+        var nlp = new EngineCore.UILayoutParams();
         nlp.width = 310;
 
         this.spacing = 4;
 
-        this.layoutDistribution = Atomic.UI_LAYOUT_DISTRIBUTION.UI_LAYOUT_DISTRIBUTION_GRAVITY;
-        this.layoutPosition = Atomic.UI_LAYOUT_POSITION.UI_LAYOUT_POSITION_LEFT_TOP;
+        this.layoutDistribution     = EngineCore.UI_LAYOUT_DISTRIBUTION.UI_LAYOUT_DISTRIBUTION_GRAVITY;
+        this.layoutPosition         = EngineCore.UI_LAYOUT_POSITION.UI_LAYOUT_POSITION_LEFT_TOP;
         this.layoutParams = nlp;
-        this.axis = Atomic.UI_AXIS.UI_AXIS_Y;
+        this.axis       = EngineCore.UI_AXIS.UI_AXIS_Y;
 
-        this.gravity = Atomic.UI_GRAVITY.UI_GRAVITY_ALL;
+        this.gravity    = EngineCore.UI_GRAVITY.UI_GRAVITY_ALL;
 
         var countEdit = this.countEdit = InspectorUtils.createAttrEditField(title, this);
 
         InspectorUtils.createSeparator(this);
 
-        this.countEditField = <Atomic.UIEditField>countEdit.getWidget("editfield");
+        this.countEditField = <EngineCore.UIEditField>countEdit.getWidget("editfield");
 
-        this.subscribeToEvent(this.countEditField, Atomic.UIWidgetEditCompleteEvent((ev) => this.handleUIWidgetEditCompleteEvent(ev)));
+        this.subscribeToEvent(this.countEditField, EngineCore.UIWidgetEditCompleteEvent((ev) => this.handleUIWidgetEditCompleteEvent(ev)));
 
     }
 
@@ -64,11 +64,11 @@ class ArrayEditWidget extends Atomic.UILayout {
 
     }
 
-    countEdit: Atomic.UIEditField;
+    countEdit: EngineCore.UIEditField;
 
     onCountChanged: (count: number) => void;
 
-    countEditField: Atomic.UIEditField;
+    countEditField: EngineCore.UIEditField;
 
 }
 

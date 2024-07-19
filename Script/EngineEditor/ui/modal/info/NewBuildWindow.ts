@@ -30,7 +30,7 @@ class NewBuildWindow extends ModalWindow {
 
         super();
 
-        this.settings = Atomic.UI_WINDOW_SETTINGS.UI_WINDOW_SETTINGS_DEFAULT & ~Atomic.UI_WINDOW_SETTINGS.UI_WINDOW_SETTINGS_CLOSE_BUTTON;
+        this.settings = EngineCore.UI_WINDOW_SETTINGS.UI_WINDOW_SETTINGS_DEFAULT & ~EngineCore.UI_WINDOW_SETTINGS.UI_WINDOW_SETTINGS_CLOSE_BUTTON;
 
         // we're not calling this.init here as it calls resizeToFitContent
         // and center, which screw up the generated About text being resized
@@ -38,15 +38,15 @@ class NewBuildWindow extends ModalWindow {
         this.text = showCheck ? "New Build Detected" : "Latest Updates";
         this.load("editor/ui/newbuildwindow.tb.txt");
 
-        this.newbuild_text = <Atomic.UIEditField>this.getWidget("newbuild_text");
+        this.newbuild_text = <EngineCore.UIEditField>this.getWidget("newbuild_text");
         this.newbuild_text.text = this.generateNewBuildText();
 
-        this.newBuildCheck = <Atomic.UICheckBox> this.getWidget("newbuild_check");
+        this.newBuildCheck = <EngineCore.UICheckBox> this.getWidget("newbuild_check");
 
         if (!showCheck) {
 
-            this.getWidget("newbuild_check_text").visibility = Atomic.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_GONE;
-            this.newBuildCheck.visibility = Atomic.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_GONE;
+            this.getWidget("newbuild_check_text").visibility = EngineCore.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_GONE;
+            this.newBuildCheck.visibility = EngineCore.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_GONE;
         }
 
         this.resizeToFitContent();
@@ -54,15 +54,15 @@ class NewBuildWindow extends ModalWindow {
 
     }
 
-    handleWidgetEvent(ev: Atomic.UIWidgetEvent) {
+    handleWidgetEvent(ev: EngineCore.UIWidgetEvent) {
 
-        if (ev.type == Atomic.UI_EVENT_TYPE.UI_EVENT_TYPE_CLICK) {
+        if (ev.type == EngineCore.UI_EVENT_TYPE.UI_EVENT_TYPE_CLICK) {
 
             var id = ev.target.id;
 
             if (id == "cfi") {
 
-                Atomic.fileSystem.systemOpen("http://www.atomicgameengine.com/funding/");
+                EngineCore.fileSystem.systemOpen("http://www.atomicgameengine.com/funding/");
             }
 
             if (id == "ok") {
@@ -71,7 +71,7 @@ class NewBuildWindow extends ModalWindow {
 
                 if (this.newBuildCheck.value) {
 
-                    Preferences.getInstance().editorBuildData.lastEditorBuildSHA = Atomic.AtomicBuildInfo.getGitSHA();
+                    Preferences.getInstance().editorBuildData.lastEditorBuildSHA = EngineCore.AtomicBuildInfo.getGitSHA();
                     Preferences.getInstance().write();
 
                 }
@@ -89,7 +89,7 @@ class NewBuildWindow extends ModalWindow {
         text += `
 <color #D4FB79>Hello and thanks for installing a new build of the Atomic Editor!</color>
 
-Atomic Build 2 - <color #AAAAAA>(Git SHA: ${Atomic.AtomicBuildInfo.getGitSHA()})</color>
+Atomic Build 2 - <color #AAAAAA>(Git SHA: ${EngineCore.AtomicBuildInfo.getGitSHA()})</color>
 
 <color #D4FB79>Closed Issues</color>
 
@@ -139,8 +139,8 @@ Atomic Build 2 - <color #AAAAAA>(Git SHA: ${Atomic.AtomicBuildInfo.getGitSHA()})
 
     }
 
-    newbuild_text: Atomic.UIEditField;
-    newBuildCheck: Atomic.UICheckBox;
+    newbuild_text: EngineCore.UIEditField;
+    newBuildCheck: EngineCore.UICheckBox;
 
 }
 

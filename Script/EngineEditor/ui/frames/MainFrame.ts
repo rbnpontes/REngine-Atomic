@@ -41,12 +41,12 @@ class MainFrame extends ScriptWidget {
 
         this.load("editor/ui/mainframe.tb.txt");
 
-        this.inspectorlayout = <Atomic.UILayout> this.getWidget("inspectorlayout");
+        this.inspectorlayout = <EngineCore.UILayout> this.getWidget("inspectorlayout");
 
-        this.getWidget("consolecontainer").visibility = Atomic.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_GONE;
+        this.getWidget("consolecontainer").visibility = EngineCore.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_GONE;
 
-        this.statusText = <Atomic.UIEditField>this.getWidget("editorStatusText");
-        this.statusText.subscribeToEvent(Atomic.UpdateEvent((ev) => this.handleStatusAging(ev)));
+        this.statusText = <EngineCore.UIEditField>this.getWidget("editorStatusText");
+        this.statusText.subscribeToEvent(EngineCore.UpdateEvent((ev) => this.handleStatusAging(ev)));
 
         this.inspectorframe = new InspectorFrame();
         this.inspectorlayout.addChild(this.inspectorframe);
@@ -63,14 +63,14 @@ class MainFrame extends ScriptWidget {
 
         this.disableProjectMenus();
 
-        this.subscribeToEvent(Editor.EditorResourceEditorChangedEvent((data) => this.handleResourceEditorChanged(data)));
+        this.subscribeToEvent(EngineEditor.EditorResourceEditorChangedEvent((data) => this.handleResourceEditorChanged(data)));
 
         this.subscribeToEvent(ToolCore.ProjectLoadedEvent((data) => {
             this.showWelcomeFrame(false);
             this.enableProjectMenus();
         }));
 
-        this.subscribeToEvent(Editor.ProjectUnloadedNotificationEvent((data) => {
+        this.subscribeToEvent(EngineEditor.ProjectUnloadedNotificationEvent((data) => {
             this.showWelcomeFrame(true);
             this.disableProjectMenus();
         }));
@@ -79,9 +79,9 @@ class MainFrame extends ScriptWidget {
 
     }
 
-    frameVisible(frame: Atomic.UIWidget): boolean {
+    frameVisible(frame: EngineCore.UIWidget): boolean {
 
-        var container = <Atomic.UILayout> this.getWidget("resourceviewcontainer");
+        var container = <EngineCore.UILayout> this.getWidget("resourceviewcontainer");
 
         var child = null;
         for (child = container.firstChild; child; child = child.next) {
@@ -96,13 +96,13 @@ class MainFrame extends ScriptWidget {
 
         if (show) {
             this.showInspectorFrame(false);
-            this.welcomeFrame.visibility = Atomic.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_VISIBLE;
-            this.resourceframe.visibility = Atomic.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_GONE;
+            this.welcomeFrame.visibility    = EngineCore.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_VISIBLE;
+            this.resourceframe.visibility   = EngineCore.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_GONE;
         }
         else {
             this.showInspectorFrame(true);
-            this.resourceframe.visibility = Atomic.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_VISIBLE;
-            this.welcomeFrame.visibility = Atomic.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_GONE;
+            this.resourceframe.visibility   = EngineCore.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_VISIBLE;
+            this.welcomeFrame.visibility    = EngineCore.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_GONE;
         }
 
     }
@@ -111,19 +111,19 @@ class MainFrame extends ScriptWidget {
 
         if (show) {
 
-            this.inspectorlayout.visibility = Atomic.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_VISIBLE;
-            this.inspectorframe.visibility = Atomic.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_VISIBLE;
+            this.inspectorlayout.visibility = EngineCore.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_VISIBLE;
+            this.inspectorframe.visibility  = EngineCore.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_VISIBLE;
 
         } else {
 
-            this.inspectorframe.visibility = Atomic.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_GONE;
-            this.inspectorlayout.visibility = Atomic.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_GONE;
+            this.inspectorframe.visibility  = EngineCore.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_GONE;
+            this.inspectorlayout.visibility = EngineCore.UI_WIDGET_VISIBILITY.UI_WIDGET_VISIBILITY_GONE;
 
         }
 
     }
 
-    onEventClick(target: Atomic.UIWidget, refid: string): boolean {
+    onEventClick(target: EngineCore.UIWidget, refid: string): boolean {
 
         if (this.menu.handlePopupMenu(target, refid))
             return true;
@@ -132,7 +132,7 @@ class MainFrame extends ScriptWidget {
 
         if (src) {
 
-            var menu = new Atomic.UIMenuWindow(target, target.id + " popup");
+            var menu = new EngineCore.UIMenuWindow(target, target.id + " popup");
             menu.show(src);
             return true;
 
@@ -143,13 +143,13 @@ class MainFrame extends ScriptWidget {
     }
 
     disableProjectMenus() {
-        this.getWidget("menu edit").setStateRaw(Atomic.UI_WIDGET_STATE.UI_WIDGET_STATE_DISABLED);
-        this.getWidget("menu build").setStateRaw(Atomic.UI_WIDGET_STATE.UI_WIDGET_STATE_DISABLED);
+        this.getWidget("menu edit").setStateRaw(EngineCore.UI_WIDGET_STATE.UI_WIDGET_STATE_DISABLED);
+        this.getWidget("menu build").setStateRaw(EngineCore.UI_WIDGET_STATE.UI_WIDGET_STATE_DISABLED);
     }
 
     enableProjectMenus() {
-        this.getWidget("menu edit").setStateRaw(Atomic.UI_WIDGET_STATE.UI_WIDGET_STATE_NONE);
-        this.getWidget("menu build").setStateRaw(Atomic.UI_WIDGET_STATE.UI_WIDGET_STATE_NONE);
+        this.getWidget("menu edit").setStateRaw(EngineCore.UI_WIDGET_STATE.UI_WIDGET_STATE_NONE);
+        this.getWidget("menu build").setStateRaw(EngineCore.UI_WIDGET_STATE.UI_WIDGET_STATE_NONE);
     }
 
     shutdown() {
@@ -159,7 +159,7 @@ class MainFrame extends ScriptWidget {
 
     }
 
-    handleResourceEditorChanged(data: Editor.EditorResourceEditorChangedEvent): void {
+    handleResourceEditorChanged(data: EngineEditor.EditorResourceEditorChangedEvent): void {
 
         var editor = data.resourceEditor;
 
@@ -204,11 +204,11 @@ class MainFrame extends ScriptWidget {
     inspectorframe: InspectorFrame;
     hierarchyFrame: HierarchyFrame;
     welcomeFrame: WelcomeFrame;
-    inspectorlayout: Atomic.UILayout;
+    inspectorlayout: EngineCore.UILayout;
     mainToolbar: MainToolbar;
     animationToolbar: AnimationToolbar;
     menu: MainFrameMenu;
-    statusText: Atomic.UIEditField;
+    statusText: EngineCore.UIEditField;
     updateDelta: number;
 }
 

@@ -22,7 +22,7 @@
 
 import BuildSettingsWindow = require("../BuildSettingsWindow");
 
-class IOSSettingsWidget extends Atomic.UIWidget implements BuildSettingsWindow.BuildSettingsWidget {
+class IOSSettingsWidget extends EngineCore.UIWidget implements BuildSettingsWindow.BuildSettingsWidget {
 
     constructor() {
 
@@ -32,17 +32,17 @@ class IOSSettingsWidget extends Atomic.UIWidget implements BuildSettingsWindow.B
 
         this.settings = ToolCore.toolSystem.project.buildSettings.iOSBuildSettings;
 
-        this.appNameEdit = <Atomic.UIEditField>this.getWidget("app_name");
-        this.packageNameEdit = <Atomic.UIEditField>this.getWidget("app_package");
-        this.productNameEdit = <Atomic.UIEditField>this.getWidget("product_name");
-        this.companyNameEdit = <Atomic.UIEditField>this.getWidget("company_name");
+        this.appNameEdit        = <EngineCore.UIEditField>this.getWidget("app_name");
+        this.packageNameEdit    = <EngineCore.UIEditField>this.getWidget("app_package");
+        this.productNameEdit    = <EngineCore.UIEditField>this.getWidget("product_name");
+        this.companyNameEdit    = <EngineCore.UIEditField>this.getWidget("company_name");
 
-        this.provisionPathEdit = <Atomic.UIEditField>this.getWidget("provision_path");
-        this.appIDPrefixField = <Atomic.UITextField>this.getWidget("appid_prefix");
+        this.provisionPathEdit  = <EngineCore.UIEditField>this.getWidget("provision_path");
+        this.appIDPrefixField   = <EngineCore.UITextField>this.getWidget("appid_prefix");
 
         this.refreshWidgets();
 
-        this.subscribeToEvent(this, Atomic.UIWidgetEvent((ev) => this.handleWidgetEvent(ev)));
+        this.subscribeToEvent(this, EngineCore.UIWidgetEvent((ev) => this.handleWidgetEvent(ev)));
 
     }
 
@@ -58,13 +58,13 @@ class IOSSettingsWidget extends Atomic.UIWidget implements BuildSettingsWindow.B
 
     }
 
-    handleWidgetEvent(ev: Atomic.UIWidgetEvent): boolean {
+    handleWidgetEvent(ev: EngineCore.UIWidgetEvent): boolean {
 
-        if (ev.type == Atomic.UI_EVENT_TYPE.UI_EVENT_TYPE_CLICK) {
+        if (ev.type == EngineCore.UI_EVENT_TYPE.UI_EVENT_TYPE_CLICK) {
 
             if (ev.target.id == "choose_provision_path") {
 
-              var fileUtils = new Editor.FileUtils();
+              var fileUtils = new EngineEditor.FileUtils();
               var path = fileUtils.getMobileProvisionPath();
 
               if (path.length) {
@@ -103,13 +103,13 @@ class IOSSettingsWidget extends Atomic.UIWidget implements BuildSettingsWindow.B
 
     settings: ToolCore.IOSBuildSettings;
 
-    appNameEdit: Atomic.UIEditField;
-    packageNameEdit: Atomic.UIEditField;
-    productNameEdit: Atomic.UIEditField;
-    companyNameEdit: Atomic.UIEditField;
+    appNameEdit         : EngineCore.UIEditField;
+    packageNameEdit     : EngineCore.UIEditField;
+    productNameEdit     : EngineCore.UIEditField;
+    companyNameEdit     : EngineCore.UIEditField;
 
-    provisionPathEdit: Atomic.UIEditField;
-    appIDPrefixField: Atomic.UITextField;
+    provisionPathEdit   : EngineCore.UIEditField;
+    appIDPrefixField    : EngineCore.UITextField;
 
 }
 
