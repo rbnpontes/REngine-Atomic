@@ -1,9 +1,9 @@
-/// <reference path="EngineCore.d.ts" />
-/// <reference path="ToolCore.d.ts" />
-/// <reference path="EngineEditor.d.ts" />
-/// <reference path="EnginePlayer.d.ts" />
+/// <reference path="../../Artifacts/Build/TypeScript/EngineCore.d.ts" />
+/// <reference path="../../Artifacts/Build/TypeScript/ToolCore.d.ts" />
+/// <reference path="../../Artifacts/Build/TypeScript/EngineEditor.d.ts" />
+/// <reference path="../../Artifacts/Build/TypeScript/EnginePlayer.d.ts" />
 
-declare module Atomic {
+declare module EngineCore {
 
     export function print(...args: any[]);
 
@@ -22,7 +22,7 @@ declare module Atomic {
     export var audio: Audio;
     export var player: EnginePlayer.Player;
 
-    export var editorMode: Editor.EditorMode;
+    export var editorMode: EngineEditor.EditorMode;
 
     // end subsystems
 
@@ -60,14 +60,14 @@ declare module Atomic {
      * @param eventType The type of event to wrap
      * @param callback A callback to call when the event is fired
      */
-    export function ScriptEvent<T extends Atomic.EventMetaData>(eventType: string, callback: Atomic.EventCallback<T>): Atomic.EventMetaData;
+    export function ScriptEvent<T extends EngineCore.EventMetaData>(eventType: string, callback: EngineCore.EventCallback<T>): EngineCore.EventMetaData;
 
     /**
      * Utility function to wrap up event data to pass to sendEvent
      * @param eventType The type of event to wrap
      * @param callbackData The data to pass to the event subscriber
      */
-    export function ScriptEventData<T extends Atomic.EventData>(eventType: string, callbackData?: T): Atomic.EventCallbackMetaData;
+    export function ScriptEventData<T extends EngineCore.EventData>(eventType: string, callbackData?: T): EngineCore.EventCallbackMetaData;
 
     export interface PathInfo {
 
@@ -79,27 +79,27 @@ declare module Atomic {
 
     export interface Ray {
         /** Ray origin */
-        origin: Atomic.Vector3;
+        origin: EngineCore.Vector3;
 
         /** Ray direction */
-        direction: Atomic.Vector3;
+        direction: EngineCore.Vector3;
     }
 
     export interface Camera {
-        getScreenRay(x: number, y: number): Atomic.Ray;
+        getScreenRay(x: number, y: number): EngineCore.Ray;
     }
 
     export interface Octree {
         /**
          * Cast a ray returing a single hit
-         * @param  {Atomic.Ray} ray
-         * @param  {Atomic.RayQueryLevel} level defaults to Atomic.RAY_TRIANGLE
+         * @param  {EngineCore.Ray} ray
+         * @param  {EngineCore.RayQueryLevel} level defaults to Atomic.RAY_TRIANGLE
          * @param  {number} maxDistance defaults to Atomic.M_INFINITY
          * @param  {number} drawableFlags defaults to Atomic.DRAWABLE_ANY
          * @param  {number} viewMask defaults to Atomic.DEFAULT_VIEWMASK
-         * @return {Atomic.RayQueryResult}
+         * @return {EngineCore.RayQueryResult}
          */
-        rayCastSingle(ray: Atomic.Ray, level?: Atomic.RayQueryLevel, maxDistance?: number, drawableFlags?: number, viewMask?: number):Atomic.RayQueryResult;
+        rayCastSingle(ray: EngineCore.Ray, level?: EngineCore.RayQueryLevel, maxDistance?: number, drawableFlags?: number, viewMask?: number):EngineCore.RayQueryResult;
 
         /**
          * Cast a ray returning all hits
@@ -110,18 +110,18 @@ declare module Atomic {
          * @param  {number} viewMask defaults to Atomic.DEFAULT_VIEWMASK
          * @return {Atomic.RayQueryResult}
          */
-        rayCast(ray: Atomic.Ray, level?: Atomic.RayQueryLevel, maxDistance?: number, drawableFlags?: number, viewMask?: number):Atomic.RayQueryResult[];
+        rayCast(ray: EngineCore.Ray, level?: EngineCore.RayQueryLevel, maxDistance?: number, drawableFlags?: number, viewMask?: number):EngineCore.RayQueryResult[];
     }
 
     export interface RayQueryResult {
         /** Hit position in world space. */
-        position: Atomic.Vector3;
+        position: EngineCore.Vector3;
 
         /** Hit normal in world space. Negation of ray direction if per-triangle data not available. */
-        normal: Atomic.Vector3;
+        normal: EngineCore.Vector3;
 
         /** Hit texture position */
-        textureUV: Atomic.Vector2;
+        textureUV: EngineCore.Vector2;
 
         /** Distance from ray origin. */
         distance:number;
@@ -130,7 +130,7 @@ declare module Atomic {
         drawable: any;
 
         /** Scene node. */
-        node: Atomic.Node;
+        node: EngineCore.Node;
 
         /** Drawable specific subobject if applicable. */
         subObject: number;
@@ -167,17 +167,17 @@ declare module Atomic {
     export function getGraphics(): Graphics;
     export function getFileSystem(): FileSystem;
     export function getResourceCache(): ResourceCache;
-    export function getRenderer(): Atomic.Renderer;
-    export function getNetwork(): Atomic.Network;
-    export function getUI(): Atomic.UI;
+    export function getRenderer(): EngineCore.Renderer;
+    export function getNetwork(): EngineCore.Network;
+    export function getUI(): EngineCore.UI;
 
     export function assert();
     export function js_module_read_file(path: string);
     export function openConsoleWindow();
     export function script(script: string): boolean;
-    export function destroy(node: Atomic.Node): boolean;
-    export function destroy(scene: Atomic.Scene): boolean;
-    export function destroy(component: Atomic.JSComponent): boolean;
+    export function destroy(node: EngineCore.Node): boolean;
+    export function destroy(scene: EngineCore.Scene): boolean;
+    export function destroy(component: EngineCore.JSComponent): boolean;
 
     export function getParentPath(path: string): string;
     export function getPath(path: string): string;

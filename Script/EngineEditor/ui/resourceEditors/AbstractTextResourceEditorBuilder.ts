@@ -20,7 +20,7 @@
 // THE SOFTWARE.
 //
 
-export abstract class AbstractTextResourceEditorBuilder implements Editor.Extensions.ResourceEditorBuilder {
+export abstract class AbstractTextResourceEditorBuilder implements EngineEditor.Extensions.ResourceEditorBuilder {
 
     abstract canHandleResource(resourcePath: string): boolean;
 
@@ -42,17 +42,17 @@ export abstract class AbstractTextResourceEditorBuilder implements Editor.Extens
         return `atomic://${ToolCore.toolEnvironment.toolDataDir}CodeEditor/MonacoEditor.html`;
     }
 
-    getEditor(resourceFrame: Atomic.UIWidget, resourcePath: string, tabContainer: Atomic.UITabContainer, lineNumber: number): Editor.ResourceEditor {
-        const editor = new Editor.JSResourceEditor(resourcePath, tabContainer, this.getEditorUrl());
+    getEditor(resourceFrame: EngineCore.UIWidget, resourcePath: string, tabContainer: EngineCore.UITabContainer, lineNumber: number): EngineEditor.ResourceEditor {
+        const editor = new EngineEditor.JSResourceEditor(resourcePath, tabContainer, this.getEditorUrl());
 
         // one time subscriptions waiting for the web view to finish loading.  This event
         // actually hits the editor instance before we can hook it, so listen to it on the
         // frame and then unhook it
         editor.subscribeToEvent(WebView.WebViewLoadEndEvent((data) => {
             editor.unsubscribeFromEvent(WebView.WebViewLoadEndEventType);
-            this.loadCode(<Editor.JSResourceEditor>editor, resourcePath);
+            this.loadCode(<EngineEditor.JSResourceEditor>editor, resourcePath);
             if (lineNumber > 0) {
-                (<Editor.JSResourceEditor>editor).gotoLineNumber(lineNumber);
+                (<EngineEditor.JSResourceEditor>editor).gotoLineNumber(lineNumber);
             }
         }));
 
@@ -70,12 +70,12 @@ export abstract class AbstractTextResourceEditorBuilder implements Editor.Extens
         //     }
         // });
 
-        editor.subscribeToEvent(Editor.EditorDeleteResourceNotificationEvent((data) => {
+        editor.subscribeToEvent(EngineEditor.EditorDeleteResourceNotificationEvent((data) => {
             const webClient = editor.webView.webClient;
             webClient.executeJavaScript(`HOST_resourceDeleted("${this.getNormalizedPath(data.path)}");`);
         }));
 
-        editor.subscribeToEvent(Editor.UserPreferencesChangedNotificationEvent((data: Editor.UserPreferencesChangedNotificationEvent) => {
+        editor.subscribeToEvent(EngineEditor.UserPreferencesChangedNotificationEvent((data: EngineEditor.UserPreferencesChangedNotificationEvent) => {
             const webClient = editor.webView.webClient;
             webClient.executeJavaScript(`HOST_preferencesChanged('${data.projectPreferences}','${data.applicationPreferences}');`);
         }));
@@ -86,7 +86,7 @@ export abstract class AbstractTextResourceEditorBuilder implements Editor.Extens
     /**
      * Send the url of the code to the web view so that it can request it
      */
-    loadCode(editor: Editor.JSResourceEditor, resourcePath: string) {
+    loadCode(editor: EngineEditor.JSResourceEditor, resourcePath: string) {
         const webClient = editor.webView.webClient;
         webClient.executeJavaScript(`HOST_loadCode("atomic://${this.getNormalizedPath(editor.fullPath)}");`);
     }

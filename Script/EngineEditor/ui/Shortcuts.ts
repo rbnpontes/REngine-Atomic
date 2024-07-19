@@ -24,25 +24,22 @@ import EditorUI = require("./EditorUI");
 import Preferences = require("editor/Preferences");
 import * as EditorEvents from "../editor/EditorEvents";
 
-class Shortcuts extends Atomic.ScriptObject {
+class Shortcuts extends EngineCore.ScriptObject {
 
     constructor() {
 
         super();
 
-        this.subscribeToEvent(Atomic.UIShortcutEvent((ev) => this.handleUIShortcut(ev)));
-
-        this.subscribeToEvent(Atomic.KeyDownEvent((ev) => this.handleKeyDown(ev)));
-
-
+        this.subscribeToEvent(EngineCore.UIShortcutEvent((ev) => this.handleUIShortcut(ev)));
+        this.subscribeToEvent(EngineCore.KeyDownEvent((ev) => this.handleKeyDown(ev)));
     }
 
     //this should be moved somewhere else...
     invokePlayOrStopPlayer(debug: boolean = false) {
 
-        this.sendEvent(Editor.EditorSaveAllResourcesEventType);
+        this.sendEvent(EngineEditor.EditorSaveAllResourcesEventType);
 
-        if (Atomic.editorMode.isPlayerEnabled()) {
+        if (EngineCore.editorMode.isPlayerEnabled()) {
             this.sendEvent(EditorEvents.IPCPlayerExitRequestEventType);
         } else {
 
@@ -50,23 +47,23 @@ class Shortcuts extends Atomic.ScriptObject {
 
             if (playerWindow) {
 
-                if ((playerWindow.monitor + 1) > Atomic.graphics.getNumMonitors()) {
+                if ((playerWindow.monitor + 1) > EngineCore.graphics.getNumMonitors()) {
                     //will use default settings if monitor is not available
                     var args = "--resizable";
-                    Atomic.editorMode.playProject(args, debug);
+                    EngineCore.editorMode.playProject(args, debug);
 
                 } else {
 
                     if (playerWindow.width == 0 || playerWindow.height == 0) {
 
-                        playerWindow.width = Atomic.graphics.width * .75;
+                        playerWindow.width = EngineCore.graphics.width * .75;
                         // 16:9
                         playerWindow.height = playerWindow.width * .56;
 
-                        let pos = Atomic.graphics.windowPosition;
+                        let pos = EngineCore.graphics.windowPosition;
 
-                        playerWindow.x = pos[0] + (Atomic.graphics.width / 2 - playerWindow.width / 2);
-                        playerWindow.y = pos[1] + (Atomic.graphics.height / 2 - playerWindow.height / 2);
+                        playerWindow.x = pos[0] + (EngineCore.graphics.width / 2 - playerWindow.width / 2);
+                        playerWindow.y = pos[1] + (EngineCore.graphics.height / 2 - playerWindow.height / 2);
 
                         // if too small a window, use default (which maximizes)
                         if (playerWindow.width < 480) {
@@ -81,23 +78,23 @@ class Shortcuts extends Atomic.ScriptObject {
                         args += " --maximize";
                     }
 
-                    Atomic.editorMode.playProject(args, debug);
+                    EngineCore.editorMode.playProject(args, debug);
                 }
 
             } else {
-                Atomic.editorMode.playProject("", debug);
+                EngineCore.editorMode.playProject("", debug);
             }
         }
     }
 
     invokePauseOrResumePlayer() {
-        if (Atomic.editorMode.isPlayerEnabled()) {
+        if (EngineCore.editorMode.isPlayerEnabled()) {
             this.sendEvent(EditorEvents.IPCPlayerPauseResumeRequestEventType);
         }
     }
 
     invokeStepPausedPlayer() {
-        if (Atomic.editorMode.isPlayerEnabled()) {
+        if (EngineCore.editorMode.isPlayerEnabled()) {
             this.sendEvent(EditorEvents.IPCPlayerPauseStepRequestEventType);
         }
     }
@@ -108,7 +105,7 @@ class Shortcuts extends Atomic.ScriptObject {
 
         if (editor && editor.typeName == "JSResourceEditor") {
 
-            (<Editor.JSResourceEditor>editor).formatCode();
+            (<EngineEditor.JSResourceEditor>editor).formatCode();
 
         }
 
@@ -119,7 +116,7 @@ class Shortcuts extends Atomic.ScriptObject {
     }
 
     invokeFileSave() {
-        this.sendEvent(Editor.EditorSaveResourceEventType);
+        this.sendEvent(EngineEditor.EditorSaveResourceEventType);
     }
 
     invokeUndo() {
@@ -151,22 +148,22 @@ class Shortcuts extends Atomic.ScriptObject {
         this.invokeResourceFrameShortcut("selectall");
     }
 
-    invokeGizmoEditModeChanged(mode: Editor.EditMode) {
+    invokeGizmoEditModeChanged(mode: EngineEditor.EditMode) {
 
-        this.sendEvent(Editor.GizmoEditModeChangedEventData({ mode: mode }));
+        this.sendEvent(EngineEditor.GizmoEditModeChangedEventData({ mode: mode }));
 
     }
 
     toggleGizmoAxisMode() {
         var editor = EditorUI.getCurrentResourceEditor();
 
-        if (editor && editor instanceof Editor.SceneEditor3D) {
-            var mode = editor.getGizmo().axisMode ? Editor.AxisMode.AXIS_WORLD : Editor.AxisMode.AXIS_LOCAL;
-            this.sendEvent(Editor.GizmoAxisModeChangedEventData({ mode: mode }));
+        if (editor && editor instanceof EngineEditor.SceneEditor3D) {
+            var mode = editor.getGizmo().axisMode ? EngineEditor.AxisMode.AXIS_WORLD : EngineEditor.AxisMode.AXIS_LOCAL;
+            this.sendEvent(EngineEditor.GizmoAxisModeChangedEventData({ mode: mode }));
         }
     }
 
-    invokeResourceFrameShortcut(shortcut: Editor.EditorShortcutType) {
+    invokeResourceFrameShortcut(shortcut: EngineEditor.EditorShortcutType) {
         if (!ToolCore.toolSystem.project) return;
         var resourceFrame = EditorUI.getMainFrame().resourceframe.currentResourceEditor;
         if (resourceFrame) {
@@ -182,8 +179,8 @@ class Shortcuts extends Atomic.ScriptObject {
         var datestring = dx.getFullYear() + "_" + ("0" + (dx.getMonth() + 1 )).slice(-2) + "_"  + ("0" + dx.getDate()).slice(-2)
             + "_" + ("0" + dx.getHours()).slice(-2) + "_" + ("0" + dx.getMinutes()).slice(-2) + "_" + ("0" + dx.getSeconds()).slice(-2);
         pic_path += "/Screenshot_" + datestring + "." + pic_ext;  // form filename
-        var myimage = new Atomic.Image; // make an image to save
-        if (Atomic.graphics.takeScreenShot(myimage)) { // take the screenshot
+        var myimage = new EngineCore.Image; // make an image to save
+        if (EngineCore.graphics.takeScreenShot(myimage)) { // take the screenshot
             var saved_pic = false;
             var jpgquality = 92; // very good quality jpeg 
             if ( pic_ext == "png" ) saved_pic = myimage.savePNG(pic_path);
@@ -197,31 +194,31 @@ class Shortcuts extends Atomic.ScriptObject {
         else EditorUI.showEditorStatus ( "Error - could not take screenshot.");
     }
 
-    handleKeyDown(ev: Atomic.KeyDownEvent) {
+    handleKeyDown(ev: EngineCore.KeyDownEvent) {
 
         // if the right mouse buttons isn't down
-        if (!(ev.buttons & Atomic.MOUSEB_RIGHT)) {
+        if (!(ev.buttons & EngineCore.MOUSEB_RIGHT)) {
 
             // TODO: Make these customizable
 
-            if (!Atomic.ui.focusedWidget && !this.cmdKeyDown()) {
+            if (!EngineCore.ui.focusedWidget && !this.cmdKeyDown()) {
 
-                if (ev.key == Atomic.KEY_ESCAPE) {
+                if (ev.key == EngineCore.KEY_ESCAPE) {
 
-                    if (Atomic.ui.consoleIsVisible) {
-                        Atomic.ui.showConsole(false);
+                    if (EngineCore.ui.consoleIsVisible) {
+                        EngineCore.ui.showConsole(false);
                     }
                 }
 
-                if (ev.key == Atomic.KEY_W) {
-                    this.invokeGizmoEditModeChanged(Editor.EditMode.EDIT_MOVE);
-                } else if (ev.key == Atomic.KEY_E) {
-                    this.invokeGizmoEditModeChanged(Editor.EditMode.EDIT_ROTATE);
-                } else if (ev.key == Atomic.KEY_R) {
-                    this.invokeGizmoEditModeChanged(Editor.EditMode.EDIT_SCALE);
-                } else if (ev.key == Atomic.KEY_X) {
+                if (ev.key == EngineCore.KEY_W) {
+                    this.invokeGizmoEditModeChanged(EngineEditor.EditMode.EDIT_MOVE);
+                } else if (ev.key == EngineCore.KEY_E) {
+                    this.invokeGizmoEditModeChanged(EngineEditor.EditMode.EDIT_ROTATE);
+                } else if (ev.key == EngineCore.KEY_R) {
+                    this.invokeGizmoEditModeChanged(EngineEditor.EditMode.EDIT_SCALE);
+                } else if (ev.key == EngineCore.KEY_X) {
                     this.toggleGizmoAxisMode();
-                } else if (ev.key == Atomic.KEY_F) {
+                } else if (ev.key == EngineCore.KEY_F) {
                     this.invokeFrameSelected();
                 }
             }
@@ -233,10 +230,10 @@ class Shortcuts extends Atomic.ScriptObject {
     cmdKeyDown(): boolean {
 
         var cmdKey;
-        if (Atomic.platform == "MacOSX") {
-            cmdKey = (Atomic.input.getKeyDown(Atomic.KEY_LGUI) || Atomic.input.getKeyDown(Atomic.KEY_RGUI));
+        if (EngineCore.platform == "MacOSX") {
+            cmdKey = (EngineCore.input.getKeyDown(EngineCore.KEY_LGUI) || EngineCore.input.getKeyDown(EngineCore.KEY_RGUI));
         } else {
-            cmdKey = (Atomic.input.getKeyDown(Atomic.KEY_LCTRL) || Atomic.input.getKeyDown(Atomic.KEY_RCTRL));
+            cmdKey = (EngineCore.input.getKeyDown(EngineCore.KEY_LCTRL) || EngineCore.input.getKeyDown(EngineCore.KEY_RCTRL));
         }
 
         return cmdKey;
@@ -245,42 +242,42 @@ class Shortcuts extends Atomic.ScriptObject {
     }
 
     // global shortcut handler
-    handleUIShortcut(ev: Atomic.UIShortcutEvent) {
+    handleUIShortcut(ev: EngineCore.UIShortcutEvent) {
 
         var cmdKey = this.cmdKeyDown();
 
         if ( !cmdKey && ev.qualifiers > 0 ) { // check the event, the qualifier may have been programmitically set
-            cmdKey = ( ev.qualifiers == Atomic.QUAL_CTRL );
+            cmdKey = ( ev.qualifiers == EngineCore.QUAL_CTRL );
         }
 
         if (cmdKey) {
 
-            if (ev.key == Atomic.KEY_S) {
+            if (ev.key == EngineCore.KEY_S) {
                 this.invokeFileSave();
             }
-            else if (ev.key == Atomic.KEY_W) {
+            else if (ev.key == EngineCore.KEY_W) {
                 this.invokeFileClose();
             }
-            else if (ev.key == Atomic.KEY_I) {
+            else if (ev.key == EngineCore.KEY_I) {
                 this.invokeFormatCode();
             }
-            else if (ev.key == Atomic.KEY_P) {
+            else if (ev.key == EngineCore.KEY_P) {
                 this.invokePlayOrStopPlayer();
-            } else if (ev.key == Atomic.KEY_B) {
-                if (ev.qualifiers & Atomic.QUAL_SHIFT) {
+            } else if (ev.key == EngineCore.KEY_B) {
+                if (ev.qualifiers & EngineCore.QUAL_SHIFT) {
                     EditorUI.getModelOps().showBuildSettings();
                 } else {
                     EditorUI.getModelOps().showBuild();
                 }
             }
-            else if (ev.key == Atomic.KEY_U) {
-                if (ev.qualifiers & Atomic.QUAL_SHIFT) {
+            else if (ev.key == EngineCore.KEY_U) {
+                if (ev.qualifiers & EngineCore.QUAL_SHIFT) {
                     this.invokeStepPausedPlayer();
                 } else {
                     this.invokePauseOrResumePlayer();
                 }
             }
-            else if (ev.key == Atomic.KEY_9) {
+            else if (ev.key == EngineCore.KEY_9) {
                 this.invokeScreenshot();
             }
 

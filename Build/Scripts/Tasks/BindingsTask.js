@@ -124,6 +124,9 @@ function _genTsConfig() {
     ];
     const target_ts_files = [constants.engine_editor_name+'/**/*.ts', 'ToolCore/**/*.ts'];
     const code_files = globSync(['{', target_ts_files.join(','), '}'].join(''), { cwd : script_dir });
+    const ts_definition_files = fs.readdirSync(path.join(script_dir, 'TypeScript'))
+        .map(x => './TypeScript/'+x)
+        .filter(x => fs.statSync(path.resolve(script_dir, x)).isFile() && x.endsWith('.d.ts'));
     const generated_files = fs.readdirSync(typescript_generated_types_path)
         .map(x => {
             return path.resolve(typescript_generated_types_path, x);
@@ -131,6 +134,7 @@ function _genTsConfig() {
 
     const ts_config_files = [
         ...code_files.map(x => './'+x),
+        ...ts_definition_files,
         ...generated_files,
         ...(base_ts_config.files ?? [])
     ];

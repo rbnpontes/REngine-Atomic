@@ -28,7 +28,7 @@ export default class VisualStudioResourceEditorBuilder extends AbstractTextResou
         super();
     }
 
-    getEditor(resourceFrame: Atomic.UIWidget, resourcePath: string, tabContainer: Atomic.UITabContainer): Editor.ResourceEditor {
+    getEditor(resourceFrame: EngineCore.UIWidget, resourcePath: string, tabContainer: EngineCore.UITabContainer): EngineEditor.ResourceEditor {
 
         ToolCore.netProjectSystem.openSourceFile(resourcePath);
         return null;
@@ -40,7 +40,7 @@ export default class VisualStudioResourceEditorBuilder extends AbstractTextResou
         if (!ToolCore.netProjectSystem.iDEAvailable)
             return false;
 
-        var ext = Atomic.getExtension(resourcePath).toLowerCase();
+        var ext = EngineCore.getExtension(resourcePath).toLowerCase();
         return ext == ".cs";
     }
 }

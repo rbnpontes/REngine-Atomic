@@ -42,9 +42,9 @@ class AtomicEditor extends EngineCore.ScriptObject {
         super();
 
         // limit the framerate to limit CPU usage
-        Atomic.getEngine().maxFps = 60;
+        EngineCore.getEngine().maxFps = 60;
 
-        Atomic.getEngine().autoExit = false;
+        EngineCore.getEngine().autoExit = false;
 
         AtomicEditor.instance = this;
 
@@ -58,16 +58,16 @@ class AtomicEditor extends EngineCore.ScriptObject {
 
         this.playMode = new PlayMode();
 
-        Atomic.getResourceCache().autoReloadResources = true;
+        EngineCore.getResourceCache().autoReloadResources = true;
 
         this.subscribeToEvent(EngineEditor.EditorLoadProjectEvent((data) => this.handleEditorLoadProject(data)));
         this.subscribeToEvent(EngineEditor.EditorCloseProjectEvent((data) => this.handleEditorCloseProject(data)));
         this.subscribeToEvent(EngineEditor.ProjectUnloadedNotificationEvent((data) => {
-            Atomic.graphics.windowTitle = "AtomicEditor";
+            EngineCore.graphics.windowTitle = "Engine Editor";
             this.handleProjectUnloaded(data);
         }));
 
-        this.subscribeToEvent(Atomic.ScriptEvent(EditorEvents.IPCPlayerWindowChangedEventType, (data: EngineApp.IPCPlayerWindowChangedEvent) => {
+        this.subscribeToEvent(EngineCore.ScriptEvent(EditorEvents.IPCPlayerWindowChangedEventType, (data: EngineApp.IPCPlayerWindowChangedEvent) => {
             var playerWindow = Preferences.getInstance().playerWindow;
             //if player window is maximized, then we want keep the window size from the previous state
             if (data.maximized) {
@@ -87,7 +87,7 @@ class AtomicEditor extends EngineCore.ScriptObject {
         this.subscribeToEvent(EngineCore.ExitRequestedEvent((data) => this.handleExitRequested(data)));
 
         this.subscribeToEvent(ToolCore.ProjectLoadedEvent((data) => {
-            Atomic.graphics.windowTitle = "AtomicEditor - " + data.projectPath;
+            EngineCore.graphics.windowTitle = "AtomicEditor - " + data.projectPath;
             Preferences.getInstance().registerRecentProject(data.projectPath);
         }));
 
@@ -104,7 +104,7 @@ class AtomicEditor extends EngineCore.ScriptObject {
 
     initUI() {
         var uiData = Preferences.getInstance().uiData;
-        var ui = Atomic.ui;
+        var ui = EngineCore.ui;
         ui.loadSkin(uiData.skinPath + "/skin.tb.txt", uiData.defaultSkinPath + "/skin.tb.txt");
         ui.addFont(uiData.fontFile, uiData.fontName);
         ui.addFont("resources/MesloLGS-Regular.ttf", "Monaco");
@@ -112,7 +112,7 @@ class AtomicEditor extends EngineCore.ScriptObject {
     }
 
     saveWindowPreferences(): boolean {
-        var graphics = Atomic.getGraphics();
+        var graphics = EngineCore.getGraphics();
         if (!graphics) return false;
 
         var pos = graphics.getWindowPosition();
@@ -282,7 +282,7 @@ class AtomicEditor extends EngineCore.ScriptObject {
 
     parseArguments() {
 
-        var args = Atomic.getArguments();
+        var args = EngineCore.getArguments();
 
         var idx = 0;
 
@@ -310,7 +310,7 @@ class AtomicEditor extends EngineCore.ScriptObject {
     exit() {
         //Preferences.getInstance().write();
         EditorUI.shutdown();
-        Atomic.getEngine().exit();
+        EngineCore.getEngine().exit();
     }
 
 

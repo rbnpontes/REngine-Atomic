@@ -98,7 +98,7 @@ void JSBTypeScript::Begin()
     source_ += "// IMPORTANT: THIS FILE IS GENERATED, CHANGES WILL BE LOST\n";
     source_ += "//////////////////////////////////////////////////////////\n\n";
 
-    source_ += "// Atomic TypeScript Definitions\n\n";
+    source_ += "// TypeScript Definitions\n\n";
 
     if (package_->GetName() != ENGINE_TYPESCRIPT_DEFINITIONS_NAME)
     {
@@ -140,13 +140,14 @@ void JSBTypeScript::ExportFunction(JSBFunction* function)
 
     const Vector<JSBFunctionType*>& parameters = function->GetParameters();
 
+    const auto s_context = ToString("%s.Context", ENGINE_TYPESCRIPT_DEFINITIONS_NAME);
     for (unsigned i = 0; i < parameters.Size(); i++)
     {
         JSBFunctionType* ftype = parameters.At(i);
 
         String scriptType = GetScriptType(ftype);
 
-        if (scriptType == "Context" || scriptType == "Atomic.Context")
+        if (scriptType == "Context" || scriptType == s_context)
             continue;
 
         String name = ftype->name_;
@@ -389,11 +390,11 @@ void JSBTypeScript::ExportModuleEvents(JSBModule* module)
 
         // Write the event type
         source += ToString("    /** Event type to use in calls requiring the event such as 'sendEvent'.  Event Type is: \"%s\" **/\n", event->GetEventName().CString());
-        source += ToString("    export var %sType : Atomic.EventType;\n\n", scriptEventName.CString());
+        source += ToString("    export var %sType : %s.EventType;\n\n", scriptEventName.CString(), ENGINE_TYPESCRIPT_DEFINITIONS_NAME);
 
         // Write the event interface
         source += ToString("    /** object returned in the callback for the %s event.**/\n", event->GetEventName().CString());
-        source += ToString("    export interface %s extends Atomic.EventData {\n", scriptEventName.CString());
+        source += ToString("    export interface %s extends %s.EventData {\n", scriptEventName.CString(), ENGINE_TYPESCRIPT_DEFINITIONS_NAME);
 
         // parameters
 
@@ -471,16 +472,25 @@ void JSBTypeScript::ExportModuleEvents(JSBModule* module)
         } else {
             source += ToString("    /** Wrapper function to generate a properly formatted event handler to pass to 'subscribeToEvent' for the %s event. **/\n", event->GetEventName().CString());
         }
-        source += ToString("    export function %s (callback : Atomic.EventCallback<%s>) : Atomic.EventMetaData;\n", scriptEventName.CString(), scriptEventName.CString());
+        source += ToString("    export function %s (callback : %s.EventCallback<%s>) : %s.EventMetaData;\n", 
+            scriptEventName.CString(), 
+            ENGINE_TYPESCRIPT_DEFINITIONS_NAME,
+            scriptEventName.CString(),
+            ENGINE_TYPESCRIPT_DEFINITIONS_NAME);
         source += "\n";
 
         if (params.Size() > 0)
         {
             source += ToString("    /** Wrapper function to construct callback data to pass to 'sendEvent' for the %s event. **/ \n", event->GetEventName().CString());
-            source += ToString("    export function %sData (callbackData : %s) : Atomic.EventCallbackMetaData; \n", scriptEventName.CString(), scriptEventName.CString());
+            source += ToString("    export function %sData (callbackData : %s) : %s.EventCallbackMetaData; \n", 
+                scriptEventName.CString(), 
+                scriptEventName.CString(),
+                ENGINE_TYPESCRIPT_DEFINITIONS_NAME);
         } else {
             source += ToString("    /** Wrapper function to construct object to pass to 'sendEvent' for the %s event. **/ \n", event->GetEventName().CString());
-            source += ToString("    export function %sData () : Atomic.EventCallbackMetaData; \n", scriptEventName.CString());
+            source += ToString("    export function %sData () : %s.EventCallbackMetaData; \n", 
+                scriptEventName.CString(),
+                ENGINE_TYPESCRIPT_DEFINITIONS_NAME);
         }
 
         source += "\n\n";

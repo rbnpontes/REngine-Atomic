@@ -39,7 +39,7 @@ export function getModelOps():ModalOps {
   return editorUI.modalOps;
 }
 
-export function getView():Atomic.UIView {
+export function getView():EngineCore.UIView {
   return editorUI.view;
 }
 
@@ -72,19 +72,19 @@ export function showEditorStatus(message:string) {
     editorUI.showEditorStatus(message);
 }
 
-export function getCurrentResourceEditor():Editor.ResourceEditor {
+export function getCurrentResourceEditor():EngineEditor.ResourceEditor {
     return getMainFrame().resourceframe.currentResourceEditor;
 }
 
-class EditorUI extends Atomic.ScriptObject {
+class EditorUI extends EngineCore.ScriptObject {
 
   constructor(editor: AtomicEditor) {
 
     super();
 
-    var graphics = Atomic.getGraphics();
+    var graphics = EngineCore.getGraphics();
 
-    this.view = new Atomic.UIView();
+    this.view = new EngineCore.UIView();
 
     this.mainframe = new MainFrame();
 
@@ -92,7 +92,7 @@ class EditorUI extends Atomic.ScriptObject {
 
     this.editor = editor;
 
-    this.subscribeToEvent(Atomic.ScreenModeEvent((ev:Atomic.ScreenModeEvent) => {
+    this.subscribeToEvent(EngineCore.ScreenModeEvent((ev:EngineCore.ScreenModeEvent) => {
 
       this.mainframe.setSize(ev.width, ev.height);
 
@@ -110,10 +110,10 @@ class EditorUI extends Atomic.ScriptObject {
       this.modalOps);
     ServiceLocator.subscribeToEvents(this.mainframe);
 
-    this.subscribeToEvent(Editor.EditorModalEvent((event:Editor.EditorModalEvent) => {
-        if (event.type == Editor.EDITOR_MODALERROR)
+    this.subscribeToEvent(EngineEditor.EditorModalEvent((event:EngineEditor.EditorModalEvent) => {
+        if (event.type == EngineEditor.EDITOR_MODALERROR)
             this.showModalError(event.title, event.message);
-        else if ( event.type == Editor.EDITOR_MODALINFO)
+        else if ( event.type == EngineEditor.EDITOR_MODALINFO)
             this.showEditorStatus(event.message);
     }));
 
@@ -130,7 +130,7 @@ class EditorUI extends Atomic.ScriptObject {
       this.mainframe.showStatusText(message);
   }
 
-  view: Atomic.UIView;
+  view: EngineCore.UIView;
   mainframe: MainFrame;
   modalOps: ModalOps;
   shortcuts: Shortcuts;

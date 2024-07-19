@@ -20,7 +20,7 @@
 // THE SOFTWARE.
 //
 
-class ScriptWidget extends Atomic.UIWidget {
+class ScriptWidget extends EngineCore.UIWidget {
 
     constructor() {
 
@@ -30,24 +30,17 @@ class ScriptWidget extends Atomic.UIWidget {
         // this.subscribeToEvent(this, "WidgetEvent", this.handleWidgetEvent.bind(this));
 
         // TypeScript-ey
-        this.subscribeToEvent(this, Atomic.UIWidgetEvent((data) => this.handleWidgetEvent(data)));
-
+        this.subscribeToEvent(this, EngineCore.UIWidgetEvent((data) => this.handleWidgetEvent(data)));
     }
 
-    onEventClick(target: Atomic.UIWidget, refid: string): boolean {
-
+    onEventClick(target: EngineCore.UIWidget, refid: string): boolean {
         return false;
-
     }
 
-    handleWidgetEvent(ev: Atomic.UIWidgetEvent): boolean {
-
-        if (ev.type == Atomic.UI_EVENT_TYPE.UI_EVENT_TYPE_CLICK) {
-
+    handleWidgetEvent(ev: EngineCore.UIWidgetEvent): boolean {
+        if (ev.type == EngineCore.UI_EVENT_TYPE.UI_EVENT_TYPE_CLICK) {
             return this.onEventClick(ev.target, ev.refid);
-
         }
-
     }
 
 }

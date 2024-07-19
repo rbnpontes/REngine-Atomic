@@ -22,62 +22,59 @@
 
 import EditorUI = require("./EditorUI");
 
-class MainToolbar extends Atomic.UIWidget {
+class MainToolbar extends EngineCore.UIWidget {
 
-    translateButton: Atomic.UIButton;
-    rotateButton: Atomic.UIButton;
-    scaleButton: Atomic.UIButton;
-    axisButton: Atomic.UIButton;
-    playButton: Atomic.UIButton;
-    pauseButton: Atomic.UIButton;
-    stepButton: Atomic.UIButton;
+    translateButton: EngineCore.UIButton;
+    rotateButton: EngineCore.UIButton;
+    scaleButton: EngineCore.UIButton;
+    axisButton: EngineCore.UIButton;
+    playButton: EngineCore.UIButton;
+    pauseButton: EngineCore.UIButton;
+    stepButton: EngineCore.UIButton;
 
-    constructor(parent: Atomic.UIWidget) {
+    constructor(parent: EngineCore.UIWidget) {
 
         super();
 
         this.load("editor/ui/maintoolbar.tb.txt");
 
-        this.translateButton = <Atomic.UIButton>this.getWidget("3d_translate");
-        this.rotateButton = <Atomic.UIButton>this.getWidget("3d_rotate");
-        this.scaleButton = <Atomic.UIButton>this.getWidget("3d_scale");
+        this.translateButton = <EngineCore.UIButton>this.getWidget("3d_translate");
+        this.rotateButton = <EngineCore.UIButton>this.getWidget("3d_rotate");
+        this.scaleButton = <EngineCore.UIButton>this.getWidget("3d_scale");
 
-        this.axisButton = <Atomic.UIButton>this.getWidget("3d_axismode");
-
-        this.playButton = <Atomic.UIButton>this.getWidget("maintoolbar_play");
-
-        this.pauseButton = <Atomic.UIButton>this.getWidget("maintoolbar_pause");
-
-        this.stepButton = <Atomic.UIButton>this.getWidget("maintoolbar_step");
+        this.axisButton = <EngineCore.UIButton>this.getWidget("3d_axismode");
+        this.playButton = <EngineCore.UIButton>this.getWidget("maintoolbar_play");
+        this.pauseButton = <EngineCore.UIButton>this.getWidget("maintoolbar_pause");
+        this.stepButton = <EngineCore.UIButton>this.getWidget("maintoolbar_step");
 
         this.translateButton.value = 1;
 
         parent.addChild(this);
 
-        this.subscribeToEvent(Editor.GizmoAxisModeChangedEvent((ev) => this.handleGizmoAxisModeChanged(ev)));
-        this.subscribeToEvent(Editor.GizmoEditModeChangedEvent((ev) => this.handleGizmoEditModeChanged(ev)));
+        this.subscribeToEvent(EngineEditor.GizmoAxisModeChangedEvent((ev) => this.handleGizmoAxisModeChanged(ev)));
+        this.subscribeToEvent(EngineEditor.GizmoEditModeChangedEvent((ev) => this.handleGizmoEditModeChanged(ev)));
 
-        this.subscribeToEvent(this, Atomic.UIWidgetEvent((data) => this.handleWidgetEvent(data)));
+        this.subscribeToEvent(this, EngineCore.UIWidgetEvent((data) => this.handleWidgetEvent(data)));
 
-        this.subscribeToEvent(Editor.EditorPlayerStartedEvent(() => {
-            var skin = <Atomic.UISkinImage> this.playButton.getWidget("skin_image");
+        this.subscribeToEvent(EngineEditor.EditorPlayerStartedEvent(() => {
+            var skin = <EngineCore.UISkinImage> this.playButton.getWidget("skin_image");
             skin.setSkinBg("StopButton");
-            skin = <Atomic.UISkinImage> this.pauseButton.getWidget("skin_image");
+            skin = <EngineCore.UISkinImage> this.pauseButton.getWidget("skin_image");
             skin.setSkinBg("PauseButton");
         }));
-        this.subscribeToEvent(Editor.EditorPlayerStoppedEvent(() => {
-            var skin = <Atomic.UISkinImage> this.playButton.getWidget("skin_image");
+        this.subscribeToEvent(EngineEditor.EditorPlayerStoppedEvent(() => {
+            var skin = <EngineCore.UISkinImage> this.playButton.getWidget("skin_image");
             skin.setSkinBg("PlayButton");
-            skin = <Atomic.UISkinImage> this.pauseButton.getWidget("skin_image");
+            skin = <EngineCore.UISkinImage> this.pauseButton.getWidget("skin_image");
             skin.setSkinBg("PauseButton");
         }));
-        this.subscribeToEvent(Editor.EditorPlayerPausedEvent(() => {
-            var skin = <Atomic.UISkinImage> this.pauseButton.getWidget("skin_image");
+        this.subscribeToEvent(EngineEditor.EditorPlayerPausedEvent(() => {
+            var skin = <EngineCore.UISkinImage> this.pauseButton.getWidget("skin_image");
             skin.setSkinBg("PlayButton");
         }));
 
-        this.subscribeToEvent(Editor.EditorPlayerResumedEvent(() => {
-            var skin = <Atomic.UISkinImage> this.pauseButton.getWidget("skin_image");
+        this.subscribeToEvent(EngineEditor.EditorPlayerResumedEvent(() => {
+            var skin = <EngineCore.UISkinImage> this.pauseButton.getWidget("skin_image");
             skin.setSkinBg("PauseButton");
         }));
 
@@ -92,7 +89,7 @@ class MainToolbar extends Atomic.UIWidget {
 
     }
 
-    handleGizmoAxisModeChanged(ev: Editor.GizmoAxisModeChangedEvent) {
+    handleGizmoAxisModeChanged(ev: EngineEditor.GizmoAxisModeChangedEvent) {
         if (ev.mode) {
             this.axisButton.value = 0;
             this.axisButton.text = "Local";
@@ -102,7 +99,7 @@ class MainToolbar extends Atomic.UIWidget {
         }
     }
 
-    handleGizmoEditModeChanged(ev: Editor.GizmoEditModeChangedEvent) {
+    handleGizmoEditModeChanged(ev: EngineEditor.GizmoEditModeChangedEvent) {
 
         this.translateButton.value = 0;
         this.rotateButton.value = 0;
@@ -122,9 +119,9 @@ class MainToolbar extends Atomic.UIWidget {
 
     }
 
-    handleWidgetEvent(ev: Atomic.UIWidgetEvent) {
+    handleWidgetEvent(ev: EngineCore.UIWidgetEvent) {
 
-        if (ev.type == Atomic.UI_EVENT_TYPE.UI_EVENT_TYPE_CLICK && ev.target) {
+        if (ev.type == EngineCore.UI_EVENT_TYPE.UI_EVENT_TYPE_CLICK && ev.target) {
 
             if (ev.target.id == "3d_translate" || ev.target.id == "3d_rotate" || ev.target.id == "3d_scale") {
 
@@ -134,7 +131,7 @@ class MainToolbar extends Atomic.UIWidget {
                 else if (ev.target.id == "3d_scale")
                     mode = 3;
 
-                this.sendEvent(Editor.GizmoEditModeChangedEventData({ mode: mode }));
+                this.sendEvent(EngineEditor.GizmoEditModeChangedEventData({ mode: mode }));
 
                 return true;
 

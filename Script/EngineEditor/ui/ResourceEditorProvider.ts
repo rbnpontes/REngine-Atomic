@@ -32,18 +32,18 @@ import ShaderResourceEditorBuilder from "./resourceEditors/ShaderResourceEditorB
 import VisualStudioResourceEditorBuilder from "./resourceEditors/VisualStudioResourceEditorBuilder";
 
 export default class ResourceEditorProvider {
-    private standardEditorRegistry: Editor.Extensions.ResourceEditorBuilder[] = [];
-    private customEditorRegistry: Editor.Extensions.ResourceEditorBuilder[] = [];
-    private resourceFrame: Atomic.UIWidget;
+    private standardEditorRegistry: EngineEditor.Extensions.ResourceEditorBuilder[] = [];
+    private customEditorRegistry: EngineEditor.Extensions.ResourceEditorBuilder[] = [];
+    private resourceFrame: EngineCore.UIWidget;
 
-    constructor(resourceFrame: Atomic.UIWidget) {
+    constructor(resourceFrame: EngineCore.UIWidget) {
         this.resourceFrame = resourceFrame;
     }
 
     /**
      * Register an internal core editor.
      */
-    registerStandardEditor(editorBuilder: Editor.Extensions.ResourceEditorBuilder) {
+    registerStandardEditor(editorBuilder: EngineEditor.Extensions.ResourceEditorBuilder) {
         this.standardEditorRegistry.push(editorBuilder);
     }
 
@@ -51,7 +51,7 @@ export default class ResourceEditorProvider {
      * Register a custom editor.  These editors will override editors in the standard editor list if
      * they both resolve the ```canHandleResource``` call.
      */
-    registerCustomEditor(editorBuilder: Editor.Extensions.ResourceEditorBuilder) {
+    registerCustomEditor(editorBuilder: EngineEditor.Extensions.ResourceEditorBuilder) {
         this.customEditorRegistry.push(editorBuilder);
     }
 
@@ -59,7 +59,7 @@ export default class ResourceEditorProvider {
      * Will unregister a previously registered editor builder
      * @param  {Editor.Extensions.ResourceEditorBuilder} editorBuilder
      */
-    unregisterCustomEditor(editorBuilder: Editor.Extensions.ResourceEditorBuilder) {
+    unregisterCustomEditor(editorBuilder: EngineEditor.Extensions.ResourceEditorBuilder) {
         var index = this.customEditorRegistry.indexOf(editorBuilder, 0);
         if (index > -1) {
             this.customEditorRegistry.splice(index, 1);
@@ -70,7 +70,7 @@ export default class ResourceEditorProvider {
      * Returns an editor for the provided resource type or null
      */
     getEditor(resourcePath: string, tabContainer, lineNumber: number) {
-        let editorBuilder: Editor.Extensions.ResourceEditorBuilder;
+        let editorBuilder: EngineEditor.Extensions.ResourceEditorBuilder;
         this.customEditorRegistry.forEach((builder) => {
             if (builder.canHandleResource(resourcePath)) {
                 editorBuilder = builder;

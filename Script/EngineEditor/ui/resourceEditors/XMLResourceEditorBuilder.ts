@@ -29,7 +29,7 @@ export default class XMLResourceEditorBuilder extends AbstractTextResourceEditor
     }
 
     canHandleResource(resourcePath: string) : boolean {
-        var ext = Atomic.getExtension(resourcePath).toLowerCase();
+        var ext = EngineCore.getExtension(resourcePath).toLowerCase();
         return ext == ".xml";
     }
 }

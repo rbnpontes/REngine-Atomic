@@ -20,17 +20,17 @@
 // THE SOFTWARE.
 //
 
-export default class Scene3dResourceEditorBuilder implements Editor.Extensions.ResourceEditorBuilder {
+export default class Scene3dResourceEditorBuilder implements EngineEditor.Extensions.ResourceEditorBuilder {
 
     canHandleResource(resourcePath: string) : boolean {
-        var ext = Atomic.getExtension(resourcePath);
+        var ext = EngineCore.getExtension(resourcePath);
         return ext == ".scene";
     }
 
-    getEditor(resourceFram: Atomic.UIWidget, resourcePath: string, tabContainer: Atomic.UITabContainer) : Editor.ResourceEditor {
+    getEditor(resourceFram: EngineCore.UIWidget, resourcePath: string, tabContainer: EngineCore.UITabContainer) : EngineEditor.ResourceEditor {
 
-        const editor = new Editor.SceneEditor3D(resourcePath, tabContainer);
-        editor.sendEvent(Editor.EditorActiveSceneEditorChangeEventData({ sceneEditor: editor }));
+        const editor = new EngineEditor.SceneEditor3D(resourcePath, tabContainer);
+        editor.sendEvent(EngineEditor.EditorActiveSceneEditorChangeEventData({ sceneEditor: editor }));
 
         return editor;
     }

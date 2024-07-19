@@ -34,7 +34,7 @@ export default class CSharpResourceEditorBuilder extends AbstractTextResourceEdi
         if (ToolCore.netProjectSystem.iDEAvailable)
             return false;
 
-        var ext = Atomic.getExtension(resourcePath).toLowerCase();
+        var ext = EngineCore.getExtension(resourcePath).toLowerCase();
         return ext == ".cs";
     }
 }

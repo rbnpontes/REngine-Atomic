@@ -60,7 +60,7 @@ export class EditorString {
         var lookup = EditorString.lookup;
 
         var shortcutKey;
-        if (Atomic.platform == "MacOSX") {
+        if (EngineCore.platform == "MacOSX") {
             shortcutKey = "⌘";
         } else { // Windows and Linux
             shortcutKey = "CTRL + ";

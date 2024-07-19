@@ -23,10 +23,10 @@
 import EditorUI = require("../EditorUI");
 import Preferences = require("../../editor/Preferences");
 
-class PlayerOutput extends Atomic.UIWindow {
+class PlayerOutput extends EngineCore.UIWindow {
 
-    output: Atomic.UIEditField;
-    closeOnStop: Atomic.UICheckBox;
+    output: EngineCore.UIEditField;
+    closeOnStop: EngineCore.UICheckBox;
     errorsFileLine: Array<string>;
 
     constructor() {
@@ -40,21 +40,21 @@ class PlayerOutput extends Atomic.UIWindow {
 
         this.load("editor/ui/playeroutput.tb.txt");
 
-        this.output = <Atomic.UIEditField> this.getWidget("output");
-        this.closeOnStop = <Atomic.UICheckBox> this.getWidget("closeonstop");
+        this.output = <EngineCore.UIEditField> this.getWidget("output");
+        this.closeOnStop = <EngineCore.UICheckBox> this.getWidget("closeonstop");
 
         this.closeOnStop.value = Preferences.getInstance().editorFeatures.closePlayerLog ? 1 : 0;
 
         this.errorsFileLine = new Array();
 
-        (<Atomic.UIButton>this.getWidget("closebutton")).onClick = () => {
+        (<EngineCore.UIButton>this.getWidget("closebutton")).onClick = () => {
 
             this.close();
 
         };
 
-        this.subscribeToEvent(this, Atomic.UIWidgetEvent((data) => this.handleWidgetEvent(data)));
-        this.subscribeToEvent(Editor.EditorPlayerLogEvent((ev: Editor.EditorPlayerLogEvent) => this.handlePlayerLog(ev)));
+        this.subscribeToEvent(this, EngineCore.UIWidgetEvent((data) => this.handleWidgetEvent(data)));
+        this.subscribeToEvent(EngineEditor.EditorPlayerLogEvent((ev: EngineEditor.EditorPlayerLogEvent) => this.handlePlayerLog(ev)));
 
         this.resizeToFitContent();
         this.center();
@@ -62,7 +62,7 @@ class PlayerOutput extends Atomic.UIWindow {
 
     }
 
-    handlePlayerLog(ev: Editor.EditorPlayerLogEvent) {
+    handlePlayerLog(ev: EngineEditor.EditorPlayerLogEvent) {
 
         var text = this.output.text;
 
@@ -75,9 +75,9 @@ class PlayerOutput extends Atomic.UIWindow {
     }
 
 
-    handleWidgetEvent(ev: Atomic.UIWidgetEvent) {
+    handleWidgetEvent(ev: EngineCore.UIWidgetEvent) {
 
-        if (ev.type == Atomic.UI_EVENT_TYPE.UI_EVENT_TYPE_CLICK) {
+        if (ev.type == EngineCore.UI_EVENT_TYPE.UI_EVENT_TYPE_CLICK) {
             var id = ev.target.id;
             if (id == "closeonstop") {
                 Preferences.getInstance().editorFeatures.closePlayerLog = this.closeOnStop.value > 0 ? true : false;
@@ -90,7 +90,7 @@ class PlayerOutput extends Atomic.UIWindow {
                     var fn = ToolCore.toolSystem.project.projectPath + "Resources/" + this.errorsFileLine[indx].substr(0, colonpos) + ".js";
                     var ln = this.errorsFileLine[indx].substr(colonpos + 1, (this.errorsFileLine[indx].length - colonpos));
                     var line = parseInt(ln);
-                    this.sendEvent(Editor.EditorEditResourceEventData({ path: fn, lineNumber: line }));
+                    this.sendEvent(EngineEditor.EditorEditResourceEventData({ path: fn, lineNumber: line }));
                 }
             }
         }

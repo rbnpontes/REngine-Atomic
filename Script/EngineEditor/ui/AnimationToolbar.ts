@@ -25,24 +25,24 @@ import HierarchyFrame = require("ui/frames/HierarchyFrame");
 import InspectorUtils = require("ui/frames/inspector/InspectorUtils");
 import ResourceOps = require("resources/ResourceOps");
 
-class AnimationToolbar extends Atomic.UIWidget {
+class AnimationToolbar extends EngineCore.UIWidget {
 
     updateDelta: number = 0.0;
     updateYaw: number = 0.0;
 
-    constructor(parent: Atomic.UIWidget, properties: Atomic.UIWidget, asset: ToolCore.Asset) {
+    constructor(parent: EngineCore.UIWidget, properties: EngineCore.UIWidget, asset: ToolCore.Asset) {
 
         super();
 
         this.load("editor/ui/animationtoolbar.tb.txt");
         this.asset = asset;
 
-        this.leftAnimContainer = <Atomic.UILayout>this.getWidget("leftanimcontainer");
-        this.rightAnimContainer = <Atomic.UILayout>this.getWidget("rightanimcontainer");
+        this.leftAnimContainer = <EngineCore.UILayout>this.getWidget("leftanimcontainer");
+        this.rightAnimContainer = <EngineCore.UILayout>this.getWidget("rightanimcontainer");
 
-        this.subscribeToEvent(this, Atomic.UIWidgetEvent((ev) => this.handleWidgetEvent(ev)));
-        this.subscribeToEvent(Editor.EditorActiveSceneEditorChangeEvent((data) => this.handleActiveSceneEditorChanged(data)));
-        this.subscribeToEvent(Editor.EditorSceneClosedEvent((data) => this.handleSceneClosed(data)));
+        this.subscribeToEvent(this, EngineCore.UIWidgetEvent((ev) => this.handleWidgetEvent(ev)));
+        this.subscribeToEvent(EngineEditor.EditorActiveSceneEditorChangeEvent((data) => this.handleActiveSceneEditorChanged(data)));
+        this.subscribeToEvent(EngineEditor.EditorSceneClosedEvent((data) => this.handleSceneClosed(data)));
 
         var leftAnimationField = InspectorUtils.createAttrEditFieldWithSelectButton("Animation A", this.leftAnimContainer);
         leftAnimationField.selectButton.onClick = function () { this.openAnimationSelectionBox(leftAnimationField.editField, this.leftAnim); }.bind(this);
@@ -53,8 +53,8 @@ class AnimationToolbar extends Atomic.UIWidget {
         this.leftAnimEditfield = leftAnimationField.editField;
         this.rightAnimEditfield = rightAnimationField.editField;
 
-        var leftStateContainer = <Atomic.UILayout>this.getWidget("leftstatedropdown");
-        var rightStateContainer = <Atomic.UILayout>this.getWidget("rightstatedropdown");
+        var leftStateContainer = <EngineCore.UILayout>this.getWidget("leftstatedropdown");
+        var rightStateContainer = <EngineCore.UILayout>this.getWidget("rightstatedropdown");
 
         ResourceOps.CreateNewAnimationPreviewScene();
         this.populateScene();
@@ -62,7 +62,7 @@ class AnimationToolbar extends Atomic.UIWidget {
         parent.addChild(this);
 
         //Animation properties bar
-        this.animationPropertiesContainer = new Atomic.UILayout();
+        this.animationPropertiesContainer = new EngineCore.UILayout();
 
         this.animationSpeed = InspectorUtils.createAttrEditField("Playback Speed:", this.animationPropertiesContainer);
         this.animationSpeed.setAdaptToContentSize(true);
@@ -70,16 +70,16 @@ class AnimationToolbar extends Atomic.UIWidget {
         this.blendSpeed = InspectorUtils.createAttrEditField("Blend Speed:", this.animationPropertiesContainer);
         this.blendSpeed.setAdaptToContentSize(true);
 
-        var attrLayout = new Atomic.UILayout();
-        attrLayout.layoutSize = Atomic.UI_LAYOUT_SIZE.UI_LAYOUT_SIZE_AVAILABLE;
-        attrLayout.gravity = Atomic.UI_GRAVITY.UI_GRAVITY_LEFT_RIGHT;
-        attrLayout.layoutDistribution = Atomic.UI_LAYOUT_DISTRIBUTION.UI_LAYOUT_DISTRIBUTION_GRAVITY;
-        var nameField = new Atomic.UITextField();
-        nameField.textAlign = Atomic.UI_TEXT_ALIGN.UI_TEXT_ALIGN_RIGHT;
+        var attrLayout = new EngineCore.UILayout();
+        attrLayout.layoutSize = EngineCore.UI_LAYOUT_SIZE.UI_LAYOUT_SIZE_AVAILABLE;
+        attrLayout.gravity = EngineCore.UI_GRAVITY.UI_GRAVITY_LEFT_RIGHT;
+        attrLayout.layoutDistribution = EngineCore.UI_LAYOUT_DISTRIBUTION.UI_LAYOUT_DISTRIBUTION_GRAVITY;
+        var nameField = new EngineCore.UITextField();
+        nameField.textAlign = EngineCore.UI_TEXT_ALIGN.UI_TEXT_ALIGN_RIGHT;
         nameField.skinBg = "InspectorTextAttrName";
         nameField.text = "Spin Speed:";
         attrLayout.addChild(nameField);
-        this.rotateModel = new Atomic.UISlider();
+        this.rotateModel = new EngineCore.UISlider();
         this.rotateModel.setLimits(0, 10);
         this.rotateModel.setValue(0);
         attrLayout.addChild(this.rotateModel);
@@ -91,7 +91,7 @@ class AnimationToolbar extends Atomic.UIWidget {
 
         properties.addChild(this.animationPropertiesContainer);
 
-        this.subscribeToEvent(Atomic.UpdateEvent((ev) => this.handleUpdate(ev))); // if we want the model to rotate
+        this.subscribeToEvent(EngineCore.UpdateEvent((ev) => this.handleUpdate(ev))); // if we want the model to rotate
 
     }
 
@@ -111,9 +111,9 @@ class AnimationToolbar extends Atomic.UIWidget {
         }
     }
 
-    handleWidgetEvent(ev: Atomic.UIWidgetEvent): boolean {
+    handleWidgetEvent(ev: EngineCore.UIWidgetEvent): boolean {
 
-        if (ev.type == Atomic.UI_EVENT_TYPE.UI_EVENT_TYPE_CLICK) {
+        if (ev.type == EngineCore.UI_EVENT_TYPE.UI_EVENT_TYPE_CLICK) {
             if (this.animationController != null) {
 
                 if (ev.target.id == "play_left") {
@@ -157,9 +157,9 @@ class AnimationToolbar extends Atomic.UIWidget {
         return true;
     }
 
-    handleSceneClosed(ev: Editor.EditorSceneClosedEvent) {
+    handleSceneClosed(ev: EngineEditor.EditorSceneClosedEvent) {
         if (ev.scene == this.scene) {
-            Atomic.fileSystem.delete(this.sceneAssetPath);
+            EngineCore.fileSystem.delete(this.sceneAssetPath);
 
             if (this.animationPropertiesContainer)
                 this.animationPropertiesContainer.remove();
@@ -169,14 +169,14 @@ class AnimationToolbar extends Atomic.UIWidget {
     }
 
     closeViewer() {
-        Atomic.fileSystem.delete(this.sceneAssetPath);
+        EngineCore.fileSystem.delete(this.sceneAssetPath);
             this.sceneEditor.close();
             if (this.animationPropertiesContainer)
                 this.animationPropertiesContainer.remove();
             this.remove();
     }
 
-    handleActiveSceneEditorChanged(event: Editor.EditorActiveSceneEditorChangeEvent) {
+    handleActiveSceneEditorChanged(event: EngineEditor.EditorActiveSceneEditorChangeEvent) {
 
         if (!event.sceneEditor)
             return;
@@ -203,21 +203,21 @@ class AnimationToolbar extends Atomic.UIWidget {
         this.sceneEditor.selection.addNode(modelNode, true);
         this.sceneEditor.sceneView3D.frameSelection();
 
-        this.animatedModel = <Atomic.AnimatedModel>modelNode.getComponent("AnimatedModel");
-        this.animationController = <Atomic.AnimationController>modelNode.getComponent("AnimationController");
+        this.animatedModel = <EngineCore.AnimatedModel>modelNode.getComponent("AnimatedModel");
+        this.animationController = <EngineCore.AnimationController>modelNode.getComponent("AnimationController");
         if ( this.animatedModel != null && this.animationController != null ) {
             var model = this.animatedModel.model;
             this.animatedModel.setBoneCreationOverride(true);
             this.animatedModel.setModel(model, true);
 
-            var animComp = new Atomic.AnimatedModel();
-            var animContComp = new Atomic.AnimationController();
+            var animComp = new EngineCore.AnimatedModel();
+            var animContComp = new EngineCore.AnimationController();
         }
     }
 
-    openAnimationSelectionBox(animationWidget: Atomic.UIEditField, animationSlot: Atomic.Animation) {
+    openAnimationSelectionBox(animationWidget: EngineCore.UIEditField, animationSlot: EngineCore.Animation) {
 
-        EditorUI.getModelOps().showResourceSelection("Select Animation", "ModelImporter", "Animation", function (resource: Atomic.Animation, args: any) {
+        EditorUI.getModelOps().showResourceSelection("Select Animation", "ModelImporter", "Animation", function (resource: EngineCore.Animation, args: any) {
             var animation = resource;
             if (animation) {
                 animationSlot = animation;
@@ -230,29 +230,29 @@ class AnimationToolbar extends Atomic.UIWidget {
     }
 
     //Animation Toolbar Widgets
-    animationController: Atomic.AnimationController;
-    animatedModel: Atomic.AnimatedModel;
-    scene: Atomic.Scene = null;
-    sceneEditor: Editor.SceneEditor3D;
-    modelNode: Atomic.Node;
+    animationController: EngineCore.AnimationController;
+    animatedModel: EngineCore.AnimatedModel;
+    scene: EngineCore.Scene = null;
+    sceneEditor: EngineEditor.SceneEditor3D;
+    modelNode: EngineCore.Node;
 
-    leftAnimContainer: Atomic.UILayout;
-    rightAnimContainer: Atomic.UILayout;
-    blendFileContainer: Atomic.UILayout;
-    leftAnimEditfield: Atomic.UIEditField;
-    rightAnimEditfield: Atomic.UIEditField;
+    leftAnimContainer: EngineCore.UILayout;
+    rightAnimContainer: EngineCore.UILayout;
+    blendFileContainer: EngineCore.UILayout;
+    leftAnimEditfield: EngineCore.UIEditField;
+    rightAnimEditfield: EngineCore.UIEditField;
 
-    leftAnim: Atomic.Animation;
-    rightAnim: Atomic.Animation;
+    leftAnim: EngineCore.Animation;
+    rightAnim: EngineCore.Animation;
 
     asset: ToolCore.Asset;
     sceneAssetPath: string;
     stateDropDownList: string[];
     //Animation Properties Widgets
-    animationPropertiesContainer: Atomic.UILayout;
-    animationSpeed: Atomic.UIEditField;
-    blendSpeed: Atomic.UIEditField;
-    rotateModel: Atomic.UISlider;
+    animationPropertiesContainer: EngineCore.UILayout;
+    animationSpeed: EngineCore.UIEditField;
+    blendSpeed: EngineCore.UIEditField;
+    rotateModel: EngineCore.UISlider;
 }
 
 export = AnimationToolbar;
