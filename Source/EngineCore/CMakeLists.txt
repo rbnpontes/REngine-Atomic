@@ -261,7 +261,9 @@ if ($ENV{ENGINE_BUILD_DIST})
     target_compile_definitions("${ENGINE_CORE_LIB_TARGET}" PUBLIC -DENGINE_BUILD_DIST=1)
 endif ()
 
-target_compile_definitions("${ENGINE_CORE_LIB_TARGET}" PUBLIC -DENGINE_NAME="${ENGINE_NAME}")
+target_compile_definitions("${ENGINE_CORE_LIB_TARGET}" PUBLIC 
+    -DENGINE_NAME="${ENGINE_NAME}"
+    -DENGINE_NAMESPACE="${ENGINE_NAMESPACE}")
 
 # if (MSVC)
 #     # Becarefull if you change this line

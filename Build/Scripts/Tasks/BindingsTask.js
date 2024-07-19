@@ -102,55 +102,28 @@ function _getScriptModules() {
 
     return modules;
 }
-function _genTsConfig() {
-    console.log('- Generating TsConfig');
-    const output_tsconfig_path = path.join(script_dir, 'tsconfig.json');
+function _genTsConfigs() {
+    console.log('- Generating TsConfigs');
+    const tsconfig_files = fs.readdirSync(script_dir, { recursive: true})
+        .filter(x => path.basename(x) === 'tsconfig.js')
+        .map(x => path.resolve(script_dir, x));
 
-    if(fs.existsSync(output_tsconfig_path))
-        fs.unlinkSync(output_tsconfig_path);
+    console.log(`- Found (${tsconfig_files.length}) tsconfig scripts.`);
+    const tsconfig_call_params = {
+        constants,
+        artifacts_root: engineGetArtifactsRoot()
+    };
+    tsconfig_files.forEach(x => {
+        const call = require(x);
+        const tsconfig_instance = call(tsconfig_call_params);
 
-    const base_ts_config = JSON.parse(
-        fs.readFileSync(path.join(script_dir, 'tsconfig.base.json'))
-    );
+        const dir = path.dirname(x);
+        const data_2_write = JSON.stringify(tsconfig_instance, null, '\t');
 
-    const files_glob = [
-        './ToolCore/**/*.ts',
-        `./${constants.engine_editor_name}/**/*.ts`,
-        './TypeScript/**/*.ts',
-        '!./TypeScript/dist/*.ts',
-        `!./TypeScript/${constants.engine_net_name}.d.ts`,
-        path.join(typescript_generated_types_path, '*.ts'),
-        ...base_ts_config.files_glob ?? [],
-    ];
-    const target_ts_files = [constants.engine_editor_name+'/**/*.ts', 'ToolCore/**/*.ts'];
-    const code_files = globSync(['{', target_ts_files.join(','), '}'].join(''), { cwd : script_dir });
-    const ts_definition_files = fs.readdirSync(path.join(script_dir, 'TypeScript'))
-        .map(x => './TypeScript/'+x)
-        .filter(x => fs.statSync(path.resolve(script_dir, x)).isFile() && x.endsWith('.d.ts'));
-    const generated_files = fs.readdirSync(typescript_generated_types_path)
-        .map(x => {
-            return path.resolve(typescript_generated_types_path, x);
-        }).filter(x => fs.statSync(x).isFile() && x.endsWith('.d.ts'));
+        fs.writeFileSync(path.join(dir, 'tsconfig.json'), data_2_write);
+    });
 
-    const ts_config_files = [
-        ...code_files.map(x => './'+x),
-        ...ts_definition_files,
-        ...generated_files,
-        ...(base_ts_config.files ?? [])
-    ];
-
-    const output_dir = path.resolve(engineGetArtifactsRoot(), 'Build/Resources/EditorData/EditorScripts');
-
-    base_ts_config.compilerOptions.outDir = output_dir;
-    base_ts_config.filesGlob = files_glob;
-    base_ts_config.files = ts_config_files;
-
-    fs.writeFileSync(
-        path.join(script_dir, 'tsconfig.json'),
-        JSON.stringify(base_ts_config, null, '\t')
-    );
-
-    console.log('- TsConfig generated with success!');
+    console.log('- TsConfigs generated with success!');
 }
 
 async function bindingsGenerate() {
@@ -187,7 +160,7 @@ async function bindingsBuildTypescript() {
         'TypeScript'
     ]);
 
-    _genTsConfig();
+    _genTsConfigs();
 
     console.log('- Building TypeScript Scripts');
     

@@ -183,7 +183,7 @@ public:
 
     void AddInterface(JSBClass* klass) { interfaces_.Push(klass); }
 
-    void AddTypeScriptDecl(const String& decl) { typeScriptDecls_.Push(decl); }
+    void AddTypeScriptDecl(const String& decl);
     unsigned GetNumTypeScriptDecl() { return typeScriptDecls_.Size(); }
     const String& GetTypeScriptDecl(unsigned idx) { return typeScriptDecls_[idx]; }
 

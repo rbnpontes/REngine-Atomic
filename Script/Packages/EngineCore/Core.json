@@ -40,17 +40,16 @@
 		}
 	},
 	"typescript_decl" : {
-
 		"Object" : [
 			"sendEvent(eventType:string, data?:Object);",
-			"sendEvent<T extends Atomic.EventCallbackMetaData>(eventCallbackMetaData:T);",
+			"sendEvent<T extends {{PACKAGE_NAME}}.EventCallbackMetaData>(eventCallbackMetaData:T);",
 			"subscribeToEvent(eventType:string, callback:(data:any) => void);",
 			"subscribeToEvent(sender:AObject, eventType:string, callback:(data: any) => void);",
-			"subscribeToEvent(eventMetaData:Atomic.EventMetaData);",
-			"subscribeToEvent(sender:AObject, eventMetaData:Atomic.EventMetaData);"
+			"subscribeToEvent(eventMetaData: {{PACKAGE_NAME}}.EventMetaData);",
+			"subscribeToEvent(sender:AObject, eventMetaData: {{PACKAGE_NAME}}.EventMetaData);"
 		],
 		"Profiler" : [
-			"beginBlock(name:string, filename:string, line:number, argb?:number, status?:Atomic.ProfilerBlockStatus );"
+			"beginBlock(name:string, filename:string, line:number, argb?:number, status?: {{PACKAGE_NAME}}.ProfilerBlockStatus);"
 		]
 	},
 	"haxe_decl" : {
