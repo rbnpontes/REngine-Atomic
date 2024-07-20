@@ -2,7 +2,7 @@ const path = require('path');
 const fs = require('fs-extra');
 
 module.exports = (params)=> {
-    const { constants, artifacts_root } = params;
+    const { constants, artifacts_root, engine_root } = params;
 
     const ts_config_base = {
         compilerOptions : {
@@ -12,7 +12,7 @@ module.exports = (params)=> {
             noImplicitAny: false,
             removeComments: true,
             noLib: false,
-            outDir: '',
+            outDir: path.resolve(engine_root, 'Data/CodeEditor/source/editorCore'),
             sourceMap: true,
             forceConsistentCasingInFileNames: true
         },

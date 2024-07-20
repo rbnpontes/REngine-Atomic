@@ -111,6 +111,7 @@ function _genTsConfigs() {
     console.log(`- Found (${tsconfig_files.length}) tsconfig scripts.`);
     const tsconfig_call_params = {
         constants,
+        engine_root,
         artifacts_root: engineGetArtifactsRoot()
     };
     tsconfig_files.forEach(x => {
