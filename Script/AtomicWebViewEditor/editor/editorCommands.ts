@@ -117,7 +117,7 @@ export function loadCodeIntoEditor(code: string, filename: string, fileExt: stri
  * @param  {string} newPath
  */
 export function resourceRenamed(path: string, newPath: string) {
-    let data: Editor.ClientExtensions.RenameResourceEvent = {
+    let data: EngineEditor.ClientExtensions.RenameResourceEvent = {
         path: path,
         newPath: newPath
     };
@@ -129,7 +129,7 @@ export function resourceRenamed(path: string, newPath: string) {
  * @param  {string} path
  */
 export function resourceDeleted(path: string) {
-    let data: Editor.ClientExtensions.DeleteResourceEvent = {
+    let data: EngineEditor.ClientExtensions.DeleteResourceEvent = {
         path: path
     };
     serviceLocator.sendEvent(ClientExtensionEventNames.ResourceDeletedEvent, data);
@@ -142,7 +142,7 @@ export function resourceDeleted(path: string) {
  * @param {string} contents
  */
 export function codeSaved(path: string, fileExt: string, contents: string) {
-    let data: Editor.ClientExtensions.CodeSavedEvent = {
+    let data: EngineEditor.ClientExtensions.CodeSavedEvent = {
         filename: path,
         fileExt: fileExt,
         editor: internalEditor.getInternalEditor(),
@@ -162,7 +162,7 @@ export function editorLoaded() {
 /**
  * Called when new preferences are available (or initially with current prefs)
  */
-export function preferencesChanged(prefs: Editor.ClientExtensions.PreferencesChangedEventData) {
+export function preferencesChanged(prefs: EngineEditor.ClientExtensions.PreferencesChangedEventData) {
     serviceLocator.clientServices.setPreferences(prefs.projectPreferences, prefs.applicationPreferences);
     updateEditorPrefs();
 
@@ -184,7 +184,7 @@ export function formatCode() {
 /**
  * Called when the editor should respond to a host shortcut command
  */
-export function invokeShortcut(shortcut: Editor.EditorShortcutType) {
+export function invokeShortcut(shortcut: EngineEditor.EditorShortcutType) {
 
     const ed = internalEditor.getInternalEditor();
     ed.focus();

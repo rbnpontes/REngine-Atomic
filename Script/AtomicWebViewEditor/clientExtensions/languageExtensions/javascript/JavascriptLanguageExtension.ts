@@ -23,20 +23,20 @@
 /**
  * Resource extension that handles configuring the editor for Javascript
  */
-export default class JavascriptLanguageExtension implements Editor.ClientExtensions.WebViewServiceEventListener {
+export default class JavascriptLanguageExtension implements EngineEditor.ClientExtensions.WebViewServiceEventListener {
     name: string = "ClientJavascriptLanguageExtension";
     description: string = "Javascript language services for the editor.";
 
     private editor: monaco.editor.IStandaloneCodeEditor;
     private active = false;
 
-    private serviceLocator: Editor.ClientExtensions.ClientServiceLocator;
+    private serviceLocator: EngineEditor.ClientExtensions.ClientServiceLocator;
 
     /**
     * Initialize the language service
      * @param  {Editor.ClientExtensions.ClientServiceLocator} serviceLocator
      */
-    initialize(serviceLocator: Editor.ClientExtensions.ClientServiceLocator) {
+    initialize(serviceLocator: EngineEditor.ClientExtensions.ClientServiceLocator) {
         // initialize the language service
         this.serviceLocator = serviceLocator;
         serviceLocator.clientServices.register(this);
@@ -56,7 +56,7 @@ export default class JavascriptLanguageExtension implements Editor.ClientExtensi
      * Called when the editor needs to be configured for a particular file
      * @param  {Editor.ClientExtensions.EditorFileEvent} ev
      */
-    configureEditor(ev: Editor.ClientExtensions.EditorFileEvent) {
+    configureEditor(ev: EngineEditor.ClientExtensions.EditorFileEvent) {
         if (this.isValidFiletype(ev.filename)) {
             this.editor = ev.editor; // cache this so that we can reference it later
             this.active = true;

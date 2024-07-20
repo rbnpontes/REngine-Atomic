@@ -112,7 +112,7 @@ export default class HostInteropType {
             return window.atomicQueryPromise(HostInteropType.EDITOR_GET_USER_PREFS);
         }).then(() => {
             this.setCodeLoaded();
-        }).catch((e: Editor.ClientExtensions.AtomicErrorMessage) => {
+        }).catch((e: EngineEditor.ClientExtensions.AtomicErrorMessage) => {
             console.log("Error loading code: " + e.error_message);
         });
     }
@@ -186,7 +186,7 @@ export default class HostInteropType {
      * Notify the host that the contents of the editor has changed
      */
     notifyEditorChange() {
-        window.atomicQueryPromise(HostInteropType.EDITOR_CHANGE).catch((e: Editor.ClientExtensions.AtomicErrorMessage) => {
+        window.atomicQueryPromise(HostInteropType.EDITOR_CHANGE).catch((e: EngineEditor.ClientExtensions.AtomicErrorMessage) => {
             console.log("Error on change: " + e.error_message);
         });
     }
@@ -213,7 +213,7 @@ export default class HostInteropType {
      * Host is notifying client that there are preferences to load and passing us JSON objects containing the prefs
      * of the prefs.
      */
-    preferencesChanged(prefs: Editor.ClientExtensions.PreferencesChangedEventData) {
+    preferencesChanged(prefs: EngineEditor.ClientExtensions.PreferencesChangedEventData) {
         editorCommands.preferencesChanged(prefs);
     }
 
@@ -238,7 +238,7 @@ export default class HostInteropType {
      * Called when a shortcut should be invoked, coming from the host editor
      * @param {Editor.EditorShortcutType} shortcut shortcut to be executed
      */
-    invokeShortcut(shortcut: Editor.EditorShortcutType) {
+    invokeShortcut(shortcut: EngineEditor.EditorShortcutType) {
        editorCommands.invokeShortcut(shortcut);
     }
 

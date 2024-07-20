@@ -32,10 +32,10 @@ interface EventSubscription {
 /**
  * Implements an event dispatcher for the client services
  */
-export class EventDispatcher implements Editor.Extensions.EventDispatcher {
+export class EventDispatcher implements EngineEditor.Extensions.EventDispatcher {
     private subscriptions: EventSubscription[] = [];
 
-    sendEvent<T extends Atomic.EventCallbackMetaData>(eventCallbackMetaData:T)
+    sendEvent<T extends EngineCore.EventCallbackMetaData>(eventCallbackMetaData:T)
     sendEvent(eventType: string, data: any)
     sendEvent(eventTypeOrWrapped: any, data?: any) {
         let eventType: string;
@@ -44,7 +44,7 @@ export class EventDispatcher implements Editor.Extensions.EventDispatcher {
             eventType = eventTypeOrWrapped;
             eventData = data;
         } else {
-            const metaData = eventTypeOrWrapped as Atomic.EventCallbackMetaData;
+            const metaData = eventTypeOrWrapped as EngineCore.EventCallbackMetaData;
             eventType = metaData._eventType;
             eventData = metaData._callbackData;
         }
@@ -57,7 +57,7 @@ export class EventDispatcher implements Editor.Extensions.EventDispatcher {
     }
 
     subscribeToEvent(eventType: string, callback: (...params) => any);
-    subscribeToEvent(wrapped: Atomic.EventMetaData);
+    subscribeToEvent(wrapped: EngineCore.EventMetaData);
     subscribeToEvent(eventTypeOrWrapped: any, callback?: any) {
         if (callback) {
             this.subscriptions.push({
@@ -77,7 +77,7 @@ export class EventDispatcher implements Editor.Extensions.EventDispatcher {
 /**
  * Generic registry for storing Editor Extension Services
  */
-class ServicesProvider<T extends Editor.Extensions.ServiceEventListener> implements Editor.Extensions.ServicesProvider<T> {
+class ServicesProvider<T extends EngineEditor.Extensions.ServiceEventListener> implements EngineEditor.Extensions.ServicesProvider<T> {
     registeredServices: T[] = [];
 
     /**
@@ -96,7 +96,7 @@ class ServicesProvider<T extends Editor.Extensions.ServiceEventListener> impleme
     }
 }
 
-export class WebViewServicesProvider extends ServicesProvider<Editor.ClientExtensions.WebViewServiceEventListener> {
+export class WebViewServicesProvider extends ServicesProvider<EngineEditor.ClientExtensions.WebViewServiceEventListener> {
 
     private projectPreferences = {};
     private applicationPreferences = {};
@@ -116,7 +116,7 @@ export class WebViewServicesProvider extends ServicesProvider<Editor.ClientExten
      * Allow this service registry to subscribe to events that it is interested in
      * @param  {EventDispatcher} eventDispatcher The global event dispatcher
      */
-    subscribeToEvents(eventDispatcher: Editor.Extensions.EventDispatcher) {
+    subscribeToEvents(eventDispatcher: EngineEditor.Extensions.EventDispatcher) {
         eventDispatcher.subscribeToEvent(ClientExtensionEventNames.CodeLoadedEvent, (ev) => this.codeLoaded(ev));
         eventDispatcher.subscribeToEvent(ClientExtensionEventNames.ConfigureEditorEvent, (ev) => this.configureEditor(ev));
         eventDispatcher.subscribeToEvent(ClientExtensionEventNames.ResourceRenamedEvent, (ev) => this.renameResource(ev));
@@ -128,9 +128,9 @@ export class WebViewServicesProvider extends ServicesProvider<Editor.ClientExten
 
     /**
      * Called when code is loaded
-     * @param  {Editor.ClientExtensions.CodeLoadedEvent} ev Event info about the file that is being loaded
+     * @param  {EngineEditor.ClientExtensions.CodeLoadedEvent} ev Event info about the file that is being loaded
      */
-    codeLoaded(ev: Editor.ClientExtensions.CodeLoadedEvent) {
+    codeLoaded(ev: EngineEditor.ClientExtensions.CodeLoadedEvent) {
         this.registeredServices.forEach((service) => {
             try {
                 // Notify services that the project has just been loaded
@@ -145,9 +145,9 @@ export class WebViewServicesProvider extends ServicesProvider<Editor.ClientExten
 
     /**
      * Called after code has been saved
-     * @param  {Editor.ClientExtensions.SaveResourceEvent} ev
+     * @param  {EngineEditor.ClientExtensions.SaveResourceEvent} ev
      */
-    saveCode(ev: Editor.ClientExtensions.CodeSavedEvent) {
+    saveCode(ev: EngineEditor.ClientExtensions.CodeSavedEvent) {
         // run through and find any services that can handle this.
         this.registeredServices.forEach((service) => {
             try {
@@ -164,7 +164,7 @@ export class WebViewServicesProvider extends ServicesProvider<Editor.ClientExten
     /**
      * Called when a resource has been deleted
      */
-    deleteResource(ev: Editor.ClientExtensions.DeleteResourceEvent) {
+    deleteResource(ev: EngineEditor.ClientExtensions.DeleteResourceEvent) {
         this.registeredServices.forEach((service) => {
             try {
                 // Verify that the service contains the appropriate methods and that it can delete
@@ -179,9 +179,9 @@ export class WebViewServicesProvider extends ServicesProvider<Editor.ClientExten
 
     /**
      * Called when a resource has been renamed
-     * @param  {Editor.ClientExtensions.RenameResourceEvent} ev
+     * @param  {EngineEditor.ClientExtensions.RenameResourceEvent} ev
      */
-    renameResource(ev: Editor.ClientExtensions.RenameResourceEvent) {
+    renameResource(ev: EngineEditor.ClientExtensions.RenameResourceEvent) {
         this.registeredServices.forEach((service) => {
             try {
                 // Verify that the service contains the appropriate methods and that it can handle the rename
@@ -212,9 +212,9 @@ export class WebViewServicesProvider extends ServicesProvider<Editor.ClientExten
 
     /**
      * Called when the editor is requesting to be configured for a particular file
-     * @param  {Editor.ClientExtensions.EditorFileEvent} ev
+     * @param  {EngineEditor.ClientExtensions.EditorFileEvent} ev
      */
-    configureEditor(ev: Editor.ClientExtensions.EditorFileEvent) {
+    configureEditor(ev: EngineEditor.ClientExtensions.EditorFileEvent) {
         this.registeredServices.forEach((service) => {
             try {
                 // Notify services that the project has just been loaded
@@ -229,9 +229,9 @@ export class WebViewServicesProvider extends ServicesProvider<Editor.ClientExten
 
     /**
      * Called when preferences changes
-     * @param  {Editor.EditorEvents.PreferencesChangedEvent} ev
+     * @param  {EngineEditor.EditorEvents.PreferencesChangedEvent} ev
      */
-    preferencesChanged(prefs: Editor.ClientExtensions.PreferencesChangedEventData) {
+    preferencesChanged(prefs: EngineEditor.ClientExtensions.PreferencesChangedEventData) {
         this.registeredServices.forEach((service) => {
             // Notify services that the project has been unloaded
             try {
@@ -248,7 +248,7 @@ export class WebViewServicesProvider extends ServicesProvider<Editor.ClientExten
      * Returns the Host Interop module
      * @return {Editor.ClientExtensions.HostInterop}
      */
-    getHostInterop(): Editor.ClientExtensions.HostInterop {
+    getHostInterop(): EngineEditor.ClientExtensions.HostInterop {
         return HostInteropType.getInstance();
     }
 

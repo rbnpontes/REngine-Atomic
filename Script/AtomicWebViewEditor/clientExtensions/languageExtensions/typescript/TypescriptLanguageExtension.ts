@@ -29,7 +29,7 @@ import * as tsLanguageSupport from "./tsLanguageSupport";
 /**
  * Resource extension that handles compiling or transpling typescript on file save.
  */
-export default class TypescriptLanguageExtension implements Editor.ClientExtensions.WebViewServiceEventListener {
+export default class TypescriptLanguageExtension implements EngineEditor.ClientExtensions.WebViewServiceEventListener {
     name: string = "ClientTypescriptLanguageExtension";
     description: string = "This extension handles typescript language features such as completion, compilation, etc.";
 
@@ -46,7 +46,7 @@ export default class TypescriptLanguageExtension implements Editor.ClientExtensi
      */
     private active = false;
 
-    private serviceLocator: Editor.ClientExtensions.ClientServiceLocator;
+    private serviceLocator: EngineEditor.ClientExtensions.ClientServiceLocator;
 
     private worker: SharedWorker.SharedWorker;
 
@@ -60,9 +60,9 @@ export default class TypescriptLanguageExtension implements Editor.ClientExtensi
 
     /**
     * Inject this language service into the registry
-     * @param  {Editor.ClientExtensions.ClientServiceLocator} serviceLocator
+     * @param  {EngineEditor.ClientExtensions.ClientServiceLocator} serviceLocator
      */
-    initialize(serviceLocator: Editor.ClientExtensions.ClientServiceLocator) {
+    initialize(serviceLocator: EngineEditor.ClientExtensions.ClientServiceLocator) {
         // initialize the language service
         this.serviceLocator = serviceLocator;
         serviceLocator.clientServices.register(this);
@@ -127,9 +127,9 @@ export default class TypescriptLanguageExtension implements Editor.ClientExtensi
 
     /**
      * Called when the editor needs to be configured for a particular file
-     * @param  {Editor.ClientExtensions.EditorFileEvent} ev
+     * @param  {EngineEditor.ClientExtensions.EditorFileEvent} ev
      */
-    configureEditor(ev: Editor.ClientExtensions.EditorFileEvent) {
+    configureEditor(ev: EngineEditor.ClientExtensions.EditorFileEvent) {
         if (this.isValidFiletype(ev.filename)) {
             let editor = ev.editor as monaco.editor.IStandaloneCodeEditor;
             this.editor = editor; // cache this so that we can reference it later
@@ -223,7 +223,7 @@ export default class TypescriptLanguageExtension implements Editor.ClientExtensi
      * Called when code is first loaded into the editor
      * @param  {CodeLoadedEvent} ev
      */
-    codeLoaded(ev: Editor.ClientExtensions.CodeLoadedEvent) {
+    codeLoaded(ev: EngineEditor.ClientExtensions.CodeLoadedEvent) {
         if (this.isValidFiletype(ev.filename)) {
 
             // Build our worker
@@ -374,9 +374,9 @@ export default class TypescriptLanguageExtension implements Editor.ClientExtensi
 
     /**
      * Called once a resource has been saved
-     * @param  {Editor.ClientExtensions.SaveResourceEvent} ev
+     * @param  {EngineEditor.ClientExtensions.SaveResourceEvent} ev
      */
-    save(ev: Editor.ClientExtensions.CodeSavedEvent) {
+    save(ev: EngineEditor.ClientExtensions.CodeSavedEvent) {
         if (this.active && this.isValidFiletype(ev.filename)) {
             const message: WorkerProcessTypes.SaveMessageData = {
                 command: ClientExtensionEventNames.CodeSavedEvent,
@@ -394,7 +394,7 @@ export default class TypescriptLanguageExtension implements Editor.ClientExtensi
      * Handle the delete.  This should delete the corresponding javascript file
      * @param  {Editor.ClientExtensions.DeleteResourceEvent} ev
      */
-    delete(ev: Editor.ClientExtensions.DeleteResourceEvent) {
+    delete(ev: EngineEditor.ClientExtensions.DeleteResourceEvent) {
         if (this.active && this.isValidFiletype(ev.path)) {
             // notify the typescript language service that the file has been deleted
             const message: WorkerProcessTypes.DeleteMessageData = {
@@ -410,7 +410,7 @@ export default class TypescriptLanguageExtension implements Editor.ClientExtensi
      * Handle the rename.  Should rename the corresponding .js file
      * @param  {Editor.ClientExtensions.RenameResourceEvent} ev
      */
-    rename(ev: Editor.ClientExtensions.RenameResourceEvent) {
+    rename(ev: EngineEditor.ClientExtensions.RenameResourceEvent) {
         if (this.active && this.isValidFiletype(ev.path)) {
             // notify the typescript language service that the file has been renamed
             const message: WorkerProcessTypes.RenameMessageData = {

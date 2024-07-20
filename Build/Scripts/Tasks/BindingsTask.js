@@ -126,6 +126,35 @@ function _genTsConfigs() {
 
     console.log('- TsConfigs generated with success!');
 }
+async function _genCombinedDefinition() {
+    console.log('- Generating Combined engine.d.ts');
+    // Writing basic tsconfig file to generated typescript types
+    const ts_cfg_base = JSON.parse(
+        fs.readFileSync(
+            path.resolve(script_dir, 'TypeScript/tsconfig.json')
+        ).toString()
+    );
+    ts_cfg_base.exclude = [
+        'dist/'+constants.engine_typescript_definitions+'.d.ts'
+    ];
+    fs.writeFileSync(
+        path.resolve(engineGetArtifactsRoot(), 'Build/TypeScript/tsconfig.json'),
+        JSON.stringify(ts_cfg_base, null, '\t')
+    );
+
+
+    const dts_gen_args = [
+        path.resolve(engine_root, 'Build/node_modules/dts-generator/bin/dts-generator'),
+        '--name', constants.engine_typescript_definitions,
+        '--project', path.resolve(engineGetArtifactsRoot(), 'Build/TypeScript'),
+        '--out', path.resolve(
+            engineGetArtifactsRoot(), 
+            'Build/TypeScript/dist', 
+            constants.engine_typescript_definitions + '.d.ts'
+        )
+    ];
+    await execAsync('node', dts_gen_args);
+}
 
 async function bindingsGenerate() {
     console.log('- Generating Bindings');
@@ -185,18 +214,7 @@ async function bindingsBuildTypescript() {
         await execAsync('node', [tsc_path, '--project', tsc_proj]);
     }
 
-    console.log('- Generating Combined engine.d.ts');
-    const dts_gen_args = [
-        path.resolve(engine_root, 'Build/node_modules/dts-generator/bin/dts-generator'),
-        '--name', constants.engine_typescript_definitions,
-        '--project', path.resolve(engine_root, 'Script/TypeScript'),
-        '--out', path.resolve(
-            engineGetArtifactsRoot(), 
-            'Script/TypeScript/dist', 
-            constants.engine_typescript_definitions + '.d.ts'
-        )
-    ];
-    await execAsync('node', dts_gen_args);
+    await _genCombinedDefinition();
 
     console.log('- Copying Generated files to Artifacts');
 
@@ -204,7 +222,7 @@ async function bindingsBuildTypescript() {
     const web_editor_modules_dir = path.resolve(engine_root, 'Data/CodeEditor/source/editorCore/modules');
     const node_modules_dir = path.resolve(engine_root, 'Build/node_modules');
 
-    fs.mkdirSync(editor_modules_dir);
+    fs.mkdirSync(editor_modules_dir, { recursive: true});
     // TypeScript
     fs.copySync(
         path.resolve(node_modules_dir, 'typescript/lib/typescript.js'), 
@@ -218,37 +236,32 @@ async function bindingsBuildTypescript() {
             'Build/Resources/EditorData/EditorScripts', 
             constants.engine_editor_name, 
             'TypeScriptSupport'
-        )
+        ),
+        { recursive : true }
     );
     // copy the combined EngineCore.d.ts to the tool data directory
     fs.copySync(
-        path.resolve(engineGetArtifactsRoot(), 'Script/TypeScript/dist/', constants.engine_typescript_definitions+'.d.ts'),
+        path.resolve(engineGetArtifactsRoot(), 'Build/TypeScript/dist/', constants.engine_typescript_definitions+'.d.ts'),
         path.resolve(engineGetArtifactsRoot(), 'Data/TypeScriptSupport/', constants.engine_typescript_definitions+'.d.ts')
     );
     console.log('- Finished TypeScript Build Scripts');
 }
 
 async function bindingsCleanTypescript() {
-    const exclude_list = [
-        'Work.d.ts',
-        'duktape.d.ts',
-        'tsconfig.json',
-        'README.md'
-    ];
-    const typescript_build_dir = path.resolve(engine_root, 'Script/TypeScript');
-    
-    console.log('- Cleaning TypeScript definition directory');
+    console.log('- Cleaning Generated TypeScript TsConfigs');
 
-    let cleared_count = 0;
-    fs.readdirSync(typescript_build_dir).forEach(x => {
-        const filepath = path.join(typescript_build_dir, x);
-        if(exclude_list.find(file => filepath.endsWith(file)))
-            return;
-        fs.removeSync(filepath);
-        ++cleared_count;
+    const ts_config_projects = fs.readdirSync(script_dir, { recursive : true })
+        .filter(x => fs.statSync(path.join(script_dir, x)).isFile() && path.basename(x) === 'tsconfig.js')
+        .map(x => path.resolve(script_dir, path.dirname(x), 'tsconfig.json'));
+
+    let removed_count = 0;
+    ts_config_projects.forEach(x => {
+        if(fs.existsSync(x))
+            ++removed_count;
+        fs.removeSync(x);
     });
 
-    console.log(`- Finished Typescript cleaning definition directory, Removed (${cleared_count}) files.`);
+    console.log(`- Removed (${removed_count}) files.`);
 }
 
 async function bindingsLintTypescript() {

@@ -23,18 +23,18 @@
 /**
  * Resource extension that handles configuring the editor for Javascript
  */
-export default class TurboBadgerLanguageExtension implements Editor.ClientExtensions.WebViewServiceEventListener {
+export default class TurboBadgerLanguageExtension implements EngineEditor.ClientExtensions.WebViewServiceEventListener {
     name: string = "ClientTurboBadgerLanguageExtension";
     description: string = "TurboBadger language services for the editor.";
 
-    private serviceLocator: Editor.ClientExtensions.ClientServiceLocator;
+    private serviceLocator: EngineEditor.ClientExtensions.ClientServiceLocator;
     private active = false;
 
     /**
     * Initialize the language service
      * @param  {Editor.ClientExtensions.ClientServiceLocator} serviceLocator
      */
-    initialize(serviceLocator: Editor.ClientExtensions.ClientServiceLocator) {
+    initialize(serviceLocator: EngineEditor.ClientExtensions.ClientServiceLocator) {
         // initialize the language service
         this.serviceLocator = serviceLocator;
         serviceLocator.clientServices.register(this);
@@ -53,7 +53,7 @@ export default class TurboBadgerLanguageExtension implements Editor.ClientExtens
      * Called when the editor needs to be configured for a particular file
      * @param  {Editor.ClientExtensions.EditorFileEvent} ev
      */
-    configureEditor(ev: Editor.ClientExtensions.EditorFileEvent) {
+    configureEditor(ev: EngineEditor.ClientExtensions.EditorFileEvent) {
         if (this.isValidFiletype(ev.filename)) {
             this.active = true;
             monaco.languages.register({ id: "turbobadger" });
@@ -73,7 +73,7 @@ export default class TurboBadgerLanguageExtension implements Editor.ClientExtens
      * Called when code is first loaded into the editor
      * @param  {CodeLoadedEvent} ev
      */
-    codeLoaded(ev: Editor.ClientExtensions.CodeLoadedEvent) {
+    codeLoaded(ev: EngineEditor.ClientExtensions.CodeLoadedEvent) {
         if (this.isValidFiletype(ev.filename)) {
             let editor = <monaco.editor.IStandaloneCodeEditor>ev.editor;
             editor.getModel().updateOptions({

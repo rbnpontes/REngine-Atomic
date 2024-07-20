@@ -30,17 +30,17 @@ import tbExtension from "./languageExtensions/turbobadger/TurboBadgerLanguageExt
  * Generic service locator of editor services that may be injected by either a plugin
  * or by the editor itself.
  */
-export class ClientServiceLocatorType implements Editor.ClientExtensions.ClientServiceLocator {
+export class ClientServiceLocatorType implements EngineEditor.ClientExtensions.ClientServiceLocator {
 
     constructor() {
         this.clientServices = new ClientExtensionServices.WebViewServicesProvider();
         this.clientServices.subscribeToEvents(this);
     }
 
-    private eventDispatcher: Editor.Extensions.EventDispatcher = new ClientExtensionServices.EventDispatcher();
+    private eventDispatcher: EngineEditor.Extensions.EventDispatcher = new ClientExtensionServices.EventDispatcher();
 
     clientServices: ClientExtensionServices.WebViewServicesProvider;
-    loadService(service: Editor.ClientExtensions.ClientEditorService) {
+    loadService(service: EngineEditor.ClientExtensions.ClientEditorService) {
         try {
             service.initialize(this);
         } catch (e) {
@@ -53,7 +53,7 @@ export class ClientServiceLocatorType implements Editor.ClientExtensions.ClientS
      * @param  {string} eventType
      * @param  {any} data
      */
-    sendEvent<T extends Atomic.EventCallbackMetaData>(eventCallbackMetaData:T)
+    sendEvent<T extends EngineCore.EventCallbackMetaData>(eventCallbackMetaData:T)
     sendEvent(eventType: string, data: any)
     sendEvent(eventTypeOrWrapped: any, data?: any) {
         if (this.eventDispatcher) {
@@ -71,7 +71,7 @@ export class ClientServiceLocatorType implements Editor.ClientExtensions.ClientS
      * @param  {any} callback
      */
     subscribeToEvent(eventType: string, callback: (...params) => any);
-    subscribeToEvent(wrapped: Atomic.EventMetaData);
+    subscribeToEvent(wrapped: EngineCore.EventMetaData);
     subscribeToEvent(eventTypeOrWrapped: any, callback?: any) {
         if (this.eventDispatcher) {
             if (callback) {
