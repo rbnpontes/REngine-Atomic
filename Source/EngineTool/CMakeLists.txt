@@ -31,10 +31,7 @@ if (ENGINE_JAVASCRIPT OR ENGINE_DOTNET)
 
     yarn_get_command()
 
-    set (TOOL_CHECK_SCRIPTS ${YARN_CMD} "build" "build:genscripts[false]")
-    if(APPLE)
-        set(TOOL_CHECK_SCRIPTS ${YARN_CMD} "build build:genscripts[false]")
-    endif()
+    set (TOOL_CHECK_SCRIPTS ${YARN_CMD} "bindings:all")
 
     add_custom_target(EngineToolCheckScripts
                     WORKING_DIRECTORY "${ENGINE_SOURCE_DIR}"
@@ -52,11 +49,7 @@ if (ENGINE_JAVASCRIPT OR ENGINE_DOTNET)
                         ARGS -E copy_if_different \"$<TARGET_FILE:${ENGINE_TOOL_TARGET}>\" \"${ENGINE_SOURCE_DIR}/Artifacts/Build/${ENGINE_TOOL_TARGET}/\"
                         COMMENT "Copying ${ENGINE_TOOL_TARGET} to Build Artifacts" )
 
-    set(GENERATE_SCRIPTS_BINDINGS ${YARN_CMD} "build" "build:genscripts[true];--trace")
-    if(APPLE)
-        set(GENERATE_SCRIPTS_BINDINGS ${YARN_CMD} "build build:genscripts[true];--trace")
-    endif()
-
+    set(GENERATE_SCRIPTS_BINDINGS ${YARN_CMD} "bindings:gen")
     add_custom_target (GenerateScriptBindings
                         WORKING_DIRECTORY "${ENGINE_SOURCE_DIR}"
                         COMMAND ${GENERATE_SCRIPTS_BINDINGS}
