@@ -165,6 +165,8 @@ async function bindingsGenerate() {
     }
 
     const script_modules = _getScriptModules();
+
+    console.log(`- Found (${Object.keys(script_modules).length}) script modules.`);
     const binding_calls = Object.keys(script_modules).map(module_name => {
         return async ()=> {
             console.log(`- Generating ${module_name} Bindings`);
