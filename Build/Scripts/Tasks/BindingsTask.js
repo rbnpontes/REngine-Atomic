@@ -61,7 +61,8 @@ function _getScriptPackages() {
             if (fs.statSync(file_path).isFile())
                 return false;
             // To be a valid package, they must contains package.json
-            return fs.existsSync(path.join(file_path, 'package.json'));
+            // Use readdir instead of existSync because linux is case sensitive.
+            return fs.readdirSync(file_path).map(x => x.toLowerCase()).indexOf('package.json') != -1;
         }
     );
 }
@@ -71,9 +72,12 @@ function _getScriptModules() {
     const script_packages = _getScriptPackages();
     script_packages.forEach(script_pkg => {
         /** @type {PackageDesc} */
+        const pkg_path = path.resolve(engine_root, 'Script/Packages', script_pkg);
+        // linux is case sensitive, we must convert to lowercase and test for correctly file that we wan't
+        const pkg_file_name = fs.readdirSync(pkg_path).find(x => x.toLowerCase() == 'package.json');
         const pkg = JSON.parse(
             fs.readFileSync(
-                path.resolve(engine_root, 'Script/Packages', script_pkg, 'package.json')
+                path.resolve(engine_root, 'Script/Packages', script_pkg, pkg_file_name)
             )
         );
 
@@ -165,8 +169,8 @@ async function bindingsGenerate() {
     }
 
     const script_modules = _getScriptModules();
-
     console.log(`- Found (${Object.keys(script_modules).length}) script modules.`);
+
     const binding_calls = Object.keys(script_modules).map(module_name => {
         return async ()=> {
             console.log(`- Generating ${module_name} Bindings`);
