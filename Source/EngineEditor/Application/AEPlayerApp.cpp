@@ -20,7 +20,7 @@
 // THE SOFTWARE.
 //
 
-#include <AtomicJS/Javascript/JSVM.h>
+#include <EngineCoreJS/Javascript/JSVM.h>
 
 #include "AEEditorPrefs.h"
 #include "AEPlayerApp.h"

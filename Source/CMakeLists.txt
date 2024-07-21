@@ -5,7 +5,7 @@ add_subdirectory(EngineCore)
 
 if (ENGINE_JAVASCRIPT)
     add_subdirectory(EnginePlayer)
-    add_subdirectory(AtomicJS)
+    add_subdirectory(EngineCoreJS)
     add_subdirectory(EnginePlayerJS)
 endif ()
 

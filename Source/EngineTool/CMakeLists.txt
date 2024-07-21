@@ -68,6 +68,11 @@ if (ENGINE_JAVASCRIPT OR ENGINE_DOTNET)
     endif()
 endif ()
 
+# Set default running arguments at debugging mode. Only supported on Visual Studio
+if (WIN32)
+    set_property(TARGET ${ENGINE_TOOL_TARGET} PROPERTY VS_DEBUGGER_COMMAND_ARGUMENTS "bind ${ENGINE_SOURCE_DIR} Script/Packages/${ENGINE_CORE_TARGET}/")
+endif ()
+
 vs_add_to_grp(${ENGINE_TOOL_TARGET} "${VS_GRP_ENGINE_TOOLS}")
 vs_add_to_grp(EngineToolCheckScripts "${VS_GRP_ENGINE_TOOLS}")
 vs_add_to_grp(GenerateScriptBindings "${VS_GRP_ENGINE_TOOLS}")

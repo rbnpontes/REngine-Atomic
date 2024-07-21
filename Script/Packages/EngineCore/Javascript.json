@@ -1,6 +1,6 @@
 {
 	"name" : "Javascript",
-	"sources" : ["Source/AtomicJS/Javascript"],
+	"sources" : ["Source/{{ENGINE_JS_TARGET}}/Javascript"],
 	"classes" : ["JSComponent", "JSComponentFile", "JSEventHelper", "ScriptObject"],
 	"typescript_decl" : {
 

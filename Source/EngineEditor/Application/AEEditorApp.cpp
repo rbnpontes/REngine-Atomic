@@ -22,7 +22,7 @@
 
 #include <EngineCore/Input/Input.h>
 #include <EngineCore/UI/UI.h>
-#include <AtomicJS/Javascript/Javascript.h>
+#include <EngineCoreJS/Javascript/Javascript.h>
 #include <EngineCore/IPC/IPC.h>
 #include <EngineCore/Engine/EngineDefs.h>
 

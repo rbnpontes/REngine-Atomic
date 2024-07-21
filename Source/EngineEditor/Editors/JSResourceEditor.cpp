@@ -30,7 +30,7 @@
 #include <EngineCore/Resource/ResourceEvents.h>
 
 #include <EngineCore/Core/CoreEvents.h>
-#include <AtomicJS/Javascript/JSVM.h>
+#include <EngineCoreJS/Javascript/JSVM.h>
 
 #include <ToolCore/ToolEnvironment.h>
 #include <ToolCore/ToolSystem.h>

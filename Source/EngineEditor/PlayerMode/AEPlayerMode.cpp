@@ -34,9 +34,9 @@
 #include <EngineCore/IPC/IPCEvents.h>
 #include <EngineCore/IPC/IPCWorker.h>
 
-#include <AtomicJS/Javascript/JSVM.h>
-#include <AtomicJS/Javascript/JSEvents.h>
-#include <AtomicJS/Javascript/JSIPCEvents.h>
+#include <EngineCoreJS/Javascript/JSVM.h>
+#include <EngineCoreJS/Javascript/JSEvents.h>
+#include <EngineCoreJS/Javascript/JSIPCEvents.h>
 
 #include <EngineApp/Player/IPCPlayerAppEvents.h>
 

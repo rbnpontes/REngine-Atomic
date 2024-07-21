@@ -38,7 +38,7 @@
 // Move me
 #include <EngineCore/Environment/Environment.h>
 
-#include <AtomicJS/Javascript/Javascript.h>
+#include <EngineCoreJS/Javascript/Javascript.h>
 
 #include <EnginePlayer/Player.h>
 
@@ -75,30 +75,30 @@ void AtomicPlayerApp::Setup()
     // Read the engine configuration
     ReadEngineConfig();
 
-    engineParameters_.InsertNew("WindowTitle", "AtomicPlayer");
+    engineParameters_.InsertNew("WindowTitle", ENGINE_PLAYER_TARGET);
 
 #if (ATOMIC_PLATFORM_ANDROID)
     engineParameters_.InsertNew("FullScreen", true);
-    engineParameters_.InsertNew("ResourcePaths", "CoreData;PlayerData;Cache;AtomicResources");
+    engineParameters_.InsertNew("ResourcePaths", "CoreData;PlayerData;Cache;Resources");
 #elif ATOMIC_PLATFORM_WEB
     engineParameters_.InsertNew("FullScreen", false);
-    engineParameters_.InsertNew("ResourcePaths", "AtomicResources");
+    engineParameters_.InsertNew("ResourcePaths", "Resources");
     // engineParameters_.InsertNew("WindowWidth", 1280);
     // engineParameters_.InsertNew("WindowHeight", 720);
 #elif ATOMIC_PLATFORM_IOS
     engineParameters_.InsertNew("FullScreen", false);
-    engineParameters_.InsertNew("ResourcePaths", "AtomicResources");
+    engineParameters_.InsertNew("ResourcePaths", "Resources");
 #else
     engineParameters_.InsertNew("FullScreen", false);
     engineParameters_.InsertNew("WindowWidth", 1280);
     engineParameters_.InsertNew("WindowHeight", 720);
-    engineParameters_.InsertNew("ResourcePaths", "AtomicResources");
+    engineParameters_.InsertNew("ResourcePaths", "Resources");
 #endif
 
 #if ENGINE_PLATFORM_WINDOWS || ENGINE_PLATFORM_LINUX
 
     engineParameters_.InsertNew("WindowIcon", "Images/AtomicLogo32.png");
-    engineParameters_.InsertNew("ResourcePrefixPaths", "AtomicPlayer_Resources");
+    engineParameters_.InsertNew("ResourcePrefixPaths", ToString("%s_Resources", ENGINE_PLAYER_TARGET));
 
 #elif ATOMIC_PLATFORM_ANDROID
     //engineParameters_.InsertNew("ResourcePrefixPaths"], "assets");
@@ -123,7 +123,7 @@ void AtomicPlayerApp::Setup()
     }
 
     // Use the script file name as the base name for the log file
-    engineParameters_.InsertNew("LogName", filesystem->GetAppPreferencesDir("AtomicPlayer", "Logs") + "AtomicPlayer.log");
+    engineParameters_.InsertNew("LogName", filesystem->GetAppPreferencesDir(ENGINE_PLAYER_TARGET, "Logs") + ToString("%s.log", ENGINE_PLAYER_TARGET));
 }
 
 void AtomicPlayerApp::Start()
@@ -163,16 +163,13 @@ void AtomicPlayerApp::Start()
 
 void AtomicPlayerApp::Stop()
 {
-
-    vm_ = 0;
+    vm_ = nullptr;
     context_->RemoveSubsystem<Javascript>();
     // make sure JSVM is really down and no outstanding refs
     // as if not, will hold on engine subsystems, which is bad
-    assert(!JSVM::GetJSVM(0));
+    assert(!JSVM::GetJSVM(nullptr));
 
     Application::Stop();
-
-
 }
 
 void AtomicPlayerApp::HandleScriptReloadStarted(StringHash eventType, VariantMap& eventData)

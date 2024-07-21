@@ -803,7 +803,14 @@ bool JSBModule::Load(const String& jsonFilename)
 
     for (unsigned i = 0; i < sources.GetArray().Size(); i++)
     {
-        sourceDirs_.Push(sources.GetArray()[i].GetString());
+        auto src = sources.GetArray()[i].GetString();
+        // WORKAROUND: simple mustache syntax used to inject some dynamic info
+        // into binding paths
+        if (src.Contains("{{PACKAGE_NAME}}"))
+            src.Replace("{{PACKAGE_NAME}}", package_->GetName());
+        if (src.Contains("{{ENGINE_JS_TARGET}}"))
+            src.Replace("{{ENGINE_JS_TARGET}}", ENGINE_JS_TARGET);
+        sourceDirs_.Push(src);
     }
 
     ScanHeaders();

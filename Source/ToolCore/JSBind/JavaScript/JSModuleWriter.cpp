@@ -334,8 +334,8 @@ void JSModuleWriter::GenerateSource()
 
     source += "#include <Duktape/duktape.h>\n";
     source += "#include <EngineCore/Script/ScriptVector.h>\n";
-    source += "#include <AtomicJS/Javascript/JSVM.h>\n";
-    source += "#include <AtomicJS/Javascript/JSAPI.h>\n";
+    source.AppendWithFormat("#include <%s/Javascript/JSVM.h>\n", ENGINE_JS_TARGET);
+    source.AppendWithFormat("#include <%s/Javascript/JSAPI.h>\n", ENGINE_JS_TARGET);
 
     WriteIncludes(source);
 

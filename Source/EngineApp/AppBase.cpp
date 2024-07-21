@@ -27,7 +27,7 @@
 #include <EngineCore/Engine/EngineConfig.h>
 
 #include <EngineCore/Script/ScriptSystem.h>
-#include <AtomicJS/Javascript/Javascript.h>
+#include <EngineCoreJS/Javascript/Javascript.h>
 
 // Move me!
 #include <EngineCore/Environment/Environment.h>

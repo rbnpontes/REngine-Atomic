@@ -100,9 +100,9 @@ void JSBTypeScript::Begin()
 
     source_ += "// TypeScript Definitions\n\n";
 
-    if (package_->GetName() != ENGINE_TYPESCRIPT_DEFINITIONS_NAME)
+    if (package_->GetName() != ENGINE_CORE_TARGET)
     {
-        source_.AppendWithFormat("/// <reference path=\"%s.d.ts\" />\n\n", ENGINE_TYPESCRIPT_DEFINITIONS_NAME);
+        source_.AppendWithFormat("/// <reference path=\"%s.d.ts\" />\n\n", ENGINE_CORE_TARGET);
     }
 
     source_ += "declare module "+ package_->GetName() + " {\n\n";
@@ -140,7 +140,7 @@ void JSBTypeScript::ExportFunction(JSBFunction* function)
 
     const Vector<JSBFunctionType*>& parameters = function->GetParameters();
 
-    const auto s_context = ToString("%s.Context", ENGINE_TYPESCRIPT_DEFINITIONS_NAME);
+    const auto s_context = ToString("%s.Context", ENGINE_CORE_TARGET);
     for (unsigned i = 0; i < parameters.Size(); i++)
     {
         JSBFunctionType* ftype = parameters.At(i);
@@ -390,11 +390,11 @@ void JSBTypeScript::ExportModuleEvents(JSBModule* module)
 
         // Write the event type
         source += ToString("    /** Event type to use in calls requiring the event such as 'sendEvent'.  Event Type is: \"%s\" **/\n", event->GetEventName().CString());
-        source += ToString("    export var %sType : %s.EventType;\n\n", scriptEventName.CString(), ENGINE_TYPESCRIPT_DEFINITIONS_NAME);
+        source += ToString("    export var %sType : %s.EventType;\n\n", scriptEventName.CString(), ENGINE_CORE_TARGET);
 
         // Write the event interface
         source += ToString("    /** object returned in the callback for the %s event.**/\n", event->GetEventName().CString());
-        source += ToString("    export interface %s extends %s.EventData {\n", scriptEventName.CString(), ENGINE_TYPESCRIPT_DEFINITIONS_NAME);
+        source += ToString("    export interface %s extends %s.EventData {\n", scriptEventName.CString(), ENGINE_CORE_TARGET);
 
         // parameters
 
@@ -474,9 +474,9 @@ void JSBTypeScript::ExportModuleEvents(JSBModule* module)
         }
         source += ToString("    export function %s (callback : %s.EventCallback<%s>) : %s.EventMetaData;\n", 
             scriptEventName.CString(), 
-            ENGINE_TYPESCRIPT_DEFINITIONS_NAME,
+            ENGINE_CORE_TARGET,
             scriptEventName.CString(),
-            ENGINE_TYPESCRIPT_DEFINITIONS_NAME);
+            ENGINE_CORE_TARGET);
         source += "\n";
 
         if (params.Size() > 0)
@@ -485,12 +485,12 @@ void JSBTypeScript::ExportModuleEvents(JSBModule* module)
             source += ToString("    export function %sData (callbackData : %s) : %s.EventCallbackMetaData; \n", 
                 scriptEventName.CString(), 
                 scriptEventName.CString(),
-                ENGINE_TYPESCRIPT_DEFINITIONS_NAME);
+                ENGINE_CORE_TARGET);
         } else {
             source += ToString("    /** Wrapper function to construct object to pass to 'sendEvent' for the %s event. **/ \n", event->GetEventName().CString());
             source += ToString("    export function %sData () : %s.EventCallbackMetaData; \n", 
                 scriptEventName.CString(),
-                ENGINE_TYPESCRIPT_DEFINITIONS_NAME);
+                ENGINE_CORE_TARGET);
         }
 
         source += "\n\n";

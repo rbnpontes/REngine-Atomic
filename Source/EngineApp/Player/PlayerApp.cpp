@@ -28,7 +28,7 @@
 #include <EngineCore/UI/UI.h>
 #include <EngineCore/Metrics/Metrics.h>
 
-#include <AtomicJS/Javascript/Javascript.h>
+#include <EngineCoreJS/Javascript/Javascript.h>
 
 #include <EnginePlayer/Player.h>
 

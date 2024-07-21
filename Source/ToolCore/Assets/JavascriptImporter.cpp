@@ -25,7 +25,7 @@
 #include <EngineCore/Resource/ResourceCache.h>
 #include <EngineCore/Resource/Image.h>
 
-#include <AtomicJS/Javascript/JSComponentFile.h>
+#include <EngineCoreJS/Javascript/JSComponentFile.h>
 
 #include "Asset.h"
 #include "AssetDatabase.h"

@@ -39,7 +39,7 @@
 #include <ToolCore/NETTools/NETProjectSystem.h>
 #include <ToolCore/NETTools/NETBuildSystem.h>
 
-#include <AtomicJS/Javascript/JSIPCEvents.h>
+#include <EngineCoreJS/Javascript/JSIPCEvents.h>
 
 #include <EngineCore/UI/SystemUI/DebugHud.h>
 

@@ -2,8 +2,15 @@ file(GLOB_RECURSE SOURCE_FILES *.cpp *.h)
 
 # Remove the web helper sources
 list(REMOVE_ITEM SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/WebView/WebProcessHelperMac.cpp)
-file(GLOB JAVASCRIPT_BINDINGS_SOURCE ${ENGINE_SOURCE_DIR}/Artifacts/Build/Source/Generated/Javascript/Packages/Editor/*.cpp)
+file(GLOB JAVASCRIPT_BINDINGS_SOURCE ${ENGINE_SOURCE_DIR}/Artifacts/Build/Source/Generated/Javascript/Packages/${ENGINE_EDITOR_TARGET}/*.cpp)
 set(SOURCE_FILES ${SOURCE_FILES} ${JAVASCRIPT_BINDINGS_SOURCE})
+
+string(TOLOWER "${ENGINE_EDITOR_TARGET}" ENGINE_EDITOR_LOWER_TARGET)
+configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/Javascript/EditorBindings.cpp.in"
+    "${ENGINE_SOURCE_DIR}/Artifacts/Build/Source/Generated/Javascript/EditorBindings.cpp"
+)
+list(APPEND SOURCE_FILES "${ENGINE_SOURCE_DIR}/Artifacts/Build/Source/Generated/Javascript/EditorBindings.cpp")
 
 if (APPLE)
     file(GLOB_RECURSE OBJC_FILES *.mm *.h)
@@ -133,10 +140,20 @@ if (ENGINE_WEBVIEW)
 
     target_compile_definitions(${CEF_TARGET} PUBLIC 
         -DENGINE_EDITOR_NAME="${ENGINE_EDITOR_NAME}"
-        -DENGINE_NET_NAME="${ENGINE_NET_NAME}")
+        -DENGINE_NET_NAME="${ENGINE_NET_NAME}"
+        -DENGINE_CORE_TARGET="${ENGINE_CORE_TARGET}")
 endif ()
 
-target_link_libraries(${CEF_TARGET} ToolCore ${ENGINE_WEB_VIEW_TARGET} AtomicJS ${ENGINE_PLAYER_JS_TARGET} ToolCoreJS Poco nativefiledialog ${ENGINE_CORE_LIB_TARGET} EASTL)
+target_link_libraries(${CEF_TARGET} 
+    ToolCore 
+    ${ENGINE_WEB_VIEW_TARGET} 
+    ${ENGINE_JS_TARGET} 
+    ${ENGINE_PLAYER_JS_TARGET} 
+    ToolCoreJS 
+    Poco 
+    nativefiledialog 
+    ${ENGINE_CORE_LIB_TARGET} 
+    EASTL)
 
 if(ENGINE_JAVASCRIPT OR ENGINE_DOTNET)
     target_link_libraries(${CEF_TARGET} ${ENGINE_APP_TARGET})

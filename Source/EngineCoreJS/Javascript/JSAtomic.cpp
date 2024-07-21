@@ -1,5 +1,6 @@
 //
 // Copyright (c) 2014-2015, THUNDERBEAST GAMES LLC All rights reserved
+// Copyright (c) 2024, REngine
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -65,10 +66,9 @@
 #include <EngineCore/Scene/Scene.h>
 #include <EngineCore/Environment/ProcSky.h>
 
+#include "JSPackageCore.h"
 namespace Atomic
 {
-
-extern void jsb_package_atomic_init(JSVM* vm);
 
 static int js_module_read_file(duk_context* ctx)
 {
@@ -340,7 +340,7 @@ static int js_atomic_destroy(duk_context* ctx)
 void jsapi_init_atomic(JSVM* vm)
 {
     // core modules
-    jsb_package_atomic_init(vm);
+    jsapi_init_package_core(vm);
 
     // extensions
     jsapi_init_core(vm);

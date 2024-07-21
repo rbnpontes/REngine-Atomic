@@ -25,13 +25,13 @@
 #include <EngineCore/Graphics/Graphics.h>
 #include <EngineCore/Graphics/GraphicsEvents.h>
 #include <EngineCore/IPC/IPCEvents.h>
-#include <AtomicJS/Javascript/JSIPCEvents.h>
+#include <EngineCoreJS/Javascript/JSIPCEvents.h>
 #include "IPCPlayerAppEvents.h"
 
 #include <EngineCore/Engine/Engine.h>
 #include <EngineCore/IPC/IPC.h>
-#include <AtomicJS/Javascript/Javascript.h>
-#include <AtomicJS/Javascript/JSDebugger.h>
+#include <EngineCoreJS/Javascript/Javascript.h>
+#include <EngineCoreJS/Javascript/JSDebugger.h>
 #include <EngineCore/UI/SystemUI/DebugHud.h>
 
 #include "IPCPlayerApp.h"

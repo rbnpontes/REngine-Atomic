@@ -20,16 +20,12 @@
 // THE SOFTWARE.
 //
 
-#include <AtomicJS/Javascript/JSVM.h>
+#include <EngineCoreJS/Javascript/JSVM.h>
 
 #include "../EditorMode/AEEditorMode.h"
+#include "./EditorBindings.h"
 
 using namespace Atomic;
-
-namespace Atomic
-{
-    extern void jsb_package_editor_init(JSVM* vm);
-}
 
 namespace AtomicEditor
 {
@@ -38,9 +34,9 @@ void jsapi_init_editor(JSVM* vm)
 {
     duk_context* ctx = vm->GetJSContext();
 
-    jsb_package_editor_init(vm);
+    jsapi_init_editor_bindings(vm);
 
-    duk_get_global_string(ctx, "Atomic");
+    duk_get_global_string(ctx, ENGINE_CORE_TARGET);
 
     if (vm->GetContext()->GetEditorContext()) {
         js_push_class_object_instance(ctx, vm->GetSubsystem<EditorMode>(), "EditorMode");

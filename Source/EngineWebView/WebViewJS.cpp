@@ -21,7 +21,7 @@
 //
 
 #include <EngineCore/Engine/Engine.h>
-#include <AtomicJS/Javascript/JSVM.h>
+#include <EngineCoreJS/Javascript/JSVM.h>
 
 #include "WebBrowserHost.h"
 
