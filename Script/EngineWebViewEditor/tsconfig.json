@@ -1,0 +1,53 @@
+{
+	"compilerOptions": {
+		"module": "system",
+		"target": "ES6",
+		"declaration": false,
+		"noImplicitAny": false,
+		"removeComments": true,
+		"noLib": false,
+		"outDir": "C:\\Users\\rbnpo\\Documents\\Projects\\REngine-Atomic\\Data\\CodeEditor\\source\\editorCore",
+		"sourceMap": true,
+		"forceConsistentCasingInFileNames": true
+	},
+	"filesGlob": [
+		"./**/*.ts",
+		"../TypeScript/*.ts",
+		"C:\\Users\\rbnpo\\Documents\\Projects\\REngine-Atomic\\Artifacts\\Build\\TypeScript\\*.ts",
+		"!C:\\Users\\rbnpo\\Documents\\Projects\\REngine-Atomic\\Artifacts\\Build\\TypeScript\\EngineNET.d.ts"
+	],
+	"atom": {
+		"rewriteTsconfig": true
+	},
+	"files": [
+		"./interop.ts",
+		"./clientExtensions\\ClientExtensionEventNames.ts",
+		"./clientExtensions\\ClientExtensionServices.ts",
+		"./clientExtensions\\ServiceLocator.ts",
+		"./editor\\editor.ts",
+		"./editor\\editorCommands.ts",
+		"./modules\\typescript.d.ts",
+		"./typings\\monaco.d.ts",
+		"./typings\\systemjs.d.ts",
+		"./typings\\webworkers.d.ts",
+		"./typings\\WindowExt.d.ts",
+		"./clientExtensions\\languageExtensions\\javascript\\JavascriptLanguageExtension.ts",
+		"./clientExtensions\\languageExtensions\\turbobadger\\TurboBadgerLanguageExtension.ts",
+		"./clientExtensions\\languageExtensions\\typescript\\tsLanguageSupport.ts",
+		"./clientExtensions\\languageExtensions\\typescript\\TypescriptLanguageExtension.ts",
+		"./clientExtensions\\languageExtensions\\typescript\\workerprocess\\TypescriptLanguageService.ts",
+		"./clientExtensions\\languageExtensions\\typescript\\workerprocess\\TypescriptLanguageServiceWebWorker.ts",
+		"./clientExtensions\\languageExtensions\\typescript\\workerprocess\\workerLoader.ts",
+		"./clientExtensions\\languageExtensions\\typescript\\workerprocess\\workerProcessTypes.ts",
+		"../TypeScript/duktape.d.ts",
+		"../TypeScript/EditorWork.d.ts",
+		"../TypeScript/EngineWork.d.ts",
+		"C:\\Users\\rbnpo\\Documents\\Projects\\REngine-Atomic\\Artifacts\\Build\\TypeScript\\EngineApp.d.ts",
+		"C:\\Users\\rbnpo\\Documents\\Projects\\REngine-Atomic\\Artifacts\\Build\\TypeScript\\EngineCore.d.ts",
+		"C:\\Users\\rbnpo\\Documents\\Projects\\REngine-Atomic\\Artifacts\\Build\\TypeScript\\EngineEditor.d.ts",
+		"C:\\Users\\rbnpo\\Documents\\Projects\\REngine-Atomic\\Artifacts\\Build\\TypeScript\\EngineNETScript.d.ts",
+		"C:\\Users\\rbnpo\\Documents\\Projects\\REngine-Atomic\\Artifacts\\Build\\TypeScript\\EnginePlayer.d.ts",
+		"C:\\Users\\rbnpo\\Documents\\Projects\\REngine-Atomic\\Artifacts\\Build\\TypeScript\\ToolCore.d.ts",
+		"C:\\Users\\rbnpo\\Documents\\Projects\\REngine-Atomic\\Artifacts\\Build\\TypeScript\\WebView.d.ts"
+	]
+}

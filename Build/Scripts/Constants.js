@@ -8,7 +8,7 @@ module.exports = {
     engine_native_lib: 'EngineNETNative',
     engine_project_json: 'AtomicProject.json',
     engine_net_project_json: 'EngineNETProject.json',
-    engine_web_view_editor: 'AtomicWebViewEditor',
+    engine_web_view_editor: 'EngineWebViewEditor',
     engine_typescript_definitions: 'EngineCore',
     cmake_option_prefix: 'ENGINE'
 };
