@@ -20,20 +20,20 @@
 // THE SOFTWARE.
 //
 
-#include <Atomic/Core/ProcessUtils.h>
-#include <Atomic/IO/Log.h>
-#include <Atomic/IO/File.h>
-#include <Atomic/IO/FileSystem.h>
-#include <Atomic/Scene/Node.h>
+#include <EngineCore/Core/ProcessUtils.h>
+#include <EngineCore/IO/Log.h>
+#include <EngineCore/IO/File.h>
+#include <EngineCore/IO/FileSystem.h>
+#include <EngineCore/Scene/Node.h>
 
-#include <Atomic/Graphics/AnimatedModel.h>
-#include <Atomic/Graphics/Animation.h>
-#include <Atomic/Graphics/AnimationController.h>
-#include <Atomic/Graphics/StaticModel.h>
-#include <Atomic/Graphics/Model.h>
+#include <EngineCore/Graphics/AnimatedModel.h>
+#include <EngineCore/Graphics/Animation.h>
+#include <EngineCore/Graphics/AnimationController.h>
+#include <EngineCore/Graphics/StaticModel.h>
+#include <EngineCore/Graphics/Model.h>
 
-#include <Atomic/Resource/ResourceCache.h>
-#include <Atomic/Resource/XMLFile.h>
+#include <EngineCore/Resource/ResourceCache.h>
+#include <EngineCore/Resource/XMLFile.h>
 
 #include "../Import/OpenAssetImporter.h"
 

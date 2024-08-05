@@ -10,7 +10,7 @@
     uniform sampler2D sLightSpotMap;
     uniform samplerCube sLightCubeMap;
     
-    #ifndef GL_ES
+    #ifndef RENGINE_IS_GLES
         uniform sampler3D sVolumeMap;
         uniform sampler2D sAlbedoBuffer;
         uniform sampler2D sNormalBuffer;
@@ -70,13 +70,4 @@
     {
         return dot(vec2(hwDepth, cDepthReconstruct.y / (hwDepth - cDepthReconstruct.x)), cDepthReconstruct.zw);
     }
-
-    /// Sample shadow map texture at given 4-coordinate
-    mediump float SampleShadow(vec4 shadowPos)
-    {
-        return textureProj(sShadowMap, shadowPos);
-    }
-
-    #define SampleShadowOffset(shadowPos, offset) \
-        textureProjOffset(sShadowMap, (shadowPos), (offset))
 #endif

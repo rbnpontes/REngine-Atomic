@@ -20,10 +20,10 @@
 // THE SOFTWARE.
 //
 
-#include <Atomic/Core/Context.h>
-#include <Atomic/Core/StringUtils.h>
-#include <Atomic/IO/FileSystem.h>
-#include <Atomic/IO/Log.h>
+#include <EngineCore/Core/Context.h>
+#include <EngineCore/Core/StringUtils.h>
+#include <EngineCore/IO/FileSystem.h>
+#include <EngineCore/IO/Log.h>
 
 #include "../ToolSystem.h"
 #include "../Project/Project.h"

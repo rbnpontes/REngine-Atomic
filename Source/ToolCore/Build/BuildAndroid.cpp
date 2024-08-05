@@ -20,10 +20,10 @@
 // THE SOFTWARE.
 //
 
-#include <Atomic/Core/StringUtils.h>
-#include <Atomic/IO/FileSystem.h>
-#include <Atomic/IO/File.h>
-#include <Atomic/IO/MemoryBuffer.h>
+#include <EngineCore/Core/StringUtils.h>
+#include <EngineCore/IO/FileSystem.h>
+#include <EngineCore/IO/File.h>
+#include <EngineCore/IO/MemoryBuffer.h>
 
 #include "../ToolSystem.h"
 #include "../ToolEnvironment.h"
@@ -257,12 +257,12 @@ void BuildAndroid::RunAntDebug()
         buildApk = "release";
 
 
-#ifdef ATOMIC_PLATFORM_OSX
+#ifdef ENGINE_PLATFORM_MACOS
     String antCommand = tprefs->GetAntPath();
     Vector<String> args;
     args.Push(buildApk);
 #endif
-#ifdef ATOMIC_PLATFORM_WINDOWS
+#ifdef ENGINE_PLATFORM_WINDOWS
     // C:\ProgramData\Oracle\Java\javapath;
     Vector<String> args;
     String antCommand = "cmd";
@@ -273,7 +273,7 @@ void BuildAndroid::RunAntDebug()
     args.Push("\"" + antPath + "\"");
     args.Push(buildApk);
 #endif
-#ifdef ATOMIC_PLATFORM_LINUX 
+#ifdef ENGINE_PLATFORM_LINUX 
 
     String antCommand = tprefs->GetAntPath();
     if ( antCommand.Empty() ) // user didnt fill it out, use installed one

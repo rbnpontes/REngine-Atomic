@@ -53,6 +53,7 @@ namespace Diligent
 {
     GLContext::GLContext(const EngineGLCreateInfo& InitAttribs, RENDER_DEVICE_TYPE& DevType, struct Version& APIVersion, const struct SwapChainDesc* /*pSCDesc*/)
     {
+        context = InitAttribs.GLContext;
         if (GetCurrentNativeGLContext() == nullptr)
         {
             LOG_ERROR_AND_THROW("No current GL context found!");
@@ -87,6 +88,11 @@ namespace Diligent
 
     GLContext::NativeGLContextType GLContext::GetCurrentNativeGLContext()
     {
+        // If users initializes OpenGL with Angle
+        // Then querying currentContext from native will not work
+        // In this case, we must return a self owned GL Context
+        if(context)
+            return context;
         NSOpenGLContext* CurrentCtx = [NSOpenGLContext currentContext];
         return (__bridge void*) CurrentCtx;
     }

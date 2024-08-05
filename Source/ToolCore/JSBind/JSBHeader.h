@@ -22,11 +22,11 @@
 
 #pragma once
 
-#include <Atomic/Container/Vector.h>
-#include <Atomic/Container/Str.h>
-#include <Atomic/Container/ArrayPtr.h>
+#include <EngineCore/Container/Vector.h>
+#include <EngineCore/Container/Str.h>
+#include <EngineCore/Container/ArrayPtr.h>
 
-#include <Atomic/Core/Object.h>
+#include <EngineCore/Core/Object.h>
 
 using namespace Atomic;
 

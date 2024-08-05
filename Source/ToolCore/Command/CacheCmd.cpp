@@ -20,9 +20,9 @@
 // THE SOFTWARE.
 //
 
-#include <Atomic/Core/StringUtils.h>
-#include <Atomic/IO/Log.h>
-#include <Atomic/IO/File.h>
+#include <EngineCore/Core/StringUtils.h>
+#include <EngineCore/IO/Log.h>
+#include <EngineCore/IO/File.h>
 
 #include "../Assets/AssetDatabase.h"
 #include "../ToolSystem.h"

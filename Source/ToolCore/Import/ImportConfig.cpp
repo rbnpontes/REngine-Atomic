@@ -20,12 +20,12 @@
 // THE SOFTWARE.
 //
 
-#include "../../Atomic/Core/Context.h"
-#include "../../Atomic/IO/Log.h"
-#include "../../Atomic/IO/File.h"
-#include "../../Atomic/IO/FileSystem.h"
-#include "../Atomic/Resource/JSONFile.h"
-#include "../../Atomic/Graphics/GraphicsDefs.h"
+#include <EngineCore/Core/Context.h>
+#include <EngineCore/IO/Log.h>
+#include <EngineCore/IO/File.h>
+#include <EngineCore/IO/FileSystem.h>
+#include <EngineCore/Resource/JSONFile.h>
+#include <EngineCore/Graphics/GraphicsDefs.h>
 #include "ImportConfig.h"
 
 namespace Atomic

@@ -1,0 +1,11 @@
+{
+	"name" : "Engine",
+	"sources" : ["Source/EngineCore/Engine"],
+	"includes" : [],
+	"classes" : ["Engine", "Application"],
+	"excludes" : {
+		"Application" : {
+			"Run" : []
+		}
+	}
+}

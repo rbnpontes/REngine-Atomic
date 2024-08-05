@@ -22,23 +22,23 @@
 // THE SOFTWARE.
 //
 
-#include <Atomic/Core/ProcessUtils.h>
-#include <Atomic/Core/Context.h>
-#include <Atomic/IO/Log.h>
-#include <Atomic/IO/File.h>
-#include <Atomic/IO/FileSystem.h>
+#include <EngineCore/Core/ProcessUtils.h>
+#include <EngineCore/Core/Context.h>
+#include <EngineCore/IO/Log.h>
+#include <EngineCore/IO/File.h>
+#include <EngineCore/IO/FileSystem.h>
 
-#include <Atomic/Resource/XMLFile.h>
-#include <Atomic/Resource/ResourceCache.h>
+#include <EngineCore/Resource/XMLFile.h>
+#include <EngineCore/Resource/ResourceCache.h>
 
-#include <Atomic/Graphics/AnimatedModel.h>
-#include <Atomic/Graphics/Animation.h>
-#include <Atomic/Graphics/AnimationController.h>
+#include <EngineCore/Graphics/AnimatedModel.h>
+#include <EngineCore/Graphics/Animation.h>
+#include <EngineCore/Graphics/AnimationController.h>
 
-#include <Atomic/Graphics/Geometry.h>
-#include <Atomic/Graphics/IndexBuffer.h>
-#include <Atomic/Graphics/VertexBuffer.h>
-#include <Atomic/Graphics/Material.h>
+#include <EngineCore/Graphics/Geometry.h>
+#include <EngineCore/Graphics/IndexBuffer.h>
+#include <EngineCore/Graphics/VertexBuffer.h>
+#include <EngineCore/Graphics/Material.h>
 
 #include <ToolCore/Project/Project.h>
 #include <ToolCore/ToolSystem.h>
@@ -1007,7 +1007,7 @@ bool OpenAssetImporter::BuildAndSaveAnimations(OutModel* model, const String &an
                     startTime = Min(startTime, (float)channel->mPositionKeys[0].mTime);
                 if (channel->mNumRotationKeys > 0)
                     startTime = Min(startTime, (float)channel->mRotationKeys[0].mTime);
-                if (channel->mScalingKeys > 0)
+                if (*channel->mScalingKeys > aiVectorKey())
                     startTime = Min(startTime, (float)channel->mScalingKeys[0].mTime);
             }
 

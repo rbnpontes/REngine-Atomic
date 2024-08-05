@@ -20,15 +20,15 @@
 // THE SOFTWARE.
 //
 
-#include <Atomic/Core/Context.h>
-#include <Atomic/Core/StringUtils.h>
-#include <Atomic/IO/Log.h>
-#include <Atomic/IO/File.h>
-#include <Atomic/IO/FileSystem.h>
+#include <EngineCore/Core/Context.h>
+#include <EngineCore/Core/StringUtils.h>
+#include <EngineCore/IO/Log.h>
+#include <EngineCore/IO/File.h>
+#include <EngineCore/IO/FileSystem.h>
 
-#include <Atomic/IPC/IPC.h>
-#include <Atomic/IPC/IPCEvents.h>
-#include <Atomic/IPC/IPCBroker.h>
+#include <EngineCore/IPC/IPC.h>
+#include <EngineCore/IPC/IPCEvents.h>
+#include <EngineCore/IPC/IPCBroker.h>
 
 #include "../ToolSystem.h"
 #include "../ToolEnvironment.h"
@@ -210,7 +210,7 @@ void NETCmd::Run()
                 return;
             }
 
-            solutionPath_ = solutionPath + "/AtomicNET/Solution/" + gen->GetProjectSettings()->GetName() + ".sln";
+            solutionPath_ = solutionPath + ToString("/%s/Solution/%s.sln", ENGINE_NET_NAME, gen->GetProjectSettings()->GetName().CString());
 
         }
 
@@ -240,7 +240,7 @@ void NETCmd::Run()
             return;
         }
 
-        buildSystem->SetBuildPath(project->GetProjectPath() + "AtomicNET/Resources/");
+        buildSystem->SetBuildPath(project->GetProjectPath() + ToString("%s/Resources/", ENGINE_NET_NAME));
 
         Platform* platform = toolSystem->GetPlatformByName(platforms_[0]);
 

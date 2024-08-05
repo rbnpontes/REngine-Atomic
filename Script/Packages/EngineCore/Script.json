@@ -1,0 +1,14 @@
+{
+	"name" : "Script",
+	"sources" : ["Source/EngineCore/Script"],
+	"classes_rename" : {
+		"ScriptRenderPathCommand" : "RenderPathCommand"
+	},
+	"classes" : ["ScriptVariant", "ScriptVariantMap", "ScriptVector", "ScriptComponent", "ScriptComponentFile", "PhysicsContact", "PhysicsNodeCollision", "ScriptRenderPathCommand"],
+	"typescript_decl" : {
+		"ScriptRenderPathCommand" : [
+			"setShaderParameter(name:string, value:Object);"
+		]
+	}
+	
+}

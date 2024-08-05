@@ -24,8 +24,8 @@
 #include <rapidjson/stringbuffer.h>
 #include <rapidjson/prettywriter.h>
 
-#include <Atomic/IO/Log.h>
-#include <Atomic/IO/File.h>
+#include <EngineCore/IO/Log.h>
+#include <EngineCore/IO/File.h>
 #include "JSONSceneImporter.h"
 
 using namespace rapidjson;

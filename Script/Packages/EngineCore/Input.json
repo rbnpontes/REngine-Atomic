@@ -1,0 +1,24 @@
+{
+	"name" : "Input",
+	"sources" : ["Source/EngineCore/Input"],
+	"includes" : ["<EngineCore/UI/UIWidget.h>"],
+	"classes" : ["Input", "JoystickState"],
+	"overloads" : {
+		"Input" : {
+			"BindButton" : ["UIButton", "int"]
+		}
+	},
+   	"typescript_decl" : {
+		"Input" : [
+		     "getTouch(index:number):any;"
+        ]
+	},
+
+   	"haxe_decl" : {
+		"Input" : [
+		     "getTouch(index:number):Dynamic;"
+        ]
+	}
+
+
+}

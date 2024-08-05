@@ -10,7 +10,11 @@ vec4 GetScreenPos(vec4 clipPos)
 {
     return vec4(
         clipPos.x * cGBufferOffsets.z + cGBufferOffsets.x * clipPos.w,
-        -clipPos.y * cGBufferOffsets.w + cGBufferOffsets.y * clipPos.w,
+        #if defined(OPENGL) || defined(OPENGLES)
+            clipPos.y * cGBufferOffsets.w + cGBufferOffsets.y * clipPos.w,
+        #else
+            -clipPos.y * cGBufferOffsets.w + cGBufferOffsets.y * clipPos.w,
+        #endif
         0.0,
         clipPos.w);
 }
@@ -19,7 +23,12 @@ vec2 GetScreenPosPreDiv(vec4 clipPos)
 {
     return vec2(
         clipPos.x / clipPos.w * cGBufferOffsets.z + cGBufferOffsets.x,
-        clipPos.y / clipPos.w * cGBufferOffsets.w + cGBufferOffsets.y);
+        #if defined(OPENGL) || defined(OPENGLES)
+            clipPos.y / clipPos.w * cGBufferOffsets.w + cGBufferOffsets.y
+        #else
+            -clipPos.y / clipPos.w * cGBufferOffsets.w + cGBufferOffsets.y
+        #endif
+    );
 }
 
 vec2 GetQuadTexCoord(vec4 clipPos)

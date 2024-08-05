@@ -1,5 +1,3 @@
-precision highp float;
-
 #include "BasicConfigs.glsl"
 #include "Uniforms.glsl"
 #include "Samplers.glsl"
@@ -16,7 +14,7 @@ precision highp float;
         varying vec2 vTexCoord;
     #endif
 #endif
-#if defined(NORMALMAP) || defined(PERPIXEL) || defined(PREPASS) || defined(DEFERRED)
+#if defined(NORMALMAP) || defined(PERPIXEL) || defined(PREPASS) || defined(DEFERRED) || defined(NORMAL)
     #define FEATURE_NORMAL 1
     varying vec3 vNormal;
 #endif
@@ -32,7 +30,7 @@ varying vec4 vWorldPos;
 
 #ifdef PERPIXEL
     #ifdef SHADOW
-        #ifndef GL_ES
+        #ifndef RENGINE_IS_GLES
             varying vec4 vShadowPos[NUMCASCADES];
         #else
             varying highp vec4 vShadowPos[NUMCASCADES];

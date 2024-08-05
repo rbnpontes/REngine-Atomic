@@ -1,0 +1,30 @@
+{
+	"name" : "Resource",
+	"sources" : ["Source/EngineCore/Resource"],
+	"includes" : ["<EngineCore/IO/PackageFile.h>"],
+	"classes" : ["Resource", "ResourceWithMetadata", "ResourceCache", "XMLFile", "PListFile", "JSONFile", "Image", "ResourceNameIterator"],
+	"overloads": {
+		"Image": {
+			"GetPixel": ["int", "int"],
+			"SetSize": ["int", "int", "int", "unsigned"]
+		},
+		"ResourceCache": {
+			"AddPackageFile": ["String", "unsigned"],
+			"RemovePackageFile": ["String", "bool", "bool"]
+		}
+	},
+	"excludes" : {
+		"CSharp" : {
+			"ResourceCache" : {
+				"ReleaseAllResources" : ["bool"]
+			}
+		}
+	},
+	"typescript_decl" : {
+		"ResourceCache" : [
+			"getResource<T extends Resource>(type: string, name: string, sendEventOnFailure?: boolean): T;",
+			"getTempResource<T extends Resource>(type: string, name: string, sendEventOnFailure?: boolean): T;",
+	        "getExistingResource<T extends Resource>(type: string, name: string): T;"
+		]
+	}
+}

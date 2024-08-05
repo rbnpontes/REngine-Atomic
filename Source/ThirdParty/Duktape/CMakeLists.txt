@@ -7,3 +7,5 @@ file (GLOB H_FILES *.h)
 set (SOURCE_FILES ${CPP_FILES} ${H_FILES})
 set (INCLUDE_DIRS .)
 add_library(Duktape ${SOURCE_FILES})
+
+vs_add_to_grp(Duktape "${VS_GRP_THIRD_PARTY}")

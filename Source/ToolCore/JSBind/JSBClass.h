@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include <Atomic/Core/Object.h>
+#include <EngineCore/Core/Object.h>
 
 #include "JSBindTypes.h"
 #include "JSBHeader.h"
@@ -183,7 +183,7 @@ public:
 
     void AddInterface(JSBClass* klass) { interfaces_.Push(klass); }
 
-    void AddTypeScriptDecl(const String& decl) { typeScriptDecls_.Push(decl); }
+    void AddTypeScriptDecl(const String& decl);
     unsigned GetNumTypeScriptDecl() { return typeScriptDecls_.Size(); }
     const String& GetTypeScriptDecl(unsigned idx) { return typeScriptDecls_[idx]; }
 

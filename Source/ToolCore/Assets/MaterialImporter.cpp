@@ -20,9 +20,9 @@
 // THE SOFTWARE.
 //
 
-#include <Atomic/IO/File.h>
-#include <Atomic/Resource/ResourceCache.h>
-#include <Atomic/Graphics/Material.h>
+#include <EngineCore/IO/File.h>
+#include <EngineCore/Resource/ResourceCache.h>
+#include <EngineCore/Graphics/Material.h>
 
 #include "Asset.h"
 #include "AssetDatabase.h"

@@ -22,8 +22,8 @@
 
 #pragma once
 
-#include <Atomic/Core/Object.h>
-#include <Atomic/IPC/IPCServer.h>
+#include <EngineCore/Core/Object.h>
+#include <EngineCore/IPC/IPCServer.h>
 
 using namespace Atomic;
 

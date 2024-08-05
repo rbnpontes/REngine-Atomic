@@ -38,3 +38,5 @@ if (ANDROID)
     target_compile_definitions(GLEW PUBLIC -DGLEW_NO_GLU)
 endif ()
 # ATOMIC END
+
+vs_add_to_grp("${TARGET_NAME}" "${VS_GRP_THIRD_PARTY}")

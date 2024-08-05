@@ -20,10 +20,10 @@
 // THE SOFTWARE.
 //
 
-#include <Atomic/Core/Context.h>
-#include <Atomic/Core/CoreEvents.h>
-#include <Atomic/IO/FileSystem.h>
-#include <Atomic/Resource/ResourceCache.h>
+#include <EngineCore/Core/Context.h>
+#include <EngineCore/Core/CoreEvents.h>
+#include <EngineCore/IO/FileSystem.h>
+#include <EngineCore/Resource/ResourceCache.h>
 
 #include "Platform/PlatformWeb.h"
 #include "Platform/PlatformMac.h"

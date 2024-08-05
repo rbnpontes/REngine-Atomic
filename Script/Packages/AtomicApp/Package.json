@@ -1,7 +1,0 @@
-
-{
-  "name" : "AtomicApp",
-  "namespace" : "Atomic",
-  "dependencies" : ["Script/Packages/Atomic"],
-  "modules" : ["AtomicApp"]
-}

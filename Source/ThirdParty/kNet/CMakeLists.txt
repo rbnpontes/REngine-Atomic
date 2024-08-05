@@ -64,11 +64,16 @@ set (SOURCE_FILES ${kNetSourceFiles} ${kNetHeaderFiles})
 # Define dependency libs
 set (INCLUDE_DIRS include)
 
+set (CMAKE_CXX_STANDARD 14)
 # Setup target
 setup_library ()
+# Reset to default C++ standard
+set (CMAKE_CXX_STANDARD 20)
 
 # ATOMIC BEGIN
 if (UNIX)
    target_compile_definitions(${TARGET_NAME} PUBLIC  -DKNET_UNIX)
 endif ()
 # ATOMIC END
+
+vs_add_to_grp("${TARGET_NAME}" "${VS_GRP_THIRD_PARTY}")

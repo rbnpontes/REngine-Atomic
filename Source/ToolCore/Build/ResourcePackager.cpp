@@ -23,10 +23,10 @@
 // THE SOFTWARE.
 //
 
-#include "Atomic/Core/StringUtils.h"
-#include <Atomic/IO/Log.h>
-#include <Atomic/IO/FileSystem.h>
-#include <Atomic/Container/ArrayPtr.h>
+#include <EngineCore/Core/StringUtils.h>
+#include <EngineCore/IO/Log.h>
+#include <EngineCore/IO/FileSystem.h>
+#include <EngineCore/Container/ArrayPtr.h>
 
 #include <LZ4/lz4.h>
 #include <LZ4/lz4hc.h>
@@ -178,7 +178,7 @@ bool ResourcePackager::WritePackageFile(const String& destFilePath)
 
 void ResourcePackager::WriteHeader(File* dest)
 {
-    dest->WriteFileID("ULZ4");
+    dest->WriteFileID("RLZ4");
     dest->WriteUInt(resourceEntries_.Size());
     dest->WriteUInt(checksum_);
 }

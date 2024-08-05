@@ -1,0 +1,9 @@
+
+{
+  "name" : "EngineNETNative",
+  "namespace" : "Atomic",
+  "dependencies" : ["Script/Packages/EngineApp"],
+  "modules" : ["EngineNETNative"],
+  "platforms" : ["WINDOWS", "MACOSX","LINUX", "ANDROID"],
+  "bindings" : ["CSharp"]
+}

@@ -1,0 +1,13 @@
+
+{
+	"name" : "EngineCore",
+	"namespace" : "Atomic",
+	"modules" : ["Container", "Math", "Core", "Scene", "Graphics", "Atomic2D", "Audio",
+		"Physics", "Navigation", "Input", "UI", "Resource", "Network", "IO",
+		"Engine", "Script", "Javascript", "Environment", "IPC", "Metrics"],
+		"moduleExclude" : {
+			"WEB" : ["Network", "Navigation", "IPC"],
+			"ANDROID" : ["IPC"],
+			"IOS" : ["IPC"]
+		}
+	}

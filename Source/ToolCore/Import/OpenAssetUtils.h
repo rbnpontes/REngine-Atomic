@@ -24,24 +24,22 @@
 
 #pragma once
 
-#include <ThirdParty/Assimp/include/assimp/cimport.h>
-#include <ThirdParty/Assimp/include/assimp/scene.h>
-#include <ThirdParty/Assimp/include/assimp/postprocess.h>
-#include <ThirdParty/Assimp/include/assimp/DefaultLogger.hpp>
+#include <Assimp/include/assimp/cimport.h>
+#include <Assimp/include/assimp/scene.h>
+#include <Assimp/include/assimp/postprocess.h>
+#include <Assimp/include/assimp/DefaultLogger.hpp>
 
 #include <cstring>
 
-#include <Atomic/Container/Str.h>
-#include <Atomic/Container/Sort.h>
-#include <Atomic/Container/Hash.h>
-#include <Atomic/Container/HashSet.h>
-
-#include <Atomic/Core/StringUtils.h>
-
-#include <Atomic/Math/Vector3.h>
-#include <Atomic/Math/Quaternion.h>
-#include <Atomic/Math/Matrix3x4.h>
-#include <Atomic/Math/BoundingBox.h>
+#include <EngineCore/Container/Str.h>
+#include <EngineCore/Container/Sort.h>
+#include <EngineCore/Container/Hash.h>
+#include <EngineCore/Container/HashSet.h>
+#include <EngineCore/Core/StringUtils.h>
+#include <EngineCore/Math/Vector3.h>
+#include <EngineCore/Math/Quaternion.h>
+#include <EngineCore/Math/Matrix3x4.h>
+#include <EngineCore/Math/BoundingBox.h>
 
 using namespace Atomic;
 

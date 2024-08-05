@@ -1,0 +1,5 @@
+{
+	"name" : "Metrics",
+	"sources" : ["Source/EngineCore/Metrics"],
+	"classes" : ["Metrics", "MetricsSnapshot"]
+}

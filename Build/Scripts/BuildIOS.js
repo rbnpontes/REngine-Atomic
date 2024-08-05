@@ -22,7 +22,7 @@ namespace('build', function() {
 
         var cmds = [];
 
-        cmds.push("cmake -DIOS=1 -DATOMIC_DEV_BUILD=0 -G Xcode ../../../");
+        cmds.push("cmake -DIOS=1 -DENGINE_DEV_BUILD=0 -G Xcode ../../../");
 
         if (config.jenkins) {
             cmds.push("security -v list-keychains -d system -s /Users/jenkins/Library/Keychains/codesign.keychain");

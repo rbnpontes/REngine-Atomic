@@ -22,8 +22,8 @@
 
 #pragma once
 
-#include <Atomic/Container/Str.h>
-#include <Atomic/Core/Object.h>
+#include <EngineCore/Container/Str.h>
+#include <EngineCore/Core/Object.h>
 
 #include "BuildSettings.h"
 

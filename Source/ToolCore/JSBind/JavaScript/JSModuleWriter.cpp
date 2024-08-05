@@ -20,8 +20,8 @@
 // THE SOFTWARE.
 //
 
-#include <Atomic/IO/File.h>
-#include <Atomic/IO/FileSystem.h>
+#include <EngineCore/IO/File.h>
+#include <EngineCore/IO/FileSystem.h>
 
 #include "../JSBind.h"
 #include "../JSBPackage.h"
@@ -234,11 +234,11 @@ void JSModuleWriter::WriteModulePreInit(String& source)
         {
             source.Append("duk_push_object(ctx);\n");
             source.Append("duk_dup(ctx, -1);\n");
-            source.AppendWithFormat("duk_put_prop_string(ctx, -3 \"%s\");\n", jenum->GetName().CString());
+            source.AppendWithFormat("duk_put_prop_string(ctx, -3, \"%s\");\n", jenum->GetName().CString());
             while(itr != values.End())
             {
                 String name = (*itr).first_;
-                source.AppendWithFormat("duk_push_number(ctx, %s::%s);\n", jenum->GetName().CString(), name.CString());
+                source.AppendWithFormat("duk_push_number(ctx, static_cast<duk_double_t>(%s::%s));\n", jenum->GetName().CString(), name.CString());
                 source.AppendWithFormat("duk_put_prop_string(ctx, -2, \"%s\");\n", name.CString());
                 itr++;
             }
@@ -321,7 +321,7 @@ void JSModuleWriter::GenerateSource()
         source += ToString("\n%s\n", moduleGuard.CString());
     }
 
-    source += "#ifdef ATOMIC_PLATFORM_WINDOWS\n";
+    source += "#ifdef ENGINE_PLATFORM_WINDOWS\n";
 
     source += "#pragma warning(disable: 4244) // possible loss of data\n";
 
@@ -329,13 +329,13 @@ void JSModuleWriter::GenerateSource()
 
     if (module_->Requires("3D"))
     {
-        source += "#ifdef ATOMIC_3D\n";
+        source += "#ifdef ENGINE_3D\n";
     }
 
     source += "#include <Duktape/duktape.h>\n";
-    source += "#include <Atomic/Script/ScriptVector.h>\n";
-    source += "#include <AtomicJS/Javascript/JSVM.h>\n";
-    source += "#include <AtomicJS/Javascript/JSAPI.h>\n";
+    source += "#include <EngineCore/Script/ScriptVector.h>\n";
+    source.AppendWithFormat("#include <%s/Javascript/JSVM.h>\n", ENGINE_JS_TARGET);
+    source.AppendWithFormat("#include <%s/Javascript/JSAPI.h>\n", ENGINE_JS_TARGET);
 
     WriteIncludes(source);
 
@@ -381,7 +381,7 @@ void JSModuleWriter::GenerateSource()
 
     if (module_->Requires("3D"))
     {
-        source += "#endif //ATOMIC_3D\n";
+        source += "#endif //ENGINE_3D\n";
     }
 
 

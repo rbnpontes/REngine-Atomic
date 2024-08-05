@@ -4,6 +4,7 @@ var host = require("./Host");
 var buildTasks = require("./BuildTasks");
 var config = require("./BuildConfig");
 const { getCMakeFlags } = require('./CMakeUtils');
+const { jakeExecAsync } = require('./Utils/ProcessUtils');
 
 var atomicRoot = config.atomicRoot;
 var buildDir = config.artifactsRoot + "Build/Windows/";
@@ -52,9 +53,6 @@ function copyAtomicEditor() {
     fs.copySync(buildDir +  "Source/AtomicPlayer/Application/" + config["config"] +"/AtomicPlayer.exe",
     editorAppFolder + "Resources/ToolData/Deployment/Windows/x64/AtomicPlayer.exe");
 
-    fs.copySync(buildDir +  "Source/AtomicPlayer/Application/" + config["config"] + "/D3DCompiler_47.dll",
-    editorAppFolder + "Resources/ToolData/Deployment/Windows/x64/D3DCompiler_47.dll");
-
     copyAtomicNET();
 
 }
@@ -71,6 +69,33 @@ namespace('build', function() {
         }
 
         return vsver.toUpperCase();
+    }
+
+    async function buildEditorPhase2() {
+
+    }
+    async function buildEditor() {
+        // Always cleanly create the editor target folder
+        host.cleanCreateDir(editorAppFolder);
+
+        // We clean atomicNET here as otherwise platform binaries would be deleted
+        const createDirs = [config.artifactsRoot + "AtomicNET/", buildDir, host.getGenScriptRootDir()];
+        const removeDirs = [config.artifactsRoot + "Build/Android/"];
+
+        host.setupDirs(!config.noclean, createDirs, removeDirs);
+
+        process.chdir(buildDir);
+        const vsver = getVisualStudioVersion();
+
+        const cmds = [];
+        // Generate Engine solution, Engine Tool binary, and script bindings
+        cmds.push(atomicRoot + "Build/Scripts/Windows/CompileAtomicEditorPhase1.bat " + config["config"] + " " +
+                  vsver + " " + getCMakeFlags(false));
+
+        await jakeExecAsync(cmds);
+
+        await buildEditorPhase2();
+        console.log(`- Finished. Atomic Editor built to ${editorAppFolder}`);
     }
 
     task('atomiceditor_phase2', {
@@ -102,50 +127,51 @@ namespace('build', function() {
 
     });
     // Builds a standalone Atomic Editor, which can be distributed out of build tree
-    task('atomiceditor', {
-        async: true
-    }, function() {
+    task('atomiceditor', buildEditor);
+    // task('atomiceditor', {
+    //     async: true
+    // }, function() {
 
-        // Always cleanly create the editor target folder
-        host.cleanCreateDir(editorAppFolder);
+    //     // Always cleanly create the editor target folder
+    //     host.cleanCreateDir(editorAppFolder);
 
-        // We clean atomicNET here as otherwise platform binaries would be deleted
-        var createDirs = [config.artifactsRoot + "AtomicNET/", buildDir, host.getGenScriptRootDir()];
+    //     // We clean atomicNET here as otherwise platform binaries would be deleted
+    //     const createDirs = [config.artifactsRoot + "AtomicNET/", buildDir, host.getGenScriptRootDir()];
 
-        var removeDirs = [config.artifactsRoot + "Build/Android/"];
+    //     const removeDirs = [config.artifactsRoot + "Build/Android/"];
 
-        host.setupDirs(!config.noclean, createDirs, removeDirs);
+    //     host.setupDirs(!config.noclean, createDirs, removeDirs);
 
-        process.chdir(buildDir);
+    //     process.chdir(buildDir);
 
-        const vsver = getVisualStudioVersion();
+    //     const vsver = getVisualStudioVersion();
 
-        var cmds = [];
+    //     var cmds = [];
 
-        // Generate Atomic solution, AtomicTool binary, and script bindings
-        cmds.push(atomicRoot + "Build/Scripts/Windows/CompileAtomicEditorPhase1.bat " + config["config"] + " " +
-                  vsver + " " + getCMakeFlags(false));
+    //     // Generate Atomic solution, AtomicTool binary, and script bindings
+    //     cmds.push(atomicRoot + "Build/Scripts/Windows/CompileAtomicEditorPhase1.bat " + config["config"] + " " +
+    //               vsver + " " + getCMakeFlags(false));
 
-        jake.exec(cmds, function() {
+    //     jake.exec(cmds, function() {
 
-            var rootTask = jake.Task['build:atomiceditor_phase2'];
+    //         // var rootTask = jake.Task['build:atomiceditor_phase2'];
 
-            buildTasks.installBuildTasks(rootTask);
+    //         // buildTasks.installBuildTasks(rootTask);
 
-            rootTask.addListener('complete', function () {
+    //         // rootTask.addListener('complete', function () {
 
-                console.log("\n\nAtomic Editor built to " + editorAppFolder + "\n\n");
+    //         //     console.log("\n\nAtomic Editor built to " + editorAppFolder + "\n\n");
 
-                complete();
-            });
+    //         //     complete();
+    //         // });
 
-            rootTask.invoke();
+    //         // rootTask.invoke();
+    //         complete();
+    //     }, {
+    //         printStdout: true,
+    //         printStderr: true
+    //     });
 
-        }, {
-            printStdout: true,
-            printStderr: true
-        });
-
-    });
+    // });
 
 });// end of build namespace

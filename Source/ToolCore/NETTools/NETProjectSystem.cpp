@@ -22,12 +22,12 @@
 
 #include <Poco/Environment.h>
 
-#include <Atomic/Core/CoreEvents.h>
-#include <Atomic/Core/ProcessUtils.h>
+#include <EngineCore/Core/CoreEvents.h>
+#include <EngineCore/Core/ProcessUtils.h>
 
-#include <Atomic/IO/Log.h>
-#include <Atomic/IO/FileSystem.h>
-#include <Atomic/Resource/ResourceEvents.h>
+#include <EngineCore/IO/Log.h>
+#include <EngineCore/IO/FileSystem.h>
+#include <EngineCore/Resource/ResourceEvents.h>
 
 #include "../ToolSystem.h"
 #include "../ToolEnvironment.h"
@@ -45,7 +45,9 @@
 #include "NETBuildSystem.h"
 #include "NETProjectSystem.h"
 
-#ifdef ATOMIC_PLATFORM_WINDOWS
+#include <Poco/StreamCopier.h>
+
+#ifdef ENGINE_PLATFORM_WINDOWS
 #include <Poco/WinRegistryKey.h>
 #endif
 
@@ -102,7 +104,7 @@ namespace ToolCore
             SubprocessSystem* subs = GetSubsystem<SubprocessSystem>();
             ideSubprocess_ = 0;
 
-#ifdef ATOMIC_PLATFORM_OSX
+#ifdef ENGINE_PLATFORM_MACOS
 
             command = "open";
             args.Push("-W");
@@ -115,7 +117,7 @@ namespace ToolCore
             if (sourceFilePath.Length())
                 args.Push(sourceFilePath);
 
-#ifndef ATOMIC_PLATFORM_OSX
+#ifndef ENGINE_PLATFORM_MACOS
             QuoteArguments(args);
 #endif
 
@@ -138,23 +140,23 @@ namespace ToolCore
             {
                 std::vector<std::string> args;
 
-#ifdef ATOMIC_PLATFORM_WINDOWS
+#ifdef ENGINE_PLATFORM_WINDOWS
 
                 args.push_back("/edit");
 
-#elif defined ATOMIC_PLATFORM_OSX
+#elif defined ENGINE_PLATFORM_MACOS
 
                 command = "open";
                 args.push_back("-a");
                 args.push_back(idePath_.CString());
 
-#elif defined ATOMIC_PLATFORM_LINUX
+#elif defined ENGINE_PLATFORM_LINUX
 
                 args.push_back(idePath_.CString());
 
 #endif
 
-#ifdef ATOMIC_PLATFORM_OSX
+#ifdef ENGINE_PLATFORM_MACOS
                 args.push_back(sourceFilePath.CString());
 #else
                 if (sourceFilePath.Contains(" ") && !sourceFilePath.Contains("\""))
@@ -232,7 +234,7 @@ namespace ToolCore
         // TODO: We just use WINDOWS platform for PAK generation for now
         Platform* platform = tsystem->GetPlatformByName("WINDOWS");
 
-        buildSystem->SetBuildPath(project->GetProjectPath() + "AtomicNET/Resources/");
+        buildSystem->SetBuildPath(project->GetProjectPath() + ToString("%s/Resources/", ENGINE_NET_NAME));
 
         SharedPtr<BuildBase> buildBase(platform->NewBuild(project));
         buildBase->SetResourcesOnly(true);
@@ -267,7 +269,7 @@ namespace ToolCore
         {
             FileSystem* fileSystem = GetSubsystem<FileSystem>();
 
-            if (!fileSystem->FileExists(project->GetProjectPath() + "AtomicNET/Resources/AtomicResources.pak"))
+            if (!fileSystem->FileExists(project->GetProjectPath() + ToString("%s/Resources/Resources.pak", ENGINE_NET_NAME)))
             {
                 if (!GenerateResourcePak())
                     return false;
@@ -337,7 +339,7 @@ namespace ToolCore
 
         String projectName = project->GetProjectSettings()->GetName();
 
-        solutionPath_ = AddTrailingSlash(projectPath_) + "AtomicNET/Solution/" + projectName + ".sln";
+        solutionPath_ = AddTrailingSlash(projectPath_) + ToString("%s/Solution/%s.sln", ENGINE_NET_NAME, projectName.CString());
         projectAssemblyPath_ = AddTrailingSlash(projectPath_) + "Resources/" + projectName + ".dll";
 
         FileSystem* fileSystem = GetSubsystem<FileSystem>();
@@ -510,47 +512,35 @@ namespace ToolCore
         SubscribeToEvent(E_ASSETMOVED, ATOMIC_HANDLER(NETProjectSystem, HandleAssetMoved));
 
 
-#ifdef ATOMIC_PLATFORM_WINDOWS
+#ifdef ENGINE_PLATFORM_WINDOWS
 
         // On Windows, we first check for VS2015, then VS2017 which
         // at the time of this comment is in RC, refactor once
         // in general release
 
-        FileSystem* fileSystem = GetSubsystem<FileSystem>();
+        ToolEnvironment* tool_env = GetSubsystem<ToolEnvironment>();
 
-        // Query for Visual Studio 2015 path
-        idePath_ = Poco::Environment::get("VS140COMNTOOLS", "").c_str();
+        // Build vswhere args
+        static std::vector<std::string> vs_where_args = {
+            "-latest",
+            "-property", "productPath"
+        };
+        Poco::Pipe out_pipe;
 
-        if (idePath_.Length())
-        {
-            // Ensure the path ends with a slash
-            if (!idePath_.EndsWith("\\"))
-            {
-                idePath_ += "\\";
-            }
+        // execute vswhere process
+        const auto vs_proc = Poco::Process::launch(tool_env->GetVsWhereBinary().CString(), vs_where_args, nullptr, &out_pipe, nullptr);
+        Poco::PipeInputStream input_stream(out_pipe);
 
-            idePath_.Replace("Tools\\", "IDE\\devenv.exe");
+        // copy output process to vs_path
+        std::string vs_path;
+        Poco::StreamCopier::copyToString(input_stream, vs_path);
 
-            if (!fileSystem->FileExists(idePath_))
-                idePath_.Clear();
-        }
+        // wait vswhere to exit.
+        vs_proc.wait();
 
-        // If we didn't find VS2015, look for VS2017
-        if (!idePath_.Length())
-        {
-            // check for VS2017
-            Poco::WinRegistryKey regKey("HKEY_LOCAL_MACHINE\\SOFTWARE\\WOW6432Node\\Microsoft\\VisualStudio\\SxS\\VS7", true);
-            if (regKey.exists() && regKey.exists("15.0"))
-                idePath_ = regKey.getString("15.0").c_str();
+        idePath_ = String(vs_path.c_str()).Trimmed();
 
-            if (idePath_.Length())
-            {
-                // We have VS2017
-                idePath_ += "Common7\\IDE\\devenv.exe";
-            }
-        }
-
-#elif defined ATOMIC_PLATFORM_OSX
+#elif defined ENGINE_PLATFORM_MACOS
 
         FileSystem* fileSystem = GetSubsystem<FileSystem>();
 
@@ -569,7 +559,7 @@ namespace ToolCore
 
         }
 
-#elif defined ATOMIC_PLATFORM_LINUX
+#elif defined ENGINE_PLATFORM_LINUX
 
         FileSystem* fileSystem = GetSubsystem<FileSystem>();
 

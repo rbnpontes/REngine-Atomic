@@ -1,8 +1,0 @@
-
-{
-  "name" : "Editor",
-  "namespace" : "AtomicEditor",
-  "dependencies" : ["Script/Packages/WebView"],
-  "modules" : ["Editor"],
-  "platforms" : ["WINDOWS", "MACOSX", "LINUX"]
-}

@@ -22,15 +22,15 @@
 
 #pragma once
 
-#include <Atomic/Container/HashMap.h>
-#include <Atomic/Container/List.h>
+#include <EngineCore/Container/HashMap.h>
+#include <EngineCore/Container/List.h>
 
-#include <Atomic/Resource/ResourceCache.h>
-#include <Atomic/Graphics/Technique.h>
-#include <Atomic/Graphics/Texture2D.h>
-#include <Atomic/Graphics/Material.h>
-#include <Atomic/Graphics/Model.h>
-#include <Atomic/Scene/Scene.h>
+#include <EngineCore/Resource/ResourceCache.h>
+#include <EngineCore/Graphics/Technique.h>
+#include <EngineCore/Graphics/Texture2D.h>
+#include <EngineCore/Graphics/Material.h>
+#include <EngineCore/Graphics/Model.h>
+#include <EngineCore/Scene/Scene.h>
 
 using namespace Atomic;
 

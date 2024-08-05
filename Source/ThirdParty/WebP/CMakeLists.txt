@@ -34,3 +34,5 @@ setup_library ()
 
 # Install headers for building the Urho3D library
 install_header_files (DIRECTORY src/webp/ DESTINATION ${DEST_INCLUDE_DIR}/ThirdParty/webp FILES_MATCHING PATTERN *.h BUILD_TREE_ONLY)  # Note: the trailing slash is significant
+
+vs_add_to_grp("${TARGET_NAME}" "${VS_GRP_THIRD_PARTY}")

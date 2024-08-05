@@ -22,9 +22,9 @@
 
 #pragma once
 
-#include <Atomic/Core/Object.h>
-#include "Atomic/Container/Vector.h"
-#include <Atomic/IO/File.h>
+#include <EngineCore/Core/Object.h>
+#include "EngineCore/Container/Vector.h"
+#include <EngineCore/IO/File.h>
 
 #include "BuildTypes.h"
 

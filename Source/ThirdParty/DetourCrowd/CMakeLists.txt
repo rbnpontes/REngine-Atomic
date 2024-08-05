@@ -27,7 +27,12 @@ set (TARGET_NAME DetourCrowd)
 define_source_files (GLOB_CPP_PATTERNS source/*.cpp GLOB_H_PATTERNS include/*.h)
 
 # Define dependency libs
-set (INCLUDE_DIRS include ../Detour/include)
+set (INCLUDE_DIRS include)
 
 # Setup target
 setup_library ()
+
+
+target_link_libraries(${TARGET_NAME} Detour)
+
+vs_add_to_grp("${TARGET_NAME}" "${VS_GRP_THIRD_PARTY}")

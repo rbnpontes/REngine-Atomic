@@ -26,8 +26,8 @@
 
 #include "OpenAssetUtils.h"
 
-#include <Atomic/Core/Object.h>
-#include <Atomic/Scene/Node.h>
+#include <EngineCore/Core/Object.h>
+#include <EngineCore/Scene/Node.h>
 
 using namespace Atomic;
 

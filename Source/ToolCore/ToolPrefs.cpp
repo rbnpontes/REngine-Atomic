@@ -20,11 +20,11 @@
 // THE SOFTWARE.
 //
 
-#include <Atomic/IO/Log.h>
-#include <Atomic/IO/File.h>
-#include <Atomic/IO/FileSystem.h>
+#include <EngineCore/IO/Log.h>
+#include <EngineCore/IO/File.h>
+#include <EngineCore/IO/FileSystem.h>
 
-#include <Atomic/Resource/JSONFile.h>
+#include <EngineCore/Resource/JSONFile.h>
 
 #include "ToolPrefs.h"
 
@@ -49,7 +49,7 @@ ToolPrefs::~ToolPrefs()
 
 const String& ToolPrefs::GetAntPath()
 {
-#ifdef ATOMIC_PLATFORM_OSX
+#ifdef ENGINE_PLATFORM_MACOS
     static String defaultAntPath("/usr/local/bin/ant");
     if (!antPath_.Length())
         return defaultAntPath;
@@ -62,7 +62,7 @@ const String& ToolPrefs::GetAntPath()
 String ToolPrefs::GetPrefsPath()
 {
     FileSystem* fs = GetSubsystem<FileSystem>();
-    String path = fs->GetAppPreferencesDir("AtomicGameEngine", "ToolCore");
+    String path = fs->GetAppPreferencesDir(ENGINE_EDITOR_NAME, "ToolCore");
     path += "ToolPrefs.json";
     return path;
 

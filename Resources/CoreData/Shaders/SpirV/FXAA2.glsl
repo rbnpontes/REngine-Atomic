@@ -14,7 +14,9 @@
 varying vec2 vScreenPos;
 
 #ifdef COMPILEPS
-uniform vec3 cFXAAParams;
+layout(std140) uniform CustomPS{
+    vec3 cFXAAParams;
+};
 #endif
 
 void VS()
@@ -32,13 +34,17 @@ void PS()
     float FXAA_REDUCE_MUL = 1.0/8.0;
     float FXAA_REDUCE_MIN = 1.0/128.0;
 
+    vec2 screen_pos = vScreenPos;
+#if defined(D3D11) || defined(D3D12)
+    screen_pos.y = 1.0 - vScreenPos.y;
+#endif
     vec2 posOffset = cGBufferInvSize.xy * cFXAAParams.x;
 
-    vec3 rgbNW = texture2D(sDiffMap, vScreenPos + vec2(-posOffset.x, -posOffset.y)).rgb;
-    vec3 rgbNE = texture2D(sDiffMap, vScreenPos + vec2(posOffset.x, -posOffset.y)).rgb;
-    vec3 rgbSW = texture2D(sDiffMap, vScreenPos + vec2(-posOffset.x, posOffset.y)).rgb;
-    vec3 rgbSE = texture2D(sDiffMap, vScreenPos + vec2(posOffset.x, posOffset.y)).rgb;
-    vec3 rgbM  = texture2D(sDiffMap, vScreenPos).rgb;
+    vec3 rgbNW = texture2D(sDiffMap, screen_pos + vec2(-posOffset.x, -posOffset.y)).rgb;
+    vec3 rgbNE = texture2D(sDiffMap, screen_pos + vec2(posOffset.x, -posOffset.y)).rgb;
+    vec3 rgbSW = texture2D(sDiffMap, screen_pos + vec2(-posOffset.x, posOffset.y)).rgb;
+    vec3 rgbSE = texture2D(sDiffMap, screen_pos + vec2(posOffset.x, posOffset.y)).rgb;
+    vec3 rgbM  = texture2D(sDiffMap, screen_pos).rgb;
 
     vec3 luma = vec3(0.299, 0.587, 0.114);
     float lumaNW = dot(rgbNW, luma);
@@ -54,7 +60,7 @@ void PS()
     {
         vec2 dir;
         dir.x = -((lumaNW + lumaNE) - (lumaSW + lumaSE));
-        dir.y =  ((lumaNW + lumaSW) - (lumaNE + lumaSE));
+        dir.y =  -((lumaNW + lumaSW) - (lumaNE + lumaSE));
 
         float dirReduce = max(
             (lumaNW + lumaNE + lumaSW + lumaSE) * (0.25 * FXAA_REDUCE_MUL),
@@ -67,11 +73,11 @@ void PS()
         dir *= cFXAAParams.z;
 
         vec3 rgbA = (1.0/2.0) * (
-            texture2D(sDiffMap, vScreenPos + dir * (1.0/3.0 - 0.5)).xyz +
-            texture2D(sDiffMap, vScreenPos + dir * (2.0/3.0 - 0.5)).xyz);
+            texture2D(sDiffMap, screen_pos + dir * (1.0/3.0 - 0.5)).xyz +
+            texture2D(sDiffMap, screen_pos + dir * (2.0/3.0 - 0.5)).xyz);
         vec3 rgbB = rgbA * (1.0/2.0) + (1.0/4.0) * (
-            texture2D(sDiffMap, vScreenPos + dir * (0.0/3.0 - 0.5)).xyz +
-            texture2D(sDiffMap, vScreenPos + dir * (3.0/3.0 - 0.5)).xyz);
+            texture2D(sDiffMap, screen_pos + dir * (0.0/3.0 - 0.5)).xyz +
+            texture2D(sDiffMap, screen_pos + dir * (3.0/3.0 - 0.5)).xyz);
         float lumaB = dot(rgbB, luma);
 
         vec3 rgbOut;

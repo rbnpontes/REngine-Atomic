@@ -20,8 +20,8 @@
 // THE SOFTWARE.
 //
 
-#include <Atomic/Resource/ResourceCache.h>
-#include <Atomic/Atomic2D/TmxFile2D.h>
+#include <EngineCore/Resource/ResourceCache.h>
+#include <EngineCore/2D/TmxFile2D.h>
 
 
 #include "Asset.h"

@@ -22,7 +22,7 @@
 
 // BEGIN LICENSE MANAGEMENT
 
-#ifdef ATOMIC_PLATFORM_WINDOWS
+#ifdef ENGINE_PLATFORM_WINDOWS
 #ifndef _MSC_VER
 #define _WIN32_IE 0x501
 #endif
@@ -34,12 +34,12 @@
 #include <sys/utime.h>
 #endif
 
-#include <Atomic/Core/CoreEvents.h>
-#include <Atomic/Core/Context.h>
-#include <Atomic/Core/Timer.h>
-#include <Atomic/IO/FileSystem.h>
-#include <Atomic/IO/File.h>
-#include <Atomic/IO/Log.h>
+#include <EngineCore/Core/CoreEvents.h>
+#include <EngineCore/Core/Context.h>
+#include <EngineCore/Core/Timer.h>
+#include <EngineCore/IO/FileSystem.h>
+#include <EngineCore/IO/File.h>
+#include <EngineCore/IO/Log.h>
 
 #include "LicenseEvents.h"
 #include "LicenseSystem.h"

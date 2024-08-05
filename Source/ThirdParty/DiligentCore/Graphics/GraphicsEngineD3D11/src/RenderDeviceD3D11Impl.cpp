@@ -277,7 +277,8 @@ void RenderDeviceD3D11Impl::CreateTexture(const TextureDesc& TexDesc, const Text
                                    pTextureD3D11 = NEW_RC_OBJ(m_TexObjAllocator, "Texture3D_D3D11 instance", Texture3D_D3D11)(m_TexViewObjAllocator, this, TexDesc, pData);
                                    break;
 
-                               default: LOG_ERROR_AND_THROW("Unknown texture type. (Did you forget to initialize the Type member of TextureDesc structure?)");
+                               default: 
+                                   LOG_ERROR_AND_THROW("Unknown texture type. (Did you forget to initialize the Type member of TextureDesc structure?)");
                            }
                            pTextureD3D11->QueryInterface(IID_Texture, reinterpret_cast<IObject**>(ppTexture));
                            pTextureD3D11->CreateDefaultViews();

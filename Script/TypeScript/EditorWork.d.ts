@@ -5,12 +5,12 @@
 // license information: https://github.com/AtomicGameEngine/AtomicGameEngine
 //
 
-/// <reference path="Atomic.d.ts" />
-/// <reference path="Editor.d.ts" />
-/// <reference path="ToolCore.d.ts" />
-/// <reference path="WebView.d.ts" />
+/// <reference path="../../Artifacts/Build/TypeScript/EngineCore.d.ts" />
+/// <reference path="../../Artifacts/Build/TypeScript/EngineEditor.d.ts" />
+/// <reference path="../../Artifacts/Build/TypeScript/ToolCore.d.ts" />
+/// <reference path="../../Artifacts/Build/TypeScript/WebView.d.ts" />
 
-declare module Editor.Templates {
+declare module EngineEditor.Templates {
     // Commented out until the TSDoc gets updated to the latest version of TypeScript
     //export type TemplateType = "component" | "script";
     /**
@@ -30,7 +30,7 @@ declare module Editor.Templates {
     }
 }
 
-declare module Editor.Extensions {
+declare module EngineEditor.Extensions {
 
     /**
      * Base interface for any editor services.
@@ -63,8 +63,8 @@ declare module Editor.Extensions {
          * @param  {any} data
          */
         sendEvent(eventType: string, data: any);
-        sendEvent<T extends Atomic.EventMetaData>(eventType:string, data?:T);
-        sendEvent<T extends Atomic.EventCallbackMetaData>(eventCallbackMetaData:T);
+        sendEvent<T extends EngineCore.EventMetaData>(eventType:string, data?:T);
+        sendEvent<T extends EngineCore.EventCallbackMetaData>(eventCallbackMetaData:T);
 
         /**
          * Subscribe to an event and provide a callback.  This can be used by services to subscribe to custom events
@@ -77,7 +77,7 @@ declare module Editor.Extensions {
          * Subscribe to an event with a pre-wrapped event object.  This can be used by services to subscribe to custom events
          * @param  {Atomic.EventMetaData} wrappedEvent
          */
-        subscribeToEvent?(wrappedEvent: Atomic.EventMetaData);
+        subscribeToEvent?(wrappedEvent: EngineCore.EventMetaData);
     }
 
     /**
@@ -125,65 +125,65 @@ declare module Editor.Extensions {
          * @param  tabContainer
          * @param  lineNumber
          */
-        getEditor(resourceFrame: Atomic.UIWidget, resourcePath: string, tabContainer: Atomic.UITabContainer, lineNumber: number) : Editor.ResourceEditor;
+        getEditor(resourceFrame: EngineCore.UIWidget, resourcePath: string, tabContainer: EngineCore.UITabContainer, lineNumber: number) : EngineEditor.ResourceEditor;
     }
 }
 
-declare module Editor.Modal {
-    export interface ExtensionWindow extends Atomic.UIWindow {
+declare module EngineEditor.Modal {
+    export interface ExtensionWindow extends EngineCore.UIWindow {
         hide();
     }
 }
 
-declare module Editor.HostExtensions {
+declare module EngineEditor.HostExtensions {
 
     /**
      * Generic service locator of editor services that may be injected by either a plugin
      * or by the editor itself.
      */
-    export interface HostServiceLocator extends Editor.Extensions.ServiceLoader {
+    export interface HostServiceLocator extends EngineEditor.Extensions.ServiceLoader {
         resourceServices: ResourceServicesProvider;
         projectServices: ProjectServicesProvider;
         sceneServices: SceneServicesProvider;
         uiServices: UIServicesProvider;
     }
 
-    export interface HostEditorService extends Editor.Extensions.EditorServiceExtension {
+    export interface HostEditorService extends EngineEditor.Extensions.EditorServiceExtension {
         /**
          * Called by the service locator at load time
          */
         initialize(serviceLocator: HostServiceLocator);
     }
 
-    export interface ResourceServicesEventListener extends Editor.Extensions.ServiceEventListener {
+    export interface ResourceServicesEventListener extends EngineEditor.Extensions.ServiceEventListener {
         /**
          * Called once a resource is saved
          */
-        save?(ev: Editor.EditorSaveResourceEvent);
+        save?(ev: EngineEditor.EditorSaveResourceEvent);
         /**
          * Called when a resource is deleted
          */
-        delete?(ev: Editor.EditorDeleteResourceEvent);
+        delete?(ev: EngineEditor.EditorDeleteResourceEvent);
         /**
          * Called when a resource is renamed
          */
-        rename?(ev: Editor.EditorRenameResourceNotificationEvent);
+        rename?(ev: EngineEditor.EditorRenameResourceNotificationEvent);
         /**
          * Called when a resource is about to be edited
          */
-        edit?(ev: Editor.EditorEditResourceEvent);
+        edit?(ev: EngineEditor.EditorEditResourceEvent);
     }
 
-    export interface ResourceServicesProvider extends Editor.Extensions.ServicesProvider<ResourceServicesEventListener> {
+    export interface ResourceServicesProvider extends EngineEditor.Extensions.ServicesProvider<ResourceServicesEventListener> {
         createMaterial(resourcePath: string, materialName: string, reportError: boolean): boolean;
     }
 
-    export interface ProjectServicesEventListener extends Editor.Extensions.ServiceEventListener {
+    export interface ProjectServicesEventListener extends EngineEditor.Extensions.ServiceEventListener {
         projectUnloaded?();
-        projectLoaded?(ev: Editor.EditorLoadProjectEvent);
+        projectLoaded?(ev: EngineEditor.EditorLoadProjectEvent);
         playerStarted?();
     }
-    export interface ProjectServicesProvider extends Editor.Extensions.ServicesProvider<ProjectServicesEventListener> {
+    export interface ProjectServicesProvider extends EngineEditor.Extensions.ServicesProvider<ProjectServicesEventListener> {
 
         /**
          * Return a preference value or the provided default from the user settings file
@@ -224,17 +224,17 @@ declare module Editor.HostExtensions {
         setApplicationPreference(groupName: string, preferenceName: string, value: number | boolean | string);
     }
 
-    export interface SceneServicesEventListener extends Editor.Extensions.ServiceEventListener {
-        activeSceneEditorChanged?(ev: Editor.EditorActiveSceneEditorChangeEvent);
-        editorSceneClosed?(ev: Editor.EditorSceneClosedEvent);
+    export interface SceneServicesEventListener extends EngineEditor.Extensions.ServiceEventListener {
+        activeSceneEditorChanged?(ev: EngineEditor.EditorActiveSceneEditorChangeEvent);
+        editorSceneClosed?(ev: EngineEditor.EditorSceneClosedEvent);
     }
-    export interface SceneServicesProvider extends Editor.Extensions.ServicesProvider<SceneServicesEventListener> { }
+    export interface SceneServicesProvider extends EngineEditor.Extensions.ServicesProvider<SceneServicesEventListener> { }
 
-    export interface UIServicesEventListener extends Editor.Extensions.ServiceEventListener {
+    export interface UIServicesEventListener extends EngineEditor.Extensions.ServiceEventListener {
         menuItemClicked?(refid: string): boolean;
         projectContextItemClicked?(asset: ToolCore.Asset, refid: string): boolean;
         projectAssetClicked?(asset: ToolCore.Asset): boolean;
-        hierarchyContextItemClicked?(node: Atomic.Node, refid: string): boolean;
+        hierarchyContextItemClicked?(node: EngineCore.Node, refid: string): boolean;
 
         /**
          * Handle messages that are submitted via Atomic.Query from within a web view editor.
@@ -244,53 +244,53 @@ declare module Editor.HostExtensions {
         handleWebMessage?(messageType: string, data?: any): void;
     }
 
-    export interface UIServicesProvider extends Editor.Extensions.ServicesProvider<UIServicesEventListener> {
-        createPluginMenuItemSource(id: string, items: any): Atomic.UIMenuItemSource;
+    export interface UIServicesProvider extends EngineEditor.Extensions.ServicesProvider<UIServicesEventListener> {
+        createPluginMenuItemSource(id: string, items: any): EngineCore.UIMenuItemSource;
         removePluginMenuItemSource(id: string);
-        createHierarchyContextMenuItemSource(id: string, items: any): Atomic.UIMenuItemSource;
+        createHierarchyContextMenuItemSource(id: string, items: any): EngineCore.UIMenuItemSource;
         removeHierarchyContextMenuItemSource(id: string);
-        createProjectContextMenuItemSource(id: string, items: any): Atomic.UIMenuItemSource;
+        createProjectContextMenuItemSource(id: string, items: any): EngineCore.UIMenuItemSource;
         removeProjectContextMenuItemSource(id: string);
         refreshHierarchyFrame();
-        loadCustomInspector(customInspector: Atomic.UIWidget);
-        showModalWindow(windowText: string, uifilename: string, handleWidgetEventCB: (ev: Atomic.UIWidgetEvent) => void): Editor.Modal.ExtensionWindow;
-        showNonModalWindow(windowText: string, uifilename: string, handleWidgetEventCB: (ev: Atomic.UIWidgetEvent) => void): Editor.Modal.ExtensionWindow;
-        showModalError(windowText: string, message: string):Atomic.UIMessageWindow;
+        loadCustomInspector(customInspector: EngineCore.UIWidget);
+        showModalWindow(windowText: string, uifilename: string, handleWidgetEventCB: (ev: EngineCore.UIWidgetEvent) => void): EngineEditor.Modal.ExtensionWindow;
+        showNonModalWindow(windowText: string, uifilename: string, handleWidgetEventCB: (ev: EngineCore.UIWidgetEvent) => void): EngineEditor.Modal.ExtensionWindow;
+        showModalError(windowText: string, message: string):EngineCore.UIMessageWindow;
         showResourceSelection(windowText: string, importerType: string, resourceType: string, callback: (retObject: any, args: any) => void, args?: any);
 
         /**
          * Returns the currently active resource editor or null
-         * @return {Editor.ResourceEditor}
+         * @return {EngineEditor.ResourceEditor}
          */
-        getCurrentResourceEditor(): Editor.ResourceEditor;
+        getCurrentResourceEditor(): EngineEditor.ResourceEditor;
 
         
         /**
          * Will load a resource editor or navigate to an already loaded resource editor by path
          * @param path The path to the resource to load
          * @param lineNumber optional line number to navigate to
-         * @return {Editor.ResourceEditor}
+         * @return {EngineEditor.ResourceEditor}
          */
-        loadResourceEditor(path: string, lineNumber?: number): Editor.ResourceEditor;
+        loadResourceEditor(path: string, lineNumber?: number): EngineEditor.ResourceEditor;
 
         /**
          * Register a custom editor.  These editors will override editors in the standard editor list if
          * they both resolve the ```canHandleResource``` call.
          */
-        registerCustomEditor(editorBuilder: Editor.Extensions.ResourceEditorBuilder);
+        registerCustomEditor(editorBuilder: EngineEditor.Extensions.ResourceEditorBuilder);
 
         /**
          * Will unregister a previously registered editor builder
-         * @param  {Editor.Extensions.ResourceEditorBuilder} editorBuilder
+         * @param  {EngineEditor.Extensions.ResourceEditorBuilder} editorBuilder
          */
-        unregisterCustomEditor(editorBuilder: Editor.Extensions.ResourceEditorBuilder);
+        unregisterCustomEditor(editorBuilder: EngineEditor.Extensions.ResourceEditorBuilder);
     }
 }
 
 /**
  * Interfaces for client extensions
  */
-declare module Editor.ClientExtensions {
+declare module EngineEditor.ClientExtensions {
 
     export interface EditorFileEvent {
         filename: string;
@@ -346,7 +346,7 @@ declare module Editor.ClientExtensions {
      * Generic service locator of editor services that may be injected by either a plugin
      * or by the editor itself.
      */
-    export interface ClientServiceLocator extends Editor.Extensions.ServiceLoader {
+    export interface ClientServiceLocator extends EngineEditor.Extensions.ServiceLoader {
         /**
          * Exposed services
          * @type {WebViewServicesProvider}
@@ -354,7 +354,7 @@ declare module Editor.ClientExtensions {
         clientServices: WebViewServicesProvider;
     }
 
-    export interface ClientEditorService extends Editor.Extensions.EditorServiceExtension {
+    export interface ClientEditorService extends EngineEditor.Extensions.EditorServiceExtension {
         /**
          * Called by the service locator at load time
          */
@@ -366,7 +366,7 @@ declare module Editor.ClientExtensions {
         projectPreferences? : any;
     }
 
-    export interface WebViewServiceEventListener extends Editor.Extensions.EditorServiceExtension {
+    export interface WebViewServiceEventListener extends EngineEditor.Extensions.EditorServiceExtension {
         configureEditor?(ev: EditorFileEvent);
         codeLoaded?(ev: CodeLoadedEvent);
         save?(ev: CodeSavedEvent);
@@ -380,7 +380,7 @@ declare module Editor.ClientExtensions {
     /**
      * Available methods exposed to client services
      */
-    export interface WebViewServicesProvider extends Editor.Extensions.ServicesProvider<WebViewServiceEventListener> {
+    export interface WebViewServicesProvider extends EngineEditor.Extensions.ServicesProvider<WebViewServiceEventListener> {
 
         /**
          * Get a reference to the interop to talk to the host
@@ -469,9 +469,14 @@ declare module Editor.ClientExtensions {
     }
 }
 
-declare module Editor {
+declare module EngineEditor {
     /**
      * Valid editor shortcuts that can be called from menus
      */
     export type EditorShortcutType = "cut" | "copy" | "paste" | "undo" | "redo" | "close" | "frameselected" | "selectall";
 }
+
+declare const features : {
+    dotnet : boolean;
+    webview : boolean;
+};

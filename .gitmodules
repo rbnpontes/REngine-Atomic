@@ -1,6 +1,6 @@
+[submodule "Submodules/EngineExamples"]
+	path = Submodules/EngineExamples
+	url = https://github.com/rbnpontes/REngineExamples
 [submodule "Submodules/CEF"]
 	path = Submodules/CEF
-	url = https://github.com/AtomicGameEngine/CEF3Binaries
-[submodule "Submodules/AtomicExamples"]
-	path = Submodules/AtomicExamples
-	url = https://github.com/AtomicGameEngine/AtomicExamples
+	url = https://github.com/rbnpontes/CEF3Binaries.git

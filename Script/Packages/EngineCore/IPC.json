@@ -1,0 +1,6 @@
+{
+	"name" : "IPC",
+	"includes" : ["EngineCore/IPC/IPCMessage.h"],
+	"sources" : ["Source/EngineCore/IPC"],
+	"classes" : ["IPC"]
+}
