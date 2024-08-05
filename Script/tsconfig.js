@@ -56,7 +56,7 @@ module.exports = (params)=> {
         ...generated_d_files,
         ...base_ts_config.files
     ];
-    base_ts_config.compilerOptions.outDir = path.resolve(artifacts_root, 'Build/Resources/EditorData/EditorScripts');
+    base_ts_config.compilerOptions.outDir = path.resolve(artifacts_root, 'Build/Resources/EditorData');
 
     return base_ts_config;
 };

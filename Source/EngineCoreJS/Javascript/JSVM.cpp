@@ -93,7 +93,7 @@ void JSVM::InitJSContext()
     jsapi_init_atomic(this);
 
     // register whether we are in the editor
-    duk_get_global_string(ctx_, "Atomic");
+    duk_get_global_string(ctx_, ENGINE_CORE);
     duk_push_boolean(ctx_, context_->GetEditorContext() ? 1 : 0);
     duk_put_prop_string(ctx_, -2, "editor");
     duk_pop(ctx_);

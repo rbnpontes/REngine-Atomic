@@ -694,7 +694,7 @@ namespace Atomic
         duk_push_object(ctx);
         duk_put_global_string(ctx, "__atomic_scene_serializable_attributes");
 
-        js_class_get_prototype(ctx, "Atomic", "Serializable");
+        js_class_get_prototype(ctx, ENGINE_CORE, "Serializable");
         duk_push_c_function(ctx, Serializable_GetAttributes, 0);
         duk_put_prop_string(ctx, -2, "getAttributes");
         duk_push_c_function(ctx, Serializable_GetAttribute, DUK_VARARGS);

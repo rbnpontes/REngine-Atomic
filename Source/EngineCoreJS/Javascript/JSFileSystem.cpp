@@ -147,7 +147,7 @@ void jsapi_init_filesystem(JSVM* vm)
 
     duk_pop(ctx); // pop Atomic object
 
-    js_class_get_prototype(ctx, "Atomic", "FileSystem");
+    js_class_get_prototype(ctx, ENGINE_CORE, "FileSystem");
     duk_push_c_function(ctx, FileSystem_ScanDir, 4);
     duk_put_prop_string(ctx, -2, "scanDir");
     duk_pop(ctx);

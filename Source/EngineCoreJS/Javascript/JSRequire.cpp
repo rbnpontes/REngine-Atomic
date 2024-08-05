@@ -125,9 +125,9 @@ namespace Atomic
         String path = moduleID;
 
         // It is nice to not have to specify the Atomic path, but verify that the module exists first since it could be user provided
-        if (fileName.StartsWith("Atomic") && cache->Exists("AtomicModules/" + path + ".js"))
+        if (fileName.StartsWith(ENGINE_CORE) && cache->Exists("EngineModules/" + path + ".js"))
         {
-            path = "AtomicModules/" + path + ".js";
+            path = "EngineModules/" + path + ".js";
         }
         else
         {
@@ -160,6 +160,7 @@ namespace Atomic
                 duk_put_prop_string(ctx, 3, "filename");
             }
 
+            ATOMIC_LOGDEBUGF("Loading Module: %s", path.CString());
             SharedPtr<File> jsfile(cache->GetFile(path, false));
             vm->SetLastModuleSearchFile(jsfile->GetFullPath());
             String source;
