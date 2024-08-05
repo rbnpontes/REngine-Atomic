@@ -294,8 +294,8 @@ async function editorCopyBinaries() {
     const editor_data_dir = path.resolve(engine_root, 'Resources/EditorData');
     const editor_data_output_dir = path.resolve(resources_dest, 'Resources/EditorData');
     // Editor Scripts
-    const editor_scripts_dir = path.resolve(engine_root, `Artifacts/Build/Resources/EditorData/EditorScripts`);
-    const editor_scripts_output_dir = path.resolve(resources_dest, 'Resources/EditorData/EditorScripts');
+    const editor_scripts_dir = path.resolve(engine_root, `Artifacts/Build/Resources/EditorData`);
+    const editor_scripts_output_dir = path.resolve(resources_dest, 'Resources/EditorData');
     // App
     const app_file_dir = (() => {
         if (os.platform() == 'win32') {

@@ -38,7 +38,7 @@ If you're under MacOS you do the same steps of Windows, but Xcode project will b
 - Windows, MacOS and Linux Support
 - Chromium WebView (It's unstable but can be usefull)
 - Node Based Scene Graph
-- Vulkan and D3D12 Support
+- Vulkan and D3D12 Support (Thanks to the Diligent Engine)
 - Editor (Will be reworked #21)
 
 ### Credits
