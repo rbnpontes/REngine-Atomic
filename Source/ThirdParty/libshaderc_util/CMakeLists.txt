@@ -50,3 +50,5 @@ find_package(Threads)
 target_link_libraries(shaderc_util PRIVATE
   glslang SPIRV
   SPIRV-Tools-opt ${CMAKE_THREAD_LIBS_INIT})
+
+vs_add_to_grp(shaderc_util "${VS_GRP_THIRD_PARTY}")

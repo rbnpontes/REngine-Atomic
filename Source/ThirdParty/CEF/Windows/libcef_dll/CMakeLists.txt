@@ -792,3 +792,5 @@ target_compile_definitions(${CEF_TARGET} PRIVATE -DWRAPPING_CEF_SHARED)
 
 # Remove the default "lib" prefix from the resulting library.
 set_target_properties(${CEF_TARGET} PROPERTIES PREFIX "")
+
+vs_add_to_grp("${CEF_TARGET}" "${VS_GRP_THIRD_PARTY}")

@@ -20,8 +20,8 @@
 // THE SOFTWARE.
 //
 
-#include <Atomic/Resource/ResourceCache.h>
-#include <Atomic/Audio/Sound.h>
+#include <EngineCore/Resource/ResourceCache.h>
+#include <EngineCore/Audio/Sound.h>
 
 #include "Asset.h"
 #include "AssetDatabase.h"

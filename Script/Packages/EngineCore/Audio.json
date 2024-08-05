@@ -1,0 +1,15 @@
+{
+	"name" : "Audio",
+	"sources" : ["Source/EngineCore/Audio"],
+	"classes" : ["Sound", "SoundSource", "SoundSource3D", "SoundListener", "Audio"],
+	"overloads" : {
+		"SoundSource" : {
+			"Play" : ["Sound"]
+		}
+	},
+	"typescript_decl" : {
+		"Sound": [
+			"setData(data: Int16Array);"
+		]
+	}
+}

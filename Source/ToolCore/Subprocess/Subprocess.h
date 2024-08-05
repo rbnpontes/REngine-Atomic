@@ -26,10 +26,10 @@
 #include <Poco/Pipe.h>
 #include <Poco/PipeStream.h>
 
-#include <Atomic/Container/Str.h>
-#include <Atomic/Core/Mutex.h>
-#include <Atomic/Core/Thread.h>
-#include <Atomic/Core/Object.h>
+#include <EngineCore/Container/Str.h>
+#include <EngineCore/Core/Mutex.h>
+#include <EngineCore/Core/Thread.h>
+#include <EngineCore/Core/Object.h>
 
 using namespace Atomic;
 

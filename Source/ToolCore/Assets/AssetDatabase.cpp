@@ -22,13 +22,12 @@
 
 #include <Poco/MD5Engine.h>
 
-#include <Atomic/IO/Log.h>
-#include <Atomic/IO/File.h>
-#include <Atomic/IO/FileSystem.h>
-#include <Atomic/Math/Random.h>
-
-#include <Atomic/Resource/ResourceEvents.h>
-#include <Atomic/Resource/ResourceCache.h>
+#include <EngineCore/IO/Log.h>
+#include <EngineCore/IO/File.h>
+#include <EngineCore/IO/FileSystem.h>
+#include <EngineCore/Math/Random.h>
+#include <EngineCore/Resource/ResourceEvents.h>
+#include <EngineCore/Resource/ResourceCache.h>
 
 #include "../Import/ImportConfig.h"
 #include "../ToolEvents.h"

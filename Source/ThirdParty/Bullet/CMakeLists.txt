@@ -50,3 +50,5 @@ set (INCLUDE_DIRS src)
 
 # Setup target
 setup_library ()
+
+vs_add_to_grp("${TARGET_NAME}" "${VS_GRP_THIRD_PARTY}")

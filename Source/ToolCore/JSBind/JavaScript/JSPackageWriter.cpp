@@ -20,9 +20,9 @@
 // THE SOFTWARE.
 //
 
-#include <Atomic/IO/File.h>
-#include <Atomic/IO/FileSystem.h>
-#include <Atomic/Core/StringUtils.h>
+#include <EngineCore/IO/File.h>
+#include <EngineCore/IO/FileSystem.h>
+#include <EngineCore/Core/StringUtils.h>
 
 #include "../JSBind.h"
 #include "../JSBModule.h"
@@ -77,7 +77,7 @@ void JSPackageWriter::WriteProtoTypeRecursive(String &source, JSBClass* klass,  
         }
 
         if (module->Requires("3D"))
-            source += "\n#ifdef ATOMIC_3D\n";
+            source += "\n#ifdef ENGINE_3D\n";
 
         String packageName =  klass->GetModule()->GetPackage()->GetName();
         String basePackage =  base ? base->GetModule()->GetPackage()->GetName() : "";
@@ -125,9 +125,9 @@ void JSPackageWriter::GenerateSource()
     }
 
     source += "#include <Duktape/duktape.h>\n";
-    source += "#include <Atomic/Script/ScriptVector.h>\n";
-    source += "#include <AtomicJS/Javascript/JSVM.h>\n";
-    source += "#include <AtomicJS/Javascript/JSAPI.h>\n";
+    source += "#include <EngineCore/Script/ScriptVector.h>\n";
+    source.AppendWithFormat("#include <%s/Javascript/JSVM.h>\n", ENGINE_JS_TARGET);
+    source.AppendWithFormat("#include <%s/Javascript/JSAPI.h>\n", ENGINE_JS_TARGET);
 
     source += "\n\nnamespace Atomic\n{\n";
 
@@ -191,14 +191,14 @@ void JSPackageWriter::GenerateSource()
         }
 
         if (module->Requires("3D"))
-            source += "\n#ifdef ATOMIC_3D";
+            source += "\n#ifdef ENGINE_3D";
 
         String moduleLower = module->GetName().ToLower();
 
         source.AppendWithFormat("\n   jsb_package_%s_preinit_%s(vm);", packageLower.CString(), moduleLower.CString());
 
         if (module->Requires("3D"))
-            source += "\n#endif //ATOMIC_3D\n";
+            source += "\n#endif //ENGINE_3D\n";
 
         if (moduleGuard.Length())
         {
@@ -232,13 +232,13 @@ void JSPackageWriter::GenerateSource()
         }
 
         if (module->Requires("3D"))
-            source += "\n#ifdef ATOMIC_3D";
+            source += "\n#ifdef ENGINE_3D";
 
         source.AppendWithFormat("\n   jsb_package_%s_init_%s(vm);", packageLower.CString(), moduleLower.CString());
         
         if (module->Requires("3D"))
         {
-            source += "\n#endif //ATOMIC_3D\n";
+            source += "\n#endif //ENGINE_3D\n";
         }
 
         if (moduleGuard.Length())
@@ -287,10 +287,10 @@ void JSPackageWriter::PostProcess()
     jdoc.Emit(package_, jsbind->GetSourceRootFolder() + "Artifacts/Build/JSDoc/" + package_->GetName() + ".js");
 
     JSBTypeScript ts;
-    ts.Emit(package_, jsbind->GetSourceRootFolder() + "Script/TypeScript/" + package_->GetName() + ".d.ts");
+    ts.Emit(package_, jsbind->GetSourceRootFolder() + "Artifacts/Build/TypeScript/" + package_->GetName() + ".d.ts");
 
     JSBHaxe hx;
-    hx.Emit(package_, jsbind->GetSourceRootFolder() + "Script/Haxe/" + package_->GetName() + ".hx");
+    hx.Emit(package_, jsbind->GetSourceRootFolder() + "Artifacts/Build/Haxe/" + package_->GetName() + ".hx");
 
 }
 

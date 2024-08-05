@@ -6,7 +6,9 @@
 varying vec2 vScreenPos;
 
 #ifdef COMPILEPS
-uniform vec4 cShadowAmbient;
+UNIFORM_BEGIN(CustomPS)
+    vec4 cShadowAmbient;
+UNIFORM_END()
 #endif
 
 void VS()

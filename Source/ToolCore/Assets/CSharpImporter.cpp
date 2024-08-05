@@ -20,9 +20,9 @@
 // THE SOFTWARE.
 //
 
-#include <Atomic/IO/Log.h>
-#include <Atomic/IO/File.h>
-#include <Atomic/Resource/ResourceCache.h>
+#include <EngineCore/IO/Log.h>
+#include <EngineCore/IO/File.h>
+#include <EngineCore/Resource/ResourceCache.h>
 
 #include "../ToolSystem.h"
 #include "../Project/Project.h"

@@ -1,0 +1,6 @@
+{
+	"name" : "Network",
+	"sources" : ["Source/EngineCore/Network"],
+	"includes" : ["<EngineCore/Network/Protocol.h>", "<EngineCore/Scene/Scene.h>"],
+	"classes" : ["Network", "NetworkPriority", "HttpRequest", "Connection", "MasterServerClient"]
+}

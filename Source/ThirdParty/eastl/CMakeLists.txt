@@ -79,3 +79,6 @@ install(DIRECTORY include/EASTL DESTINATION include)
 if (MSVC)
     install(FILES ${EASTL_NATVIS_FILE} DESTINATION ${EASTL_NATVIS_DIR})
 endif()
+
+
+vs_add_to_grp(EASTL "${VS_GRP_THIRD_PARTY}")

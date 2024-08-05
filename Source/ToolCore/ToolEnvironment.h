@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include <Atomic/Core/Object.h>
+#include <EngineCore/Core/Object.h>
 
 #include "ToolPrefs.h"
 
@@ -63,7 +63,7 @@ public:
     const String& GetEditorBinary() { return editorBinary_; }
     const String& GetPlayerBinary() { return playerBinary_; }
     const String& GetToolBinary() { return toolBinary_; }
-
+    const String& GetVsWhereBinary();
     /// Resource directories
     const String& GetCoreDataDir() { return resourceCoreDataDir_; }
     const String& GetPlayerDataDir() { return resourcePlayerDataDir_; }
@@ -74,10 +74,10 @@ public:
 
     const String& GetToolDataDir() { return toolDataDir_; }
 
-    // Returns true if we running from a command line tool (aka: AtomicTool)
+    // Returns true if we running from a command line tool (aka: EngineTool)
     bool GetCLI() { return cli_; }
 
-    // AtomicNET
+    // EngineNET
 
     const String& GetAtomicNETRootDir() { return atomicNETRootDir_; }
     const String& GetAtomicNETCoreAssemblyDir() { return atomicNETCoreAssemblyDir_; }
@@ -98,7 +98,7 @@ private:
 
     bool InitFromDistribution();
 
-    // Whether we are running from a command line tool, such as AtomicTool
+    // Whether we are running from a command line tool, such as EngineTool
     bool cli_;
 
     // root source directory (for development builds)
@@ -116,10 +116,15 @@ private:
     // path to Atomic player app (OSX)
     String playerAppFolder_;
 
-    // path to the AtomicTool command line binary
+    // path to the EngineTool command line binary
     String toolBinary_;
 
     String toolDataDir_;
+
+#ifdef ENGINE_PLATFORM_WINDOWS
+    // path to the vswhere command line binary
+    String vs_where_binary_;
+#endif
 
     // resources
     String resourceCoreDataDir_;
@@ -142,7 +147,7 @@ private:
     String iosBuildDir_;
     String webBuildDir_;
 
-    // AtomicNET
+    // EngineNET
     String atomicNETRootDir_;
     String atomicNETCoreAssemblyDir_;
     String atomicNETNuGetBinary_;

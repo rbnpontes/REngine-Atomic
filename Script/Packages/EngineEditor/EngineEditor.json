@@ -1,0 +1,10 @@
+{
+	"name" : "EngineEditor",
+	"includes" : ["<EngineCore/Graphics/DebugRenderer.h>", "<EngineWebView/UIWebView.h>"],
+	"sources" : ["Source/EngineEditor/Application", "Source/EngineEditor/Utils",
+							 "Source/EngineEditor/EditorMode", "Source/EngineEditor/PlayerMode",
+							 "Source/EngineEditor/Editors", "Source/EngineEditor/Editors/SceneEditor3D",
+						   "Source/EngineEditor/Components"],
+	"classes" : ["EditorMode", "PlayerMode", "FileUtils", "ResourceEditor", "JSResourceEditor",
+							 "SceneEditor3D", "SceneView3D", "SceneSelection", "EditorComponent", "CubemapGenerator", "Gizmo3D"]
+}

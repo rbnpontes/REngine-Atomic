@@ -1,0 +1,79 @@
+{
+	"name" : "Scene",
+	"sources" : ["Source/EngineCore/Scene"],
+	"includes" : ["<EngineCore/Scene/LogicComponent.h>", "<EngineCore/Network/Connection.h>"],
+	"classes" : ["Animatable", "Node", "Scene", "Component", "Serializable",
+				 "ObjectAnimation", "SmoothedTransform", "SplinePath",
+				 "ValueAnimation", "ValueAnimationInfo", "PrefabComponent"],
+	"excludes" : {
+		"Scene" : {
+			"GetComponent" : ["unsigned"],
+			"MarkReplicationDirty" : ["Node"],
+			"GetRequiredPackageFiles" : []
+		}
+	},
+	"overloads" : {
+
+		"Node" : {
+			"CreateChild" : ["String", "CreateMode", "unsigned", "bool"],
+			"GetChild" : ["String", "bool"],
+			"SetScale" : ["Vector3"],
+			"SetPosition2D" : ["Vector2"],
+			"SetScale2D" : ["Vector2"],
+			"RemoveComponent" : ["Component"]
+		},
+		"ValueAnimationInfo" : {
+			"ValueAnimationInfo" : ["ValueAnimation", "WrapMode", "float"]
+		}
+
+	},
+	"typescript_decl" : {
+
+		"Serializable" : [
+			"getAttributes():AttributeInfo[];",
+			"getAttribute(name:string, index?:number):any;",
+			"setAttribute(name:string, value:any, index?:number):void;"
+		],
+		"Node" : [
+			"saveXML(file:File):boolean;",
+			"loadXML(file:File):boolean;",
+			"getChildrenWithName(name:string, recursive?:boolean):Node[];",
+			"getChildrenWithComponent(componentType:string, recursive?:boolean):Node[];",
+			"getComponents(componentType?:string, recursive?:boolean):Component[];",
+			"getComponent<T extends {{PACKAGE_NAME}}.Component>(type: string, recursive?: boolean): T;",
+			"getParentComponent<T extends {{PACKAGE_NAME}}.Component>(type: string, fullTraversal?: boolean): T;",
+			"getChildAtIndex(index:number):Node;",
+			"createJSComponent(name:string, args?:{});",
+			"getJSComponent(name:string, recursive?:boolean): JSComponent;",
+			"getJSComponent<T extends {{PACKAGE_NAME}}.JSComponent>(name:string, recursive?:boolean): T;",
+			"createChildPrefab(childName:string, prefabPath:string):Node;",
+			"loadPrefab(prefabPath:string):boolean;",
+			"createComponent<T extends {{PACKAGE_NAME}}.Component>(type: string, mode?: CreateMode, id?: number): T;",
+			"getOrCreateComponent<T extends {{PACKAGE_NAME}}.Component>(type: string, mode?: CreateMode, id?: number): T;"
+		],
+		"Scene" : [
+			"getMainCamera():Camera;"
+		],
+		"Component": [
+		    "getComponent<T extends {{PACKAGE_NAME}}.Component>(type: string): T;"
+		]
+	},
+	"haxe_decl" : {
+
+		"Node" : [
+			"function saveXML(file:File):Bool;",
+			"function getChildrenWithName(name:String, ?recursive:Bool):Array<Node>;",
+			"function getChildrenWithComponent(componentType:String, ?recursive:Bool):Array<Node>;",
+			"function getComponents(?componentType:String, ?recursive:Bool):Array<Component>;",
+			"function getChildAtIndex(index:UInt):Node;",
+			"function createJSComponent(name:String, ?args:Dynamic):JSComponent;",
+			"function getJSComponent(name:String, ?recursive:Bool):JSComponent;",
+			"function createChildPrefab(childName:String, prefabPath:String):Node;",
+			"function loadPrefab(prefabPath:String):Bool;"
+		],
+		"Scene" : [
+			"function getMainCamera():Camera;"
+		]
+	}
+
+}

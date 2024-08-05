@@ -20,9 +20,8 @@
 // THE SOFTWARE.
 //
 
-#include <Atomic/Container/Str.h>
-
 #pragma once
+#include <EngineCore/Container/Str.h>
 
 using namespace Atomic;
 

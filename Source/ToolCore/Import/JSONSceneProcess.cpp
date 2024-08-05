@@ -22,28 +22,28 @@
 
 #include <stdint.h>
 
-#include <Atomic/Core/ProcessUtils.h>
-#include <Atomic/IO/Log.h>
-#include <Atomic/IO/FileSystem.h>
+#include <EngineCore/Core/ProcessUtils.h>
+#include <EngineCore/IO/Log.h>
+#include <EngineCore/IO/FileSystem.h>
 
-#include <Atomic/Resource/Image.h>
+#include <EngineCore/Resource/Image.h>
 
-#include <Atomic/Graphics/IndexBuffer.h>
-#include <Atomic/Graphics/VertexBuffer.h>
-#include <Atomic/Graphics/Geometry.h>
+#include <EngineCore/Graphics/IndexBuffer.h>
+#include <EngineCore/Graphics/VertexBuffer.h>
+#include <EngineCore/Graphics/Geometry.h>
 
-#include <Atomic/Graphics/Octree.h>
-#include <Atomic/Graphics/Zone.h>
-#include <Atomic/Graphics/AnimatedModel.h>
-#include <Atomic/Graphics/StaticModel.h>
-#include <Atomic/Graphics/LMStaticModel.h>
-#include <Atomic/Graphics/Terrain.h>
-#include <Atomic/Graphics/Animation.h>
-#include <Atomic/Graphics/DebugRenderer.h>
-#include <Atomic/Physics/CollisionShape.h>
-#include <Atomic/Physics/RigidBody.h>
-#include <Atomic/Physics/PhysicsWorld.h>
-#include <Atomic/Environment/TimeOfDay.h>
+#include <EngineCore/Graphics/Octree.h>
+#include <EngineCore/Graphics/Zone.h>
+#include <EngineCore/Graphics/AnimatedModel.h>
+#include <EngineCore/Graphics/StaticModel.h>
+#include <EngineCore/Graphics/LMStaticModel.h>
+#include <EngineCore/Graphics/Terrain.h>
+#include <EngineCore/Graphics/Animation.h>
+#include <EngineCore/Graphics/DebugRenderer.h>
+#include <EngineCore/Physics/CollisionShape.h>
+#include <EngineCore/Physics/RigidBody.h>
+#include <EngineCore/Physics/PhysicsWorld.h>
+#include <EngineCore/Environment/TimeOfDay.h>
 
 #include "JSONSceneProcess.h"
 #include "JSONSceneImporter.h"

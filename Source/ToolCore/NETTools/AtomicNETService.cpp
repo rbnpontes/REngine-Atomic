@@ -20,14 +20,14 @@
 // THE SOFTWARE.
 //
 
-#include <Atomic/IO/Log.h>
-#include <Atomic/IO/FileSystem.h>
+#include <EngineCore/IO/Log.h>
+#include <EngineCore/IO/FileSystem.h>
 
-#include <Atomic/IPC/IPC.h>
-#include <Atomic/IPC/IPCEvents.h>
-#include <Atomic/IPC/IPCBroker.h>
+#include <EngineCore/IPC/IPC.h>
+#include <EngineCore/IPC/IPCEvents.h>
+#include <EngineCore/IPC/IPCBroker.h>
 
-#include <Atomic/Core/CoreEvents.h>
+#include <EngineCore/Core/CoreEvents.h>
 
 #include <ToolCore/ToolEnvironment.h>
 #include <ToolCore/ToolSystem.h>
@@ -58,33 +58,46 @@ namespace ToolCore
         execPath = String::EMPTY;
         args.Clear();
 
-#ifdef ATOMIC_DEBUG
+#ifdef ENGINE_DEBUG
         String config = "Debug";
 #else
         String config = "Release";
 #endif
 
-        String netServiceFilename = tenv->GetAtomicNETRootDir() + config + "/AtomicNETService/AtomicNETService.exe";
+        ea::vector<ea::string> files;
+        const auto search_path = tenv->GetAtomicNETRootDir().ToStdString() + config.ToStdString();
+        const auto target_net_service = ea::string(ENGINE_NET_SERVICE_NAME) + ".exe";
+    	const auto file_system = GetSubsystem<FileSystem>();
+        file_system->ScanDir(files, search_path, "*", SCAN_FILES | SCAN_DIRS, true);
 
-#ifdef ATOMIC_PLATFORM_WINDOWS        
+        String netServiceFilename;
+        for(const auto& file : files)
+        {
+            const auto target_it = file.find(target_net_service);
+            if(target_it == ea::string::npos)
+                continue;
+
+            netServiceFilename = (search_path + "/" + file).c_str();
+        }
+
+#ifdef ENGINE_PLATFORM_WINDOWS        
 
         execPath = netServiceFilename;
 
-#elif defined ATOMIC_PLATFORM_OSX
+#elif defined ENGINE_PLATFORM_MACOS
 
         execPath = tenv->GetMonoExecutableDir() + "mono64";
         args.Push(netServiceFilename);
 
-#elif defined ATOMIC_PLATFORM_LINUX
+#elif defined ENGINE_PLATFORM_LINUX
 
         execPath = "/usr/bin/mono";
         args.Push(netServiceFilename);
 #endif
 
-        FileSystem* fileSystem = GetSubsystem<FileSystem>();
-        if (!fileSystem->FileExists(execPath))
+        if (!file_system->FileExists(execPath))
         {
-            ATOMIC_LOGERRORF("AtomicNETService binary not found: %s", execPath.CString());
+            ATOMIC_LOGERRORF("NETService binary not found: %s", execPath.CString());
             return false;
         }
 

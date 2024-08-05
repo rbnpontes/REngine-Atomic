@@ -23,8 +23,8 @@
 #include "ProjectEvents.h"
 #include "ProjectUserPrefs.h"
 
-#include <Atomic/IO/File.h>
-#include <Atomic/Resource/JSONFile.h>
+#include <EngineCore/IO/File.h>
+#include <EngineCore/Resource/JSONFile.h>
 
 namespace ToolCore
 {
@@ -37,7 +37,7 @@ ProjectUserPrefs::ProjectUserPrefs(Context* context) : Object(context),
   snapScale_(0.1f)
 
 {
-#ifdef ATOMIC_PLATFORM_OSX
+#ifdef ENGINE_PLATFORM_MACOS
     defaultPlatform_ = PLATFORMID_MAC;
 #else
     defaultPlatform_ = PLATFORMID_WINDOWS;

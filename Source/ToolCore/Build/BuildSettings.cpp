@@ -22,7 +22,7 @@
 
 /*
 #include "AtomicEditor.h"
-#include <Atomic/Core/CoreEvents.h>
+#include <EngineCore/Core/CoreEvents.h>
 #include "AtomicEditor.h"
 #include "BuildSettings.h"
 

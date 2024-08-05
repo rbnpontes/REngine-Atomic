@@ -20,12 +20,12 @@
 // THE SOFTWARE.
 //
 
-#include <Atomic/Resource/ResourceCache.h>
-#include <Atomic/Resource/XMLFile.h>
-#include <Atomic/Scene/Scene.h>
-#include <Atomic/Scene/PrefabEvents.h>
-#include <Atomic/Scene/PrefabComponent.h>
-#include <Atomic/IO/FileSystem.h>
+#include <EngineCore/Resource/ResourceCache.h>
+#include <EngineCore/Resource/XMLFile.h>
+#include <EngineCore/Scene/Scene.h>
+#include <EngineCore/Scene/PrefabEvents.h>
+#include <EngineCore/Scene/PrefabComponent.h>
+#include <EngineCore/IO/FileSystem.h>
 
 #include "Asset.h"
 #include "AssetDatabase.h"

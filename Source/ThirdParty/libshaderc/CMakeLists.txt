@@ -78,3 +78,5 @@ shaderc_combine_static_lib(shaderc_combined shaderc)
 if(SHADERC_ENABLE_INSTALL)
   install(TARGETS shaderc_combined DESTINATION ${CMAKE_INSTALL_LIBDIR})
 endif(SHADERC_ENABLE_INSTALL)
+
+vs_add_to_grp(shaderc "${VS_GRP_THIRD_PARTY}")

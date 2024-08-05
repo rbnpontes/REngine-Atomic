@@ -4,9 +4,11 @@ REM they call vs tools vars to start developer command
 REM on any terminal.
 
 set VS_TOOLS=%2
+set SOLUTION_NAME=%3
+set NET_NATIVE_TARGET=%4
 
 echo Initializing Vs Dev Command
 call %VS_TOOLS%\VsDevCmd.bat
 echo Start Building
 :: Note, we're building LibCpuId as it uses masm as getting XamlFactory load errors if delayed
-msbuild /m Atomic.sln /t:LibCpuId /t:AtomicNETNative /p:Configuration=%1 /p:Platform=x64
+msbuild /m %SOLUTION_NAME% /t:ThirdParty\LibCpuId "/t:Engine Code\%NET_NATIVE_TARGET%" /p:Configuration=%1 /p:Platform=x64

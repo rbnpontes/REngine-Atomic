@@ -20,9 +20,9 @@
 // THE SOFTWARE.
 //
 
-#include <Atomic/Resource/ResourceCache.h>
-#include <Atomic/Resource/Image.h>
-#include <Atomic/Atomic2D/ParticleEffect2D.h>
+#include <EngineCore/Resource/ResourceCache.h>
+#include <EngineCore/Resource/Image.h>
+#include <EngineCore/2D/ParticleEffect2D.h>
 
 #include "Asset.h"
 #include "AssetDatabase.h"

@@ -1,0 +1,36 @@
+{
+	"name" : "UI",
+	"sources" : ["Source/EngineCore/UI"],
+	"includes" : ["<EngineCore/Graphics/Material.h>", "<EngineCore/Scene/Node.h>", "<EngineCore/Scene/Scene.h>", "<EngineCore/Graphics/Texture2D.h>",
+								"<EngineCore/UI/UIBatch.h>"],
+	"classes" : ["UI", "UIWidget", "UILayout", "UIView", "UIWindow", "UIButton", "UITextField",
+								"UISelectItem", "UISelectItemSource", "UIMenuWindow", "UIEditField",
+								"UIImageWidget", "UIClickLabel", "UICheckBox", "UIMenuItem", "UIMenuItemSource",
+								"UISelectList", "UIListView", "UIMessageWindow", "UILayoutParams", "UIFontDescription",
+								"UISkinImage", "UITabContainer", "UISceneView", "UIPreferredSize", "UIDragObject",
+								"UIContainer", "UISection", "UIInlineSelect", "UITextureWidget", "UIColorWidget", "UIColorWheel",
+								"UIScrollContainer", "UISeparator", "UIDimmer", "UISelectDropdown", "UISlider", "UIBargraph",
+								"UIPromptWindow", "UIFinderWindow", "UIPulldownMenu", "UIRadioButton", "UIScrollBar", "UIDockWindow",
+								"UIButtonGrid", "UIMultiItem", "UIMultiItemSource" ],
+	"overloads" : {
+	},
+	"typescript_decl" : {
+
+		"UIButton" : [
+			"onClick: () => void;"
+		],
+		"UI": [
+		    "getWidgetAt<T extends UIWidget>(x: number, y: number, include_children: boolean): T;"
+		],
+		"UIWidget": [
+		    "getWidget<T extends UIWidget>(id: string): T;",
+		    "findWidget<T extends UIWidget>(id: string): T;",
+		    "onEvent: (eventData:UIWidgetEvent) => void;",
+		    "onChanged: () => void;",
+		    "searchWidgetClass(name:string):UIWidget[];",
+		    "searchWidgetId(name:string):UIWidget[];",
+		    "searchWidgetText(name:string):UIWidget[];"
+		]
+	}
+
+}

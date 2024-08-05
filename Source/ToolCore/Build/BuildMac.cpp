@@ -20,8 +20,8 @@
 // THE SOFTWARE.
 //
 
-#include <Atomic/IO/FileSystem.h>
-#include <Atomic/Resource/ResourceCache.h>
+#include <EngineCore/IO/FileSystem.h>
+#include <EngineCore/Resource/ResourceCache.h>
 
 #include "../ToolSystem.h"
 #include "../ToolEnvironment.h"
@@ -150,7 +150,7 @@ void BuildMac::Build(const String& buildPath)
 
     }
 
-#ifdef ATOMIC_PLATFORM_OSX
+#ifdef ENGINE_PLATFORM_MACOS
     Vector<String> args;
     args.Push("+x");
     args.Push(buildPath_ + "/Contents/MacOS/AtomicPlayer");

@@ -20,9 +20,9 @@
 // THE SOFTWARE.
 //
 
-#include <Atomic/IO/Log.h>
-#include <Atomic/IO/FileSystem.h>
-#include <Atomic/IO/File.h>
+#include <EngineCore/IO/Log.h>
+#include <EngineCore/IO/FileSystem.h>
+#include <EngineCore/IO/File.h>
 
 #include "ToolEnvironment.h"
 
@@ -44,24 +44,33 @@ ToolEnvironment::~ToolEnvironment()
 
 }
 
+const String& ToolEnvironment::GetVsWhereBinary() {
+#ifdef ENGINE_PLATFORM_WINDOWS
+    return vs_where_binary_;
+#else
+    return "";
+#endif
+}
+
 bool ToolEnvironment::InitFromDistribution()
 {
     toolPrefs_->Load();
 
     FileSystem* fileSystem = GetSubsystem<FileSystem>();
 
-#ifdef ATOMIC_PLATFORM_WINDOWS
-    editorBinary_ = fileSystem->GetProgramDir() + "AtomicEditor.exe";
+#ifdef ENGINE_PLATFORM_WINDOWS
+    editorBinary_ = fileSystem->GetProgramDir() + "EngineEditor.exe";
     String resourcesDir = fileSystem->GetProgramDir() + "Resources/";
-    playerBinary_ = resourcesDir + "ToolData/Deployment/Windows/x64/AtomicPlayer.exe";
-#elif ATOMIC_PLATFORM_LINUX
-    editorBinary_ = fileSystem->GetProgramDir() + "AtomicEditor";
+    vs_where_binary_ = fileSystem->GetProgramDir() + "vswhere.exe";
+    playerBinary_ = resourcesDir + ToString("ToolData/Deployment/Windows/x64/%s.exe", ENGINE_PLAYER_TARGET);
+#elif ENGINE_PLATFORM_LINUX
+    editorBinary_ = fileSystem->GetProgramDir() + "EngineEditor";
     String resourcesDir = fileSystem->GetProgramDir() + "Resources/";
-    playerBinary_ = resourcesDir + "ToolData/Deployment/Linux/AtomicPlayer";
+    playerBinary_ = resourcesDir + ToString("ToolData/Deployment/Linux/%s", ENGINE_PLAYER_TARGET);
 #else
-    editorBinary_ = fileSystem->GetProgramDir() + "AtomicEditor";
+    editorBinary_ = fileSystem->GetProgramDir() + "EngineEditor";
     String resourcesDir = GetPath(RemoveTrailingSlash(fileSystem->GetProgramDir())) + "Resources/";
-    playerAppFolder_ = resourcesDir + "ToolData/Deployment/MacOS/AtomicPlayer.app/";
+    playerAppFolder_ = resourcesDir + ToString("ToolData/Deployment/MacOS/%s.app/", ENGINE_PLAYER_TARGET);
 #endif
 
     resourceCoreDataDir_ = resourcesDir + "CoreData";
@@ -69,18 +78,18 @@ bool ToolEnvironment::InitFromDistribution()
 
     toolDataDir_ =  resourcesDir + "ToolData/";
 
-    // AtomicNET
+    // EngineNET
 
-#ifdef ATOMIC_DEBUG
+#ifdef ENGINE_DEBUG
     String config = "Debug";
 #else
     String config = "Release";
 #endif
 
-    atomicNETRootDir_ = resourcesDir + "ToolData/AtomicNET/";
+    atomicNETRootDir_ = resourcesDir + ToString("ToolData/%s/", ENGINE_NET_NAME);
     atomicNETCoreAssemblyDir_ = atomicNETRootDir_ + config + "/";
 
-#ifdef ATOMIC_PLATFORM_OSX
+#ifdef ENGINE_PLATFORM_MACOS
     monoExecutableDir_ = "/Library/Frameworks/Mono.framework/Versions/Current/Commands/";
     atomicNETNuGetBinary_ = monoExecutableDir_ + "nuget";
 #endif
@@ -95,10 +104,10 @@ bool ToolEnvironment::Initialize(bool cli)
     cli_ = cli;
     toolPrefs_->Load();
 
-#ifdef ATOMIC_DEV_BUILD
+#ifdef ENGINE_DEV_BUILD
 
-    SetRootSourceDir(ATOMIC_ROOT_SOURCE_DIR);
-    SetRootBuildDir(ATOMIC_ROOT_BUILD_DIR, true);
+    SetRootSourceDir(ENGINE_ROOT_SOURCE_DIR);
+    SetRootBuildDir(ENGINE_ROOT_BUILD_DIR, true);
 
 #else
 
@@ -109,8 +118,8 @@ bool ToolEnvironment::Initialize(bool cli)
     }
     else
     {
-        SetRootSourceDir(ATOMIC_ROOT_SOURCE_DIR);
-        SetRootBuildDir(ATOMIC_ROOT_BUILD_DIR, true);
+        SetRootSourceDir(ENGINE_ROOT_SOURCE_DIR);
+        SetRootBuildDir(ENGINE_ROOT_BUILD_DIR, true);
 
     }
 #endif
@@ -125,24 +134,28 @@ void ToolEnvironment::SetRootSourceDir(const String& sourceDir)
     resourceCoreDataDir_ = rootSourceDir_ + "Resources/CoreData";
     resourcePlayerDataDir_ = rootSourceDir_ + "Resources/PlayerData";
     resourceEditorDataDir_ = rootSourceDir_ + "Resources/EditorData";
-    toolDataDir_ = rootSourceDir_ + "Data/AtomicEditor/";
+    toolDataDir_ = rootSourceDir_ + "Data/";
 
-    // AtomicNET
+    // EngineNET
 
-#ifdef ATOMIC_DEBUG
+#ifdef ENGINE_DEBUG
     String config = "Debug";
 #else
     String config = "Release";
 #endif
 
-    atomicNETRootDir_ = rootSourceDir_ + "Artifacts/AtomicNET/";
-    atomicNETCoreAssemblyDir_ = rootSourceDir_ + "Artifacts/AtomicNET/" + config + "/";
+    atomicNETRootDir_ = rootSourceDir_ + ToString("Artifacts/%s/", ENGINE_NET_NAME);
+    atomicNETCoreAssemblyDir_ = rootSourceDir_ + ToString("Artifacts/%s/", ENGINE_NET_NAME) + config + "/";
 
-#if defined ATOMIC_PLATFORM_WINDOWS || defined ATOMIC_PLATFORM_LINUX
+#ifdef ENGINE_PLATFORM_WINDOWS
+    vs_where_binary_ = ToString("%sArtifacts/vswhere.exe", rootSourceDir_.CString());
+#endif
+
+#if defined ENGINE_PLATFORM_WINDOWS || defined ENGINE_PLATFORM_LINUX
     atomicNETNuGetBinary_ = ToString("%sBuild/Managed/nuget/nuget.exe", rootSourceDir_.CString());
 #endif
 
-#ifdef ATOMIC_PLATFORM_OSX
+#ifdef ENGINE_PLATFORM_MACOS
     monoExecutableDir_ = "/Library/Frameworks/Mono.framework/Versions/Current/Commands/";
     atomicNETNuGetBinary_ = monoExecutableDir_ + "nuget";
 #endif
@@ -157,40 +170,62 @@ void ToolEnvironment::SetRootBuildDir(const String& buildDir, bool setBinaryPath
 
     if (setBinaryPaths)
     {
-#ifdef ATOMIC_PLATFORM_WINDOWS
+        #ifdef ENGINE_PLATFORM_WINDOWS
+            const char* build_type;
+            #ifdef _DEBUG
+                build_type = "Debug";
+            #else
+                build_type = "Release";
+            #endif
 
-#ifdef _DEBUG
-        playerBinary_ = rootBuildDir_ + "Source/AtomicPlayer/Application/Debug/AtomicPlayer.exe";
-        editorBinary_ = rootBuildDir_ + "Source/AtomicEditor/Debug/AtomicEditor.exe";
-#else
-        playerBinary_ = rootBuildDir_ + "Source/AtomicPlayer/Application/Release/AtomicPlayer.exe";
-        editorBinary_ = rootBuildDir_ + "Source/AtomicEditor/Release/AtomicEditor.exe";
-#endif
+            playerBinary_ = rootBuildDir_ + ToString("Source/%s/Application/%s/%s.exe", ENGINE_PLAYER_TARGET, build_type, ENGINE_PLAYER_TARGET);
+            editorBinary_ = rootBuildDir_ + ToString("Source/%s/%s/%s.exe", ENGINE_EDITOR_NAME, build_type, ENGINE_EDITOR_NAME);
 
-        // some build tools like ninja don't use Release/Debug folders
-        if (!fileSystem->FileExists(playerBinary_))
-                playerBinary_ = rootBuildDir_ + "Source/AtomicPlayer/Application/AtomicPlayer.exe";
-        if (!fileSystem->FileExists(editorBinary_))
-                editorBinary_ = rootBuildDir_ + "Source/AtomicEditor/AtomicEditor.exe";
+            // some build tools like ninja don't use Release/Debug folders
+            if (!fileSystem->FileExists(playerBinary_))
+                    playerBinary_ = rootBuildDir_ + ToString("Source/%s/Application/%s.exe", ENGINE_PLAYER_TARGET, ENGINE_PLAYER_TARGET);
+            if (!fileSystem->FileExists(editorBinary_))
+                    editorBinary_ = rootBuildDir_ + ToString("Source/%s/%s.exe", ENGINE_EDITOR_NAME, ENGINE_EDITOR_NAME);
 
-        playerAppFolder_ = rootSourceDir_ + "Data/AtomicEditor/Deployment/MacOS/AtomicPlayer.app";
-
-#elif ATOMIC_PLATFORM_OSX
-
-#ifdef ATOMIC_XCODE
-        playerBinary_ = rootBuildDir_ + "Source/AtomicPlayer/" + CMAKE_INTDIR + "/AtomicPlayer.app/Contents/MacOS/AtomicPlayer";
-        editorBinary_ = rootBuildDir_ + "Source/AtomicEditor/" + CMAKE_INTDIR + "/AtomicEditor.app/Contents/MacOS/AtomicEditor";
-#else
-        playerBinary_ = rootBuildDir_ + "Source/AtomicPlayer/Application/AtomicPlayer.app/Contents/MacOS/AtomicPlayer";
-        playerAppFolder_ = rootBuildDir_ + "Source/AtomicPlayer/Application/AtomicPlayer.app/";
-        editorBinary_ = rootBuildDir_ + "Source/AtomicEditor/AtomicEditor.app/Contents/MacOS/AtomicEditor";
-#endif
-
-#else
-        playerBinary_ = rootBuildDir_ + "Source/AtomicPlayer/Application/AtomicPlayer";
-        editorBinary_ = rootBuildDir_ + "Source/AtomicEditor/AtomicEditor";
-
-#endif
+            playerAppFolder_ = rootSourceDir_ + ToString("Data/Deployment/MacOS/%s.app", ENGINE_PLAYER_TARGET);
+        #elif ENGINE_PLATFORM_MACOS
+            #ifdef ENGINE_XCODE
+                playerBinary_ = rootBuildDir_ + ToString(
+                    "Source/%s/%s/%s.app/Contents/MacOS/%s", 
+                    ENGINE_PLAYER_TARGET, CMAKE_INTDIR, 
+                    ENGINE_PLAYER_TARGET, ENGINE_PLAYER_TARGET
+                );
+                editorBinary_ = rootBuildDir_ + ToString(
+                    "Source/%s/%s/%s.app/Contents/MacOS/%s",
+                    ENGINE_EDITOR_NAME,
+                    CMAKE_INTDIR,
+                    ENGINE_EDITOR_NAME,
+                    ENGINE_EDITOR_NAME
+                );
+            #else
+                playerBinary_ = rootBuildDir_ + ToString(
+                    "Source/%s/Application/%s.app/Contents/MacOS/%s",
+                    ENGINE_PLAYER_TARGET, ENGINE_PLAYER_TARGET, ENGINE_PLAYER_TARGET
+                );
+                playerAppFolder_ = rootBuildDir_ + ToString(
+                    "Source/%s/Application/%s.app/",
+                    ENGINE_PLAYER_TARGET, ENGINE_PLAYER_TARGET
+                );
+                editorBinary_ = rootBuildDir_ + ToString(
+                    "Source/%s/%s.app/Contents/MacOS/%s",
+                    ENGINE_EDITOR_NAME, ENGINE_EDITOR_NAME, ENGINE_EDITOR_NAME
+                );
+            #endif
+        #else
+            playerBinary_ = rootBuildDir_ + ToString(
+                "Source/%s/Application/%s",
+                ENGINE_PLAYER_TARGET, ENGINE_PLAYER_TARGET
+            );
+            editorBinary_ = rootBuildDir_ + ToString(
+                "Source/%s/%s",
+                ENGINE_EDITOR_NAME, ENGINE_EDITOR_NAME
+            );
+        #endif
     }
 
 }
@@ -212,6 +247,9 @@ void ToolEnvironment::Dump()
     ATOMIC_LOGINFOF("Editor Binary: %s", editorBinary_.CString());
     ATOMIC_LOGINFOF("Player Binary: %s", playerBinary_.CString());
     ATOMIC_LOGINFOF("Tool Binary: %s", toolBinary_.CString());
+#ifdef ENGINE_PLATFORM_WINDOWS
+    ATOMIC_LOGINFOF("VsWhere Binary: %s", vs_where_binary_.CString());
+#endif
 
 
     ATOMIC_LOGINFOF("Tool Data Dir: %s", toolDataDir_.CString());

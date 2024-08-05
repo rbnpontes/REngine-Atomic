@@ -38,3 +38,5 @@ add_library(zlib ${SOURCE_FILES})
 # ATOMIC BEGIN
 target_include_directories(zlib SYSTEM BEFORE PUBLIC .)
 # ATOMIC END
+
+vs_add_to_grp(zlib "${VS_GRP_THIRD_PARTY}")

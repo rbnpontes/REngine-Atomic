@@ -20,10 +20,10 @@
 // THE SOFTWARE.
 //
 
-#include <Atomic/Core/StringUtils.h>
-#include <Atomic/IO/Log.h>
-#include <Atomic/IO/FileSystem.h>
-#include <Atomic/Resource/ResourceCache.h>
+#include <EngineCore/Core/StringUtils.h>
+#include <EngineCore/IO/Log.h>
+#include <EngineCore/IO/FileSystem.h>
+#include <EngineCore/Resource/ResourceCache.h>
 
 #include "../ToolSystem.h"
 #include "../ToolEnvironment.h"
@@ -102,13 +102,13 @@ bool BuildWindows::BuildManaged(const String& buildPath)
 
     String projectPath = project->GetProjectPath();
 
-#ifdef ATOMIC_DEBUG
+#ifdef ENGINE_DEBUG
     String config = "Debug";
 #else
     String config = "Release";
 #endif
 
-    String managedBins = projectPath + ToString("AtomicNET/%s/Bin/Desktop/", config.CString());
+    String managedBins = projectPath + ToString("%s/%s/Bin/Desktop/", ENGINE_NET_NAME, config.CString());
     String managedExe = managedBins + settings->GetName() + ".exe";
 
     if (!fileSystem->FileExists(managedExe))
@@ -161,7 +161,7 @@ void BuildWindows::BuildNative(const String& buildPath)
 
     String playerBinary = tenv->GetPlayerBinary();
 
-    if (!BuildCopyFile(playerBinary, buildPath_ + "/AtomicPlayer.exe"))
+    if (!BuildCopyFile(playerBinary, buildPath_ + ToString("/%s.exe", ENGINE_PLAYER_TARGET)))
         return;
 }
 
@@ -191,14 +191,14 @@ void BuildWindows::Build(const String& buildPath)
     if (!BuildCreateDirectory(buildPath_))
         return;
 
-    if (!resourcesOnly_ && !BuildCreateDirectory(buildPath_ + "/AtomicPlayer_Resources"))
+    if (!resourcesOnly_ && !BuildCreateDirectory(buildPath_ + ToString("/%s_Resources", ENGINE_PLAYER_TARGET)))
         return;
 
-    String resourcePackagePath = buildPath_ + "/AtomicPlayer_Resources/AtomicResources" + PAK_EXTENSION;
+    String resourcePackagePath = buildPath_ + ToString("/%s_Resources/Resources%s", ENGINE_PLAYER_TARGET, PAK_EXTENSION);
 
     if (resourcesOnly_)
     {
-        resourcePackagePath = buildPath_ + "/AtomicResources" + PAK_EXTENSION;
+        resourcePackagePath = buildPath_ + ToString("/Resources", PAK_EXTENSION);
     }
 
     GenerateResourcePackage(resourcePackagePath);

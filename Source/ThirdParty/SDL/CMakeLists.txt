@@ -3723,3 +3723,5 @@ set(CMAKE_OBJC_FLAGS "${CMAKE_OBJC_FLAGS} ${CMAKE_C_FLAGS}")
 if(TARGET SDL2::SDL2-static AND NOT TARGET SDL2::SDL2)
   add_library(SDL2::SDL2 ALIAS SDL2-static)
 endif()
+
+vs_add_to_grp(SDL2-static "${VS_GRP_THIRD_PARTY}")

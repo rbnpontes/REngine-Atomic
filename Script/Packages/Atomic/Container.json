@@ -1,8 +1,0 @@
-{
-	"name" : "Container",
-	"sources" : ["Source/Atomic/Container"],
-	"classes" : ["RefCounted"],
-	"csharp_interface_decl" : {
-		"RefCounted" : ["IDisposable"]
-	}
-}

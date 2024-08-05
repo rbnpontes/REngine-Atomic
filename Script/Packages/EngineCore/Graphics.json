@@ -1,0 +1,86 @@
+{
+	"name" : "Graphics",
+	"sources" : ["Source/EngineCore/Graphics", "Source/EngineCore/Graphics/Text3D"],
+	"includes" : ["<EngineCore/Scene/Scene.h>", "<EngineCore/Graphics/OcclusionBuffer.h>", "<EngineCore/Scene/ValueAnimation.h>",
+							  "<EngineCore/Container/ArrayPtr.h>", "<EngineCore/Graphics/Animation.h>",
+							 "<EngineCore/Graphics/Material.h>", "<EngineCore/Resource/Image.h>", "<EngineCore/Graphics/VertexBuffer.h>"],
+	"classes" : ["Graphics", "Texture", "Texture2D", "Material", "Drawable",
+				 "Viewport", "Renderer", "Octree", "Zone", "Camera", "Light", "RenderPath",
+				 "DebugRenderer",
+				 "RenderSurface", "Shader", "ShaderPrecache", "ShaderVariation",
+				 "Pass", "Technique",
+				 "Texture3D", "TextureCube", "View",
+			 	 "VertexBuffer", "Model",
+ 				 "StaticModel",
+ 				 "Animation", "AnimatedModel", "AnimationController", "AnimationState", "Billboard", "BillboardSet", "CustomGeometry",
+ 				 "DecalSet", "ParticleEffect", "ParticleEmitter", "RibbonTrail",
+ 				 "Skybox", "StaticModelGroup", "Terrain", "TerrainPatch",
+			 	 "Text3D", "Text3DFont"],
+	"overloads" : {
+		"Viewport" : {
+			"Viewport" : ["Context", "Scene", "Camera", "RenderPath"],
+			"SetRenderPath" : ["XMLFile"]
+		},
+		"Camera" : {
+			"SetOrthoSize" : ["float"]
+		},
+		"Graphics" : {
+			"SetWindowPosition" : ["int", "int"],
+			"Draw" : ["PrimitiveType", "unsigned", "unsigned"]
+		},
+		"StaticModel" : {
+			"SetMaterial" : ["Material"]
+		},
+		"AnimationState" : {
+			"AnimationState" : ["AnimatedModel", "Animation"]
+		},
+		"CustomGeometry" : {
+			"SetMaterial" : ["Material"]
+		}
+	},
+	"excludes" : {
+		"Texture" : {
+			"GetTarget" : [],
+			"GetRenderBuffer" : [],
+			"GetExternalFormat" : ["unsigned"],
+			"GetDataType" : []
+		}
+	},
+	"typescript_decl" : {
+
+		"Material" : [
+			"static getTextureUnitName(unit:TextureUnit):string;",
+			"getShaderParameters():ShaderParameter[];"
+		],
+		"Light" : [
+			"getShadowCascade():Number[];",
+			"setShadowCascade(split1:number, split2:number, split3:number, split4:number, fadeStart:number, biasAutoAdjust?:number);",
+			"setShadowCascadeParameter(index:number, value:number);"
+		],
+		"StaticModel" : [
+			"setMaterialIndex(index:number, material:Material);"
+		],
+		"CustomGeometry" : [
+			"setMaterialIndex(index:number, material:Material);"
+		],
+		"RenderPath" : [
+			"setShaderParameter(name:string, value:Object);"
+		]
+	},
+
+	"haxe_decl" : {
+		"Light" : [
+			"function getShadowCascade():Array<Float>;",
+			"function setShadowCascade(split1:Float, split2:Float, split3:Float, split4:Float, fadeStart:Float, ?biasAutoAdjust:Float):Void;",
+			"function setShadowCascadeParameter(index:Int, value:Float):Void;"
+		],
+		"StaticModel" : [
+			"function setMaterialIndex(index:UInt, material:Material):Void;"
+		],
+		"CustomGeometry" : [
+			"function setMaterialIndex(index:UInt, material:Material):Void;"
+		]
+
+	}
+
+}

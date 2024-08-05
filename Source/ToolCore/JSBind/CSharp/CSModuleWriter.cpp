@@ -20,8 +20,8 @@
 // THE SOFTWARE.
 //
 
-#include <Atomic/IO/File.h>
-#include <Atomic/IO/FileSystem.h>
+#include <EngineCore/IO/File.h>
+#include <EngineCore/IO/FileSystem.h>
 
 #include "../JSBind.h"
 #include "../JSBPackage.h"
@@ -95,7 +95,7 @@ void CSModuleWriter::WriteIncludes(String& source)
         included.Push(header);
     }
 
-    source += "\n#include <Atomic/Script/ScriptVector.h>\n";
+    source += "\n#include <EngineCore/Script/ScriptVector.h>\n";
 
     source += ToString("\n#include \"CSPackage%s.h\"\n", module_->GetPackage()->GetName().CString());
 
@@ -112,7 +112,7 @@ void CSModuleWriter::GenerateNativeSource()
         source += ToString("\n%s\n", moduleGuard.CString());
     }
 
-    source += "#ifdef ATOMIC_PLATFORM_WINDOWS\n";
+    source += "#ifdef ENGINE_PLATFORM_WINDOWS\n";
 
     source += "#pragma warning(disable: 4244) // possible loss of data\n";
 
@@ -126,16 +126,16 @@ void CSModuleWriter::GenerateNativeSource()
 
     if (module_->Requires("3D"))
     {
-        source += "#ifdef ATOMIC_3D\n";
+        source += "#ifdef ENGINE_3D\n";
     }
 
     WriteIncludes(source);
 
     // NOTE: We include Deserializer/Serializer here as they are interfaces
     // If additional interfaces are introduced, consider generalizing this
-    source += "\n#include <Atomic/IO/Deserializer.h>\n";
-    source += "#include <Atomic/IO/Serializer.h>\n";
-    source += "#include <AtomicNET/NETNative/NETCore.h>\n";
+    source += "\n#include <EngineCore/IO/Deserializer.h>\n";
+    source += "#include <EngineCore/IO/Serializer.h>\n";
+    source.AppendWithFormat("#include <%s/NETNative/NETCore.h>", ENGINE_NET_NAME);
 
     String ns = module_->GetPackage()->GetNamespace();
 
@@ -174,7 +174,7 @@ void CSModuleWriter::GenerateNativeSource()
 
     if (module_->Requires("3D"))
     {
-        source += "#endif //ATOMIC_3D\n";
+        source += "#endif //ENGINE_3D\n";
     }
 
     if (moduleGuard.Length())

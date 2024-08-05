@@ -22,9 +22,9 @@
 
 #pragma once
 
-#include <Atomic/Core/Object.h>
-#include <Atomic/Resource/Resource.h>
-#include <Atomic/Scene/Node.h>
+#include <EngineCore/Core/Object.h>
+#include <EngineCore/Resource/Resource.h>
+#include <EngineCore/Scene/Node.h>
 
 #include "AssetImporter.h"
 

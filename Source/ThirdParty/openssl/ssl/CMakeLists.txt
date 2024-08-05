@@ -53,3 +53,5 @@ else()
   #    LIBRARY DESTINATION lib
   #    ARCHIVE DESTINATION lib )
 endif()
+
+vs_add_to_grp(ssl "${VS_GRP_THIRD_PARTY}")

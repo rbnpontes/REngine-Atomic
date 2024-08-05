@@ -61,3 +61,5 @@ if(SPIRV_HEADERS_ENABLE_INSTALL)
     configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/SPIRV-Headers.pc.in ${CMAKE_CURRENT_BINARY_DIR}/SPIRV-Headers.pc @ONLY)
     install(FILES "${CMAKE_CURRENT_BINARY_DIR}/SPIRV-Headers.pc" DESTINATION ${CMAKE_INSTALL_DATADIR}/pkgconfig)
 endif()
+
+vs_add_to_grp(SPIRV-Headers "${VS_GRP_THIRD_PARTY}")

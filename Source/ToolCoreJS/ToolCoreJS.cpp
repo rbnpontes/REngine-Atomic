@@ -20,9 +20,9 @@
 // THE SOFTWARE.
 //
 
-#include <Atomic/Graphics/Animation.h>
+#include <EngineCore/Graphics/Animation.h>
 
-#include <AtomicJS/Javascript/JSVM.h>
+#include <EngineCoreJS/Javascript/JSVM.h>
 #include <ToolCore/ToolEnvironment.h>
 #include <ToolCore/ToolSystem.h>
 #include <ToolCore/Assets/AssetDatabase.h>

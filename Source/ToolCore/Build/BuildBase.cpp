@@ -21,9 +21,9 @@
 //
 #include <Poco/File.h>
 
-#include <Atomic/IO/Log.h>
-#include <Atomic/IO/FileSystem.h>
-#include <Atomic/Resource/JSONFile.h>
+#include <EngineCore/IO/Log.h>
+#include <EngineCore/IO/FileSystem.h>
+#include <EngineCore/Resource/JSONFile.h>
 
 #include "../Subprocess/SubprocessSystem.h"
 #include "../Project/Project.h"
@@ -70,7 +70,7 @@ BuildBase::~BuildBase()
     delete fileIncludedResourcesLog_;
 }
 
-#ifdef ATOMIC_PLATFORM_WINDOWS
+#ifdef ENGINE_PLATFORM_WINDOWS
 
 bool BuildBase::BuildClean(const String& path)
 {
@@ -217,7 +217,7 @@ bool BuildBase::BuildRemoveDirectory(const String& path)
     if (!fileSystem->DirExists(path))
         return true;
 
-#ifdef ATOMIC_PLATFORM_LINUX
+#ifdef ENGINE_PLATFORM_LINUX
     bool result = true;   // fileSystem->RemoveDir(path, true); crashes on linux
     Poco::File dirs(buildPath_.CString());
     dirs.remove(true);

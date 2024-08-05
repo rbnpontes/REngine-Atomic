@@ -20,9 +20,9 @@
 // THE SOFTWARE.
 //
 
-#include <Atomic/Core/ProcessUtils.h>
-#include <Atomic/IO/Log.h>
-#include <Atomic/IO/FileSystem.h>
+#include <EngineCore/Core/ProcessUtils.h>
+#include <EngineCore/IO/Log.h>
+#include <EngineCore/IO/FileSystem.h>
 
 #include "JSBPackage.h"
 #include "JSBind.h"
@@ -110,6 +110,20 @@ bool JSBind::GenerateJavaScriptBindings()
     if (!fs->CreateDirs(sourceRootFolder_, modulesFolder) || !fs->DirExists(outputFolder))
     {
         String error = "Unable to create bindings output folder: " + outputFolder;
+        ErrorExit(error.CString());
+    }
+
+    if(!fs->CreateDirs(sourceRootFolder_, "Artifacts/Build/TypeScript") 
+        || !fs->DirExists(sourceRootFolder_ + "/Artifacts/Build/TypeScript"))
+    {
+        String error = "Unable to create typescript definitions output folder: Artifacts/Build/TypeScript";
+        ErrorExit(error.CString());
+    }
+
+    if(!fs->CreateDirs(sourceRootFolder_, "Artifacts/Build/Haxe") 
+        || !fs->DirExists(sourceRootFolder_ + "/Artifacts/Build/Haxe"))
+    {
+        String error = "Unable to create haxe definitions output folder: Artifacts/Build/Haxe";
         ErrorExit(error.CString());
     }
 

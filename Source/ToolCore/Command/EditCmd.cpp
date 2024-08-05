@@ -22,9 +22,9 @@
 
 #include <Poco/Process.h>
 
-#include <Atomic/Core/StringUtils.h>
-#include <Atomic/IO/Log.h>
-#include <Atomic/IO/File.h>
+#include <EngineCore/Core/StringUtils.h>
+#include <EngineCore/IO/Log.h>
+#include <EngineCore/IO/File.h>
 
 #include "../ToolSystem.h"
 #include "../ToolEnvironment.h"

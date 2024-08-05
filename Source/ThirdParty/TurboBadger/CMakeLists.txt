@@ -25,3 +25,5 @@ if(ANDROID)
 endif()
 
 target_compile_options(TurboBadger PRIVATE ${TURBO_BADGER_PRIVATE_FLAGS})
+
+vs_add_to_grp(TurboBadger "${VS_GRP_THIRD_PARTY}")

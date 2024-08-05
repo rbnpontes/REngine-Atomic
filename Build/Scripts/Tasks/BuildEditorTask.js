@@ -22,13 +22,12 @@ const {
 } = require('../Utils/ProcessUtils');
 const { getUnsupportedEnvironmentError } = require('../Exceptions');
 
-
 const engine_root = engineGetRoot();
 const artifacts_root = engineGetArtifactsRoot();
 const editor_app_folder = config.editorAppFolder;
 const resources_dest = (() => {
     if (os.platform() == 'win32')
-        return editor_app_folder;
+        return path.join(artifacts_root, constants.engine_editor_name);
     else if (os.platform() == 'darwin')
         return path.resolve(editor_app_folder, 'Contents');
     return path.join(artifacts_root, constants.engine_editor_name);
@@ -86,7 +85,14 @@ async function editorBuildFirstPhase() {
             // Execute Build Windows
             const vs_tools_path = await visualStudioDefineVsToolsEnv();
             const compile_script = path.resolve(__dirname, '../Windows/CompileAtomicEditorPhase1.bat');
-            return await execAsync(compile_script, [config.config, vs_tools_path], { cwd: build_dir });
+            return await execAsync(
+                compile_script,
+                [
+                    config.config,
+                    vs_tools_path,
+                    constants.engine_solution_name,
+                    constants.engine_native_lib
+                ], { cwd: build_dir });
         },
         linux: async () => {
             return await execAsync(
@@ -127,7 +133,14 @@ async function editorBuildSecondPhase() {
         win32: async () => {
             const vs_tools_path = await visualStudioDefineVsToolsEnv();
             const compile_script = path.resolve(__dirname, '../Windows/CompileAtomicEditorPhase2.bat');
-            return await execAsync(compile_script, [config.config, vs_tools_path], { cwd: build_dir });
+            return await execAsync(compile_script,
+                [
+                    config.config,
+                    vs_tools_path,
+                    constants.engine_solution_name,
+                    constants.engine_editor_name,
+                    constants.engine_player_name
+                ], { cwd: build_dir });
         },
         linux: async () => {
             return await execAsync(
@@ -144,7 +157,8 @@ async function editorBuildSecondPhase() {
                     '-target', constants.engine_player_name,
                     '-configuration', config.config,
                     '-parallelizeTargets',
-                    '-jobs', '4'
+                    '-jobs', '4',
+                    '-verbose'
                 ],
                 { cwd: build_dir }
             );
@@ -165,7 +179,7 @@ async function editorGenerate() {
     // Remove editor directory always
     if (fs.existsSync(editor_app_folder))
         fs.rmSync(editor_app_folder, { recursive: true, force: true });
-    fs.mkdirSync(editor_app_folder, { recursive: true});
+    fs.mkdirSync(editor_app_folder, { recursive: true });
 
     const build_dir = editorGetBuildDirectory();
     const dirs_2_create = [
@@ -230,6 +244,13 @@ function editorCopyNETBinaries() {
         fs.copySync(src, dst);
     });
 }
+function editorCopyVsWhere() {
+    console.log('- Copying VsWhere');
+    const vswhere_path = path.resolve(artifacts_root, 'vswhere.exe');
+    const vswhere_out = path.resolve(artifacts_root, constants.engine_editor_name, 'vswhere.exe');
+    console.log(`- Copying. From: ${vswhere_path} - To: ${vswhere_out}`)
+    fs.copySync(vswhere_path, vswhere_out);
+}
 async function editorCopyBinaries() {
     console.log(`- Copying ${constants.engine_name} Editor Binaries`);
 
@@ -257,16 +278,25 @@ async function editorCopyBinaries() {
                 throw getUnsupportedEnvironmentError();
         }
     })();
+    // CoreData
     const core_data_dir = path.resolve(engine_root, 'Resources/CoreData');
     const core_data_output_dir = path.resolve(resources_dest, 'Resources/CoreData');
+    // PlayerData
     const player_data_dir = path.resolve(engine_root, 'Resources/PlayerData');
     const player_data_output_dir = path.resolve(resources_dest, 'Resources/PlayerData');
-    const engine_editor_data_dir = path.resolve(engine_root, 'Data', constants.engine_editor_name);
+    // EngineData/ToolData
+    const engine_editor_data_dir = path.resolve(engine_root, 'Data');
     const tool_data_output_dir = path.resolve(resources_dest, 'Resources/ToolData');
+    // Engine Examples
+    const examples_dir = path.resolve(engine_root, 'Submodules/EngineExamples');
+    const examples_output = path.resolve(resources_dest, 'Resources/ToolData/EngineExamples');
+    // Editor Data
     const editor_data_dir = path.resolve(engine_root, 'Resources/EditorData');
     const editor_data_output_dir = path.resolve(resources_dest, 'Resources/EditorData');
-    const editor_scripts_dir = path.resolve(engine_root, `Artifacts/Build/Resources/EditorData/${constants.engine_editor_name}/EditorScripts`);
-    const editor_scripts_output_dir = path.resolve(resources_dest, 'Resources/EditorData/AtomicEditor/EditorScripts');
+    // Editor Scripts
+    const editor_scripts_dir = path.resolve(engine_root, `Artifacts/Build/Resources/EditorData`);
+    const editor_scripts_output_dir = path.resolve(resources_dest, 'Resources/EditorData');
+    // App
     const app_file_dir = (() => {
         if (os.platform() == 'win32') {
             return path.resolve(
@@ -324,11 +354,13 @@ async function editorCopyBinaries() {
         );
     })();
 
+    // Copy files from a list of paths
     [
         [editor_build_dir, editor_output_dir],
         [core_data_dir, core_data_output_dir],
         [player_data_dir, player_data_output_dir],
         [engine_editor_data_dir, tool_data_output_dir],
+        [examples_dir, examples_output],
         [editor_data_dir, editor_data_output_dir],
         [editor_scripts_dir, editor_scripts_output_dir],
         [app_file_dir, app_file_output_dir]
@@ -338,16 +370,16 @@ async function editorCopyBinaries() {
         fs.copySync(src, dst);
     });
 
-    // if (os.platform() == 'linux')
-    //     editorCopyCEFBinaries();
+    if(os.platform() == 'win32')
+        editorCopyVsWhere();
     editorCopyNETBinaries();
 
     console.log('- Editor binaries has been copied with success!!!');
 }
 async function editorPackage() {
     console.log('- Packing Editor to Shipping');
-    const pkg_name = (()=> {
-        switch(os.platform()) {
+    const pkg_name = (() => {
+        switch (os.platform()) {
             case 'win32':
                 return constants.engine_name + '-Windows.zip';
             case 'linux':
@@ -364,10 +396,10 @@ async function editorPackage() {
     if (fs.existsSync(pkg_output_path) && !config.noclean)
         fs.unlinkSync(pkg_output_path);
 
-    const archive_task = new Promise((resolve, reject)=> {
+    const archive_task = new Promise((resolve, reject) => {
         const write_stream = fs.createWriteStream(pkg_output_path);
         const archive = archiver('zip', {
-            zlib: { level : 9}
+            zlib: { level: 9 }
         });
         archive.on('warning', e => {
             if (e.code == 'ENOENT')

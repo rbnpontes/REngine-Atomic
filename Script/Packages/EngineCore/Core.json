@@ -1,0 +1,63 @@
+{
+	"name" : "Core",
+	"sources" : ["Source/EngineCore/Core", "Source/EngineCore/BuildInfo"],
+	"includes": [
+		"<EngineCore/Engine/Engine.h>",
+		"<EngineCore/Network/Network.h>",
+		"<EngineCore/Web/Web.h>",
+		"<EngineCore/Input/Input.h>",
+		"<EngineCore/Audio/Audio.h>",
+		"<EngineCore/UI/UI.h>",
+		"<EngineCore/Graphics/Graphics.h>",
+		"<EngineCore/Graphics/Renderer.h>",
+		"<EngineCore/Metrics/Metrics.h>"
+	],
+	"classes" : ["Context", "Object", "AtomicBuildInfo", "Time", "Profiler"],
+	"classes_rename" : {
+		"Object" : "AObject"
+	},
+	"excludes" : {
+		"Object" : {
+			"SendEvent" : ["StringHash"]
+		},
+		"Context" : {
+			"GetTypeName" : ["StringHash"],
+			"RequireIK" : [],
+			"ReleaseIK" : []
+		},
+		"CSharp" : {
+			"Object" : {
+				"UnsubscribeFromAllEvents" : []
+			},
+			"Profiler": {
+				"EndBlock" : []
+			}
+		}
+	},
+	"overloads" : {
+		"Object" : {
+			"UnsubscribeFromEvent" : ["StringHash"]
+		}
+	},
+	"typescript_decl" : {
+		"Object" : [
+			"sendEvent(eventType:string, data?:Object);",
+			"sendEvent<T extends {{PACKAGE_NAME}}.EventCallbackMetaData>(eventCallbackMetaData:T);",
+			"subscribeToEvent(eventType:string, callback:(data:any) => void);",
+			"subscribeToEvent(sender:AObject, eventType:string, callback:(data: any) => void);",
+			"subscribeToEvent(eventMetaData: {{PACKAGE_NAME}}.EventMetaData);",
+			"subscribeToEvent(sender:AObject, eventMetaData: {{PACKAGE_NAME}}.EventMetaData);"
+		],
+		"Profiler" : [
+			"beginBlock(name:string, filename:string, line:number, argb?:number, status?: {{PACKAGE_NAME}}.ProfilerBlockStatus);"
+		]
+	},
+	"haxe_decl" : {
+
+		"Object" : [
+			"function sendEvent(eventType:String, ?data:Dynamic):Void;",
+			"@:overload(function(sender:AObject, eventType:String, callback:Dynamic->Void):Void{})",
+			"function subscribeToEvent(eventType:String, callback:Dynamic->Void):Void;"
+		]
+	}
+}

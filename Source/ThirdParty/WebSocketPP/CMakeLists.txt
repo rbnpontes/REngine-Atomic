@@ -21,3 +21,5 @@
 #
 add_library(WebSocketPP INTERFACE)
 target_include_directories(WebSocketPP SYSTEM BEFORE INTERFACE include)
+
+vs_add_to_grp(WebSocketPP "${VS_GRP_THIRD_PARTY}")

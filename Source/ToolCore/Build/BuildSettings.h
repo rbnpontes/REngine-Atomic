@@ -27,8 +27,8 @@
 #include <rapidjson/filestream.h>
 #include <rapidjson/prettywriter.h>
 
-#include <Atomic/Container/Str.h>
-#include <Atomic/Core/Object.h>
+#include <EngineCore/Container/Str.h>
+#include <EngineCore/Core/Object.h>
 
 using namespace Atomic;
 

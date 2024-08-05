@@ -20,14 +20,14 @@
 // THE SOFTWARE.
 //
 
-#include <Atomic/Core/Variant.h>
-#include <Atomic/IO/Log.h>
-#include <Atomic/IO/File.h>
-#include <Atomic/Resource/ResourceCache.h>
-#include <Atomic/Resource/Image.h>
+#include <EngineCore/Core/Variant.h>
+#include <EngineCore/IO/Log.h>
+#include <EngineCore/IO/File.h>
+#include <EngineCore/Resource/ResourceCache.h>
+#include <EngineCore/Resource/Image.h>
 
-#include <AtomicNET/NETScript/NETScriptEvents.h>
-#include <AtomicNET/NETScript/CSComponentAssembly.h>
+#include <EngineNET/NETScript/NETScriptEvents.h>
+#include <EngineNET/NETScript/CSComponentAssembly.h>
 
 #include "Asset.h"
 #include "AssetDatabase.h"
@@ -132,13 +132,13 @@ namespace ToolCore
                 if (!SaveAssemblyCacheFile())
                     return false;
 
-                ATOMIC_LOGINFOF("NETAssemblyImporter::Import - AtomicNETService process unavailable, using cached assembly JSON for %s", asset_->GetPath().CString());
+                ATOMIC_LOGINFOF("NETAssemblyImporter::Import - NETService process unavailable, using cached assembly JSON for %s", asset_->GetPath().CString());
 
                 return true;
             }
             else
             {
-                ATOMIC_LOGERRORF("NETAssemblyImporter::Import - Unable to get AtomicNETService subsystem and no cached assembly json importing %s", asset_->GetPath().CString());
+                ATOMIC_LOGERRORF("NETAssemblyImporter::Import - Unable to get NETService subsystem and no cached assembly json importing %s", asset_->GetPath().CString());
                 return false;
             }
         }

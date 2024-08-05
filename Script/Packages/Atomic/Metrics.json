@@ -1,5 +1,0 @@
-{
-	"name" : "Metrics",
-	"sources" : ["Source/Atomic/Metrics"],
-	"classes" : ["Metrics", "MetricsSnapshot"]
-}

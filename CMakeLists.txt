@@ -1,30 +1,29 @@
-set(CMAKE_OSX_DEPLOYMENT_TARGET "10.13" CACHE STRING "Minimum OS X deployment version")
-set (CMAKE_CXX_STANDARD 20)
-
-project(Atomic)
-
 cmake_minimum_required(VERSION 3.22.1)
 
-set(ATOMIC_SOURCE_DIR ${Atomic_SOURCE_DIR})
-set(CMAKE_MODULE_PATH ${ATOMIC_SOURCE_DIR}/Build/CMake/Modules)
+set (CMAKE_CXX_STANDARD 20)
+project(REngine)
 
-include(AtomicGit)
-include(AtomicUtils)
-include(AtomicCommon)
+set(ENGINE_SOURCE_DIR ${REngine_SOURCE_DIR})
+set(CMAKE_MODULE_PATH ${ENGINE_SOURCE_DIR}/Build/CMake/Modules)
+
+include(EngineGlobals)
+include(EngineGit)
+include(EngineUtils)
+include(EngineCommon)
 include(EngineOptions)
 
 if ("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
-    set (ATOMIC_RELEASE_OFF OFF)
-    set (ATOMIC_RELEASE_ON ON)
+    set (ENGINE_RELEASE_OFF OFF)
+    set (ENGINE_RELEASE_ON ON)
 else ()
-    set (ATOMIC_RELEASE_OFF ON)
-    set (ATOMIC_RELEASE_ON OFF)
+    set (ENGINE_RELEASE_OFF ON)
+    set (ENGINE_RELEASE_ON OFF)
 endif ()
 
-add_definitions(-DATOMIC_ROOT_SOURCE_DIR="${ATOMIC_SOURCE_DIR}" -DATOMIC_ROOT_BUILD_DIR="${CMAKE_BINARY_DIR}")
+add_definitions(-DENGINE_ROOT_SOURCE_DIR="${ENGINE_SOURCE_DIR}" -DENGINE_ROOT_BUILD_DIR="${CMAKE_BINARY_DIR}")
 
-if (RENGINE_DEV_BUILD)
-    add_definitions("-DATOMIC_DEV_BUILD=1 -DRENGINE_DEV_BUILD=1")
+if (ENGINE_DEV_BUILD)
+    add_definitions("-DENGINE_DEV_BUILD=1")
 endif ()
 
 if(NOT DEFINED ENV{VULKAN_SDK})
@@ -33,23 +32,18 @@ endif()
 
 set(VULKAN_SDK $ENV{VULKAN_SDK})
 
-include(AtomicPlatform)
+include(EnginePlatform)
 
 find_program(CLDOC cldoc)
 if (CLDOC)
-    add_custom_target(docs DEPENDS AtomicEngineDocs)
+    add_custom_target(docs DEPENDS EngineDocs)
 endif ()
 
 add_subdirectory(Source)
 
-if (ATOMIC_DEV_BUILD)
-    if (NOT DEFINED ATOMIC_CPLUSPLUS_EXAMPLES)
-        set(ATOMIC_CPLUSPLUS_EXAMPLES 1)
-    endif ()
-    if (ATOMIC_CPLUSPLUS_EXAMPLES)
-        initialize_submodule(${ATOMIC_SOURCE_DIR}/Submodules/EngineExamples ATOMIC_CPLUSPLUS_EXAMPLES)
-        if (ATOMIC_CPLUSPLUS_EXAMPLES)
-            add_subdirectory(Submodules/EngineExamples/FeatureExamples/CPlusPlus)
-        endif ()
+if (ENGINE_SAMPLES)
+    initialize_submodule(${ENGINE_SOURCE_DIR}/Submodules/EngineExamples ENGINE_CPLUSPLUS_EXAMPLES)
+    if (ENGINE_CPLUSPLUS_EXAMPLES)
+        add_subdirectory(Submodules/EngineExamples/FeatureExamples/CPlusPlus)
     endif ()
 endif ()

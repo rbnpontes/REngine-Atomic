@@ -20,23 +20,23 @@
 // THE SOFTWARE.
 //
 
-#include <Atomic/Atomic.h>
+#include <EngineCore/EngineCore.h>
 
-#include <Atomic/Core/Context.h>
-#include <Atomic/Container/ArrayPtr.h>
-#include <Atomic/Core/ProcessUtils.h>
-#include <Atomic/IO/File.h>
-#include <Atomic/IO/FileSystem.h>
-#include <Atomic/IO/PackageFile.h>
+#include <EngineCore/Core/Context.h>
+#include <EngineCore/Container/ArrayPtr.h>
+#include <EngineCore/Core/ProcessUtils.h>
+#include <EngineCore/IO/File.h>
+#include <EngineCore/IO/FileSystem.h>
+#include <EngineCore/IO/PackageFile.h>
 
 #ifdef WIN32
 #include <windows.h>
 #endif
 
-#include <LZ4/lz4.h>
-#include <LZ4/lz4hc.h>
+#include <lz4.h>
+#include <lz4hc.h>
 
-#include <Atomic/DebugNew.h>
+#include <EngineCore/DebugNew.h>
 
 using namespace Atomic;
 

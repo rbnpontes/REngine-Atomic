@@ -21,10 +21,10 @@
 //
 #include <stdlib.h>
 
-#include <Atomic/Core/StringUtils.h>
-#include <Atomic/IO/FileSystem.h>
-#include <Atomic/IO/File.h>
-#include <Atomic/Resource/ResourceCache.h>
+#include <EngineCore/Core/StringUtils.h>
+#include <EngineCore/IO/FileSystem.h>
+#include <EngineCore/IO/File.h>
+#include <EngineCore/Resource/ResourceCache.h>
 
 #include "../ToolSystem.h"
 #include "../ToolEnvironment.h"

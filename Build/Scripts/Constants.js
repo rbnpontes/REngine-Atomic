@@ -1,11 +1,14 @@
 module.exports = {
     engine_name : 'REngine',
-    engine_editor_name: 'AtomicEditor',
-    engine_tool_name: 'AtomicTool',
-    engine_player_name: 'AtomicPlayer',
-    engine_net_name : 'AtomicNET',
-    engine_solution_name: 'Atomic.sln',
-    engine_native_lib: 'AtomicNETNative',
+    engine_editor_name: 'EngineEditor',
+    engine_tool_name: 'EngineTool',
+    engine_player_name: 'EnginePlayer',
+    engine_net_name : 'EngineNET',
+    engine_solution_name: 'REngine.sln',
+    engine_native_lib: 'EngineNETNative',
     engine_project_json: 'AtomicProject.json',
-    cmake_option_prefix: 'RENGINE'
+    engine_net_project_json: 'EngineNETProject.json',
+    engine_web_view_editor: 'EngineWebViewEditor',
+    engine_typescript_definitions: 'EngineCore',
+    cmake_option_prefix: 'ENGINE'
 };

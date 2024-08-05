@@ -8,6 +8,7 @@ var spawnSync = require('child_process').spawnSync;
 
 var host = require("./Host");
 var config = require('./BuildConfig');
+const constants = require('./Constants');
 
 var atomicRoot = config.atomicRoot;
 var jsDocFolder = config.artifactsRoot + "Build/JSDoc/";
@@ -96,7 +97,7 @@ namespace('build', function () {
 
         // compile
         cmds.push(node + " " + tsc + " -p ./Script");
-        cmds.push(node + " " + tsc + " -p ./Script/AtomicWebViewEditor");
+        cmds.push(node + " " + tsc + " -p ./Script/" + constants.engine_web_view_editor);
 
         // generate combined atomic.d.ts
         cmds.push(node + " " + dtsGenerator + " --name Atomic --project ./Script/TypeScript --out ./Script/TypeScript/dist/Atomic.d.ts");
@@ -106,19 +107,19 @@ namespace('build', function () {
         const bind_task = new Promise((resolve) => {
             jake.exec(cmds, { printStdout: true, printStderr: true }, () => {
                 // copy some external dependencies into the editor modules directory
-                const editorModulesDir = "./Artifacts/Build/Resources/EditorData/AtomicEditor/EditorScripts/AtomicEditor/modules";
-                const webeditorModulesDir = "./Data/AtomicEditor/CodeEditor/source/editorCore/modules";
+                const editorModulesDir = "./Artifacts/Build/Resources/EditorData/EditorScripts/AtomicEditor/modules";
+                const webeditorModulesDir = "./Data/CodeEditor/source/editorCore/modules";
                 const nodeModulesDir = "./Build/node_modules";
                 fs.mkdirsSync(editorModulesDir);
                 // TypeScript
                 fs.copySync(nodeModulesDir + "/typescript/lib/typescript.js", webeditorModulesDir + "/typescript.js")
 
                 // copy lib.core.d.ts into the tool data directory
-                fs.mkdirsSync("./Artifacts/Build/Resources/EditorData/AtomicEditor/EditorScripts/AtomicEditor/TypeScriptSupport");
-                fs.copySync("./Build/node_modules/typescript/lib/lib.es5.d.ts", "./Data/AtomicEditor/TypeScriptSupport/lib.es5.d.ts");
+                fs.mkdirsSync("./Artifacts/Build/Resources/EditorData/EditorScripts/AtomicEditor/TypeScriptSupport");
+                fs.copySync("./Build/node_modules/typescript/lib/lib.es5.d.ts", "./Data/TypeScriptSupport/lib.es5.d.ts");
 
                 // copy the combined Atomic.d.ts to the tool data directory
-                fs.copySync("./Script/TypeScript/dist/Atomic.d.ts", "./Data/AtomicEditor/TypeScriptSupport/Atomic.d.ts");
+                fs.copySync("./Script/TypeScript/dist/Atomic.d.ts", "./Data/TypeScriptSupport/Atomic.d.ts");
             
                 resolve();
             }, { printStdout: true });
@@ -169,7 +170,7 @@ namespace('build', function () {
         // Compile AtomicNET assemblies
         var cmds = [];
 
-        cmds.push(host.atomicTool + " net compile " + atomicRoot + "Script/AtomicNET/AtomicNETProject.json -platform " + platform + " -config " + configuration);
+        cmds.push(host.atomicTool + " net compile " + atomicRoot + `Script/${constants.engine_net_name}/${constants.engine_net_project_json} -platform ` + platform + " -config " + configuration);
 
         jake.exec(cmds, function () {
 

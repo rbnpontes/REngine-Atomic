@@ -1,0 +1,12 @@
+{
+	"name" : "EngineNETScript",
+	"sources" : ["Source/EngineNET/NETScript"],
+	"classes" : ["NETScriptObject", "CSComponent", "CSComponentAssembly"],
+	"excludes" : {
+		"CSharp" : {
+			"CSComponent" : {
+				"CSComponent" : ["Context"]
+			}
+		}
+	}
+}

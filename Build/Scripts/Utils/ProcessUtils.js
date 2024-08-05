@@ -20,7 +20,6 @@ function jakeExecAsync(cmds) {
 function execAsync(proc_name, args, options) {
     const { spawn } = require('child_process');
     return new Promise((resolve) => {
-        console.log(`- Initializing Process: ${proc_name}`);
         const proc_args = args.map(x => {
             const has_quotes = x.startsWith('"') && x.endsWith('"');
             const has_empty_spaces = x.indexOf(' ') != -1;
@@ -28,6 +27,7 @@ function execAsync(proc_name, args, options) {
                 return ['"', x, '"'].join('');
             return x;
         });
+        console.log(`- Initializing Process: ${[proc_name, ...proc_args].join(' ')}`);
         const proc = spawn(proc_name, proc_args, { cwd: options?.cwd, shell: true });
         if(!options?.noLogs) {
             proc.stdout.on('data', data => console.log(data.toString()));

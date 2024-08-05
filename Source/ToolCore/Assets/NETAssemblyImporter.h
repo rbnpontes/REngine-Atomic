@@ -22,7 +22,7 @@
 
 #pragma once
 
-#include <Atomic/IPC/IPCServer.h>
+#include <EngineCore/IPC/IPCServer.h>
 
 #include "AssetImporter.h"
 

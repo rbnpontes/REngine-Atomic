@@ -1,0 +1,5 @@
+{
+	"name" : "Web",
+	"sources" : ["Source/EngineCore/Web"],
+	"classes" : ["Web", "WebRequest", "WebSocket"]
+}

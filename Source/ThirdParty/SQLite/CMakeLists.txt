@@ -33,6 +33,8 @@ set (INCLUDE_DIRS src)
 # Setup target
 setup_library ()
 
+vs_add_to_grp("${TARGET_NAME}" "${VS_GRP_THIRD_PARTY}")
+
 # ATOMIC BEGIN
 # Define preprocessor macros
 target_compile_definitions (${TARGET_NAME} PUBLIC -DSQLITE_USE_URI=1 -DSQLITE_ENABLE_COLUMN_METADATA -DSQLITE_SOUNDEX)   # https://www.sqlite.org/compile.html

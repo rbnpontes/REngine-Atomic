@@ -20,12 +20,12 @@
 // THE SOFTWARE.
 //
 
-#include <Atomic/IO/Log.h>
-#include <Atomic/IO/File.h>
-#include <Atomic/IO/FileSystem.h>
-#include <Atomic/Resource/JSONFile.h>
+#include <EngineCore/IO/Log.h>
+#include <EngineCore/IO/File.h>
+#include <EngineCore/IO/FileSystem.h>
+#include <EngineCore/Resource/JSONFile.h>
 
-#include "Atomic/Core/ProcessUtils.h"
+#include <EngineCore/Core/ProcessUtils.h>
 
 #include "JSBind.h"
 #include "JSBPackage.h"
@@ -554,7 +554,7 @@ String JSBModule::GetClassDefineGuard(const String& name, const String& language
             }
             else
             {
-                defines.Push("!defined(ATOMIC_PLATFORM_WINDOWS)");
+                defines.Push("!defined(ENGINE_PLATFORM_WINDOWS)");
             }
             
         }
@@ -567,7 +567,7 @@ String JSBModule::GetClassDefineGuard(const String& name, const String& language
             }
             else
             {
-                defines.Push("!defined(ATOMIC_PLATFORM_OSX)");
+                defines.Push("!defined(ENGINE_PLATFORM_MACOS)");
             }
         }
         else if (platform == "linux")
@@ -579,7 +579,7 @@ String JSBModule::GetClassDefineGuard(const String& name, const String& language
             }
             else
             {
-                defines.Push("!defined(ATOMIC_PLATFORM_LINUX)");
+                defines.Push("!defined(ENGINE_PLATFORM_LINUX)");
             }
         }
         else if (platform == "android")
@@ -648,11 +648,11 @@ String JSBModule::GetModuleDefineGuard() const
             if (modules[i].ToLower() == name_.ToLower())
             {
                 if (platform.ToLower() == "windows")
-                    defines.Push("!defined(ATOMIC_PLATFORM_WINDOWS)");
+                    defines.Push("!defined(ENGINE_PLATFORM_WINDOWS)");
                 else if (platform.ToLower() == "macosx")
-                    defines.Push("!defined(ATOMIC_PLATFORM_OSX)");
+                    defines.Push("!defined(ENGINE_PLATFORM_MACOS)");
                 else if (platform.ToLower() == "linux")
-                    defines.Push("!defined(ATOMIC_PLATFORM_LINUX)");
+                    defines.Push("!defined(ENGINE_PLATFORM_LINUX)");
                 else if (platform.ToLower() == "android")
                     defines.Push("!defined(ATOMIC_PLATFORM_ANDROID)");
                 else if (platform.ToLower() == "ios")
@@ -803,7 +803,14 @@ bool JSBModule::Load(const String& jsonFilename)
 
     for (unsigned i = 0; i < sources.GetArray().Size(); i++)
     {
-        sourceDirs_.Push(sources.GetArray()[i].GetString());
+        auto src = sources.GetArray()[i].GetString();
+        // WORKAROUND: simple mustache syntax used to inject some dynamic info
+        // into binding paths
+        if (src.Contains("{{PACKAGE_NAME}}"))
+            src.Replace("{{PACKAGE_NAME}}", package_->GetName());
+        if (src.Contains("{{ENGINE_JS_TARGET}}"))
+            src.Replace("{{ENGINE_JS_TARGET}}", ENGINE_JS_TARGET);
+        sourceDirs_.Push(src);
     }
 
     ScanHeaders();
