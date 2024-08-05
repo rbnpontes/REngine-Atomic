@@ -196,7 +196,7 @@ void jsapi_init_ui(JSVM* vm)
     duk_context* ctx = vm->GetJSContext();
 
     // UI class object
-    duk_get_global_string(ctx, "Atomic");
+    duk_get_global_string(ctx, ENGINE_CORE);
     duk_get_prop_string(ctx, -1, "UI");
 
     duk_push_c_function(ctx, UI_DebugGetWrappedWidgetCount, 0);
@@ -204,17 +204,17 @@ void jsapi_init_ui(JSVM* vm)
 
     duk_pop_2(ctx);
 
-    js_class_get_prototype(ctx, "Atomic", "UIButton");
+    js_class_get_prototype(ctx, ENGINE_CORE, "UIButton");
     duk_push_c_function(ctx, UIButton_Popup, 2);
     duk_put_prop_string(ctx, -2, "popup");
     duk_pop(ctx);
 
-    js_class_get_prototype(ctx, "Atomic", "UIWindow");
+    js_class_get_prototype(ctx, ENGINE_CORE, "UIWindow");
     duk_push_c_function(ctx, UIWindow_GetResizeToFitContentRect, 0);
     duk_put_prop_string(ctx, -2, "getResizeToFitContentRect");
     duk_pop(ctx);
 
-    js_class_get_prototype(ctx, "Atomic", "UIWidget");
+    js_class_get_prototype(ctx, ENGINE_CORE, "UIWidget");
     duk_push_c_function(ctx, UIWidget_SearchWidgetClass, 1);
     duk_put_prop_string(ctx, -2, "searchWidgetClass");
     duk_push_c_function(ctx, UIWidget_SearchWidgetId, 1);

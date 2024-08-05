@@ -274,21 +274,21 @@ void jsapi_init_core(JSVM* vm)
 {
     duk_context* ctx = vm->GetJSContext();
 
-    duk_get_global_string(ctx, "Atomic");
+    duk_get_global_string(ctx, ENGINE_CORE);
 
     duk_push_c_function(ctx, Atomic_GetArguments, 0);
     duk_put_prop_string(ctx, -2, "getArguments");
 
     duk_pop(ctx); // pop Atomic object
 
-    js_class_get_prototype(ctx, "Atomic", "AObject");
+    js_class_get_prototype(ctx, ENGINE_CORE, "AObject");
     duk_push_c_function(ctx, Object_SubscribeToEvent, DUK_VARARGS);
     duk_put_prop_string(ctx, -2, "subscribeToEvent");
     duk_push_c_function(ctx, Object_SendEvent, DUK_VARARGS);
     duk_put_prop_string(ctx, -2, "sendEvent");
     duk_pop(ctx); // pop AObject prototype
 
-    js_class_get_prototype(ctx, "Atomic", "Profiler");
+    js_class_get_prototype(ctx, ENGINE_CORE, "Profiler");
     duk_push_c_function(ctx, Profiler_BeginBlock, DUK_VARARGS);
     duk_put_prop_string(ctx, -2, "beginBlock");
     duk_pop(ctx); // pop Profiler prototype

@@ -38,7 +38,7 @@ void jsapi_init_atomicplayer(JSVM* vm)
 {
     duk_context* ctx = vm->GetJSContext();
 
-    duk_get_global_string(ctx, "Atomic");
+    duk_get_global_string(ctx, ENGINE_CORE);
 
     duk_push_object(ctx);
     duk_dup_top(ctx);

@@ -373,7 +373,7 @@ void jsapi_init_graphics(JSVM* vm)
 {
     duk_context* ctx = vm->GetJSContext();
 
-    js_class_get_prototype(ctx, "Atomic", "Light");
+    js_class_get_prototype(ctx, ENGINE_CORE, "Light");
     duk_push_c_function(ctx, Light_SetShadowCascade, DUK_VARARGS);
     duk_put_prop_string(ctx, -2, "setShadowCascade");
     duk_push_c_function(ctx, Light_SetShadowCascadeParameter, 2);
@@ -384,14 +384,14 @@ void jsapi_init_graphics(JSVM* vm)
     duk_put_prop_string(ctx, -2, "setShadowBias");
     duk_pop(ctx);
 
-    js_class_get_prototype(ctx, "Atomic", "Material");
+    js_class_get_prototype(ctx, ENGINE_CORE, "Material");
     duk_push_c_function(ctx, Material_GetShaderParameters, 0);
     duk_put_prop_string(ctx, -2, "getShaderParameters");
     duk_push_c_function(ctx, Material_SetShaderParameter, 2);
     duk_put_prop_string(ctx, -2, "setShaderParameter");
     duk_pop(ctx);
 
-    js_class_get_prototype(ctx, "Atomic", "Octree");
+    js_class_get_prototype(ctx, ENGINE_CORE, "Octree");
     duk_push_c_function(ctx, Octree_Raycast, DUK_VARARGS);
     duk_set_magic(ctx, -1, (unsigned) DUK_MAGIC_RAYCAST);
     duk_put_prop_string(ctx, -2, "rayCast");
@@ -400,24 +400,24 @@ void jsapi_init_graphics(JSVM* vm)
     duk_put_prop_string(ctx, -2, "rayCastSingle");
     duk_pop(ctx);
 
-    js_class_get_prototype(ctx, "Atomic", "Camera");
+    js_class_get_prototype(ctx, ENGINE_CORE, "Camera");
     duk_push_c_function(ctx, Camera_GetScreenRay, 2);
     duk_put_prop_string(ctx, -2, "getScreenRay");
     duk_pop(ctx);
 
 
-    js_class_get_prototype(ctx, "Atomic", "RenderPath");
+    js_class_get_prototype(ctx, ENGINE_CORE, "RenderPath");
     duk_push_c_function(ctx, RenderPath_SetShaderParameter, 2);
     duk_put_prop_string(ctx, -2, "setShaderParameter");
     duk_pop(ctx);
 
-    js_class_get_prototype(ctx, "Atomic", "RenderPathCommand");
+    js_class_get_prototype(ctx, ENGINE_CORE, "RenderPathCommand");
     duk_push_c_function(ctx, RenderPathCommand_SetShaderParameter, 2);
     duk_put_prop_string(ctx, -2, "setShaderParameter");
     duk_pop(ctx);
 
     // static methods
-    js_class_get_constructor(ctx, "Atomic", "Material");
+    js_class_get_constructor(ctx, ENGINE_CORE, "Material");
     duk_push_c_function(ctx, Material_GetTextureUnitName, 1);
     duk_put_prop_string(ctx, -2, "getTextureUnitName");
     duk_pop(ctx);

@@ -82,17 +82,17 @@ void jsapi_init_atomic3d(JSVM* vm)
 {
     duk_context* ctx = vm->GetJSContext();
 
-    js_class_get_prototype(ctx, "Atomic", "StaticModel");
+    js_class_get_prototype(ctx, ENGINE_CORE, "StaticModel");
     duk_push_c_function(ctx, StaticModel_SetMaterialIndex, 2);
     duk_put_prop_string(ctx, -2, "setMaterialIndex");
     duk_pop(ctx); // pop AObject prototype
 
-    js_class_get_prototype(ctx, "Atomic", "CustomGeometry");
+    js_class_get_prototype(ctx, ENGINE_CORE, "CustomGeometry");
     duk_push_c_function(ctx, CustomGeometry_SetMaterialIndex, 2);
     duk_put_prop_string(ctx, -2, "setMaterialIndex");
     duk_pop(ctx); // pop AObject prototype
 
-    js_class_get_prototype(ctx, "Atomic", "BillboardSet");
+    js_class_get_prototype(ctx, ENGINE_CORE, "BillboardSet");
     duk_push_c_function(ctx, BillboardSet_GetBillboard, 1);
     duk_put_prop_string(ctx, -2, "getBillboard");
     duk_pop(ctx); // pop AObject prototype

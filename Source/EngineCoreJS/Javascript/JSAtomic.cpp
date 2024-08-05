@@ -382,7 +382,7 @@ void jsapi_init_atomic(JSVM* vm)
     duk_pop(ctx);
 
     // Atomic
-    duk_get_global_string(ctx, "Atomic");
+    duk_get_global_string(ctx, ENGINE_CORE);
 
     // Atomic.print
     duk_push_c_function(ctx, js_print, DUK_VARARGS);

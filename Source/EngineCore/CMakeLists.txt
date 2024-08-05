@@ -263,7 +263,8 @@ endif ()
 
 target_compile_definitions("${ENGINE_CORE_LIB_TARGET}" PUBLIC 
     -DENGINE_NAME="${ENGINE_NAME}"
-    -DENGINE_NAMESPACE="${ENGINE_NAMESPACE}")
+    -DENGINE_NAMESPACE="${ENGINE_NAMESPACE}"
+    -DENGINE_CORE="${ENGINE_CORE_TARGET}")
 
 # if (MSVC)
 #     # Becarefull if you change this line

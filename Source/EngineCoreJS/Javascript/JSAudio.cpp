@@ -50,7 +50,7 @@ void jsapi_init_audio(JSVM* vm)
 {
     duk_context* ctx = vm->GetJSContext();
 
-    js_class_get_prototype(ctx, "Atomic", "Sound");
+    js_class_get_prototype(ctx, ENGINE_CORE, "Sound");
     duk_push_c_function(ctx, Sound_SetData, 1);
     duk_put_prop_string(ctx, -2, "setData");
     duk_pop(ctx);

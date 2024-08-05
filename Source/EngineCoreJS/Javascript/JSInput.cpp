@@ -54,7 +54,7 @@ namespace Atomic
     {
         duk_context* ctx = vm->GetJSContext();
 
-        js_class_get_prototype(ctx, "Atomic", "Input");
+        js_class_get_prototype(ctx, ENGINE_CORE, "Input");
         duk_push_c_function(ctx, Input_GetTouch, 1);
         duk_put_prop_string(ctx, -2, "getTouch");
         duk_pop(ctx); // pop AObject prototype

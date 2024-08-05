@@ -331,7 +331,7 @@ void jsapi_init_scene(JSVM* vm)
 
     jsapi_init_scene_serializable(vm);
 
-    js_class_get_prototype(ctx, "Atomic", "Node");
+    js_class_get_prototype(ctx, ENGINE_CORE, "Node");
     duk_push_c_function(ctx, Node_GetChildrenWithComponent, DUK_VARARGS);
     duk_put_prop_string(ctx, -2, "getChildrenWithComponent");
     duk_push_c_function(ctx, Node_GetChildrenWithName, DUK_VARARGS);
@@ -352,7 +352,7 @@ void jsapi_init_scene(JSVM* vm)
     duk_put_prop_string(ctx, -2, "createChildPrefab");
     duk_pop(ctx);
 
-    js_class_get_prototype(ctx, "Atomic", "Scene");
+    js_class_get_prototype(ctx, ENGINE_CORE, "Scene");
     duk_push_c_function(ctx, Scene_LoadXML, 1);
     duk_put_prop_string(ctx, -2, "loadXML");
     duk_push_c_function(ctx, Scene_GetMainCamera, 0);

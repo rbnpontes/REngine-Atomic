@@ -1,5 +1,6 @@
 //
 // Copyright (c) 2014-2015, THUNDERBEAST GAMES LLC All rights reserved
+// Copyright (c) 2024, REngine
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -127,7 +128,7 @@ void jsapi_init_filesystem(JSVM* vm)
 {
     duk_context* ctx = vm->GetJSContext();
 
-    duk_get_global_string(ctx, "Atomic");
+    duk_get_global_string(ctx, ENGINE_CORE);
 
     duk_push_c_function(ctx, Atomic_SplitPath, 1);
     duk_put_prop_string(ctx, -2, "splitPath");
