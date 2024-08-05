@@ -132,7 +132,7 @@ namespace AtomicEditor
         engineParameters_["LogName"] = filesystem->GetAppPreferencesDir(ENGINE_EDITOR_NAME, "Logs") + String(ENGINE_EDITOR_NAME) + ".log";
 
 #ifdef ENGINE_PLATFORM_MACOS
-        engineParameters_["WindowIcon"] = "Images/AtomicLogo32.png";
+        engineParameters_["WindowIcon"] = "Images/EngineLogo32.jpg";
 #endif
 
         String resource_prefix_paths;
