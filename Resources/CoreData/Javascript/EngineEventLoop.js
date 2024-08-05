@@ -528,11 +528,11 @@ function throttleProcessTimers(ms) {
 
 // Hook into the update event of the engine and process all the timers.  These
 // will be throttled to only run every 100ms
-Atomic.engine.subscribeToEvent('Update', throttleProcessTimers(100));
+EngineCore.engine.subscribeToEvent('Update', throttleProcessTimers(100));
 
 // Hook into the postUpdate event of the engine and process all the setImmediate calls.  These should
 // really process once the current update loop is completed.
-Atomic.engine.subscribeToEvent('PostUpdate', function (eventData) {
+EngineCore.engine.subscribeToEvent('PostUpdate', function (eventData) {
     EventLoop.processImmediates();
 });
 

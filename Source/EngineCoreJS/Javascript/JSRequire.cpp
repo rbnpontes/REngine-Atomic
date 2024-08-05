@@ -124,26 +124,18 @@ namespace Atomic
         SplitPath(moduleID, pathName, fileName, extension);
         String path = moduleID;
 
-        // It is nice to not have to specify the Atomic path, but verify that the module exists first since it could be user provided
-        if (fileName.StartsWith(ENGINE_CORE) && cache->Exists("EngineModules/" + path + ".js"))
-        {
-            path = "EngineModules/" + path + ".js";
-        }
-        else
-        {
-            path += ".js";
+        path += ".js";
 
-            if (!cache->Exists(path))
+        if (!cache->Exists(path))
+        {
+            const Vector<String>& searchPaths = vm->GetModuleSearchPaths();
+            for (unsigned i = 0; i < searchPaths.Size(); i++)
             {
-                const Vector<String>& searchPaths = vm->GetModuleSearchPaths();
-                for (unsigned i = 0; i < searchPaths.Size(); i++)
+                String search = searchPaths[i] + path;
+                if (cache->Exists(search))
                 {
-                    String search = searchPaths[i] + path;
-                    if (cache->Exists(search))
-                    {
-                        path = search;
-                        break;
-                    }
+                    path = search;
+                    break;
                 }
             }
         }

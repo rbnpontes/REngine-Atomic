@@ -224,7 +224,7 @@ async function bindingsBuildTypescript() {
 
     console.log('- Copying Generated files to Artifacts');
 
-    const editor_modules_dir = path.resolve(engineGetArtifactsRoot(), 'Build/Resources/EditorData/EditorScripts/', constants.engine_editor_name, 'modules');
+    const editor_modules_dir = path.resolve(engineGetArtifactsRoot(), 'Build/Resources/EditorData/', constants.engine_editor_name, 'modules');
     const web_editor_modules_dir = path.resolve(engine_root, 'Data/CodeEditor/source/editorCore/modules');
     const node_modules_dir = path.resolve(engine_root, 'Build/node_modules');
 
@@ -239,7 +239,7 @@ async function bindingsBuildTypescript() {
     fs.mkdirSync(
         path.resolve(
             engineGetArtifactsRoot(), 
-            'Build/Resources/EditorData/EditorScripts', 
+            'Build/Resources/EditorData', 
             constants.engine_editor_name, 
             'TypeScriptSupport'
         ),
@@ -273,7 +273,7 @@ async function bindingsCleanTypescript() {
 async function bindingsLintTypescript() {
     const typescript_projects = [
         constants.engine_editor_name+'/**/*.ts',
-        'AtomicWebViewEditor/**/*.ts'
+        'EngineWebViewEditor/**/*.ts'
     ];
     const file_mask = '{' + typescript_projects.join(',') +'}';
     const script_path = path.resolve(engine_root, 'Script');

@@ -186,7 +186,7 @@ namespace AtomicEditor
 
         AppBase::Start();
 
-        vm_->SetModuleSearchPaths("JavaScript;EditorScripts;EditorScripts/AtomicEditor");
+        vm_->SetModuleSearchPaths("JavaScript;EditorScripts;EngineEditor");
 
         // move UI initialization to JS
         UI* ui = GetSubsystem<UI>();
