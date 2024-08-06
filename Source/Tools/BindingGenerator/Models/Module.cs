@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace BindingGenerator.Models
 {
-	internal class Module
+	public class Module
 	{
 		[JsonPropertyName("name")]
 		public string Name { get; set; } = string.Empty;

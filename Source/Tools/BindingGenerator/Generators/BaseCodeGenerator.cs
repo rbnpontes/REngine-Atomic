@@ -16,6 +16,7 @@ namespace BindingGenerator.Generators
 		protected readonly RunArguments mArguments = arguments;
 		protected Module mModule = new();
 		protected readonly List<ModuleItem> mModuleItems = new();
+		protected readonly List<string> mSourceFiles = new();
 
 		public virtual void Run()
 		{
@@ -28,8 +29,12 @@ namespace BindingGenerator.Generators
 			LoadModule();
 			LoadModules();
 			FixSourceFilePaths();
-			
 			Console.WriteLine($"- Found {mModule.Name} module with ({mModuleItems.Count}) items.");
+
+			LoadSourceFiles();
+			Console.WriteLine($"- Found {mSourceFiles.Count} header files.");
+			Console.WriteLine($"- Building AST");
+			BuildAst();
 		}
 
 		protected virtual void LoadModule()
@@ -74,6 +79,22 @@ namespace BindingGenerator.Generators
 						throw new DirectoryNotFoundException($"Not found source directory. Directory={src}");
 				}
 			}
+		}
+
+		protected virtual void LoadSourceFiles()
+		{
+			mSourceFiles.Clear();
+
+			foreach (var moduleItem in mModuleItems)
+			foreach (var sourcePath in moduleItem.Sources)
+			{
+				var files = Directory.GetFiles(sourcePath).Where(x => x.EndsWith(".h"));
+				mSourceFiles.AddRange(files);
+			}
+		}
+		protected virtual void BuildAst()
+		{
+			
 		}
 	}
 }

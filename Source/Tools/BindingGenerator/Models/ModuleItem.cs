@@ -8,8 +8,9 @@ using System.Threading.Tasks;
 using ExcludedObjectMethods = System.Collections.Generic.Dictionary<string, string[]>;
 namespace BindingGenerator.Models
 {
-	internal class ExcludedObjectCollection : Dictionary<string, ExcludedObjectMethods>{}
-	internal class ModuleItem
+	public class ExcludedObjectCollection : Dictionary<string, ExcludedObjectMethods>{}
+
+	public class ModuleItem
 	{
 		[JsonPropertyName("name")]
 		public string Name { get; set; } = string.Empty;
