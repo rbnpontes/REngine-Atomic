@@ -91,6 +91,13 @@ namespace BindingGenerator
 					}
 				},
 				{
+					"--warn", (argIdx) =>
+					{
+						result.EnableWarnings = true;
+						return argIdx;
+					}	
+				},
+				{
 					"--help", (idx) =>
 					{
 						Console.WriteLine("");
@@ -105,6 +112,7 @@ namespace BindingGenerator
 						Console.WriteLine("--source PATH/ : Path to engine source code directory");
 						Console.WriteLine("--input PATH/module.json : Path to module.json that contains binding info.");
 						Console.WriteLine("--output: PATH/ : Path where tool will output generated binding files.");
+						Console.WriteLine("--warn: Enable warning logs");
 						Console.WriteLine("");
 						// Reset run arguments
 						result = new RunArguments();

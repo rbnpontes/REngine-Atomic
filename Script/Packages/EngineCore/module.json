@@ -1,13 +1,82 @@
-
 {
-	"name" : "EngineCore",
-	"namespace" : "Atomic",
-	"modules" : ["Container", "Math", "Core", "Scene", "Graphics", "Atomic2D", "Audio",
-		"Physics", "Navigation", "Input", "UI", "Resource", "Network", "IO",
-		"Engine", "Script", "Javascript", "Environment", "IPC", "Metrics"],
-		"moduleExclude" : {
-			"WEB" : ["Network", "Navigation", "IPC"],
-			"ANDROID" : ["IPC"],
-			"IOS" : ["IPC"]
-		}
-	}
+	"name": "EngineCore",
+	"namespace": "Atomic",
+	"modules": [
+		"Container",
+		"Math",
+		"Core",
+		"Scene",
+		"Graphics",
+		"Atomic2D",
+		"Audio",
+		"Physics",
+		"Navigation",
+		"Input",
+		"UI",
+		"Resource",
+		"Network",
+		"IO",
+		"Engine",
+		"Script",
+		"Javascript",
+		"Environment",
+		"IPC",
+		"Metrics"
+	],
+	"moduleExclude": {
+		"WEB": [
+			"Network",
+			"Navigation",
+			"IPC"
+		],
+		"ANDROID": [
+			"IPC"
+		],
+		"IOS": [
+			"IPC"
+		]
+	},
+	"defines" : [
+		"PLATFORM_WIN32=1",
+		"ENGINE_PLATFORM_WINDOWS=1",
+		"ENGINE_PLATFORM_DESKTOP=1",
+		"ENGINE_SSE=1",
+		"ENGINE_CXX11=1",
+		"ENGINE_64BIT=1",
+		"_WINSOCKAPI_=1",
+		"_CRT_SECURE_NO_WARNINGS",
+		"STB_VORBIS_HEADER_ONLY=1",
+		"IMGUI_DISABLE_OBSOLETE_FUNCTIONS=1"
+	],
+	"includes" : [
+		"{{source}}/Source/ThirdParty/CEF/Windows",
+		"{{source}}/Source/EngineCore",
+		"{{source}}/Source/EngineCore/..",
+		"{{source}}/Source",
+		"{{source}}/Source/ThirdParty",
+		"{{source}}/Source/ThirdParty/imgui",
+		"{{source}}/Source/ThirdParty/eastl/include",
+		"{{source}}/Source/ThirdParty/eastl/packages/EABase/include/Common",
+		"{{source}}/Source/ThirdParty/DiligentCore/Common/interface",
+		"{{source}}/Source/ThirdParty/DiligentCore/Platforms/Win32/interface",
+		"{{source}}/Source/ThirdParty/DiligentCore/Platforms/Basic/interface",
+		"{{source}}/Source/ThirdParty/DiligentCore/Primitives/interface",
+		"{{source}}/Source/ThirdParty/DiligentCore/Platforms/interface",
+		"{{source}}/Source/ThirdParty/DiligentCore/Graphics/GraphicsEngineOpenGL/interface",
+		"{{source}}/Source/ThirdParty/DiligentCore/Graphics/GraphicsEngine/interface",
+		"{{source}}/Source/ThirdParty/DiligentCore/Graphics/GraphicsEngineVulkan/interface",
+		"{{source}}/Source/ThirdParty/DiligentCore/Graphics/GraphicsEngineD3D11/interface",
+		"{{source}}/Source/ThirdParty/DiligentCore/Graphics/GraphicsEngineD3DBase/interface",
+		"{{source}}/Source/ThirdParty/DiligentCore/Graphics/GraphicsEngineD3D12/interface",
+		"{{source}}/Source/ThirdParty/Box2D",
+		"{{source}}/Source/ThirdParty/libshaderc/include",
+		"{{source}}/Source/ThirdParty/glslang/glslang/..",
+		"{{source}}/Source/ThirdParty/glslang/SPIRV/..",
+		"{{source}}/Source/ThirdParty/glslang/SPIRV/../External",
+		"{{source}}/Source/ThirdParty/spirv-tools/include",
+		"{{source}}/Source/ThirdParty/spirv-headers/include",
+		"{{source}}/Source/ThirdParty/DiligentCore/ThirdParty/SPIRV-Cross",
+		"{{source}}/Source/ThirdParty/kNet",
+		"{{source}}/Source/ThirdParty/kNet/include"
+	]
+}

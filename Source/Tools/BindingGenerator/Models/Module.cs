@@ -17,5 +17,9 @@ namespace BindingGenerator.Models
 		public string[] Modules { get; set; } = [];
 		[JsonPropertyName("moduleExclude")]
 		public Dictionary<string, string[]> ModuleExclude { get; set; } = new();
+		[JsonPropertyName("includes")]
+		public string[] Includes { get; set; } = [];
+		[JsonPropertyName("defines")]
+		public string[] Defines { get; set; } = [];
 	}
 }

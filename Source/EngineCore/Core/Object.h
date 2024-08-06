@@ -96,9 +96,9 @@ private:
     public: \
         typedef typeName ClassName; \
         typedef baseTypeName BaseClassName; \
-        virtual Atomic::StringHash GetType() const { return GetTypeInfoStatic()->GetType(); } \
-        virtual const Atomic::String& GetTypeName() const { return GetTypeInfoStatic()->GetTypeName(); } \
-        virtual const Atomic::TypeInfo* GetTypeInfo() const { return GetTypeInfoStatic(); } \
+        virtual Atomic::StringHash GetType() const override { return GetTypeInfoStatic()->GetType(); } \
+        virtual const Atomic::String& GetTypeName() const override { return GetTypeInfoStatic()->GetTypeName(); } \
+        virtual const Atomic::TypeInfo* GetTypeInfo() const override { return GetTypeInfoStatic(); } \
         static Atomic::StringHash GetTypeStatic() { return GetTypeInfoStatic()->GetType(); } \
         static const Atomic::String& GetTypeNameStatic() { return GetTypeInfoStatic()->GetTypeName(); } \
         static const Atomic::TypeInfo* GetTypeInfoStatic() { static const Atomic::TypeInfo typeInfoStatic(#typeName, BaseClassName::GetTypeInfoStatic()); return &typeInfoStatic; } \

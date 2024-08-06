@@ -56,7 +56,7 @@ class Network;
 class NetworkWorkerThread;
 class FragmentedSendManager;
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && !defined(ENGINE_BINDING_TOOL)
 struct FragmentedSendManager::FragmentedTransfer;
 #endif
 
