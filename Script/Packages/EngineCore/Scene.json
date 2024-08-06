@@ -6,14 +6,15 @@
 				 "ObjectAnimation", "SmoothedTransform", "SplinePath",
 				 "ValueAnimation", "ValueAnimationInfo", "PrefabComponent"],
 	"excludes" : {
-		"Scene" : {
-			"GetComponent" : ["unsigned"],
-			"MarkReplicationDirty" : ["Node"],
-			"GetRequiredPackageFiles" : []
+		"all" : {
+			"Scene" : {
+				"GetComponent" : ["unsigned"],
+				"MarkReplicationDirty" : ["Node"],
+				"GetRequiredPackageFiles" : []
+			}
 		}
 	},
 	"overloads" : {
-
 		"Node" : {
 			"CreateChild" : ["String", "CreateMode", "unsigned", "bool"],
 			"GetChild" : ["String", "bool"],

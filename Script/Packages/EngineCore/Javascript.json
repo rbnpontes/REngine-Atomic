@@ -1,6 +1,6 @@
 {
 	"name" : "Javascript",
-	"sources" : ["Source/{{ENGINE_JS_TARGET}}/Javascript"],
+	"sources" : ["Source/{{Module.Name}}JS/Javascript"],
 	"classes" : ["JSComponent", "JSComponentFile", "JSEventHelper", "ScriptObject"],
 	"typescript_decl" : {
 

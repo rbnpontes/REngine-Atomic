@@ -17,7 +17,7 @@ namespace BindingGenerator
 			var executeCalls = new Dictionary<string, Func<int, int>>()
 			{
 				{
-					"--src", (argIdx) =>
+					"--source", (argIdx) =>
 					{
 						var srcIdx = argIdx + 1;
 						if (srcIdx >= args.Length)
@@ -50,9 +50,11 @@ namespace BindingGenerator
 							throw new Exception("Invalid Argument Output. Expected: --output PATH");
 						result.OutputDir = args[outIdx];
 
-						if (!Directory.Exists(result.OutputDir))
+						if (File.Exists(result.OutputDir))
 							throw new Exception(
-								"Invalid Argument Output. --output must be a valid path to output directory.");
+								"Invalid Argument Output. --output must be a directory output, and cannot be a file.");
+						if (!Directory.Exists(result.OutputDir))
+							Directory.CreateDirectory(result.OutputDir);
 
 						return outIdx;
 					}
@@ -91,17 +93,19 @@ namespace BindingGenerator
 				{
 					"--help", (idx) =>
 					{
+						Console.WriteLine("");
 						Console.WriteLine("+============================+");
 						Console.WriteLine("!                            !");
+						Console.WriteLine("!  .:RENGINE BINDING TOOL:.  !");
 						Console.WriteLine("!       HELP COMMANDS        !");
 						Console.WriteLine("!                            !");
 						Console.WriteLine("+============================+");
 						Console.WriteLine("");
 						Console.WriteLine("--bind js|net : Bind generator type. (Javascript=js | DotNet(C#)=net)");
-						Console.WriteLine("--src PATH/ : Path to engine source code directory");
+						Console.WriteLine("--source PATH/ : Path to engine source code directory");
 						Console.WriteLine("--input PATH/module.json : Path to module.json that contains binding info.");
 						Console.WriteLine("--output: PATH/ : Path where tool will output generated binding files.");
-
+						Console.WriteLine("");
 						// Reset run arguments
 						result = new RunArguments();
 						return args.Length;

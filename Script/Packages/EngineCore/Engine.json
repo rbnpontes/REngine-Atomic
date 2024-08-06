@@ -4,8 +4,10 @@
 	"includes" : [],
 	"classes" : ["Engine", "Application"],
 	"excludes" : {
-		"Application" : {
-			"Run" : []
+		"all" : {
+			"Application" : {
+				"Run" : []
+			}
 		}
 	}
 }

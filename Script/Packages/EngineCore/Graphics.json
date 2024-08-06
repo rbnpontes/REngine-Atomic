@@ -39,11 +39,13 @@
 		}
 	},
 	"excludes" : {
-		"Texture" : {
-			"GetTarget" : [],
-			"GetRenderBuffer" : [],
-			"GetExternalFormat" : ["unsigned"],
-			"GetDataType" : []
+		"all" : {
+			"Texture" : {
+				"GetTarget" : [],
+				"GetRenderBuffer" : [],
+				"GetExternalFormat" : ["unsigned"],
+				"GetDataType" : []
+			}
 		}
 	},
 	"typescript_decl" : {

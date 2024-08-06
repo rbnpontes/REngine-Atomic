@@ -17,13 +17,15 @@
 		"Object" : "AObject"
 	},
 	"excludes" : {
-		"Object" : {
-			"SendEvent" : ["StringHash"]
-		},
-		"Context" : {
-			"GetTypeName" : ["StringHash"],
-			"RequireIK" : [],
-			"ReleaseIK" : []
+		"all" : {
+			"Object" : {
+				"SendEvent" : ["StringHash"]
+			},
+			"Context" : {
+				"GetTypeName" : ["StringHash"],
+				"RequireIK" : [],
+				"ReleaseIK" : []
+			}
 		},
 		"CSharp" : {
 			"Object" : {
