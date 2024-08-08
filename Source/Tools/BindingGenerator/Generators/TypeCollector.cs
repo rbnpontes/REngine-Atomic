@@ -53,8 +53,8 @@ public class TypeCollector(TypeCollectorCreateDesc createDesc)
         {
             var namespaceDef = new NamespaceDefinition(createDesc.Module, null);
             namespaceDef.Owner = @namespace;
-            namespaceDef.Name = @namespace.Name;
-            namespaceDef.Comment = @namespace.Comment?.ToString() ?? string.Empty;
+            namespaceDef.Name = namespaceType.Name;
+            namespaceDef.Comment = namespaceType.Comment?.ToString() ?? string.Empty;
 
             CollectEnums(namespaceType.Enums, allowedSourceFiles, namespaceDef);
             CollectClasses(namespaceType.Classes, allowedSourceFiles, namespaceDef);
