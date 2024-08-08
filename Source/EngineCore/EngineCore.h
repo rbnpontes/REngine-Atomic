@@ -87,6 +87,13 @@
         #define ENGINE_NO_DEPRECATED
     #endif
 
+
+#endif
+
+#ifdef ENGINE_BINDING_TOOL
+    #define ENGINE_BIND_IGNORE __attribute__((annotate("engine_bind_ignore")))
+#else
+    #define ENGINE_BIND_IGNORE
 #endif
 
 #define RENGINE_API ENGINE_API

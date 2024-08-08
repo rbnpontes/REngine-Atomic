@@ -40,7 +40,7 @@ namespace Atomic
 class JSVM;
 class Object;
 
-void js_class_declare_internal(JSVM* vm, void* uniqueClassID, const char* package, const char* classname, duk_c_function constructor);
+ENGINE_BIND_IGNORE void js_class_declare_internal(JSVM* vm, void* uniqueClassID, const char* package, const char* classname, duk_c_function constructor);
 
 template<typename T>
 void js_class_declare(JSVM* vm, const char* package, const char* classname, duk_c_function constructor)
@@ -48,28 +48,28 @@ void js_class_declare(JSVM* vm, const char* package, const char* classname, duk_
     js_class_declare_internal(vm, (void*) T::GetClassIDStatic(), package, classname, constructor);
 }
 
-void js_constructor_basecall(duk_context* ctx, const char* package, const char* baseclass);
-void js_setup_prototype(JSVM* vm, const char* package, const char* classname, const char* basePackage, const char* basename, bool hasProperties = false);
-void js_class_push_propertyobject(JSVM* vm, const char* package, const char* classname);
-void js_class_get_prototype(duk_context* ctx, const char* package, const char *classname);
-void js_class_get_constructor(duk_context* ctx, const char* package, const char *classname);
+ENGINE_BIND_IGNORE void js_constructor_basecall(duk_context* ctx, const char* package, const char* baseclass);
+ENGINE_BIND_IGNORE void js_setup_prototype(JSVM* vm, const char* package, const char* classname, const char* basePackage, const char* basename, bool hasProperties = false);
+ENGINE_BIND_IGNORE void js_class_push_propertyobject(JSVM* vm, const char* package, const char* classname);
+ENGINE_BIND_IGNORE void js_class_get_prototype(duk_context* ctx, const char* package, const char *classname);
+ENGINE_BIND_IGNORE void js_class_get_constructor(duk_context* ctx, const char* package, const char *classname);
 
 // setup a native event wrapper on module object at the top of the stack
-void js_define_native_event(duk_context* ctx, const String& eventType, const String& eventName);
+ENGINE_BIND_IGNORE void js_define_native_event(duk_context* ctx, const String& eventType, const String& eventName);
 
 /// Pushes variant value or undefined if can't be pushed
-void js_push_variant(duk_context* ctx, const Variant &v, int arrayIndex = -1);
-void js_push_variantmap(duk_context* ctx, const VariantMap &vmap);
+ENGINE_BIND_IGNORE void js_push_variant(duk_context* ctx, const Variant &v, int arrayIndex = -1);
+ENGINE_BIND_IGNORE void js_push_variantmap(duk_context* ctx, const VariantMap &vmap);
 
 // Get a default value for the given variant type and set variantOut
-void js_get_default_variant(VariantType variantType, Variant& variantOut);
+ENGINE_BIND_IGNORE void js_get_default_variant(VariantType variantType, Variant& variantOut);
 
 /// Sets a variant value from the duktape stack
-void js_to_variant(duk_context* ctx, int variantIdx, Variant &v, VariantType variantType = VAR_NONE);
+ENGINE_BIND_IGNORE void js_to_variant(duk_context* ctx, int variantIdx, Variant &v, VariantType variantType = VAR_NONE);
 
-void js_object_to_variantmap(duk_context* ctx, int objIdx, VariantMap &v);
+ENGINE_BIND_IGNORE void js_object_to_variantmap(duk_context* ctx, int objIdx, VariantMap &v);
 
 /// Returns true if the item is a buffer, and if data and size are passed, they are given values to access the buffer data.
-duk_bool_t js_check_is_buffer_and_get_data(duk_context* ctx, duk_idx_t idx, void** data, duk_size_t* size);
+ENGINE_BIND_IGNORE duk_bool_t js_check_is_buffer_and_get_data(duk_context* ctx, duk_idx_t idx, void** data, duk_size_t* size);
 
 }

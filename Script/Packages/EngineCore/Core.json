@@ -14,7 +14,7 @@
 	],
 	"classes" : ["Context", "Object", "AtomicBuildInfo", "Time", "Profiler"],
 	"classes_rename" : {
-		"Object" : "AObject"
+		"Object" : "EngineObject"
 	},
 	"excludes" : {
 		"all" : {
