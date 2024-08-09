@@ -196,20 +196,98 @@ public class TypeCollector(TypeCollectorCreateDesc createDesc)
         {
             var (_, classElement) = pTypes[@class.GetUniqueName()];
             var klass = (CppClass)classElement;
+            var methods = new List<ClassMethodDefinition>();
+            var constructors = new List<ConstructorMethodDefinition>();
 
             foreach (var func in klass.Functions)
             {
                 if(func.IsFunctionTemplate)
                     continue;
+
+                if(func.Visibility != CppVisibility.Public && func.Visibility != CppVisibility.Default)
+                    continue;
+                
+                if (AstUtils.IsIgnoredType(func))
+                    continue;
+
+                var returnType = GetSuitableType(func.ReturnType);
+                var args = new TypeDefinition[func.Parameters.Count];
+                
+                if(returnType is null)
+                    continue;
+                
+                var skip = false;
+                for (var i = 0; i < func.Parameters.Count; ++i)
+                {
+                    var argType = GetSuitableType(func.Parameters[i].Type);
+                    if (argType is null)
+                    {
+                        skip = true;
+                        break;
+                    }
+
+                    args[i] = argType;
+                }
+
+                if (skip)
+                    continue;
+
+                var method = new ClassMethodDefinition(createDesc.Module, @class.ModuleItem, @class)
+                {
+                    Name = func.Name,
+                    Comment = func.Comment?.ToString() ?? string.Empty,
+                    IsStatic = func.IsStatic,
+                    ReturnType = returnType,
+                    ArgumentTypes = args,
+                    HeaderFilePath = func.SourceFile,
+                };
+                methods.Add(method);
             }
+
+            foreach (var ctor in klass.Constructors)
+            { 
+                if(AstUtils.IsIgnoredType(ctor))
+                    continue;
+                
+                var skip = false;
+                var args = new TypeDefinition[ctor.Parameters.Count];
+                
+                for (var i = 0; i < ctor.Parameters.Count; ++i)
+                {
+                    var argType = GetSuitableType(ctor.Parameters[i].Type);
+                    if (argType is null)
+                    {
+                        skip = true;
+                        break;
+                    }
+
+                    args[i] = argType;
+                }
+
+                if (skip)
+                    continue;
+
+                ConstructorMethodDefinition ctorDef = new(createDesc.Module, @class.ModuleItem, @class);
+                ctorDef.Name = ctor.Name;
+                ctorDef.Comment = ctor.Comment?.ToString() ?? string.Empty;
+                ctorDef.ArgumentTypes = args;
+                ctorDef.HeaderFilePath = ctor.SourceFile;
+                constructors.Add(ctorDef);
+            }
+
+            @class.Constructors = constructors.ToArray();
+            @class.Methods = methods.ToArray();
         }
 
         foreach (var @struct in structs)
         {
-            
+            throw new NotImplementedException();
         }
+        
+        foreach(var nextNamespace in @namespace.Namespaces)
+            CollectClassMethods(nextNamespace);
     }
-
+    
     private void CollectStaticMethodsFromNamespaces(NamespaceDefinition[] namespaces, IDictionary<string, ModuleItem> allowedSourceFiles)
     {
         foreach (var @namespace in namespaces)
@@ -278,8 +356,34 @@ public class TypeCollector(TypeCollectorCreateDesc createDesc)
         @namespace.Methods = methodsResult.ToArray();
     }
 
+    private TypeDefinition? GetType(CppType type)
+    {
+        if(!pCppTypes.TryGetValue(type, out var result))
+            Console.WriteLine($"- Not found type of {type.FullName}.\n [{type.Span.Start}, {type.Span.End}]");
+        return result;
+    }
     private TypeDefinition? GetSuitableType(CppType type, CppType? prevType = null)
     {
+        if (AstUtils.IsString(type))
+            return new PrimitiveTypeDefinition(createDesc.Module, null, PrimitiveKind.String);
+        
+        if(AstUtils.IsStringHash(type))
+           return new PrimitiveTypeDefinition(createDesc.Module, null, PrimitiveKind.StringHash);
+
+        if (AstUtils.IsVector(type))
+        {
+            var klass = (CppClass)type;
+            var targetType = GetSuitableType(klass.TemplateSpecializedArguments[0].ArgAsType, type);
+            if (targetType is null)
+                return null;
+            return new VectorDefinition(
+                createDesc.Module, 
+                null, 
+                targetType, 
+                AstUtils.GetVectorType(type)
+            );
+        }
+        
         TypeDefinition? result = null;
         switch (type.TypeKind)
         {
@@ -321,7 +425,7 @@ public class TypeCollector(TypeCollectorCreateDesc createDesc)
                 break;
             case CppTypeKind.StructOrClass:
             case CppTypeKind.Enum:
-                pCppTypes.TryGetValue(type, out result);
+                result = GetType(type);
                 break;
             case CppTypeKind.Qualified:
             {
@@ -331,19 +435,23 @@ public class TypeCollector(TypeCollectorCreateDesc createDesc)
                 else if (qualifiedType.Qualifier == CppTypeQualifier.Const)
                     result = GetSuitableType(qualifiedType.ElementType, prevType);
                 else
-                    throw new NotImplementedException();
+                    Console.WriteLine($"- Unsupported Qualified Type '{qualifiedType.FullName}'.\n [{qualifiedType.Span.Start}, {qualifiedType.Span.End}]");
             }
                 break;
             case CppTypeKind.Typedef:
             {
+                var typeDef = (CppTypedef)type;
                 // If previous type is a pointer, then we must deal as void*
                 if (prevType?.TypeKind == CppTypeKind.Pointer)
                     result = new PrimitiveTypeDefinition(createDesc.Module, null, PrimitiveKind.Void);
                 else if (string.Equals(type.GetDisplayName(), "VariantMap"))
                     result = new PrimitiveTypeDefinition(createDesc.Module, null, PrimitiveKind.VariantMap);
                 else
-                    Console.WriteLine($"- Not found suitable type for: {type.FullName}");
+                    result = GetSuitableType(typeDef.ElementType, prevType);
             }
+                break;
+            case CppTypeKind.Unexposed:
+                Console.WriteLine($"- Unsupported Unexposed Type '{type.FullName}'.\n [{type.Span.Start}, {type.Span.End}]");
                 break;
             default:
                 throw new NotImplementedException();

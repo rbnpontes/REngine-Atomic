@@ -19,7 +19,8 @@ public enum PrimitiveKind
     Double,
     LongDouble,
     String,
-    VariantMap
+    VariantMap,
+    StringHash
 }
 public class PrimitiveTypeDefinition(Module module, ModuleItem? moduleItem, PrimitiveKind kind) : TypeDefinition(module, moduleItem)
 {

@@ -135,14 +135,14 @@ public:
     inline InstantiationType GetInstantiationType()  const { return instantiationType_; }
     inline void SetInstantiationType(InstantiationType type) { instantiationType_ = type; }
 
-    static void AddRefCountChangedFunction(RefCountChangedFunction function);
-    static void RemoveRefCountChangedFunction(RefCountChangedFunction function);
+    static ENGINE_BIND_IGNORE void AddRefCountChangedFunction(RefCountChangedFunction function);
+    static ENGINE_BIND_IGNORE void RemoveRefCountChangedFunction(RefCountChangedFunction function);
 
-    static void AddRefCountedCreatedFunction(RefCountedCreatedFunction function);
-    static void RemoveRefCountedCreatedFunction(RefCountedCreatedFunction function);
+    static ENGINE_BIND_IGNORE void AddRefCountedCreatedFunction(RefCountedCreatedFunction function);
+    static ENGINE_BIND_IGNORE void RemoveRefCountedCreatedFunction(RefCountedCreatedFunction function);
 
-    static void AddRefCountedDeletedFunction(RefCountedDeletedFunction function);
-    static void RemoveRefCountedDeletedFunction(RefCountedDeletedFunction function);
+    static ENGINE_BIND_IGNORE void AddRefCountedDeletedFunction(RefCountedDeletedFunction function);
+    static ENGINE_BIND_IGNORE void RemoveRefCountedDeletedFunction(RefCountedDeletedFunction function);
 
 // ATOMIC END
 
