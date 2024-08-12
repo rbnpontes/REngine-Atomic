@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "BindingGenerator": {
-      "commandName": "Project",
-      "commandLineArgs": "--input C:\\Users\\rbnpo\\Documents\\Projects\\REngine-Atomic\\Script\\Packages\\EngineCore\\module.json --output C:\\Users\\rbnpo\\Documents\\Projects\\REngine-Atomic\\Artifacts\\Build\\Source\\Javascript --bind js --source C:\\Users\\rbnpo\\Documents\\Projects\\REngine-Atomic"
-    }
-  }
-}
