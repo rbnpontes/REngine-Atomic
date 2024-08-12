@@ -18,7 +18,7 @@ public class TypeCollector(TypeCollectorCreateDesc createDesc)
     private Dictionary<CppElement, TypeDefinition> pCppTypes = new();
     private HashSet<string> pAllowedClasses = new();
     
-    public NamespaceDefinition Namespace { get; private set; } = new GlobalNamespaceDefinition(createDesc.Module, null);
+    public NamespaceDefinition Namespace { get; private set; } = new GlobalNamespaceDefinition();
     public int TotalOfTypes => pTypes.Count;
 
     public void Collect()
@@ -27,7 +27,7 @@ public class TypeCollector(TypeCollectorCreateDesc createDesc)
         pCppTypes.Clear();
         pAllowedClasses.Clear();
         
-        Namespace = new GlobalNamespaceDefinition(createDesc.Module, null);
+        Namespace = new GlobalNamespaceDefinition();
 
         var compilation = createDesc.Compilation;
         Dictionary<string, ModuleItem> allowedSrcFiles =
@@ -52,7 +52,7 @@ public class TypeCollector(TypeCollectorCreateDesc createDesc)
         var namespaceResult = new List<NamespaceDefinition>();
         foreach (var namespaceType in namespaces)
         {
-            var namespaceDef = new NamespaceDefinition(createDesc.Module, null);
+            var namespaceDef = new NamespaceDefinition();
             namespaceDef.Owner = @namespace;
             namespaceDef.Name = namespaceType.Name;
             namespaceDef.Comment = namespaceType.Comment?.ToString() ?? string.Empty;
@@ -102,7 +102,7 @@ public class TypeCollector(TypeCollectorCreateDesc createDesc)
             if(AstUtils.IsIgnoredType(@enum))
                 continue;
             
-            var enumDef = new EnumDefinition(createDesc.Module, moduleItem, @namespace)
+            var enumDef = new EnumDefinition(@namespace)
             {
                 Name = @enum.GetDisplayName(),
                 Comment = @enum.Comment?.ToString() ?? string.Empty,
@@ -152,7 +152,7 @@ public class TypeCollector(TypeCollectorCreateDesc createDesc)
             {
                 case CppClassKind.Class:
                 {
-                    var classDef = new ClassDefinition(createDesc.Module, moduleItem, @namespace)
+                    var classDef = new ClassDefinition(@namespace)
                     {
                         Name = @class.GetDisplayName(),
                         Comment = @class.Comment?.ToString() ?? string.Empty,
@@ -167,7 +167,7 @@ public class TypeCollector(TypeCollectorCreateDesc createDesc)
                     break;
                 case CppClassKind.Struct:
                 {
-                    var structDef = new StructDefinition(createDesc.Module, moduleItem, @namespace)
+                    var structDef = new StructDefinition(@namespace)
                     {
                         Name = @class.GetDisplayName(),
                         Comment = @class.Comment?.ToString() ?? string.Empty,
@@ -236,7 +236,7 @@ public class TypeCollector(TypeCollectorCreateDesc createDesc)
                     continue;
                 }
 
-                var method = new ClassMethodDefinition(createDesc.Module, @class.ModuleItem, @class)
+                var method = new ClassMethodDefinition(@class)
                 {
                     Name = func.Name,
                     Comment = func.Comment?.ToString() ?? string.Empty,
@@ -274,7 +274,7 @@ public class TypeCollector(TypeCollectorCreateDesc createDesc)
                     continue;
                 }
 
-                ConstructorMethodDefinition ctorDef = new(createDesc.Module, @class.ModuleItem, @class)
+                ConstructorMethodDefinition ctorDef = new(@class)
                 {
                     Name = ctor.Name,
                     Comment = ctor.Comment?.ToString() ?? string.Empty,
@@ -324,7 +324,7 @@ public class TypeCollector(TypeCollectorCreateDesc createDesc)
                     args[i] = argType;
                 }
 
-                var method = new StructMethodDefinition(createDesc.Module, @struct.ModuleItem, @struct);
+                var method = new StructMethodDefinition(@struct);
                 method.Name = func.Name;
                 method.Comment = func.Comment?.ToString() ?? string.Empty;
                 method.ReturnType = returnType!;
@@ -394,7 +394,7 @@ public class TypeCollector(TypeCollectorCreateDesc createDesc)
             if (skip)
                 continue;
             
-            var method = new StaticMethodDefinition(createDesc.Module, moduleItem, @namespace)
+            var method = new StaticMethodDefinition(@namespace)
             {
                 Name = function.Name,
                 Comment = function.Comment?.ToString() ?? string.Empty,
@@ -418,51 +418,32 @@ public class TypeCollector(TypeCollectorCreateDesc createDesc)
     private TypeDefinition? GetSuitableType(CppType type, CppType? prevType = null)
     {
         if (PrimitiveTypeDefinition.IsString(type))
-            return new PrimitiveTypeDefinition(createDesc.Module, null, PrimitiveKind.String);
+            return new PrimitiveTypeDefinition(PrimitiveKind.String);
         
         if(PrimitiveTypeDefinition.IsStringHash(type))
-           return new PrimitiveTypeDefinition(createDesc.Module, null, PrimitiveKind.StringHash);
+           return new PrimitiveTypeDefinition(PrimitiveKind.StringHash);
 
         if (PrimitiveTypeDefinition.IsVariant(type))
-            return new PrimitiveTypeDefinition(createDesc.Module, null, PrimitiveKind.Variant);
+            return new PrimitiveTypeDefinition(PrimitiveKind.Variant);
         
         TypeDefinition? result = null;
         switch (type.TypeKind)
         {
             case CppTypeKind.Primitive:
-                result = new PrimitiveTypeDefinition(createDesc.Module, null, (PrimitiveKind)((CppPrimitiveType)type).Kind);
+                result = new PrimitiveTypeDefinition((PrimitiveKind)((CppPrimitiveType)type).Kind);
                 break;
             case CppTypeKind.Pointer:
             {
                 var nextType = GetSuitableType(((CppPointerType)type).ElementType, type);
                 if (nextType != null)
-                {
-                    result = new PointerTypeDefinition(
-                        createDesc.Module, 
-                        null, 
-                        new PointerTypeDefinition(
-                            createDesc.Module, 
-                            null, 
-                            nextType
-                        )
-                    );
-                }
+                    result = new PointerTypeDefinition(nextType);
             }
                 break;
             case CppTypeKind.Reference:
             {
                 var nextType = GetSuitableType(((CppReferenceType)type).ElementType, type);
                 if (nextType != null)
-                {
-                    result = new ReferenceTypeDefinition(
-                        createDesc.Module,
-                        null,
-                        new PointerTypeDefinition(
-                            createDesc.Module,
-                            null,
-                            nextType)
-                    );
-                }
+                    result = new ReferenceTypeDefinition(nextType);
             }
                 break;
             case CppTypeKind.StructOrClass:
@@ -472,21 +453,20 @@ public class TypeCollector(TypeCollectorCreateDesc createDesc)
                 {
                     var targetType = GetSuitableType(klass.TemplateSpecializedArguments[0].ArgAsType, type);
                     if (targetType is not null)
-                        result = new VectorDefinition(createDesc.Module, null, targetType,
-                            VectorDefinition.GetVectorType(type));
+                        result = new VectorDefinition(targetType, VectorDefinition.GetVectorType(type));
                 } 
                 else if (HashMapDefinition.IsHashMap(type))
                 {
                     var targetType = GetSuitableType(klass.TemplateSpecializedArguments[0].ArgAsType, type);
                     if (targetType is not null)
-                        result = new HashMapDefinition(createDesc.Module, null, targetType);
+                        result = new HashMapDefinition(targetType);
                 }
                 else if (SmartPointerTypeDefinition.IsSmartPointer(type))
                 {
                     var targetType = GetSuitableType(klass.TemplateSpecializedArguments[0].ArgAsType, type);
                     if (targetType is not null)
                     {
-                        var smartPtr = new SmartPointerTypeDefinition(createDesc.Module, null, targetType);
+                        var smartPtr = new SmartPointerTypeDefinition(targetType);
                         smartPtr.IsWeak = SmartPointerTypeDefinition.IsWeakPtr(type);
                         result = smartPtr;
                     }
@@ -502,7 +482,7 @@ public class TypeCollector(TypeCollectorCreateDesc createDesc)
             {
                 var qualifiedType = (CppQualifiedType)type;   
                 if (string.Equals(type.FullName, "char const"))
-                    result = new PrimitiveTypeDefinition(createDesc.Module, null, PrimitiveKind.String);
+                    result = new PrimitiveTypeDefinition(PrimitiveKind.String);
                 else if (qualifiedType.Qualifier == CppTypeQualifier.Const)
                     result = GetSuitableType(qualifiedType.ElementType, prevType);
                 else
@@ -514,9 +494,9 @@ public class TypeCollector(TypeCollectorCreateDesc createDesc)
                 var typeDef = (CppTypedef)type;
                 // If previous type is a pointer, then we must deal as void*
                 if (prevType?.TypeKind == CppTypeKind.Pointer)
-                    result = new PrimitiveTypeDefinition(createDesc.Module, null, PrimitiveKind.Void);
+                    result = new PrimitiveTypeDefinition(PrimitiveKind.Void);
                 else if (string.Equals(type.GetDisplayName(), "VariantMap"))
-                    result = new PrimitiveTypeDefinition(createDesc.Module, null, PrimitiveKind.VariantMap);
+                    result = new PrimitiveTypeDefinition(PrimitiveKind.VariantMap);
                 else
                     result = GetSuitableType(typeDef.ElementType, prevType);
             }

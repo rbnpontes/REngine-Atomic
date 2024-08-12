@@ -7,7 +7,7 @@ public class EnumEntry(EnumDefinition owner)
     public string Name { get; set; } = string.Empty;
     public int Value { get; set; }
 }
-public class EnumDefinition(Module module, ModuleItem moduleItem, NamespaceDefinition @namespace) : TypeDefinition(module, moduleItem)
+public class EnumDefinition(NamespaceDefinition @namespace) : TypeDefinition(TypeDefKind.Enum)
 {
     public EnumEntry[] Entries { get; set; } = [];
     public NamespaceDefinition Namespace { get; } = @namespace;

@@ -23,9 +23,10 @@ public enum PrimitiveKind
     String,
     VariantMap,
     StringHash,
-    Variant
+    Variant,
+    Unknow // Must be the last item
 }
-public class PrimitiveTypeDefinition(Module module, ModuleItem? moduleItem, PrimitiveKind kind) : TypeDefinition(module, moduleItem)
+public class PrimitiveTypeDefinition(PrimitiveKind kind) : TypeDefinition(TypeDefKind.Primitive)
 {
     public PrimitiveKind Kind => kind;
     public override string GetUniqueName()

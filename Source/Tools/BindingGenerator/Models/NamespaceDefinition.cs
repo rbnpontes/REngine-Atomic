@@ -1,6 +1,6 @@
 namespace BindingGenerator.Models;
 
-public class NamespaceDefinition(Module module, ModuleItem? moduleItem) : TypeDefinition(module, moduleItem)
+public class NamespaceDefinition() : TypeDefinition(TypeDefKind.Namespace)
 {
     public NamespaceDefinition? Owner { get; set; }
     public EnumDefinition[] Enums { get; set; } = [];
@@ -33,7 +33,7 @@ public class NamespaceDefinition(Module module, ModuleItem? moduleItem) : TypeDe
     }
 }
 
-public class GlobalNamespaceDefinition(Module module, ModuleItem? moduleItem) : NamespaceDefinition(module, moduleItem)
+public class GlobalNamespaceDefinition : NamespaceDefinition
 {
     public override string GetUniqueName()
     {

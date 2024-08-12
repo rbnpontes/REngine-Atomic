@@ -2,7 +2,7 @@ using CppAst;
 
 namespace BindingGenerator.Models;
 
-public class SmartPointerTypeDefinition(Module module, ModuleItem? moduleItem, TypeDefinition type) : TypeDefinition(module, moduleItem)
+public class SmartPointerTypeDefinition(TypeDefinition type) : TypeDefinition(TypeDefKind.SmartPtr)
 {
     public TypeDefinition Type => type;
     public bool IsWeak { get; set; }

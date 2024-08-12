@@ -1,6 +1,6 @@
 namespace BindingGenerator.Models;
 
-public class ReferenceTypeDefinition(Module module, ModuleItem? moduleItem, TypeDefinition type) : TypeDefinition(module, moduleItem)
+public class ReferenceTypeDefinition(TypeDefinition type) : TypeDefinition(TypeDefKind.Ref)
 {
     public TypeDefinition Type => type;
     public override string GetUniqueName()

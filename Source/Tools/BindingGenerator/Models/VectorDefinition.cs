@@ -8,7 +8,7 @@ public enum VectorType
     Default,
     Pod
 }
-public class VectorDefinition(Module module, ModuleItem? moduleItem, TypeDefinition type, VectorType vecType) : TypeDefinition(module, moduleItem)
+public class VectorDefinition(TypeDefinition type, VectorType vecType) : TypeDefinition(TypeDefKind.Vector)
 {
     private static readonly Dictionary<string, VectorType> pVecTypes = new ()
     {

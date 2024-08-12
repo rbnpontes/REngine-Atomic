@@ -1,6 +1,6 @@
 namespace BindingGenerator.Models;
 
-public class ClassDefinition(Module module, ModuleItem moduleItem, NamespaceDefinition @namespace) : TypeDefinition(module, moduleItem)
+public class ClassDefinition(NamespaceDefinition @namespace) : TypeDefinition(TypeDefKind.Class)
 {
     public bool IsAbstract { get; set; }
     public NamespaceDefinition Namespace { get; } = @namespace;

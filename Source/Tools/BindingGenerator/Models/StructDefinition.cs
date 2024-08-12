@@ -1,6 +1,6 @@
 namespace BindingGenerator.Models;
 
-public class StructDefinition(Module module, ModuleItem moduleItem, NamespaceDefinition @namespace) : TypeDefinition(module, moduleItem)
+public class StructDefinition(NamespaceDefinition @namespace) : TypeDefinition(TypeDefKind.Struct)
 {
     public NamespaceDefinition Namespace { get; } = @namespace;
     public StructMethodDefinition[] Methods { get; set; } = [];

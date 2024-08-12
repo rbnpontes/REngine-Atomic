@@ -2,10 +2,10 @@ using System.Text;
 
 namespace BindingGenerator.Models;
 
-public abstract class BaseMethodDefinition(Module module, ModuleItem moduleItem) : TypeDefinition(module, moduleItem)
+public abstract class BaseMethodDefinition(TypeDefKind typeDefKind) : TypeDefinition(typeDefKind)
 {
     public TypeDefinition[] ArgumentTypes { get; set; } = [];
-    public TypeDefinition ReturnType { get; set; } = new PrimitiveTypeDefinition(module, null, PrimitiveKind.Void);
+    public TypeDefinition ReturnType { get; set; } = new PrimitiveTypeDefinition(PrimitiveKind.Void);
 
     public override string GetUniqueName()
     {

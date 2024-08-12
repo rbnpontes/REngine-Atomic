@@ -1,7 +1,7 @@
 namespace BindingGenerator.Models;
 
-public class ConstructorMethodDefinition(Module module, ModuleItem? moduleItem, ClassDefinition owner)
-    : BaseMethodDefinition(module, moduleItem)
+public class ConstructorMethodDefinition(ClassDefinition owner)
+    : BaseMethodDefinition(TypeDefKind.Constructor)
 {
     public ClassDefinition Owner { get; } = owner;
     public override string GetUniqueName()
@@ -9,7 +9,7 @@ public class ConstructorMethodDefinition(Module module, ModuleItem? moduleItem, 
         return "ctor "+Owner.GetUniqueName() + "::" + base.GetUniqueName();
     }
 }
-public class ClassMethodDefinition(Module module, ModuleItem? moduleItem, ClassDefinition owner) : BaseMethodDefinition(module, moduleItem)
+public class ClassMethodDefinition(ClassDefinition owner) : BaseMethodDefinition(TypeDefKind.ClassMethod)
 {
     public ClassDefinition Owner { get; } = owner;
     public bool IsStatic { get; set; }
@@ -18,7 +18,7 @@ public class ClassMethodDefinition(Module module, ModuleItem? moduleItem, ClassD
         return Owner.GetUniqueName() + "::" + base.GetUniqueName();
     }
 }
-public class StructMethodDefinition(Module module, ModuleItem? moduleItem, StructDefinition owner) : BaseMethodDefinition(module, moduleItem)
+public class StructMethodDefinition(StructDefinition owner) : BaseMethodDefinition(TypeDefKind.StructMethod)
 {
     public StructDefinition Owner { get; } = owner;
     public override string GetUniqueName()
@@ -27,7 +27,7 @@ public class StructMethodDefinition(Module module, ModuleItem? moduleItem, Struc
     }
 }
 
-public class StaticMethodDefinition(Module module, ModuleItem? moduleItem, NamespaceDefinition @namespace) : BaseMethodDefinition(module, moduleItem)
+public class StaticMethodDefinition(NamespaceDefinition @namespace) : BaseMethodDefinition(TypeDefKind.StaticMethod)
 {
     public NamespaceDefinition Namespace { get; } = @namespace;
 

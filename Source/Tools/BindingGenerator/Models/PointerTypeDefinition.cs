@@ -1,6 +1,6 @@
 namespace BindingGenerator.Models;
 
-public class PointerTypeDefinition(Module module, ModuleItem? moduleItem, TypeDefinition type) : TypeDefinition(module, moduleItem)
+public class PointerTypeDefinition(TypeDefinition type) : TypeDefinition(TypeDefKind.Pointer)
 {
     public TypeDefinition Type => type;
     public override string GetUniqueName()
