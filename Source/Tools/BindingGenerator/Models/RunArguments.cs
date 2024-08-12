@@ -11,7 +11,8 @@ namespace BindingGenerator.Models
 		public string SourceDir { get; set; } = string.Empty;
 		public string OutputDir { get; set; } = string.Empty;
 		public string InputDir { get; set; } = string.Empty;
-		public bool EnableWarnings { get; set; } = false;
+		public bool EnableWarnings { get; set; }
+		public bool SerializeAst { get; set; }
 		public BindingType BindingType { get; set; } = BindingType.None;
 	}
 }

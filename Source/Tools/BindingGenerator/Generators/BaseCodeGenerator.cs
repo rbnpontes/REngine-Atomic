@@ -53,6 +53,20 @@ namespace BindingGenerator.Generators
             typeCollector.Collect();
             
             Console.WriteLine("- Total of Types: " + typeCollector.TotalOfTypes);
+
+            if (!arguments.SerializeAst) 
+                return;
+            
+            Console.WriteLine("- Serializing Types AST.");
+            var target = Path.Join(arguments.OutputDir, "ast.json");
+            if(File.Exists(target))
+                File.Delete(target);
+                
+            using var stream = new FileStream(target, FileMode.CreateNew);
+            // ReSharper disable once NullableWarningSuppressionIsUsed
+            var serializer = new TypeDefinitionSerializer(new NamespaceDefinition[] { mGlobalNamespace! });
+            serializer.Build();
+            serializer.Save(stream);
         }
 
         protected virtual void LoadModule()

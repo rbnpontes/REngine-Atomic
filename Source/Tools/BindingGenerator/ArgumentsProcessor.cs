@@ -98,6 +98,13 @@ namespace BindingGenerator
 					}	
 				},
 				{
+					"--serialize", (argIdx) =>
+					{
+						result.SerializeAst = true;
+						return argIdx;
+					}
+				},
+				{
 					"--help", (idx) =>
 					{
 						Console.WriteLine("");
@@ -113,6 +120,7 @@ namespace BindingGenerator
 						Console.WriteLine("--input PATH/module.json : Path to module.json that contains binding info.");
 						Console.WriteLine("--output: PATH/ : Path where tool will output generated binding files.");
 						Console.WriteLine("--warn: Enable warning logs");
+						Console.WriteLine("--serialize: Enable AST Serialization. Serialization Data will be placed at output directory");
 						Console.WriteLine("");
 						// Reset run arguments
 						result = new RunArguments();

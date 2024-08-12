@@ -29,3 +29,4 @@ Script/Haxe/*
 node_modules/
 .DS_Store
 Source/Tools/BindingGenerator/obj/**/*
+Source/Tools/BindingGenerator/Properties/launchSettings.json

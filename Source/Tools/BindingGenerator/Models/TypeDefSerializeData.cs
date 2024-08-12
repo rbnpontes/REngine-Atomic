@@ -56,7 +56,7 @@ public class VectorData
     public VectorType Type { get; set; }
     public int ElementType { get; set; } = -1;
 }
-public class TypeSerializeData
+public class TypeDefSerializeData
 {
     // Id must be the same of type index at types list.
     public int Id { get; set; }
