@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using BindingGenerator.Models;
 using BindingGenerator.Utils;
 using CppAst;
@@ -209,14 +210,14 @@ public class TypeCollector(TypeCollectorCreateDesc createDesc)
                 
                 if (AstUtils.IsIgnoredType(func))
                     continue;
+                
+                if(AstUtils.IsOperatorMethod(func))
+                    continue;
 
                 var returnType = GetSuitableType(func.ReturnType);
                 var args = new TypeDefinition[func.Parameters.Count];
+                var skip = returnType is null;
                 
-                if(returnType is null)
-                    continue;
-                
-                var skip = false;
                 for (var i = 0; i < func.Parameters.Count; ++i)
                 {
                     var argType = GetSuitableType(func.Parameters[i].Type);
@@ -230,14 +231,17 @@ public class TypeCollector(TypeCollectorCreateDesc createDesc)
                 }
 
                 if (skip)
+                {
+                    Console.WriteLine($"- Skipping class method {func.Name}. [{func.Span.Start}, {func.Span.End}]");
                     continue;
+                }
 
                 var method = new ClassMethodDefinition(createDesc.Module, @class.ModuleItem, @class)
                 {
                     Name = func.Name,
                     Comment = func.Comment?.ToString() ?? string.Empty,
                     IsStatic = func.IsStatic,
-                    ReturnType = returnType,
+                    ReturnType = returnType!,
                     ArgumentTypes = args,
                     HeaderFilePath = func.SourceFile,
                 };
@@ -265,13 +269,18 @@ public class TypeCollector(TypeCollectorCreateDesc createDesc)
                 }
 
                 if (skip)
+                {
+                    Console.WriteLine($"- Skipping class constructor '{ctor}'. [{ctor.Span.Start}, {ctor.Span.End}]");
                     continue;
+                }
 
-                ConstructorMethodDefinition ctorDef = new(createDesc.Module, @class.ModuleItem, @class);
-                ctorDef.Name = ctor.Name;
-                ctorDef.Comment = ctor.Comment?.ToString() ?? string.Empty;
-                ctorDef.ArgumentTypes = args;
-                ctorDef.HeaderFilePath = ctor.SourceFile;
+                ConstructorMethodDefinition ctorDef = new(createDesc.Module, @class.ModuleItem, @class)
+                {
+                    Name = ctor.Name,
+                    Comment = ctor.Comment?.ToString() ?? string.Empty,
+                    ArgumentTypes = args,
+                    HeaderFilePath = ctor.SourceFile
+                };
                 constructors.Add(ctorDef);
             }
 
@@ -281,7 +290,51 @@ public class TypeCollector(TypeCollectorCreateDesc createDesc)
 
         foreach (var @struct in structs)
         {
-            throw new NotImplementedException();
+            var (_, structElement) = pTypes[@struct.GetUniqueName()];
+            var klass = (CppClass)structElement;
+            var methods = new List<StructMethodDefinition>();
+            
+            foreach (var func in klass.Functions)
+            {
+                if(func.IsFunctionTemplate)
+                    continue;
+                
+                if(func.Visibility != CppVisibility.Public && func.Visibility != CppVisibility.Default)
+                    continue;
+                
+                if(AstUtils.IsIgnoredType(func))
+                    continue;
+                
+                if(AstUtils.IsOperatorMethod(func))
+                    continue;
+                
+                var returnType = GetSuitableType(func.ReturnType);
+                var args = new TypeDefinition[func.Parameters.Count];
+                var skip = returnType is null;
+
+                for (var i = 0; i < func.Parameters.Count; ++i)
+                {
+                    var argType = GetSuitableType(func.Parameters[i].Type);
+                    if (argType is null)
+                    {
+                        skip = true;
+                        break;
+                    }
+
+                    args[i] = argType;
+                }
+
+                var method = new StructMethodDefinition(createDesc.Module, @struct.ModuleItem, @struct);
+                method.Name = func.Name;
+                method.Comment = func.Comment?.ToString() ?? string.Empty;
+                method.ReturnType = returnType!;
+                method.ArgumentTypes = args;
+                method.HeaderFilePath = func.SourceFile;
+
+                methods.Add(method);
+            }
+
+            @struct.Methods = methods.ToArray();
         }
         
         foreach(var nextNamespace in @namespace.Namespaces)
@@ -364,25 +417,14 @@ public class TypeCollector(TypeCollectorCreateDesc createDesc)
     }
     private TypeDefinition? GetSuitableType(CppType type, CppType? prevType = null)
     {
-        if (AstUtils.IsString(type))
+        if (PrimitiveTypeDefinition.IsString(type))
             return new PrimitiveTypeDefinition(createDesc.Module, null, PrimitiveKind.String);
         
-        if(AstUtils.IsStringHash(type))
+        if(PrimitiveTypeDefinition.IsStringHash(type))
            return new PrimitiveTypeDefinition(createDesc.Module, null, PrimitiveKind.StringHash);
 
-        if (AstUtils.IsVector(type))
-        {
-            var klass = (CppClass)type;
-            var targetType = GetSuitableType(klass.TemplateSpecializedArguments[0].ArgAsType, type);
-            if (targetType is null)
-                return null;
-            return new VectorDefinition(
-                createDesc.Module, 
-                null, 
-                targetType, 
-                AstUtils.GetVectorType(type)
-            );
-        }
+        if (PrimitiveTypeDefinition.IsVariant(type))
+            return new PrimitiveTypeDefinition(createDesc.Module, null, PrimitiveKind.Variant);
         
         TypeDefinition? result = null;
         switch (type.TypeKind)
@@ -424,6 +466,35 @@ public class TypeCollector(TypeCollectorCreateDesc createDesc)
             }
                 break;
             case CppTypeKind.StructOrClass:
+            {
+                var klass = (CppClass)type;
+                if (VectorDefinition.IsVector(type))
+                {
+                    var targetType = GetSuitableType(klass.TemplateSpecializedArguments[0].ArgAsType, type);
+                    if (targetType is not null)
+                        result = new VectorDefinition(createDesc.Module, null, targetType,
+                            VectorDefinition.GetVectorType(type));
+                } 
+                else if (HashMapDefinition.IsHashMap(type))
+                {
+                    var targetType = GetSuitableType(klass.TemplateSpecializedArguments[0].ArgAsType, type);
+                    if (targetType is not null)
+                        result = new HashMapDefinition(createDesc.Module, null, targetType);
+                }
+                else if (SmartPointerTypeDefinition.IsSmartPointer(type))
+                {
+                    var targetType = GetSuitableType(klass.TemplateSpecializedArguments[0].ArgAsType, type);
+                    if (targetType is not null)
+                    {
+                        var smartPtr = new SmartPointerTypeDefinition(createDesc.Module, null, targetType);
+                        smartPtr.IsWeak = SmartPointerTypeDefinition.IsWeakPtr(type);
+                        result = smartPtr;
+                    }
+                }
+                else
+                    result = GetType(type);
+            }
+                break;
             case CppTypeKind.Enum:
                 result = GetType(type);
                 break;

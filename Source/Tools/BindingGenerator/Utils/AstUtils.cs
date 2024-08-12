@@ -31,16 +31,6 @@ public static class AstUtils
         return arg != null;
     }
 
-    public static bool IsStringHash(CppType type)
-    {
-        return string.Equals(type.GetDisplayName().ToLowerInvariant(), "stringhash");
-    }
-
-    public static bool IsString(CppType type)
-    {
-        return string.Equals(type.GetDisplayName().ToLowerInvariant(), "string");
-    }
-
     public static bool IsVector(CppType type)
     {
         return GetVectorType(type) != VectorType.Undefined;

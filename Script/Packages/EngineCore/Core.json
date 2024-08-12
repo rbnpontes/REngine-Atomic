@@ -1,6 +1,9 @@
 {
-	"name" : "Core",
-	"sources" : ["Source/EngineCore/Core", "Source/EngineCore/BuildInfo"],
+	"name": "Core",
+	"sources": [
+		"Source/EngineCore/Core",
+		"Source/EngineCore/BuildInfo"
+	],
 	"includes": [
 		"<EngineCore/Engine/Engine.h>",
 		"<EngineCore/Network/Network.h>",
@@ -12,37 +15,52 @@
 		"<EngineCore/Graphics/Renderer.h>",
 		"<EngineCore/Metrics/Metrics.h>"
 	],
-	"classes" : ["Context", "Object", "AtomicBuildInfo", "Time", "Profiler"],
-	"classes_rename" : {
-		"Object" : "EngineObject"
+	"classes": [
+		"Context",
+		"Object",
+		"AtomicBuildInfo",
+		"Time",
+		"Profiler",
+		"TypeInfo",
+		"ResourceRef",
+		"AttributeInfo"
+	],
+	"classes_rename": {
+		"Object": "EngineObject"
 	},
-	"excludes" : {
-		"all" : {
-			"Object" : {
-				"SendEvent" : ["StringHash"]
+	"excludes": {
+		"all": {
+			"Object": {
+				"SendEvent": [
+					"StringHash"
+				]
 			},
-			"Context" : {
-				"GetTypeName" : ["StringHash"],
-				"RequireIK" : [],
-				"ReleaseIK" : []
+			"Context": {
+				"GetTypeName": [
+					"StringHash"
+				],
+				"RequireIK": [],
+				"ReleaseIK": []
 			}
 		},
-		"CSharp" : {
-			"Object" : {
-				"UnsubscribeFromAllEvents" : []
+		"CSharp": {
+			"Object": {
+				"UnsubscribeFromAllEvents": []
 			},
 			"Profiler": {
-				"EndBlock" : []
+				"EndBlock": []
 			}
 		}
 	},
-	"overloads" : {
-		"Object" : {
-			"UnsubscribeFromEvent" : ["StringHash"]
+	"overloads": {
+		"Object": {
+			"UnsubscribeFromEvent": [
+				"StringHash"
+			]
 		}
 	},
-	"typescript_decl" : {
-		"Object" : [
+	"typescript_decl": {
+		"Object": [
 			"sendEvent(eventType:string, data?:Object);",
 			"sendEvent<T extends {{PACKAGE_NAME}}.EventCallbackMetaData>(eventCallbackMetaData:T);",
 			"subscribeToEvent(eventType:string, callback:(data:any) => void);",
@@ -50,13 +68,12 @@
 			"subscribeToEvent(eventMetaData: {{PACKAGE_NAME}}.EventMetaData);",
 			"subscribeToEvent(sender:AObject, eventMetaData: {{PACKAGE_NAME}}.EventMetaData);"
 		],
-		"Profiler" : [
+		"Profiler": [
 			"beginBlock(name:string, filename:string, line:number, argb?:number, status?: {{PACKAGE_NAME}}.ProfilerBlockStatus);"
 		]
 	},
-	"haxe_decl" : {
-
-		"Object" : [
+	"haxe_decl": {
+		"Object": [
 			"function sendEvent(eventType:String, ?data:Dynamic):Void;",
 			"@:overload(function(sender:AObject, eventType:String, callback:Dynamic->Void):Void{})",
 			"function subscribeToEvent(eventType:String, callback:Dynamic->Void):Void;"

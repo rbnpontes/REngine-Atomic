@@ -20,24 +20,27 @@
 // THE SOFTWARE.
 //
 
+#if ENGINE_BINDING_TOOL
+    #include "../EngineCore.h"
+#endif
 // ATOMIC BEGIN
 extern "C" {
 // ATOMIC END
 
 /// Return true when the running OS has the specified version number or later.
-bool CheckMinimalVersion(int major, int minor);
+ENGINE_BIND_IGNORE bool CheckMinimalVersion(int major, int minor);
 
 /// Return true when individual file watcher is supported by the running Mac OS X.
-bool IsFileWatcherSupported();
+ENGINE_BIND_IGNORE bool IsFileWatcherSupported();
 
 /// Create and start the file watcher.
-void* CreateFileWatcher(const char* pathname, bool watchSubDirs);
+ENGINE_BIND_IGNORE void* CreateFileWatcher(const char* pathname, bool watchSubDirs);
 
 /// Stop and release the file watcher.
-void CloseFileWatcher(void* watcher);
+ENGINE_BIND_IGNORE void CloseFileWatcher(void* watcher);
 
 /// Read changes queued by the file watcher.
-const char* ReadFileWatcher(void* watcher);
+ENGINE_BIND_IGNORE const char* ReadFileWatcher(void* watcher);
 
 // ATOMIC BEGIN
 }

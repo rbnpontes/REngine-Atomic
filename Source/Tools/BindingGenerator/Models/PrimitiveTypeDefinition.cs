@@ -1,3 +1,5 @@
+using CppAst;
+
 namespace BindingGenerator.Models;
 
 public enum PrimitiveKind
@@ -20,7 +22,8 @@ public enum PrimitiveKind
     LongDouble,
     String,
     VariantMap,
-    StringHash
+    StringHash,
+    Variant
 }
 public class PrimitiveTypeDefinition(Module module, ModuleItem? moduleItem, PrimitiveKind kind) : TypeDefinition(module, moduleItem)
 {
@@ -28,5 +31,18 @@ public class PrimitiveTypeDefinition(Module module, ModuleItem? moduleItem, Prim
     public override string GetUniqueName()
     {
         return Enum.GetName(typeof(PrimitiveKind), kind) ?? string.Empty;
+    }
+
+    public static bool IsString(CppType type)
+    {
+        return string.Equals(type.GetDisplayName().ToLowerInvariant(), "string");
+    }
+    public static bool IsVariant(CppType type)
+    {
+        return string.Equals(type.GetDisplayName().ToLowerInvariant(), "variant");
+    }
+    public static bool IsStringHash(CppType type)
+    {
+        return string.Equals(type.GetDisplayName().ToLowerInvariant(), "stringhash");
     }
 }
