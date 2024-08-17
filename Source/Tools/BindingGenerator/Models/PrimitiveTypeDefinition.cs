@@ -26,12 +26,12 @@ public enum PrimitiveKind
     Variant,
     Unknow // Must be the last item
 }
-public class PrimitiveTypeDefinition(PrimitiveKind kind) : TypeDefinition(TypeDefKind.Primitive)
+public class PrimitiveTypeDefinition(PrimitiveKind primitiveKind) : TypeDefinition(TypeDefKind.Primitive)
 {
-    public PrimitiveKind Kind => kind;
+    public PrimitiveKind PrimitiveKind => primitiveKind;
     public override string GetUniqueName()
     {
-        return Enum.GetName(typeof(PrimitiveKind), kind) ?? string.Empty;
+        return Enum.GetName(typeof(PrimitiveKind), primitiveKind) ?? string.Empty;
     }
 
     public static bool IsString(CppType type)

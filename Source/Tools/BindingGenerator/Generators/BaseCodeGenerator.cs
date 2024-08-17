@@ -22,7 +22,7 @@ namespace BindingGenerator.Generators
         protected readonly List<ModuleItem> mModuleItems = new();
         protected readonly List<(ModuleItem, string)> mSourceFiles = new();
 
-        protected GlobalNamespaceDefinition? mGlobalNamespace;
+        protected NamespaceDefinition? mGlobalNamespace;
         protected readonly Dictionary<string, (TypeDefinition, CppElement)> mTypes = new();
 
         public virtual void Run()
@@ -40,6 +40,21 @@ namespace BindingGenerator.Generators
 
             LoadSourceFiles();
             Console.WriteLine($"- Found {mSourceFiles.Count} header files.");
+            
+            var astTargetPath = Path.Join(arguments.OutputDir, "ast.json");
+            if (File.Exists(astTargetPath))
+            {
+                Console.WriteLine("- Found Serialized AST Data. Loading and Skipping AST Build");
+                using var astStream = new FileStream(astTargetPath, FileMode.Open);
+                var deserializer = new TypeDefinitionDeserializer();
+                deserializer.Deserialize(astStream);
+
+                mGlobalNamespace = deserializer.Namespace;
+                Console.WriteLine("- Deserialize was success");
+                Console.WriteLine("- Total of Types: " + deserializer.TotalOfTypes);
+                return;
+            }
+            
             Console.WriteLine($"- Building AST");
             var compilation = BuildSourcesAst();
             Console.WriteLine("- Collect Type Definitions");
@@ -51,6 +66,7 @@ namespace BindingGenerator.Generators
                 }
             );
             typeCollector.Collect();
+            mGlobalNamespace = typeCollector.Namespace;
             
             Console.WriteLine("- Total of Types: " + typeCollector.TotalOfTypes);
 
@@ -58,15 +74,14 @@ namespace BindingGenerator.Generators
                 return;
             
             Console.WriteLine("- Serializing Types AST.");
-            var target = Path.Join(arguments.OutputDir, "ast.json");
-            if(File.Exists(target))
-                File.Delete(target);
+            if(File.Exists(astTargetPath))
+                File.Delete(astTargetPath);
                 
-            using var stream = new FileStream(target, FileMode.CreateNew);
-            // ReSharper disable once NullableWarningSuppressionIsUsed
-            var serializer = new TypeDefinitionSerializer(new NamespaceDefinition[] { mGlobalNamespace! });
+            using var stream = new FileStream(astTargetPath, FileMode.CreateNew);
+            
+            var serializer = new TypeDefinitionSerializer(typeCollector.Namespace);
             serializer.Build();
-            serializer.Save(stream);
+            serializer.Serialize(stream);
         }
 
         protected virtual void LoadModule()

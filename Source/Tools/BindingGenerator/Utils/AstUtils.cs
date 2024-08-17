@@ -30,16 +30,4 @@ public static class AstUtils
         var arg = attributeContainer.MetaAttributes.QueryArgument("engine_bind_ignore");
         return arg != null;
     }
-
-    public static bool IsVector(CppType type)
-    {
-        return GetVectorType(type) != VectorType.Undefined;
-    }
-
-    public static VectorType GetVectorType(CppType type)
-    {
-        if (pVecTypes.TryGetValue(type.GetDisplayName().ToLowerInvariant(), out var vecType))
-            return vecType;
-        return VectorType.Undefined;
-    }
 }
