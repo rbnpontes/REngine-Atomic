@@ -384,6 +384,7 @@ public class TypeCollector(TypeCollectorCreateDesc createDesc)
                     Comment = field.Comment?.ToString() ?? string.Empty,
                     HeaderFilePath = field.SourceFile,
                     Type = type,
+                    IsStatic = field.StorageQualifier == CppStorageQualifier.Static
                 };
                 fields.Add(fieldType);
             }
@@ -418,7 +419,8 @@ public class TypeCollector(TypeCollectorCreateDesc createDesc)
                     Name = field.Name,
                     Comment = field.Comment?.ToString() ?? string.Empty,
                     HeaderFilePath = field.SourceFile,
-                    Type = type
+                    Type = type,
+                    IsStatic = field.StorageQualifier == CppStorageQualifier.Static
                 };
                 fields.Add(fieldType);
             }

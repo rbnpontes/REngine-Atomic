@@ -179,6 +179,7 @@ public class TypeDefinitionDeserializer
         FillTypeInfo(field, fieldDef);
         pTypesMap[fieldDef] = field;
 
+        field.IsStatic = fieldDef.FieldData.IsStatic;
         field.Type = GetType(pTypes[fieldDef.FieldData.Type]);
         return field;
     }
@@ -214,6 +215,7 @@ public class TypeDefinitionDeserializer
         FillTypeInfo(field, fieldDef);
         pTypesMap[fieldDef] = field;
 
+        field.IsStatic = fieldDef.FieldData.IsStatic;
         field.Type = GetType(pTypes[fieldDef.FieldData.Type]);
         return field;
     }

@@ -43,6 +43,7 @@ public class FieldSerializeData
 {
     public int Owner { get; set; } = -1;
     public int Type { get; set; } = -1;
+    public bool IsStatic { get; set; } = false;
 }
 
 public class MethodSerializeData

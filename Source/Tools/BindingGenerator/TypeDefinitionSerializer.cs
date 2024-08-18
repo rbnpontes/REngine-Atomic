@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using BindingGenerator.Models;
@@ -285,7 +286,7 @@ public class TypeDefinitionSerializer(NamespaceDefinition rootNamespace)
                         Comment = field.Comment,
                         HeaderFilePath = field.HeaderFilePath,
                         Kind = TypeDefKind.Field,
-                        FieldData = new FieldSerializeData() { Owner = classType.Id }
+                        FieldData = new FieldSerializeData() { Owner = classType.Id, IsStatic = field.IsStatic }
                     };
                     
                     pTypes.Add(type);
@@ -342,7 +343,8 @@ public class TypeDefinitionSerializer(NamespaceDefinition rootNamespace)
                         Kind = TypeDefKind.Field,
                         FieldData = new FieldSerializeData()
                         {
-                            Owner = structType.Id
+                            Owner = structType.Id,
+                            IsStatic = field.IsStatic
                         }
                     };
                     
