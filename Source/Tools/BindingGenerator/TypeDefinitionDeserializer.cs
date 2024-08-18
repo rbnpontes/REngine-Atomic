@@ -137,7 +137,6 @@ public class TypeDefinitionDeserializer
         FillTypeInfo(ctor, ctorDef);
         pTypesMap[ctorDef] = ctor;
 
-        ctor.ReturnType = GetType(pTypes[ctorDef.MethodData.ReturnType]);
         ctor.ArgumentTypes = ctorDef.MethodData.ArgTypes.Select(x => GetType(pTypes[x])).ToArray();
         return ctor;
     }

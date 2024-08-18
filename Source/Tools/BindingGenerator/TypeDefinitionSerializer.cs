@@ -129,7 +129,11 @@ public class TypeDefinitionSerializer(NamespaceDefinition rootNamespace)
                     Comment = klass.Comment,
                     HeaderFilePath = klass.HeaderFilePath,
                     Kind = TypeDefKind.Class,
-                    ClassData = new ClassSerializeData() { Namespace = namespaceType.Id }
+                    ClassData = new ClassSerializeData()
+                    {
+                        Namespace = namespaceType.Id,
+                        IsAbstract = klass.IsAbstract
+                    }
                 };
                 
                 pTypes.Add(type);
@@ -222,7 +226,7 @@ public class TypeDefinitionSerializer(NamespaceDefinition rootNamespace)
             {
                 var classType = pLookupTbl[klass];
                 var methodIds = new List<int>();
-                var ctorsIds = new List<int>();
+                var currentCtors = new Dictionary<string, TypeDefSerializeData>();
                 
                 foreach (var method in klass.Methods)
                 {
@@ -241,8 +245,10 @@ public class TypeDefinitionSerializer(NamespaceDefinition rootNamespace)
                     };
                     
                     pTypes.Add(type);
+                    pLookupTbl[method] = type;
                     methodIds.Add(type.Id);
                 }
+
 
                 foreach (var ctor in klass.Constructors)
                 {
@@ -258,15 +264,20 @@ public class TypeDefinitionSerializer(NamespaceDefinition rootNamespace)
                             Owner = classType.Id
                         }
                     };
+
+                    var ctorKey = ctor.GetUniqueName();
+                    // prevent duplicated constructors 
+                    if(!currentCtors.TryAdd(ctorKey, type))
+                        continue;
                     
                     pTypes.Add(type);
-                    ctorsIds.Add(type.Id);
+                    pLookupTbl[ctor] = type;
                 }
 
                 if (classType.ClassData is null)
                     throw new NullReferenceException();
                 classType.ClassData.Methods = methodIds.ToArray();
-                classType.ClassData.Constructors = ctorsIds.ToArray();
+                classType.ClassData.Constructors = currentCtors.Select(x => x.Value.Id).ToArray();
             }
         }
 
@@ -352,11 +363,22 @@ public class TypeDefinitionSerializer(NamespaceDefinition rootNamespace)
                         .Select(x => GetOrRegisterType(x, CreateTypeDef(x)))
                         .ToArray();
                 }
+
+                foreach (var ctor in klass.Constructors)
+                {
+                    var ctorDef = pLookupTbl[ctor];
+                    if (ctorDef.MethodData is null)
+                        throw new NullReferenceException();
+
+                    ctorDef.MethodData.ArgTypes = ctor.ArgumentTypes
+                        .Select(x => GetOrRegisterType(x, CreateTypeDef(x)))
+                        .ToArray();
+                }
             }
         }
 
         foreach (var ns in namespaceDefs)
-            CollectStaticMethodTypes(ns.Namespaces);
+            CollectClassMethodTypes(ns.Namespaces);
     }
 
     private void CollectStructMethodTypes(NamespaceDefinition[] namespaceDefs)
