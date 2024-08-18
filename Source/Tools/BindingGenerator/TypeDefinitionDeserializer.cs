@@ -101,7 +101,9 @@ public class TypeDefinitionDeserializer
         klass.Methods = classDef.ClassData.Methods
             .Select(methodId => BuildClassMethod(pTypes[methodId]))
             .ToArray();
-        
+        klass.Fields = classDef.ClassData.Fields
+            .Select(fieldId => BuildClassField(pTypes[fieldId]))
+            .ToArray();
         return klass;
     }
     private StructDefinition BuildStruct(TypeDefSerializeData structDef)
@@ -121,6 +123,9 @@ public class TypeDefinitionDeserializer
 
         @struct.Methods = structDef.StructData.Methods
             .Select(x => BuildStructMethod(pTypes[x]))
+            .ToArray();
+        @struct.Fields = structDef.StructData.Fields
+            .Select(x => BuildStructField(pTypes[x]))
             .ToArray();
         return @struct;
     }
@@ -160,6 +165,23 @@ public class TypeDefinitionDeserializer
             .ToArray();
         return method;
     }
+
+    private ClassFieldTypeDefinition BuildClassField(TypeDefSerializeData fieldDef)
+    {
+        if (fieldDef.Kind != TypeDefKind.Field || fieldDef.FieldData is null)
+            throw new ArgumentException("Invalid Struct Field Type Definition");
+        
+        if (pTypesMap.TryGetValue(fieldDef, out var typeRes))
+            return (ClassFieldTypeDefinition)typeRes;
+
+        var klass = BuildClass(pTypes[fieldDef.FieldData.Owner]);
+        var field = new ClassFieldTypeDefinition(klass);
+        FillTypeInfo(field, fieldDef);
+        pTypesMap[fieldDef] = field;
+
+        field.Type = GetType(pTypes[fieldDef.FieldData.Type]);
+        return field;
+    }
     private StructMethodDefinition BuildStructMethod(TypeDefSerializeData methodDef)
     {
         if (methodDef.Kind != TypeDefKind.StructMethod || methodDef.MethodData is null)
@@ -178,6 +200,22 @@ public class TypeDefinitionDeserializer
             .Select(x => GetType(pTypes[x]))
             .ToArray();
         return method;
+    }
+    private StructFieldTypeDefinition BuildStructField(TypeDefSerializeData fieldDef)
+    {
+        if (fieldDef.Kind != TypeDefKind.Field || fieldDef.FieldData is null)
+            throw new ArgumentException("Invalid Struct Field Type Definition");
+        
+        if (pTypesMap.TryGetValue(fieldDef, out var typeRes))
+            return (StructFieldTypeDefinition)typeRes;
+
+        var @struct = BuildStruct(pTypes[fieldDef.FieldData.Owner]);
+        var field = new StructFieldTypeDefinition(@struct);
+        FillTypeInfo(field, fieldDef);
+        pTypesMap[fieldDef] = field;
+
+        field.Type = GetType(pTypes[fieldDef.FieldData.Type]);
+        return field;
     }
     private StaticMethodDefinition BuildStaticMethod(TypeDefSerializeData methodDef)
     {

@@ -44,6 +44,9 @@ public class TypeCollector(TypeCollectorCreateDesc createDesc)
         CollectStaticMethods(compilation.Functions, allowedSrcFiles, Namespace);
         CollectStaticMethodsFromNamespaces(Namespace.Namespaces, allowedSrcFiles);
         CollectClassMethods(Namespace);
+        
+        CollectClassFields(Namespace);
+        CollectStructFields(Namespace);
     }
 
     private void CollectNamespaces(CppContainerList<CppNamespace> namespaces,
@@ -70,6 +73,14 @@ public class TypeCollector(TypeCollectorCreateDesc createDesc)
         }
 
         @namespace.Namespaces = namespaceResult.ToArray();
+
+        foreach (var ns in namespaces)
+        {
+            if (!pCppTypes.TryGetValue(ns, out var cppType))
+                continue;
+            var namespaceDef = (NamespaceDefinition)cppType;
+            CollectNamespaces(ns.Namespaces, allowedSourceFiles, namespaceDef);
+        }
     }
 
     /**
@@ -324,6 +335,12 @@ public class TypeCollector(TypeCollectorCreateDesc createDesc)
                     args[i] = argType;
                 }
 
+                if (skip)
+                {
+                    Console.WriteLine($"- Skipping struct method {func.Name}. [{func.Span.Start}, {func.Span.End}]");
+                    continue;
+                }
+                
                 var method = new StructMethodDefinition(@struct);
                 method.Name = func.Name;
                 method.Comment = func.Comment?.ToString() ?? string.Empty;
@@ -339,6 +356,78 @@ public class TypeCollector(TypeCollectorCreateDesc createDesc)
         
         foreach(var nextNamespace in @namespace.Namespaces)
             CollectClassMethods(nextNamespace);
+    }
+
+    private void CollectClassFields(NamespaceDefinition @namespace)
+    {
+        foreach (var klassDef in @namespace.Classes)
+        {
+            var (_, klassElement) = pTypes[klassDef.GetUniqueName()];
+            var klass = (CppClass)klassElement;
+            var fields = new List<ClassFieldTypeDefinition>();
+
+            foreach (var field in klass.Fields)
+            {
+                if(field.Visibility != CppVisibility.Public && field.Visibility != CppVisibility.Default)
+                    continue;
+                
+                if(AstUtils.IsIgnoredType(field))
+                    continue;
+
+                var type = GetSuitableType(field.Type);
+                if(type is null)
+                    continue;
+                
+                var fieldType = new ClassFieldTypeDefinition(klassDef)
+                {
+                    Name = field.Name,
+                    Comment = field.Comment?.ToString() ?? string.Empty,
+                    HeaderFilePath = field.SourceFile,
+                    Type = type,
+                };
+                fields.Add(fieldType);
+            }
+
+            klassDef.Fields = fields.ToArray();
+        }
+
+        foreach (var ns in @namespace.Namespaces)
+            CollectClassFields(ns);
+    }
+    private void CollectStructFields(NamespaceDefinition @namespace)
+    {
+        foreach (var @struct in @namespace.Structs)
+        {
+            var (_, structElement) = pTypes[@struct.GetUniqueName()];
+            var klass = (CppClass)structElement;
+            var fields = new List<StructFieldTypeDefinition>();
+
+            foreach (var field in klass.Fields)
+            {
+                if(field.Visibility != CppVisibility.Public && field.Visibility != CppVisibility.Default)
+                    continue;
+                
+                if(AstUtils.IsIgnoredType(field))
+                    continue;
+
+                var type = GetSuitableType(field.Type);
+                if(type is null)
+                    continue;
+                var fieldType = new StructFieldTypeDefinition(@struct)
+                {
+                    Name = field.Name,
+                    Comment = field.Comment?.ToString() ?? string.Empty,
+                    HeaderFilePath = field.SourceFile,
+                    Type = type
+                };
+                fields.Add(fieldType);
+            }
+            
+            @struct.Fields = fields.ToArray();
+        }
+
+        foreach (var ns in @namespace.Namespaces)
+            CollectStructFields(ns);
     }
     
     private void CollectStaticMethodsFromNamespaces(NamespaceDefinition[] namespaces, IDictionary<string, ModuleItem> allowedSourceFiles)
@@ -503,6 +592,9 @@ public class TypeCollector(TypeCollectorCreateDesc createDesc)
                 break;
             case CppTypeKind.Unexposed:
                 Console.WriteLine($"- Unsupported Unexposed Type '{type.FullName}'.\n [{type.Span.Start}, {type.Span.End}]");
+                break;
+            case CppTypeKind.Array:
+                Console.WriteLine($"- Unsupported Array Type '{type.FullName}'.\n [{type.Span.Start}, {type.Span.End}]");
                 break;
             default:
                 throw new NotImplementedException();

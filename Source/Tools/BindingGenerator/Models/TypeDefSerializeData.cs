@@ -29,12 +29,20 @@ public class ClassSerializeData
     public int Namespace { get; set; }
     public int[] Methods { get; set; } = [];
     public int[] Constructors { get; set; } = [];
+    public int[] Fields { get; set; } = [];
 }
 
 public class StructSerializeData
 {
     public int Namespace { get; set; } = -1;
     public int[] Methods { get; set; } = [];
+    public int[] Fields { get; set; } = [];
+}
+
+public class FieldSerializeData
+{
+    public int Owner { get; set; } = -1;
+    public int Type { get; set; } = -1;
 }
 
 public class MethodSerializeData
@@ -69,6 +77,9 @@ public class TypeDefSerializeData
     public EnumSerializeData? EnumData { get; set; }
     public ClassSerializeData? ClassData { get; set; }
     public StructSerializeData? StructData { get; set; }
+    
+    public FieldSerializeData? FieldData { get; set; }
+    
     public MethodSerializeData? MethodData { get; set; }
     public PrimitiveKind PrimitiveData { get; set; } = PrimitiveKind.Unknow;
     public int TypeData { get; set; } = -1;

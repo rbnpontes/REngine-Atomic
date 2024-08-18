@@ -17,6 +17,7 @@ public enum TypeDefKind
     Primitive,
     Pointer,
     HashMap,
+    Field
 }
 public abstract class TypeDefinition(TypeDefKind kind)
 {

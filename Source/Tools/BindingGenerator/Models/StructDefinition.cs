@@ -4,6 +4,7 @@ public class StructDefinition(NamespaceDefinition @namespace) : TypeDefinition(T
 {
     public NamespaceDefinition Namespace { get; } = @namespace;
     public StructMethodDefinition[] Methods { get; set; } = [];
+    public StructFieldTypeDefinition[] Fields { get; set; } = [];
 
     public override string GetUniqueName()
     {

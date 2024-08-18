@@ -6,6 +6,7 @@ public class ClassDefinition(NamespaceDefinition @namespace) : TypeDefinition(Ty
     public NamespaceDefinition Namespace { get; } = @namespace;
     public ClassMethodDefinition[] Methods { get; set; } = [];
     public ConstructorMethodDefinition[] Constructors { get; set; } = [];
+    public ClassFieldTypeDefinition[] Fields { get; set; } = [];
 
     public override string GetUniqueName()
     {

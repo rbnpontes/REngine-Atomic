@@ -39,7 +39,9 @@ public class TypeDefinitionSerializer(NamespaceDefinition rootNamespace)
         
         CollectStaticMethodTypes(namespaces);
         CollectClassMethodTypes(namespaces);
+        CollectClassFieldTypes(namespaces);
         CollectStructMethodTypes(namespaces);
+        CollectStructFieldTypes(namespaces);
     }
 
     private void CollectNamespaces(TypeDefSerializeData parentNamespace, NamespaceDefinition[] namespaces)
@@ -226,6 +228,7 @@ public class TypeDefinitionSerializer(NamespaceDefinition rootNamespace)
             {
                 var classType = pLookupTbl[klass];
                 var methodIds = new List<int>();
+                var fieldIds = new List<int>();
                 var currentCtors = new Dictionary<string, TypeDefSerializeData>();
                 
                 foreach (var method in klass.Methods)
@@ -248,8 +251,7 @@ public class TypeDefinitionSerializer(NamespaceDefinition rootNamespace)
                     pLookupTbl[method] = type;
                     methodIds.Add(type.Id);
                 }
-
-
+                
                 foreach (var ctor in klass.Constructors)
                 {
                     var type = new TypeDefSerializeData()
@@ -274,9 +276,27 @@ public class TypeDefinitionSerializer(NamespaceDefinition rootNamespace)
                     pLookupTbl[ctor] = type;
                 }
 
+                foreach (var field in klass.Fields)
+                {
+                    var type = new TypeDefSerializeData()
+                    {
+                        Id = pTypes.Count,
+                        Name = field.Name,
+                        Comment = field.Comment,
+                        HeaderFilePath = field.HeaderFilePath,
+                        Kind = TypeDefKind.Field,
+                        FieldData = new FieldSerializeData() { Owner = classType.Id }
+                    };
+                    
+                    pTypes.Add(type);
+                    pLookupTbl[field] = type;
+                    fieldIds.Add(type.Id);
+                }
+
                 if (classType.ClassData is null)
                     throw new NullReferenceException();
                 classType.ClassData.Methods = methodIds.ToArray();
+                classType.ClassData.Fields = fieldIds.ToArray();
                 classType.ClassData.Constructors = currentCtors.Select(x => x.Value.Id).ToArray();
             }
         }
@@ -289,10 +309,11 @@ public class TypeDefinitionSerializer(NamespaceDefinition rootNamespace)
     {
         foreach (var ns in namespaceDefs)
         {
-            foreach (var @struct in ns.Classes)
+            foreach (var @struct in ns.Structs)
             {
                 var structType = pLookupTbl[@struct];
                 var methodIds = new List<int>();
+                var fieldIds = new List<int>();
                 foreach (var method in @struct.Methods)
                 {
                     var type = new TypeDefSerializeData()
@@ -301,23 +322,45 @@ public class TypeDefinitionSerializer(NamespaceDefinition rootNamespace)
                         Name = method.Name,
                         Comment = method.Comment,
                         HeaderFilePath = method.HeaderFilePath,
-                        Kind = TypeDefKind.ClassMethod,
-                        MethodData = new MethodSerializeData()
+                        Kind = TypeDefKind.StructMethod,
+                        MethodData = new MethodSerializeData() { Owner = structType.Id }
+                    };
+                    
+                    pTypes.Add(type);
+                    pLookupTbl[method] = type;
+                    methodIds.Add(type.Id);
+                }
+
+                foreach (var field in @struct.Fields)
+                {
+                    var type = new TypeDefSerializeData()
+                    {
+                        Id = pTypes.Count,
+                        Name = field.Name,
+                        Comment = field.Comment,
+                        HeaderFilePath = field.HeaderFilePath,
+                        Kind = TypeDefKind.Field,
+                        FieldData = new FieldSerializeData()
                         {
-                            IsStatic = method.IsStatic,
                             Owner = structType.Id
                         }
                     };
                     
                     pTypes.Add(type);
-                    methodIds.Add(type.Id);
+                    pLookupTbl[field] = type;
+                    fieldIds.Add(type.Id);
                 }
-
+                
                 if (structType.StructData is null)
                     throw new NullReferenceException();
+                
                 structType.StructData.Methods = methodIds.ToArray();
+                structType.StructData.Fields = fieldIds.ToArray();
             }
         }
+
+        foreach (var ns in namespaceDefs)
+            CollectStructMethods(ns.Namespaces);
     }
     /**
      * After all types registered.
@@ -381,6 +424,25 @@ public class TypeDefinitionSerializer(NamespaceDefinition rootNamespace)
             CollectClassMethodTypes(ns.Namespaces);
     }
 
+    private void CollectClassFieldTypes(NamespaceDefinition[] namespaceDefs)
+    {
+        foreach (var ns in namespaceDefs)
+        {
+            foreach (var klass in ns.Classes)
+            {
+                foreach (var field in klass.Fields)
+                {
+                    var fieldDef = pLookupTbl[field];
+                    if (fieldDef.FieldData is null)
+                        throw new NullReferenceException();
+                    fieldDef.FieldData.Type = GetOrRegisterType(field.Type, CreateTypeDef(field.Type));
+                }
+            }
+        }
+
+        foreach (var ns in namespaceDefs)
+            CollectClassFieldTypes(ns.Namespaces);
+    }
     private void CollectStructMethodTypes(NamespaceDefinition[] namespaceDefs)
     {
         foreach (var ns in namespaceDefs)
@@ -404,6 +466,26 @@ public class TypeDefinitionSerializer(NamespaceDefinition rootNamespace)
 
         foreach (var ns in namespaceDefs)
             CollectStructMethodTypes(ns.Namespaces);
+    }
+
+    private void CollectStructFieldTypes(NamespaceDefinition[] namespaceDefs)
+    {
+        foreach (var ns in namespaceDefs)
+        {
+            foreach (var @struct in ns.Structs)
+            {
+                foreach (var field in @struct.Fields)
+                {
+                    var fieldDef = pLookupTbl[field];
+                    if (fieldDef.FieldData is null)
+                        throw new NullReferenceException();
+                    fieldDef.FieldData.Type = GetOrRegisterType(field.Type, CreateTypeDef(field.Type));
+                }
+            }
+        }
+
+        foreach (var ns in namespaceDefs)
+            CollectStructFieldTypes(ns.Namespaces);
     }
     
     private TypeDefSerializeData CreateTypeDef(TypeDefinition type)
