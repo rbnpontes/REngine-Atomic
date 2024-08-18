@@ -2,10 +2,10 @@ using CppAst;
 
 namespace BindingGenerator.Models;
 
-public class SmartPointerTypeDefinition(TypeDefinition type) : TypeDefinition(TypeDefKind.SmartPtr)
+public class SmartPointerTypeDefinition(TypeDefinition type, bool isWeak = false) : TypeDefinition(TypeDefKind.SmartPtr)
 {
     public TypeDefinition Type => type;
-    public bool IsWeak { get; set; }
+    public bool IsWeak { get; set; } = isWeak;
     
     public override string GetUniqueName()
     {

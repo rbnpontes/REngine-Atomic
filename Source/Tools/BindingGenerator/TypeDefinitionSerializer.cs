@@ -14,8 +14,21 @@ public class TypeDefinitionSerializer(NamespaceDefinition rootNamespace)
         pTypes.Clear();
         pLookupTbl.Clear();
 
+        var rootNamespaceTypeDef = new TypeDefSerializeData()
+        {
+            Id = pTypes.Count,
+            Name = rootNamespace.Name,
+            Comment = rootNamespace.Comment,
+            HeaderFilePath = rootNamespace.HeaderFilePath,
+            Kind = TypeDefKind.Namespace,
+            NamespaceData = new NamespaceSerializeData()
+        };
+        pTypes.Add(rootNamespaceTypeDef);
+        pLookupTbl[rootNamespace] = rootNamespaceTypeDef;
+        
+        CollectNamespaces(rootNamespaceTypeDef, rootNamespace.Namespaces);
+        
         var namespaces = new[] { rootNamespace };
-        CollectNamespaces(namespaces);
         CollectEnums(namespaces);
         CollectClasses(namespaces);
         CollectStructs(namespaces);
@@ -29,9 +42,13 @@ public class TypeDefinitionSerializer(NamespaceDefinition rootNamespace)
         CollectStructMethodTypes(namespaces);
     }
 
-    private void CollectNamespaces(NamespaceDefinition[] namespaceDefs)
+    private void CollectNamespaces(TypeDefSerializeData parentNamespace, NamespaceDefinition[] namespaces)
     {
-        foreach (var ns in namespaceDefs)
+        if (parentNamespace.NamespaceData is null)
+            throw new NullReferenceException();
+        
+        var nsIds = new List<int>();
+        foreach (var ns in namespaces)
         {
             var type = new TypeDefSerializeData()
             {
@@ -42,13 +59,17 @@ public class TypeDefinitionSerializer(NamespaceDefinition rootNamespace)
                 Kind = TypeDefKind.Namespace,
                 NamespaceData = new NamespaceSerializeData()
             };
+            
             pTypes.Add(type);
+            nsIds.Add(type.Id);
             pLookupTbl[ns] = type;
         }
 
+
+        parentNamespace.NamespaceData.Namespaces = nsIds.ToArray();
         // Repeat again loop but collect nested namespaces
-        foreach (var ns in namespaceDefs)
-            CollectNamespaces(ns.Namespaces);
+        foreach (var ns in namespaces)
+            CollectNamespaces(pLookupTbl[ns], ns.Namespaces);
     }
 
     private void CollectEnums(NamespaceDefinition[] namespaceDefs)
@@ -108,7 +129,7 @@ public class TypeDefinitionSerializer(NamespaceDefinition rootNamespace)
                     Comment = klass.Comment,
                     HeaderFilePath = klass.HeaderFilePath,
                     Kind = TypeDefKind.Class,
-                    ClassData = new ClassSerializeData()
+                    ClassData = new ClassSerializeData() { Namespace = namespaceType.Id }
                 };
                 
                 pTypes.Add(type);
@@ -141,7 +162,7 @@ public class TypeDefinitionSerializer(NamespaceDefinition rootNamespace)
                     HeaderFilePath = @struct.HeaderFilePath,
                     Kind = TypeDefKind.Struct,
                     NamespaceData = new NamespaceSerializeData(),
-                    StructData = new StructSerializeData() { Namespace = pLookupTbl[ns].Id }
+                    StructData = new StructSerializeData() { Namespace = namespaceType.Id }
                 };
                 pTypes.Add(type);
                 structIds.Add(type.Id);
@@ -215,6 +236,7 @@ public class TypeDefinitionSerializer(NamespaceDefinition rootNamespace)
                         MethodData = new MethodSerializeData()
                         {
                             IsStatic = method.IsStatic,
+                            Owner = classType.Id
                         }
                     };
                     
@@ -272,6 +294,7 @@ public class TypeDefinitionSerializer(NamespaceDefinition rootNamespace)
                         MethodData = new MethodSerializeData()
                         {
                             IsStatic = method.IsStatic,
+                            Owner = structType.Id
                         }
                     };
                     
@@ -370,6 +393,7 @@ public class TypeDefinitionSerializer(NamespaceDefinition rootNamespace)
             HeaderFilePath = type.HeaderFilePath,
             Kind = type.Kind
         };
+        var currTypeDef = typeDef;
 
         switch (type.Kind)
         {
@@ -416,6 +440,8 @@ public class TypeDefinitionSerializer(NamespaceDefinition rootNamespace)
                 break;
         }
 
+        if(currTypeDef == typeDef)
+            pTypes.Add(typeDef);
         return typeDef;
     }
 
