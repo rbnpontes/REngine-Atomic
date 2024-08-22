@@ -33,6 +33,7 @@ namespace BindingGenerator.Generators
                 throw new Exception("Output Directory is required.");
             if (string.IsNullOrEmpty(arguments.SourceDir))
                 throw new Exception("Source Directory is required.");
+            
             LoadModule();
             LoadModules();
             FixSourceFilePaths();
