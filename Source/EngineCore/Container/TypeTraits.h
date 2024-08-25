@@ -10,6 +10,7 @@
 #include <EASTL/shared_array.h>
 #include <EASTL/queue.h>
 #include <EASTL/functional.h>
+#include <EASTL/stack.h>
 #include <stdint.h>
 
 namespace ea = eastl;

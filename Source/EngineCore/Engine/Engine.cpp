@@ -27,6 +27,7 @@
 #include "../Core/CoreEvents.h"
 // ATOMIC BEGIN
 #include "../Core/Profiler.h"
+#include "../Core/PluginSystem.h"
 #include "../Engine/EngineDefs.h"
 // ATOMIC END
 #include "../Core/ProcessUtils.h"
@@ -143,6 +144,8 @@ Engine::Engine(Context* context) :
     // Register self as a subsystem
     context_->RegisterSubsystem(this);
 
+    // Plugin System must register at first.
+    context_->RegisterSubsystem(new REngine::PluginSystem(context_));
     // Create subsystems which do not depend on engine initialization or startup parameters
     context_->RegisterSubsystem(new Time(context_));
     context_->RegisterSubsystem(new WorkQueue(context_));
@@ -298,6 +301,12 @@ bool Engine::Initialize(const VariantMap& parameters)
 
     ResourceCache* cache = GetSubsystem<ResourceCache>();
     FileSystem* fileSystem = GetSubsystem<FileSystem>();
+
+    // Load default plugins
+    if (const auto plugin_sys = GetSubsystem<REngine::PluginSystem>())
+        plugin_sys->Initialize();
+    else
+        ATOMIC_LOGWARNING("PluginSystem is not registered. PluginSystem initialization will be skipped!");
 
     // Initialize graphics & audio output
     if (!headless_)
