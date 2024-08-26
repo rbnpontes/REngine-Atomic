@@ -7,9 +7,11 @@ namespace REngine
 	class IEnginePlugin
 	{
 	public:
-		void OnPluginSetup(Context* context);
-		void OnPluginStart(Context* context);
-		u32 GetPluginId() const;
+		virtual void OnPluginLoad(Context* context) = 0;
+		virtual void OnPluginUnload(Context* context) = 0;
+		virtual void OnPluginSetup(Context* context) = 0;
+		virtual void OnPluginStart(Context* context) = 0;
+		virtual u32 GetPluginId() const = 0;
 	};
 }
 

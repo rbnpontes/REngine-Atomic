@@ -83,6 +83,7 @@
     #include <emscripten/emscripten.h>
 #endif
 
+#include "EngineEvents.h"
 #include "../DebugNew.h"
 
 // ATOMIC BEGIN
@@ -1133,6 +1134,10 @@ void Engine::DoExit()
 #if defined(__EMSCRIPTEN__) && defined(ATOMIC_TESTING)
     emscripten_force_exit(EXIT_SUCCESS);    // Some how this is required to signal emrun to stop
 #endif
+
+    VariantMap& event_data = GetEventDataMap();
+    event_data[EngineExit::P_ENGINE] = this;
+    SendEvent(E_ENGINE_EXIT, event_data);
 }
 
 // ATOMIC BEGIN

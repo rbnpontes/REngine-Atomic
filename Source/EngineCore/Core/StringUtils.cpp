@@ -850,4 +850,27 @@ String ToStringVariadic(const char* formatString, va_list args)
     return ret;
 }
 
+    bool string_ends_with(ea::string str, ea::string test, bool ignore_case)
+    {
+        if (test.length() > str.length())
+            return false;
+
+	    if(ignore_case)
+	    {
+            str = ea::transform(str.begin(), str.end(), str.begin(), [](u8 c)
+                {
+                    return ea::CharToLower(c);
+                });
+            test = ea::transform(test.begin(), test.end(), test.begin(), [](u8 c)
+                {
+                    return ea::CharToLower(c);
+                });
+	    }
+
+	    const auto it = str.find_last_of(test);
+        if (it == ea::string::npos)
+            return false;
+        return (str.length() - it) == test.length();
+    }
+
 }
