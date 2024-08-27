@@ -46,6 +46,10 @@
         #define ENGINE_NO_DEPRECATED
     #endif
 
+
+    #ifndef ENGINE_DEFINE_PLUGIN_SIGNATURE
+        #define ENGINE_DEFINE_PLUGIN_SIGNATURE extern "C" __declspec(dllexport) void* rengine_plugin_entrypoint();
+    #endif
 #else
 
     #ifdef ENGINE_STATIC_DEFINE
@@ -87,6 +91,9 @@
         #define ENGINE_NO_DEPRECATED
     #endif
 
+    #ifndef ENGINE_DEFINE_PLUGIN_SIGNATURE
+        #define ENGINE_DEFINE_PLUGIN_SIGNATURE extern "C" __attribute__((visibility("default"))) void* rengine_plugin_entrypoint();
+    #endif
 #endif
 
 #define RENGINE_API ENGINE_API

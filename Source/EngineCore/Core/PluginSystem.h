@@ -6,6 +6,7 @@
 namespace Atomic
 {
     class ResourceCache;
+    class File;
 }
 
 namespace REngine {
@@ -13,25 +14,26 @@ namespace REngine {
 
     ENGINE_NO_EXPORT struct PluginEntry
     {
-        void* handle;
-        ea::shared_ptr<REngine::IEnginePlugin> instance;
+        void* handle_;
+        bool loaded_;
+        IEnginePlugin* instance_;
     };
     class ATOMIC_API PluginSystem : public Object {
-        ATOMIC_OBJECT(PluginSystem, Object)
+        ATOMIC_OBJECT(REngine::PluginSystem, Object)
 
     public:
         PluginSystem(Context* context);
-        void LoadPlugin(const ea::string& plugin_path);
+        IEnginePlugin* LoadPlugin(const ea::string& plugin_path);
         void UnloadPlugin(u32 plugin_id);
-        ea::vector<ea::shared_ptr<IEnginePlugin>> GetPlugins() const;
+        ea::vector<IEnginePlugin*> GetPlugins() const;
         void Initialize();
     private:
+        SharedPtr<File> TryOpenLib(ea::string lib_path);
         void HandleEngineExit(StringHash event_type, VariantMap& event_data);
-        ea::shared_ptr<REngine::IEnginePlugin> LoadPluginAtPath(const ea::string& plugin_path);
+        ea::shared_ptr<PluginEntry> LoadPluginAtPath(const ea::string& plugin_path);
         bool init_;
         ResourceCache* resource_cache_;
-
-        ea::stack<ea::string> plugins_2_load_;
+        
         ea::unordered_map<u32, ea::shared_ptr<PluginEntry>> plugins_;
     };
 }

@@ -15,10 +15,10 @@ namespace REngine
 	};
 }
 
-#define RENGINE_DEFINE_PLUGIN(klass) \
-extern "C" ea::shared_ptr<REngine::IEnginePlugin> rengine_plugin_entrypoint(); \
-ea::shared_ptr<REngine::IEnginePlugin> rengine_plugin_entrypoint() \
+#define ENGINE_DEFINE_PLUGIN(klass) \
+ENGINE_DEFINE_PLUGIN_SIGNATURE \
+void* rengine_plugin_entrypoint() \
 { \
-	ea::shared_ptr<REngine::IEnginePlugin> plugin(new klass()); \
+	static REngine::IEnginePlugin* plugin = new klass(); \
 	return plugin; \
 }
