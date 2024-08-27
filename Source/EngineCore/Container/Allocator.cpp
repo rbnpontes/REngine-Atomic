@@ -22,17 +22,6 @@
 
 #include "../Precompiled.h"
 #include "./TypeTraits.h"
-
-ENGINE_API void* operator new[](size_t size, const char* pName, int flags, unsigned debugFlags, const char* file, int line)
-{
-    return ::operator new(size);
-}
-
-ENGINE_API void* operator new[](size_t size, size_t alignment, size_t alignmentOffset, const char* pName, int flags, unsigned debugFlags, const char* file, int line)
-{
-    return ::operator new(size);
-}
-
 #include "../DebugNew.h"
 
 namespace Atomic
