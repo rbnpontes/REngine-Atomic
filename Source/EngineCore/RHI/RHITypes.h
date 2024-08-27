@@ -7,8 +7,7 @@
 
 #include <DiligentCore/Graphics/GraphicsEngine/interface/TextureView.h>
 #include <DiligentCore/Common/interface/RefCntAutoPtr.hpp>
-
-#include "InputLayout.h"
+#include <DiligentCore/Graphics/GraphicsEngine/interface/InputLayout.h>
 
 namespace Atomic
 {

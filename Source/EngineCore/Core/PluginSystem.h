@@ -7,6 +7,7 @@ namespace Atomic
 {
     class ResourceCache;
 }
+
 namespace REngine {
     using namespace Atomic;
 
