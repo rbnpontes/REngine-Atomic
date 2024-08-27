@@ -259,8 +259,5 @@ target_compile_definitions("${ENGINE_CORE_LIB_TARGET}" PUBLIC
 target_link_libraries("${ENGINE_CORE_LIB_TARGET}"
     PUBLIC ${PUBLIC_THIRD_PARTY_DEPS}
     PRIVATE ${PRIVATE_THIRD_PARTY_DEPS})
-    
-get_target_property(VALUE ${ENGINE_CORE_LIB_TARGET} LINK_LIBRARIES)
-message(STATUS "Link Libs: ${VALUE}")
 
 vs_add_to_grp("${ENGINE_CORE_LIB_TARGET}" "${VS_GRP_ENGINE_SRC}")
