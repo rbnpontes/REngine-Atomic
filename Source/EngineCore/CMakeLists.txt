@@ -93,22 +93,12 @@ configure_file("${CMAKE_CURRENT_SOURCE_DIR}/BuildInfo/EngineGitSHA.cpp.in" "${CM
 
 set (SOURCE_FILES ${SOURCE_FILES} BuildInfo/EngineBuildInfo.cpp BuildInfo/EngineBuildInfo.h BuildInfo/EngineGitSHA.cpp BuildInfo/EngineGitSHA.h)
 
-if (ENGINE_SHARED)
-    set(ENGINE_LIBRARY_TYPE SHARED)
-else ()
-    set(ENGINE_LIBRARY_TYPE STATIC)
-endif ()
-
-add_library("${ENGINE_CORE_LIB_TARGET}" ${ENGINE_LIBRARY_TYPE} ${SOURCE_FILES})
+add_library("${ENGINE_CORE_LIB_TARGET}" SHARED ${SOURCE_FILES})
 set_target_properties("${ENGINE_CORE_LIB_TARGET}" PROPERTIES CXX_STANDARD 20 CXX_STANDARD_REQUIRED ON)
 
-if (NOT ENGINE_SHARED)
-    target_compile_definitions ("${ENGINE_CORE_LIB_TARGET}" PUBLIC -DENGINE_STATIC_DEFINE=1)
-else ()
-    target_compile_definitions ("${ENGINE_CORE_LIB_TARGET}"
-        PRIVATE -DENGINE_EXPORTS=1 
-    )
-endif ()
+target_compile_definitions ("${ENGINE_CORE_LIB_TARGET}"
+    PRIVATE -DENGINE_EXPORTS=1 
+)
 
 if(ENGINE_SSE)
     target_compile_definitions("${ENGINE_CORE_LIB_TARGET}" PUBLIC -DENGINE_SSE=1)
@@ -265,14 +255,7 @@ target_compile_definitions("${ENGINE_CORE_LIB_TARGET}" PUBLIC
     -DENGINE_NAME="${ENGINE_NAME}"
     -DENGINE_NAMESPACE="${ENGINE_NAMESPACE}"
     -DENGINE_CORE="${ENGINE_CORE_TARGET}")
-
-# if (MSVC)
-#     # Becarefull if you change this line
-#     # If you put strange properties this can lead to a bug
-#     # in msbuild
-#     target_compile_options("${ENGINE_CORE_LIB_TARGET}" PUBLIC $<$<CONFIG:Debug>:${ENGINE_MSVC_RUNTIME}d> $<$<NOT:$<CONFIG:Debug>>:${ENGINE_MSVC_RUNTIME}>)
-# endif ()
-
+    
 target_link_libraries("${ENGINE_CORE_LIB_TARGET}"
     PUBLIC ${PUBLIC_THIRD_PARTY_DEPS}
     PRIVATE ${PRIVATE_THIRD_PARTY_DEPS})

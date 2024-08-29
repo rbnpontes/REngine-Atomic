@@ -26,12 +26,15 @@
 
 namespace Atomic
 {
+    /// A command has been entered on the console.
+    ATOMIC_EVENT(E_CONSOLECOMMAND, ConsoleCommand)
+    {
+        ATOMIC_PARAM(P_COMMAND, Command);              // String
+        ATOMIC_PARAM(P_ID, Id);                        // String
+    }
 
-/// A command has been entered on the console.
-ATOMIC_EVENT(E_CONSOLECOMMAND, ConsoleCommand)
-{
-    ATOMIC_PARAM(P_COMMAND, Command);              // String
-    ATOMIC_PARAM(P_ID, Id);                        // String
-}
-
+    ATOMIC_EVENT(E_ENGINE_EXIT, EngineExit)
+    {
+        ATOMIC_PARAM(P_ENGINE, Engine);                // Engine instance
+    }
 }

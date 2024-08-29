@@ -27,6 +27,7 @@
 #include "../Core/CoreEvents.h"
 // ATOMIC BEGIN
 #include "../Core/Profiler.h"
+#include "../Core/PluginSystem.h"
 #include "../Engine/EngineDefs.h"
 // ATOMIC END
 #include "../Core/ProcessUtils.h"
@@ -82,6 +83,7 @@
     #include <emscripten/emscripten.h>
 #endif
 
+#include "EngineEvents.h"
 #include "../DebugNew.h"
 
 // ATOMIC BEGIN
@@ -143,6 +145,8 @@ Engine::Engine(Context* context) :
     // Register self as a subsystem
     context_->RegisterSubsystem(this);
 
+    // Plugin System must register at first.
+    context_->RegisterSubsystem(new REngine::PluginSystem(context_));
     // Create subsystems which do not depend on engine initialization or startup parameters
     context_->RegisterSubsystem(new Time(context_));
     context_->RegisterSubsystem(new WorkQueue(context_));
@@ -299,6 +303,12 @@ bool Engine::Initialize(const VariantMap& parameters)
     ResourceCache* cache = GetSubsystem<ResourceCache>();
     FileSystem* fileSystem = GetSubsystem<FileSystem>();
 
+    // Load default plugins
+    if (const auto plugin_sys = GetSubsystem<REngine::PluginSystem>())
+        plugin_sys->Initialize();
+    else
+        ATOMIC_LOGWARNING("PluginSystem is not registered. PluginSystem initialization will be skipped!");
+
     // Initialize graphics & audio output
     if (!headless_)
     {
@@ -423,7 +433,9 @@ bool Engine::InitializeResourceCache(const VariantMap& parameters, bool removeOl
     }
 
     // Add resource paths
-    Vector<String> resourcePrefixPaths = GetParameter(parameters, EP_RESOURCE_PREFIX_PATHS, String::EMPTY).GetString().Split(';', true);
+    auto resourcePrefixPaths = GetParameter(parameters, EP_RESOURCE_PREFIX_PATHS, String::EMPTY)
+        .GetString()
+        .Split(';', true);
     for (unsigned i = 0; i < resourcePrefixPaths.Size(); ++i)
         resourcePrefixPaths[i] = AddTrailingSlash(
             IsAbsolutePath(resourcePrefixPaths[i]) ? resourcePrefixPaths[i] : fileSystem->GetProgramDir() + resourcePrefixPaths[i]);
@@ -1124,6 +1136,10 @@ void Engine::DoExit()
 #if defined(__EMSCRIPTEN__) && defined(ATOMIC_TESTING)
     emscripten_force_exit(EXIT_SUCCESS);    // Some how this is required to signal emrun to stop
 #endif
+
+    VariantMap& event_data = GetEventDataMap();
+    event_data[EngineExit::P_ENGINE] = this;
+    SendEvent(E_ENGINE_EXIT, event_data);
 }
 
 // ATOMIC BEGIN
