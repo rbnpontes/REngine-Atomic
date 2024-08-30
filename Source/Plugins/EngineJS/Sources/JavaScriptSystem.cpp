@@ -47,9 +47,18 @@ namespace REngine
 		const auto script_file = resource_cache->GetFile(file_path.c_str());
 		if (!script_file)
 		{
-			ATOMIC_CLASS_LOGERRORF(IJavaScriptSystem, "Not found JavaScript %s", file_path.c_str());
+			ATOMIC_CLASS_LOGERRORF(IJavaScriptSystem, "Not found JavaScript File %s", file_path.c_str());
 			return;
 		}
+
+		duk_push_string(js_context_, script_file->GetFullPath().CString());
+		if(duk_pcompile_string_filename(js_context_, 0, script_file->ReadText().CString()) != 0)
+		{
+			const char* err_msg = duk_safe_to_string(js_context_, -1);
+			ATOMIC_CLASS_LOGERROR(IJavaScriptSystem, err_msg);
+		}
+
+		duk_pop(js_context_);
 	}
 
 	void* JavaScriptSystem::AllocMemory(void* udata, duk_size_t length)
