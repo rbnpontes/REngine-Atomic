@@ -20,6 +20,8 @@ if (ENGINE_JAVASCRIPT OR ENGINE_DOTNET)
     endif()
 endif ()
 
+add_subdirectory(Plugins)
+
 if (ENGINE_DESKTOP)
     add_subdirectory(EngineTool)
     add_subdirectory(Tools)
