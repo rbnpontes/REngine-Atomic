@@ -28,6 +28,16 @@
 // ATOMIC END
 #include "../IO/Log.h"
 
+// Required to init subsystem caches
+#include "../Engine/Engine.h"
+#include "../Core/WorkQueue.h"
+#include "../Resource/ResourceCache.h"
+#include "../Resource/Localization.h"
+#include "../Network/Network.h"
+#include "../Input/Input.h"
+#include "../Audio/Audio.h"
+#include "../UI/UI.h"
+
 #ifndef MINI_URHO
     #include <SDL2/SDL.h>
     #ifdef ENGINE_IK
@@ -166,6 +176,43 @@ SharedPtr<Object> Context::CreateObject(StringHash objectType, const XMLElement&
         return SharedPtr<Object>();
 }
 // ATOMIC END
+
+void Context::InitSubsystemCache()
+{
+    if (!engine_)
+        engine_ = GetSubsystem<Engine>();
+    if (!time_)
+        time_ = GetSubsystem<Time>();
+    if (!workQueue_)
+        workQueue_ = GetSubsystem<WorkQueue>();
+#ifdef ENGINE_PROFILING
+    if (!profiler_)
+        profiler_ = GetSubsystem<Profiler>();
+#endif
+#ifdef ENGINE_LOGGING
+    if (!log_)
+        log_ = GetSubsystem<Log>();
+#endif
+    if (!cache_)
+        cache_ = GetSubsystem<ResourceCache>();
+    if (!l18n_)
+        l18n_ = GetSubsystem<Localization>();
+#ifdef ENGINE_NETWORK
+    if (!network_)
+        network_ = GetSubsystem<Network>();
+#endif
+#ifdef ENGINE_DATABASE
+    if (!db_)
+        db_ = GetSubsystem<Database>();
+#endif
+    if (!input_)
+        input_ = GetSubsystem<Input>();
+    if (!audio_)
+        audio_ = GetSubsystem<Audio>();
+    if (!ui_)
+        ui_ = GetSubsystem<UI>();
+}
+
 
 void Context::RegisterFactory(ObjectFactory* factory)
 {

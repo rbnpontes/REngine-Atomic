@@ -98,7 +98,8 @@ public:
     SharedPtr<Object> CreateObject(StringHash objectType, const XMLElement &source = XMLElement::EMPTY);
     // ATOMIC END
 
-
+    /// Initialize subsystem cache.
+    void InitSubsystemCache();
     /// Register a factory for an object type.
     void RegisterFactory(ObjectFactory* factory);
     /// Register a factory for an object type and specify the object category.
@@ -250,7 +251,6 @@ public:
     Metrics* GetMetrics() const { return metrics_; }
 
     // ATOMIC END
-
 private:
     /// Add event receiver.
     void AddEventReceiver(Object* receiver, StringHash eventType);
