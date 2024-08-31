@@ -1,5 +1,6 @@
 #pragma once
 #include <EngineCore/Container/TypeTraits.h>
+#include <Duktape/duktape.h>
 
 namespace REngine
 {
@@ -8,6 +9,7 @@ namespace REngine
 	public:
 		virtual bool Eval(const ea::string& js_code) = 0;
 		virtual bool EvalFromFilePath(const ea::string& file_path) = 0;
+		virtual duk_context* GetHeap() const = 0;
 		virtual size_t GetMemoryUsage() const = 0;
 		virtual size_t GetMemoryBlocks() const = 0;
 	};

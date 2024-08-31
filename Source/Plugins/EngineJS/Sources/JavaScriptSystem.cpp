@@ -31,8 +31,7 @@ namespace REngine
 		assert_context(js_context_);
 		bool failed = false;
 
-		duk_push_string(js_context_, js_code.c_str());
-		if(duk_peval(js_context_) != 0)
+		if(duk_peval_lstring(js_context_, js_code.c_str(), js_code.length()) != 0)
 		{
 			const char* err_msg = duk_safe_to_string(js_context_, -1);
 			ATOMIC_CLASS_LOGERROR(JavaScriptSystem, err_msg);
@@ -76,19 +75,27 @@ namespace REngine
 	{
 		assert(length < std::numeric_limits<u32>::max() && "Failed to allocate JavaScript memory");
 
+		if (!length)
+			return nullptr;
+
 		const auto instance = static_cast<JavaScriptSystem*>(udata);
 		instance->memory_usage_ += length;
 		++instance->memory_blocks_;
 
-		void* result = new char[sizeof(u32) + length];
-		*static_cast<u32*>(result) = static_cast<u32>(length); // store memory length at head of allocated memory
+		char* result = new char[sizeof(u32) + length];
+		// store memory length at head of allocated memory
+		u32* mem_size = static_cast<u32*>(static_cast<void*>(result));
+		*mem_size = static_cast<u32>(length);
 
-		return static_cast<char*>(result) + sizeof(u32);
+		return result + sizeof(u32);
 	}
 
 	void* JavaScriptSystem::ReAllocMemory(void* udata, void* ptr, duk_size_t size)
 	{
-		// shift 4 bytes(sizeof u32) to get allocated memory length
+		if (!ptr)
+			return AllocMemory(udata, size);
+
+		//// shift 4 bytes(sizeof u32) to get allocated memory length
 		char* result = static_cast<char*>(ptr) - sizeof(u32);
 
 		const u32 alloc_size = *static_cast<u32*>(static_cast<void*>(result));
@@ -99,7 +106,7 @@ namespace REngine
 		
 		// if duktape requests more memory than allocated, we must
 		// discard previous memory and allocate a new one.
-		if(alloc_size > size)
+		if(size > alloc_size)
 		{
 			delete result;
 			return AllocMemory(udata, size);
@@ -109,19 +116,22 @@ namespace REngine
 		// returns same memory.
 		instance->memory_usage_ += alloc_size;
 		++instance->memory_blocks_;
-		return result;
+		return result + sizeof(u32);
 	}
 
 	void JavaScriptSystem::DeAllocMemory(void* udata, void* ptr)
 	{
+		if (!ptr)
+			return;
+
 		char* result = static_cast<char*>(ptr) - sizeof(u32);
 		const u32 alloc_size = *static_cast<u32*>(static_cast<void*>(result));
+
+		delete result;
 
 		const auto instance = static_cast<JavaScriptSystem*>(udata);
 		instance->memory_usage_ -= alloc_size;
 		--instance->memory_blocks_;
-
-		delete result;
 	}
 
 	void JavaScriptSystem::HandleFatalError(void* udata, const char* msg)

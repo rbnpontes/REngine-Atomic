@@ -14,6 +14,7 @@ namespace REngine
 		void Initialize();
 		bool Eval(const ea::string& js_code) override;
 		bool EvalFromFilePath(const ea::string& file_path) override;
+		duk_context* GetHeap() const override { return js_context_; }
 		size_t GetMemoryUsage() const override { return memory_usage_; }
 		size_t GetMemoryBlocks() const override { return memory_blocks_; }
 	private:
