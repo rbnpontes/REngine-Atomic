@@ -28,6 +28,7 @@ namespace REngine {
         ea::vector<IEnginePlugin*> GetPlugins() const;
         void Initialize();
     private:
+        ResourceCache* GetResourceCache();
         SharedPtr<File> TryOpenLib(ea::string lib_path);
         void HandleEngineExit(StringHash event_type, VariantMap& event_data);
         ea::shared_ptr<PluginEntry> LoadPluginAtPath(const ea::string& plugin_path);

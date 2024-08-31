@@ -12,10 +12,10 @@ namespace REngine
 	public:
 		JavaScriptSystem(Context* context);
 		void Initialize();
-		void Eval(const ea::string& js_code) override;
-		void EvalFromFilePath(const ea::string& file_path) override;
-		size_t GetMemoryUsage() const { return memory_usage_; }
-		size_t GetMemoryBlocks() const { return memory_blocks_; }
+		bool Eval(const ea::string& js_code) override;
+		bool EvalFromFilePath(const ea::string& file_path) override;
+		size_t GetMemoryUsage() const override { return memory_usage_; }
+		size_t GetMemoryBlocks() const override { return memory_blocks_; }
 	private:
 		static void* AllocMemory(void* udata, duk_size_t length);
 		static void* ReAllocMemory(void* udata, void* ptr, duk_size_t size);

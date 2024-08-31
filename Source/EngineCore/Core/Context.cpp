@@ -35,6 +35,7 @@
 #include "../Resource/Localization.h"
 #include "../Network/Network.h"
 #include "../Input/Input.h"
+#include "../IO/FileSystem.h"
 #include "../Audio/Audio.h"
 #include "../UI/UI.h"
 
@@ -189,6 +190,8 @@ void Context::InitSubsystemCache()
     if (!profiler_)
         profiler_ = GetSubsystem<Profiler>();
 #endif
+    if (!fileSystem_)
+        fileSystem_ = GetSubsystem<FileSystem>();
 #ifdef ENGINE_LOGGING
     if (!log_)
         log_ = GetSubsystem<Log>();

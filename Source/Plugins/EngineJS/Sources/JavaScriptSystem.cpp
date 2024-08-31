@@ -26,39 +26,50 @@ namespace REngine
 		js_context_ = CreateJsContext();
 	}
 
-	void JavaScriptSystem::Eval(const ea::string& js_code)
+	bool JavaScriptSystem::Eval(const ea::string& js_code)
 	{
 		assert_context(js_context_);
+		bool failed = false;
+
 		duk_push_string(js_context_, js_code.c_str());
 		if(duk_peval(js_context_) != 0)
 		{
 			const char* err_msg = duk_safe_to_string(js_context_, -1);
 			ATOMIC_CLASS_LOGERROR(JavaScriptSystem, err_msg);
+			failed = true;
 		}
 
 		duk_pop(js_context_);
+
+		return failed;
 	}
 
-	void JavaScriptSystem::EvalFromFilePath(const ea::string& file_path)
+	bool JavaScriptSystem::EvalFromFilePath(const ea::string& file_path)
 	{
 		assert_context(js_context_);
 
 		auto resource_cache = GetSubsystem<ResourceCache>();
+
 		const auto script_file = resource_cache->GetFile(file_path.c_str());
 		if (!script_file)
 		{
 			ATOMIC_CLASS_LOGERRORF(IJavaScriptSystem, "Not found JavaScript File %s", file_path.c_str());
-			return;
+			return true;
 		}
+
+		bool failed = false;
 
 		duk_push_string(js_context_, script_file->GetFullPath().CString());
 		if(duk_pcompile_string_filename(js_context_, 0, script_file->ReadText().CString()) != 0)
 		{
 			const char* err_msg = duk_safe_to_string(js_context_, -1);
 			ATOMIC_CLASS_LOGERROR(IJavaScriptSystem, err_msg);
+			failed = true;
 		}
 
 		duk_pop(js_context_);
+
+		return failed;
 	}
 
 	void* JavaScriptSystem::AllocMemory(void* udata, duk_size_t length)

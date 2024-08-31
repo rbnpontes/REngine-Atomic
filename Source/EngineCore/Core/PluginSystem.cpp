@@ -34,8 +34,6 @@ namespace REngine {
             return;
 	    }
 
-        resource_cache_ = GetSubsystem<ResourceCache>();
-
         for (const auto& it : plugins_)
             it.second->instance_->OnPluginSetup(context_);
         for (const auto& it : plugins_)
@@ -43,6 +41,13 @@ namespace REngine {
 
         SubscribeToEvent(E_ENGINE_EXIT, ATOMIC_HANDLER(PluginSystem, HandleEngineExit));
         init_ = true;
+    }
+
+    ResourceCache* PluginSystem::GetResourceCache()
+    {
+        if (resource_cache_)
+            return resource_cache_;
+        return resource_cache_ = GetSubsystem<ResourceCache>();
     }
 
     SharedPtr<File> PluginSystem::TryOpenLib(ea::string lib_path)
@@ -58,7 +63,7 @@ namespace REngine {
                 lib_path += ".dylib";
         #endif
 
-        auto file = resource_cache_->GetFile(lib_path.c_str());
+        auto file = GetResourceCache()->GetFile(lib_path.c_str());
         if (file)
             return file;
 

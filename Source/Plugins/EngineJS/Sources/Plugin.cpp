@@ -40,4 +40,6 @@ namespace REngine
 			return context->GetSubsystem<JavaScriptSystem>();
 		}
 	};
+
+	ENGINE_DEFINE_PLUGIN(JavaScriptPluginImpl);
 }
