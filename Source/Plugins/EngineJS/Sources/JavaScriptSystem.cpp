@@ -62,13 +62,16 @@ namespace REngine
 
 		bool failed = false;
 
+		const auto script_data = script_file->ReadText();
 		duk_push_string(js_context_, script_file->GetFullPath().CString());
-		if(duk_pcompile_string_filename(js_context_, 0, script_file->ReadText().CString()) != 0)
+		if (duk_pcompile_string_filename(js_context_, 0, script_data.CString()) != 0)
 		{
 			const char* err_msg = duk_safe_to_string(js_context_, -1);
 			ATOMIC_CLASS_LOGERROR(IJavaScriptSystem, err_msg);
 			failed = true;
 		}
+		else
+			duk_call(js_context_, 0);
 
 		duk_pop(js_context_);
 

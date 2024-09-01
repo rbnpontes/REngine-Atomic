@@ -52,6 +52,8 @@ int main(int argc, char** argv)
 	RegisterSceneLibrary(context);
 	context->InitSubsystemCache();
 
+	context->GetResourceCache()->AddResourceDir(context->GetFileSystem()->GetProgramDir());
+
 	// Init log
 	log->SetQuiet(false);
 	log->Open("JavaScriptSandbox.log");
@@ -65,19 +67,40 @@ int main(int argc, char** argv)
 
 	signal(SIGINT, on_signal_handler);
 
-	std::cout << ":: [JavaScript Sandbox Tool] ::\n";
-	std::cout << "Type 'exit()' to exit sandbox or CTRL + C\n";
-
-	std::string code;
-	while (!g_stop)
+	// If argument is set, probably is a js file
+	if(arguments.Size() > 0)
 	{
-		std::cout << "> ";
-		std::getline(std::cin, code);
+		ea::string js_file_path;
+		for(const auto& arg : arguments)
+		{
+			if(arg.EndsWith(".js"))
+			{
+				js_file_path = arg.ToStdString();
+				break;
+			}
+		}
 
-		if(code.empty())
-			continue;
+		if(js_file_path.empty())
+			ATOMIC_LOGERROR("Not found a javascript file.");
+		else
+			js_plugin->GetJavaScriptSystem(context)->EvalFromFilePath(js_file_path);
+	}
+	else
+	{
+		std::cout << ":: [JavaScript Sandbox Tool] ::\n";
+		std::cout << "Type 'exit()' to exit sandbox or CTRL + C\n";
 
-		js_plugin->GetJavaScriptSystem(context)->Eval(code.c_str());
+		std::string code;
+		while (!g_stop)
+		{
+			std::cout << "> ";
+			std::getline(std::cin, code);
+
+			if(code.empty())
+				continue;
+
+			js_plugin->GetJavaScriptSystem(context)->Eval(code.c_str());
+		}
 	}
 
 	VariantMap event_data;
