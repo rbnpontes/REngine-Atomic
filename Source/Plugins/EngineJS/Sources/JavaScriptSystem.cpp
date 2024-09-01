@@ -5,6 +5,8 @@
 #include <EngineCore/Math/MathDefs.h>
 #include <EngineCore/Resource/ResourceCache.h>
 
+#include"./JavaScriptLogging.h"
+
 namespace REngine
 {
 	static void assert_context(duk_context* js_ctx)
@@ -24,6 +26,8 @@ namespace REngine
 		if (js_context_)
 			return;
 		js_context_ = CreateJsContext();
+		// Setup default bindings
+		js_setup_logging(js_context_);
 	}
 
 	bool JavaScriptSystem::Eval(const ea::string& js_code)
