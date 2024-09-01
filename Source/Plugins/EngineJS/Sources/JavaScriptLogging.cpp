@@ -1,5 +1,6 @@
 #include "JavaScriptLogging.h"
 #include <EngineCore/IO/Log.h>
+#include <cstdlib>
 
 #define MAX_LOG_DEPTH 3
 namespace REngine
@@ -222,6 +223,18 @@ namespace REngine
 			return 0;
 		}, DUK_VARARGS);
 		duk_put_prop_string(ctx, -2, "error");
+
+		duk_push_c_lightfunc(ctx, [](duk_context* ctx)
+		{
+#ifdef ENGINE_PLATFORM_WINDOWS
+			std::system("cls");
+#else
+			std::system("clear");
+#endif
+			ATOMIC_LOGDEBUG("Console was cleared");
+			return 0;
+		}, 0, 0, 0);
+		duk_put_prop_string(ctx, -2, "clear");
 
 		duk_put_global_string(ctx, "console");
 	}
