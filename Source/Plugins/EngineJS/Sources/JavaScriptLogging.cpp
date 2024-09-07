@@ -190,7 +190,7 @@ namespace REngine
 		}
 	}
 
-	void js_setup_logging(duk_context* ctx)
+	void js_logging_setup(duk_context* ctx)
 	{
 		duk_push_object(ctx);
 

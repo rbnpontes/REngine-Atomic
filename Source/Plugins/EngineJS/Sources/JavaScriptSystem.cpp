@@ -5,8 +5,14 @@
 #include <EngineCore/Math/MathDefs.h>
 #include <EngineCore/Resource/ResourceCache.h>
 
-#include"./JavaScriptLogging.h"
+#include "./JavaScriptLogging.h"
+#include "./JavaScriptModuleLoader.h"
+#include "./JavaScriptAssert.h"
+#include "EngineCore/IO/FileSystem.h"
 
+#define ENGINE_CONTEXT_PROP "engine_ctx"
+#define ENGINE_DIRNAME_PROP "__dirname"
+#define ENGINE_FILENAME_PROP "__filename"
 namespace REngine
 {
 	static void assert_context(duk_context* js_ctx)
@@ -26,8 +32,11 @@ namespace REngine
 		if (js_context_)
 			return;
 		js_context_ = CreateJsContext();
+
+		SetupEngineContext();
 		// Setup default bindings
-		js_setup_logging(js_context_);
+		js_logging_setup(js_context_);
+		js_module_loader_setup(js_context_);
 	}
 
 	bool JavaScriptSystem::Eval(const ea::string& js_code)
@@ -50,6 +59,7 @@ namespace REngine
 	bool JavaScriptSystem::EvalFromFilePath(const ea::string& file_path)
 	{
 		assert_context(js_context_);
+		JS_ASSERT_HEAP(js_context_);
 
 		auto resource_cache = GetSubsystem<ResourceCache>();
 
@@ -60,22 +70,106 @@ namespace REngine
 			return true;
 		}
 
-		bool failed = false;
+		return Eval(script_file);
+	}
 
+	bool JavaScriptSystem::Eval(SharedPtr<File> script_file) const
+	{
+		assert_context(js_context_);
+		assert(script_file);
+		JS_ASSERT_HEAP(js_context_);
+
+		bool success = true;
+		const auto script_path = script_file->GetFullPath();
 		const auto script_data = script_file->ReadText();
-		duk_push_string(js_context_, script_file->GetFullPath().CString());
+
+		String path_name;
+		String file_name;
+		String ext;
+		Atomic::SplitPath(
+			script_path, 
+			path_name, 
+			file_name, 
+			ext);
+		const auto script_name_w_ext = file_name + ext;
+
+		ea::string prev_dir_name_val, prev_file_name_val;
+
+		if(duk_get_global_string(js_context_, ENGINE_DIRNAME_PROP))
+		{
+			const auto val = duk_get_string(js_context_, -1);
+			if (val)
+				prev_dir_name_val = val;
+		}
+
+		if(duk_get_global_string(js_context_, ENGINE_FILENAME_PROP))
+		{
+			const auto val = duk_get_string(js_context_, -1);
+			if (val)
+				prev_file_name_val = val;
+		}
+		// remove __dirname and __filename refs
+		duk_pop_2(js_context_);
+
+		// add required global values
+		duk_push_string(js_context_, path_name.CString());
+		duk_put_global_string(js_context_, ENGINE_DIRNAME_PROP);
+
+		duk_push_string(js_context_, script_name_w_ext.CString());
+		duk_put_global_string(js_context_, ENGINE_FILENAME_PROP);
+
+		duk_push_string(js_context_, script_path.CString());
 		if (duk_pcompile_string_filename(js_context_, 0, script_data.CString()) != 0)
 		{
 			const char* err_msg = duk_safe_to_string(js_context_, -1);
 			ATOMIC_CLASS_LOGERROR(IJavaScriptSystem, err_msg);
-			failed = true;
+			success = false;
 		}
 		else
 			duk_call(js_context_, 0);
 
 		duk_pop(js_context_);
 
-		return failed;
+		// put it back default global properties
+		if(prev_dir_name_val.empty())
+			duk_push_undefined(js_context_);
+		else
+			duk_push_string(js_context_, prev_dir_name_val.c_str());
+		duk_put_global_string(js_context_, ENGINE_DIRNAME_PROP);
+
+		if (prev_file_name_val.empty())
+			duk_push_undefined(js_context_);
+		else
+			duk_push_string(js_context_, prev_file_name_val.c_str());
+		duk_put_global_string(js_context_, ENGINE_FILENAME_PROP);
+
+		return success;
+	}
+
+	Context* JavaScriptSystem::GetEngineContext(duk_context* ctx)
+	{
+		JS_ASSERT_HEAP(ctx);
+
+		duk_push_global_stash(ctx);
+		duk_get_prop_string(ctx, -1, ENGINE_CONTEXT_PROP);
+
+		Context* engine_ctx = nullptr;
+		if (duk_is_pointer(ctx, -1))
+			engine_ctx = static_cast<Context*>(duk_get_pointer(ctx, -1));
+
+		duk_pop_2(ctx);
+		return engine_ctx;
+	}
+
+	void JavaScriptSystem::SetupEngineContext() const
+	{
+		JS_ASSERT_HEAP(js_context_);
+
+		duk_push_global_stash(js_context_);
+		duk_push_pointer(js_context_, context_);
+		duk_put_prop_string(js_context_, -2, ENGINE_CONTEXT_PROP);
+
+		duk_pop(js_context_);
 	}
 
 	void* JavaScriptSystem::AllocMemory(void* udata, duk_size_t length)

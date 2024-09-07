@@ -3,5 +3,5 @@
 
 namespace REngine
 {
-	void js_logging_setup(duk_context* ctx);
+	void js_module_loader_setup(duk_context* ctx);
 }

@@ -6,8 +6,8 @@ add_dependencies(JavaScriptSandbox ${ENGINE_PLUGIN_JS_TARGET})
 
 add_custom_command(TARGET JavaScriptSandbox POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E create_symlink
-        "${CMAKE_CURRENT_SOURCE_DIR}/sandbox.test.js"
-        "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/$<CONFIG>/sandbox.test.js"
+        "${CMAKE_CURRENT_SOURCE_DIR}/TestScripts"
+        "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/$<CONFIG>/TestScripts"
     COMMENT "Creating symbolic link of sandbox unit tests"
 )
 

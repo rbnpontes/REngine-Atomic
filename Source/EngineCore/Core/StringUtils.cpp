@@ -850,6 +850,33 @@ String ToStringVariadic(const char* formatString, va_list args)
     return ret;
 }
 
+    void string_tolower(ea::string& str)
+    {
+	    str = ea::transform(
+            str.begin(), 
+            str.end(), 
+            str.begin(), 
+            [](u8 c) { return ea::CharToLower(c); }
+        );
+    }
+
+    bool string_starts_with(ea::string str, ea::string test, bool ignore_case)
+    {
+        if (test.length() > str.length())
+            return false;
+
+        if(ignore_case)
+	    {
+            string_tolower(str);
+            string_tolower(test);
+	    }
+
+        const auto it = str.find_first_of(test);
+        if (it == ea::string::npos)
+            return false;
+        return (str.length() - it) == test.length();
+    }
+
     bool string_ends_with(ea::string str, ea::string test, bool ignore_case)
     {
         if (test.length() > str.length())
@@ -857,20 +884,52 @@ String ToStringVariadic(const char* formatString, va_list args)
 
 	    if(ignore_case)
 	    {
-            str = ea::transform(str.begin(), str.end(), str.begin(), [](u8 c)
-                {
-                    return ea::CharToLower(c);
-                });
-            test = ea::transform(test.begin(), test.end(), test.begin(), [](u8 c)
-                {
-                    return ea::CharToLower(c);
-                });
+            string_tolower(str);
+            string_tolower(test);
 	    }
 
-	    const auto it = str.find_last_of(test);
-        if (it == ea::string::npos)
-            return false;
-        return (str.length() - it) == test.length();
+	    auto it = str.find_last_of(test);
+        return it != ea::string::npos;
+    }
+
+    void string_split(const ea::string& str, const char delimiter, ea::vector<ea::string>& tokens)
+    {
+        size_t start = 0;
+        size_t end = str.find(delimiter);
+
+        ea::string part;
+        while (end != std::string::npos) {
+            part = str.substr(start, end - start);
+            tokens.push_back(part);
+            start = end + 1;
+            end = str.find(delimiter, start);
+        }
+
+        part = str.substr(start);
+        tokens.push_back(part);
+    }
+
+    void string_replace(ea::string& str, const ea::string& search, const ea::string& replace, bool ignore_case)
+    {
+        if (search.length() > str.length())
+            return;
+
+        auto input = str;
+        auto match = search;
+
+        if(ignore_case)
+        {
+            string_tolower(input);
+            string_tolower(match);
+        }
+
+        size_t pos = 0;
+        while ((pos = str.find(match, pos)) != ea::string::npos) {
+            str.replace(pos, match.length(), replace);
+            // update input too, otherwise we will deal with problems
+            input.replace(pos, match.length(), replace);
+            pos += match.length();
+        }
     }
 
 }
