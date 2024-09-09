@@ -1,12 +1,13 @@
 #include "JavaScriptLogging.h"
+#include "JsonBuilder.h"
 #include <EngineCore/IO/Log.h>
 #include <cstdlib>
 
 #define MAX_LOG_DEPTH 3
 namespace REngine
 {
-	void js__build_log_array(duk_context* ctx, duk_idx_t parent_idx, duk_idx_t arr_2_read_idx, u8 depth);
-	void js__build_log_obj(duk_context* ctx, duk_idx_t parent_idx, duk_idx_t obj_2_read_idx, u8 depth);
+	void js__build_log_array(duk_context* ctx, ea::shared_ptr<JsonArray>& array, duk_idx_t arr_2_read_idx, u8 depth);
+	void js__build_log_obj(duk_context* ctx, ea::shared_ptr<JsonObject>& obj, duk_idx_t obj_2_read_idx, u8 depth);
 
 
 	bool js__is_primitive(duk_context* ctx, duk_idx_t idx)
@@ -38,6 +39,25 @@ namespace REngine
 			return "undefined";
 		return "";
 	}
+	void js__fill_primitive(duk_context* ctx, duk_idx_t idx, ea::shared_ptr<JsonPrimitive>& primitive)
+	{
+		if (duk_is_string(ctx, idx))
+			primitive->SetValue(duk_get_string(ctx, idx));
+		else if (duk_is_function(ctx, idx))
+			primitive->SetValue(duk_to_string(ctx, idx));
+		else if (duk_is_boolean(ctx, idx))
+			primitive->SetValue(static_cast<bool>(duk_is_boolean(ctx, idx)));
+		else if (duk_is_pointer(ctx, idx))
+			primitive->SetValue(duk_to_string(ctx, idx));
+		else if (duk_is_nan(ctx, idx))
+			primitive->SetValue("NaN");
+		else if (duk_is_null(ctx, idx))
+			primitive->SetValue("null");
+		else if (duk_is_undefined(ctx, idx))
+			primitive->SetValue("undefined");
+		else if (duk_is_number(ctx, idx))
+			primitive->SetValue(duk_to_number(ctx, idx));
+	}
 
 	ea::string js__stringify(duk_context* ctx, duk_idx_t obj_idx)
 	{
@@ -57,7 +77,7 @@ namespace REngine
 		return result;
 	}
 
-	void js__build_log_array(duk_context* ctx, duk_idx_t parent_idx, duk_idx_t arr_2_read_idx, u8 depth)
+	void js__build_log_array(duk_context* ctx, ea::shared_ptr<JsonArray>& array, duk_idx_t arr_2_read_idx, u8 depth)
 	{
 		// Skip if depth is too long
 		if (depth >= MAX_LOG_DEPTH)
@@ -71,30 +91,24 @@ namespace REngine
 
 			if (js__is_non_loggable_value(ctx, value_idx))
 			{
-				if (js__is_primitive(ctx, value_idx))
-					duk_dup(ctx, value_idx);
-				else
-					duk_push_string(ctx, js__get_default_string(ctx, value_idx).c_str());
+				auto primitive = array->PushPrimitive();
+				js__fill_primitive(ctx, value_idx, primitive);
 			}
 			else if (duk_is_array(ctx, value_idx))
 			{
-				duk_push_array(ctx);
-				js__build_log_array(ctx, duk_get_top_index(ctx), value_idx, depth + 1);
+				auto child_array = array->PushArray();
+				js__build_log_array(ctx, child_array, value_idx, depth + 1);
 			}
 			else if (duk_is_object(ctx, value_idx))
 			{
-				duk_push_object(ctx);
-				js__build_log_obj(ctx, duk_get_top_index(ctx), value_idx, depth + 1);
+				auto obj = array->PushObject();
+				js__build_log_obj(ctx, obj, value_idx, depth + 1);
 			}
-			else
-				duk_push_undefined(ctx);
-
-			duk_put_prop_index(ctx, parent_idx, i);
 
 			duk_pop(ctx);
 		}
 	}
-	void js__build_log_obj(duk_context* ctx, duk_idx_t parent_idx, duk_idx_t obj_2_read_idx, u8 depth)
+	void js__build_log_obj(duk_context* ctx, ea::shared_ptr<JsonObject>& obj, duk_idx_t obj_2_read_idx, u8 depth)
 	{
 		// Skip if depth is too long
 		if (depth >= MAX_LOG_DEPTH)
@@ -108,71 +122,24 @@ namespace REngine
 
 			if (js__is_non_loggable_value(ctx, value_idx))
 			{
-				if (js__is_primitive(ctx, value_idx))
-					duk_dup(ctx, value_idx);
-				else
-					duk_push_string(ctx, js__get_default_string(ctx, value_idx).c_str());
+				auto primitive = obj->AddPrimitive(prop_name);
+				js__fill_primitive(ctx, value_idx, primitive);
 			}
 			else if (duk_is_array(ctx, value_idx))
 			{
-				duk_push_array(ctx);
-				js__build_log_obj(ctx, duk_get_top_index(ctx), value_idx, depth + 1);
+				auto arr = obj->AddArray(prop_name);
+				js__build_log_array(ctx, arr, value_idx, depth + 1);
 			}
 			else if (duk_is_object(ctx, value_idx))
 			{
-				duk_push_object(ctx);
-				js__build_log_obj(ctx, duk_get_top_index(ctx), value_idx, depth + 1);
+				auto child_obj = obj->AddObject(prop_name);
+				js__build_log_obj(ctx, child_obj, value_idx, depth + 1);
 			}
-			else
-				duk_push_undefined(ctx);
-
-			duk_put_prop_string(ctx, parent_idx, prop_name.c_str());
 
 			duk_pop_2(ctx);
 		}
 
 		duk_pop(ctx);
-	}
-	ea::string js__get_obj_str(duk_context* ctx, duk_idx_t idx)
-	{
-		const auto heap_top = duk_get_top(ctx);
-		const auto obj_idx = duk_get_top(ctx);
-
-		duk_push_object(ctx);
-
-		js__build_log_obj(ctx, obj_idx, idx, 0);
-
-		ea::string result = js__stringify(ctx, obj_idx);
-
-		duk_pop(ctx);
-
-		const auto curr_heap_top = duk_get_top(ctx);
-		assert(curr_heap_top == heap_top);
-
-		return result;
-	}
-	ea::string js__get_arr_str(duk_context* ctx, duk_idx_t idx)
-	{
-		const auto heap_top = duk_get_top(ctx);
-		const auto arr_idx = duk_get_top(ctx);
-		duk_push_array(ctx);
-
-		js__build_log_array(ctx, arr_idx, idx, 0);
-
-		duk_get_global_string(ctx, "JSON");
-		duk_push_string(ctx, "stringify");
-		duk_dup(ctx, arr_idx);
-		duk_push_null(ctx);
-		duk_push_string(ctx, "\t");
-		duk_call_prop(ctx, -5, 3);
-
-		ea::string result = duk_get_string(ctx, -1);
-		duk_pop_3(ctx);
-
-		const auto curr_heap_top = duk_get_top(ctx);
-		assert(curr_heap_top == heap_top);
-
-		return result;
 	}
 
 	void js__log(duk_context* ctx, int log_lvl)
@@ -181,12 +148,22 @@ namespace REngine
 
 		for(duk_idx_t i =0; i < args; ++i)
 		{
-			if(js__is_non_loggable_value(ctx, i))
-				Atomic::Log::Write(log_lvl, js__get_default_string(ctx, i).c_str());
+			ea::string message;
+			if (js__is_non_loggable_value(ctx, i))
+				message = js__get_default_string(ctx, i);
 			if (duk_is_array(ctx, -1))
-				Atomic::Log::Write(log_lvl, js__get_arr_str(ctx, i).c_str());
+			{
+				auto arr = JsonBuilder::GetArray();
+				js__build_log_array(ctx, arr, i, 0);
+				message = arr->ToString();
+			}
 			else if (duk_is_object(ctx, i))
-				Atomic::Log::Write(log_lvl, js__get_obj_str(ctx, i).c_str());
+			{
+				auto obj = JsonBuilder::GetObject();
+				js__build_log_obj(ctx, obj, i, 0);
+				message = obj->ToString();
+			}
+			Atomic::Log::Write(log_lvl, message.c_str());
 		}
 	}
 
