@@ -243,7 +243,7 @@ namespace REngine
 		{
 			void* new_ptr = AllocMemory(udata, size);
 			// copy current data to new address
-			memcpy(new_ptr, result, size);
+			memcpy(new_ptr, ptr, size);
 			delete result;
 			return new_ptr;
 		}
