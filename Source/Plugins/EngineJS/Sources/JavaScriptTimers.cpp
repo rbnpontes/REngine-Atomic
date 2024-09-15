@@ -31,7 +31,7 @@ namespace REngine
 	{
 		JS_ASSERT_HEAP(ctx);
 
-		duk_push_global_object(ctx);
+		duk_push_global_stash(ctx);
 		duk_get_prop_string(ctx, -1, JS_TIMERS_PROP);
 
 		if(duk_is_null_or_undefined(ctx, -1))
@@ -48,7 +48,7 @@ namespace REngine
 		}
 
 		const auto result = static_cast<timers_context*>(duk_get_pointer(ctx, -1));
-		duk_pop_n(ctx, 4);
+		duk_pop_3(ctx);
 		return result;
 	}
 
@@ -120,13 +120,15 @@ namespace REngine
 	{
 		duk_require_function(ctx, 0);
 		duk_uidx_t timeout = 0;
-		if(type == timer_type::immediate)
+		if(type != timer_type::immediate)
 		{
 			timeout = duk_require_uint(ctx, 1);
 			duk_pop(ctx);
 		}
 
 		timers_context* t_ctx = js_timers__get_context(ctx);
+		assert(t_ctx && "timer context is null");
+
 		ea::shared_ptr<timeout_desc> desc(new timeout_desc());
 		desc->ignore_ = false;
 		desc->callback_ = duk_get_heapptr(ctx, 0);
@@ -159,7 +161,7 @@ namespace REngine
 		// setup setImmediate call
 		duk_push_c_lightfunc(ctx, [](duk_context* ctx)
 		{
-			return js_timers__create_timeout(ctx, timer_type::interval);
+			return js_timers__create_timeout(ctx, timer_type::immediate);
 		}, 1, 1, 0);
 		duk_put_global_string(ctx, "setImmediate");
 		// setup setTimeout call
@@ -241,7 +243,7 @@ namespace REngine
 
 			// does timer reaches timeout ?
 			// if not, then add back to new queue to process in the next call
-			if(timer->timeout_ < t_now)
+			if(timer->timeout_ > t_now)
 			{
 				new_queue.push(timer);
 				continue;
@@ -251,6 +253,7 @@ namespace REngine
 			// callback reference
 			duk_push_heapptr(ctx, timer->callback_);
 			duk_call(ctx, 0);
+			duk_pop(ctx);
 
 			// if timer is interval, put it back at new queue
 			// to be re-executed later.
