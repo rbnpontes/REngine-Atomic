@@ -47,7 +47,7 @@ function runTests() {
     };
     var handleFailedTest = function (testName, err) {
         failedTests.push([testName, err]);
-        console.error('- [FAILED]: ' + testName, err);
+        console.error('- [FAILED]: ' + testName, err.toString());
     };
     var executeTest = function (testName, testCall, callback) {
         const completeFn = function () {
@@ -106,16 +106,31 @@ function runTests() {
 
 describe('Logging', function () {
     it('must log with console.log', function () {
-        console.log('test log info');
-    });
-    it('must log with console.warn', function () {
-        console.warn('test warning log');
+        console.log('test log');
     });
     it('must log with console.debug', function () {
         console.debug('test debug log');
     });
+    it('must log with console.info', function () {
+        console.info('test info log');
+    });
+    it('must log with console.warn', function () {
+        console.warn('test warning log');
+    });
     it('must log with console.error', function () {
         console.error('test error log');
+    });
+    it('must define additional log calls', function() {
+        if(typeof console.success === 'undefined')
+            throw new Error('console.success is required');
+        if(typeof console.raw === 'undefined')
+            throw new Error('console.raw is required');
+    });
+    it('must log with console.success', function() {
+        console.success('test success log');
+    });
+    it('must log with console.raw', function() {
+        console.raw('test raw log\n');
     });
 });
 
