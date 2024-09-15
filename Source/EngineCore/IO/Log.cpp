@@ -43,273 +43,293 @@ extern "C" void SDL_IOS_LogMessage(const char* message);
 
 #include "../DebugNew.h"
 
+#define LOG_RESET_COLOR "\033[0m"
 namespace Atomic
 {
+	const char* logLevelPrefixes[] =
+	{
+		"DEBUG",
+		"INFO",
+		"WARNING",
+		"ERROR",
+		"SUCCESS",
+		0
+	};
+	const char* s_log_colors[] = 
+	{
+		"\033[90m",
+		"\033[94m",
+		"\033[93m",
+		"\033[91m",
+		"\033[92m"
+	};
 
-const char* logLevelPrefixes[] =
-{
-    "DEBUG",
-    "INFO",
-    "WARNING",
-    "ERROR",
-    0
-};
+	static Log* logInstance = 0;
+	static bool threadErrorDisplayed = false;
 
-static Log* logInstance = 0;
-static bool threadErrorDisplayed = false;
+	static ea::queue<StoredLogMessage> s_log_tmp_messages;
 
-static ea::queue<StoredLogMessage> s_log_tmp_messages;
-
-Log::Log(Context* context) :
-    Object(context),
+	Log::Log(Context* context) :
+		Object(context),
 #ifdef _DEBUG
-    level_(LOG_DEBUG),
+		level_(LOG_DEBUG),
 #else
-    level_(LOG_INFO),
+		level_(LOG_INFO),
 #endif
-    timeStamp_(true),
-    inWrite_(false),
-    quiet_(false)
-{
-    logInstance = this;
-    SubscribeToEvent(E_ENDFRAME, ATOMIC_HANDLER(Log, HandleEndFrame));
+		timeStamp_(true),
+		inWrite_(false),
+		quiet_(false)
+	{
+		logInstance = this;
+		SubscribeToEvent(E_ENDFRAME, ATOMIC_HANDLER(Log, HandleEndFrame));
 
-    while(!s_log_tmp_messages.empty()) {
-        const auto& stored = s_log_tmp_messages.front();
-        DigestStoredLog(stored);
-        s_log_tmp_messages.pop();
-    }
-}
+		while (!s_log_tmp_messages.empty()) {
+			const auto& stored = s_log_tmp_messages.front();
+			DigestStoredLog(stored);
+			s_log_tmp_messages.pop();
+		}
+	}
 
-Log::~Log()
-{
-    logInstance = 0;
-}
+	Log::~Log()
+	{
+		logInstance = 0;
+	}
 
-void Log::Open(const String& fileName)
-{
+	void Log::Open(const String& fileName)
+	{
 #if !defined(__ANDROID__) && !defined(IOS) && !defined(TVOS)
-    if (fileName.Empty())
-        return;
-    if (logFile_ && logFile_->IsOpen())
-    {
-        if (logFile_->GetName() == fileName)
-            return;
-        else
-            Close();
-    }
+		if (fileName.Empty())
+			return;
+		if (logFile_ && logFile_->IsOpen())
+		{
+			if (logFile_->GetName() == fileName)
+				return;
+			else
+				Close();
+		}
 
-    logFile_ = new File(context_);
-    if (logFile_->Open(fileName, FILE_WRITE))
-        Write(LOG_INFO, "Opened log file " + fileName);
-    else
-    {
-        logFile_.Reset();
-        Write(LOG_ERROR, "Failed to create log file " + fileName);
-    }
+		logFile_ = new File(context_);
+		if (logFile_->Open(fileName, FILE_WRITE))
+			Write(LOG_INFO, "Opened log file " + fileName);
+		else
+		{
+			logFile_.Reset();
+			Write(LOG_ERROR, "Failed to create log file " + fileName);
+		}
 #endif
-}
+	}
 
-void Log::Close()
-{
+	void Log::Close()
+	{
 #if !defined(__ANDROID__) && !defined(IOS) && !defined(TVOS)
-    if (logFile_ && logFile_->IsOpen())
-    {
-        logFile_->Close();
-        logFile_.Reset();
-    }
+		if (logFile_ && logFile_->IsOpen())
+		{
+			logFile_->Close();
+			logFile_.Reset();
+		}
 #endif
-}
+	}
 
-void Log::SetLevel(int level)
-{
-    if (level < LOG_DEBUG || level > LOG_NONE)
-    {
-        ATOMIC_LOGERRORF("Attempted to set erroneous log level %d", level);
-        return;
-    }
+	void Log::SetLevel(int level)
+	{
+		if (level < LOG_DEBUG || level > LOG_NONE)
+		{
+			ATOMIC_LOGERRORF("Attempted to set erroneous log level %d", level);
+			return;
+		}
 
-    level_ = level;
-}
+		level_ = level;
+	}
 
-void Log::SetTimeStamp(bool enable)
-{
-    timeStamp_ = enable;
-}
+	void Log::SetTimeStamp(bool enable)
+	{
+		timeStamp_ = enable;
+	}
 
-void Log::SetQuiet(bool quiet)
-{
-    quiet_ = quiet;
-}
+	void Log::SetQuiet(bool quiet)
+	{
+		quiet_ = quiet;
+	}
 
-void Log::Write(int level, const String& message)
-{
-    // Sometimes a log can occur before log initialization.
-    // In this case, we must store logs then when log starts
-    // they will digest queued messages.
-    if(!logInstance) 
-    {
-        s_log_tmp_messages.push(StoredLogMessage(message, level, false));
-        return;
-    }
+	void Log::Write(int level, const String& message)
+	{
+		// Sometimes a log can occur before log initialization.
+		// In this case, we must store logs then when log starts
+		// they will digest queued messages.
+		if (!logInstance)
+		{
+			s_log_tmp_messages.push(StoredLogMessage(message, level, false));
+			return;
+		}
 
-    // Special case for LOG_RAW level
-    if (level == LOG_RAW)
-    {
-        WriteRaw(message, false);
-        return;
-    }
+		// Special case for LOG_RAW level
+		if (level == LOG_RAW)
+		{
+			WriteRaw(message, false);
+			return;
+		}
 
-    // No-op if illegal level
-    if (level < LOG_DEBUG || level >= LOG_NONE)
-        return;
+		// No-op if illegal level
+		if (level < LOG_DEBUG || level >= LOG_NONE)
+			return;
 
-    // If not in the main thread, store message for later processing
-    if (!Thread::IsMainThread())
-    {
-        if (logInstance)
-        {
-            MutexLock lock(logInstance->logMutex_);
-            logInstance->threadMessages_.Push(StoredLogMessage(message, level, false));
-        }
+		// If not in the main thread, store message for later processing
+		if (!Thread::IsMainThread())
+		{
+			if (logInstance)
+			{
+				MutexLock lock(logInstance->logMutex_);
+				logInstance->threadMessages_.Push(StoredLogMessage(message, level, false));
+			}
 
-        return;
-    }
+			return;
+		}
 
-    // Do not log if message level excluded or if currently sending a log event
-    if (logInstance->level_ > level || logInstance->inWrite_) 
-        return;
+		// Do not log if message level excluded or if currently sending a log event
+		if (logInstance->level_ > level || logInstance->inWrite_)
+			return;
 
-    String formattedMessage = logLevelPrefixes[level];
-    formattedMessage += ": " + message;
-    logInstance->lastMessage_ = message;
+		String formattedMessage = s_log_colors[level];
+		formattedMessage += logLevelPrefixes[level];
+		formattedMessage += ": " + message;
+		formattedMessage += LOG_RESET_COLOR;
 
-    if (logInstance->timeStamp_)
-        formattedMessage = "[" + Time::GetTimeStamp() + "] " + formattedMessage;
+		String log_msg = s_log_colors[level];
+		log_msg += formattedMessage;
+		log_msg += LOG_RESET_COLOR;
+
+		logInstance->lastMessage_ = message;
+
+		if (logInstance->timeStamp_)
+		{
+			const String timestamp = "[" + Time::GetTimeStamp() + "] ";
+			formattedMessage = timestamp + formattedMessage;
+			log_msg = timestamp + formattedMessage;
+		}
 
 #if defined(__ANDROID__)
-    int androidLevel = ANDROID_LOG_DEBUG + level;
-    __android_log_print(androidLevel, "Atomic", "%s", message.CString());
+		int androidLevel = ANDROID_LOG_DEBUG + level;
+		__android_log_print(androidLevel, "Atomic", "%s", message.CString());
 #elif defined(IOS) || defined(TVOS)
-    SDL_IOS_LogMessage(message.CString());
+		SDL_IOS_LogMessage(message.CString());
 #else
-    if (logInstance->quiet_)
-    {
-        // If in quiet mode, still print the error message to the standard error stream
-        if (level == LOG_ERROR)
-            PrintUnicodeLine(formattedMessage, true);
-    }
-    else
-        PrintUnicodeLine(formattedMessage, level == LOG_ERROR);
+		if (logInstance->quiet_)
+		{
+			// If in quiet mode, still print the error message to the standard error stream
+			if (level == LOG_ERROR)
+				PrintUnicodeLine(log_msg, true);
+		}
+		else
+			PrintUnicodeLine(log_msg, level == LOG_ERROR);
 #endif
 
-    if (logInstance->logFile_)
-    {
-        logInstance->logFile_->WriteLine(formattedMessage);
-        logInstance->logFile_->Flush();
-    }
+		if (logInstance->logFile_)
+		{
+			logInstance->logFile_->WriteLine(formattedMessage);
+			logInstance->logFile_->Flush();
+		}
 
-    logInstance->inWrite_ = true;
+		logInstance->inWrite_ = true;
 
-    using namespace LogMessage;
+		using namespace LogMessage;
 
-    VariantMap& eventData = logInstance->GetEventDataMap();
-    eventData[P_MESSAGE] = formattedMessage;
-    eventData[P_LEVEL] = level;
-    logInstance->SendEvent(E_LOGMESSAGE, eventData);
+		VariantMap& eventData = logInstance->GetEventDataMap();
+		eventData[P_MESSAGE] = formattedMessage;
+		eventData[P_LEVEL] = level;
+		logInstance->SendEvent(E_LOGMESSAGE, eventData);
 
-    logInstance->inWrite_ = false;
-}
+		logInstance->inWrite_ = false;
+	}
 
-void Log::WriteRaw(const String& message, bool error)
-{
-    // If not in the main thread, store message for later processing
-    if (!Thread::IsMainThread())
-    {
-        if (logInstance)
-        {
-            MutexLock lock(logInstance->logMutex_);
-            logInstance->threadMessages_.Push(StoredLogMessage(message, LOG_RAW, error));
-        }
+	void Log::WriteRaw(const String& message, bool error)
+	{
+		// If not in the main thread, store message for later processing
+		if (!Thread::IsMainThread())
+		{
+			if (logInstance)
+			{
+				MutexLock lock(logInstance->logMutex_);
+				logInstance->threadMessages_.Push(StoredLogMessage(message, LOG_RAW, error));
+			}
 
-        return;
-    }
+			return;
+		}
 
-    // Prevent recursion during log event
-    if (!logInstance || logInstance->inWrite_)
-        return;
+		// Prevent recursion during log event
+		if (!logInstance || logInstance->inWrite_)
+			return;
 
-    logInstance->lastMessage_ = message;
+		logInstance->lastMessage_ = message;
 
 #if defined(__ANDROID__)
-    if (logInstance->quiet_)
-    {
-        if (error)
-            __android_log_print(ANDROID_LOG_ERROR, "Atomic", "%s", message.CString());
-    }
-    else
-        __android_log_print(error ? ANDROID_LOG_ERROR : ANDROID_LOG_INFO, "Atomic", "%s", message.CString());
+		if (logInstance->quiet_)
+		{
+			if (error)
+				__android_log_print(ANDROID_LOG_ERROR, "Atomic", "%s", message.CString());
+		}
+		else
+			__android_log_print(error ? ANDROID_LOG_ERROR : ANDROID_LOG_INFO, "Atomic", "%s", message.CString());
 #elif defined(IOS) || defined(TVOS)
-    SDL_IOS_LogMessage(message.CString());
+		SDL_IOS_LogMessage(message.CString());
 #else
-    if (logInstance->quiet_)
-    {
-        // If in quiet mode, still print the error message to the standard error stream
-        if (error)
-            PrintUnicode(message, true);
-    }
-    else
-        PrintUnicode(message, error);
+		if (logInstance->quiet_)
+		{
+			// If in quiet mode, still print the error message to the standard error stream
+			if (error)
+				PrintUnicode(message, true);
+		}
+		else
+			PrintUnicode(message, error);
 #endif
 
-    if (logInstance->logFile_)
-    {
-        logInstance->logFile_->Write(message.CString(), message.Length());
-        logInstance->logFile_->Flush();
-    }
+		if (logInstance->logFile_)
+		{
+			logInstance->logFile_->Write(message.CString(), message.Length());
+			logInstance->logFile_->Flush();
+		}
 
-    logInstance->inWrite_ = true;
+		logInstance->inWrite_ = true;
 
-    using namespace LogMessage;
+		using namespace LogMessage;
 
-    VariantMap& eventData = logInstance->GetEventDataMap();
-    eventData[P_MESSAGE] = message;
-    eventData[P_LEVEL] = error ? LOG_ERROR : LOG_INFO;
-    logInstance->SendEvent(E_LOGMESSAGE, eventData);
+		VariantMap& eventData = logInstance->GetEventDataMap();
+		eventData[P_MESSAGE] = message;
+		eventData[P_LEVEL] = error ? LOG_ERROR : LOG_INFO;
+		logInstance->SendEvent(E_LOGMESSAGE, eventData);
 
-    logInstance->inWrite_ = false;
-}
+		logInstance->inWrite_ = false;
+	}
 
-void Log::HandleEndFrame(StringHash eventType, VariantMap& eventData)
-{
-    // If the MainThreadID is not valid, processing this loop can potentially be endless
-    if (!Thread::IsMainThread())
-    {
-        if (!threadErrorDisplayed)
-        {
-            fprintf(stderr, "Thread::mainThreadID is not setup correctly! Threaded log handling disabled\n");
-            threadErrorDisplayed = true;
-        }
-        return;
-    }
+	void Log::HandleEndFrame(StringHash eventType, VariantMap& eventData)
+	{
+		// If the MainThreadID is not valid, processing this loop can potentially be endless
+		if (!Thread::IsMainThread())
+		{
+			if (!threadErrorDisplayed)
+			{
+				fprintf(stderr, "Thread::mainThreadID is not setup correctly! Threaded log handling disabled\n");
+				threadErrorDisplayed = true;
+			}
+			return;
+		}
 
-    MutexLock lock(logMutex_);
+		MutexLock lock(logMutex_);
 
-    // Process messages accumulated from other threads (if any)
-    while (!threadMessages_.Empty())
-    {
-        const StoredLogMessage& stored = threadMessages_.Front();
-        DigestStoredLog(stored);
-        threadMessages_.PopFront();
-    }
-}
+		// Process messages accumulated from other threads (if any)
+		while (!threadMessages_.Empty())
+		{
+			const StoredLogMessage& stored = threadMessages_.Front();
+			DigestStoredLog(stored);
+			threadMessages_.PopFront();
+		}
+	}
 
-void Log::DigestStoredLog(const StoredLogMessage& log_msg) 
-{
-    if (log_msg.level_ != LOG_RAW)
-        Write(log_msg.level_, log_msg.message_);
-    else
-        WriteRaw(log_msg.message_, log_msg.error_);
-}
+	void Log::DigestStoredLog(const StoredLogMessage& log_msg)
+	{
+		if (log_msg.level_ != LOG_RAW)
+			Write(log_msg.level_, log_msg.message_);
+		else
+			WriteRaw(log_msg.message_, log_msg.error_);
+	}
 
 }
