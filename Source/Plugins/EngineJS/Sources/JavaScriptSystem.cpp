@@ -241,8 +241,11 @@ namespace REngine
 		// discard previous memory and allocate a new one.
 		if(size > alloc_size)
 		{
+			void* new_ptr = AllocMemory(udata, size);
+			// copy current data to new address
+			memcpy(new_ptr, result, size);
 			delete result;
-			return AllocMemory(udata, size);
+			return new_ptr;
 		}
 
 		// if duktape requests less memory than previous allocated
