@@ -220,25 +220,28 @@ void OpenConsoleWindow()
 void PrintUnicode(const String& str, bool error)
 {
 #if !defined(__ANDROID__) && !defined(IOS) && !defined(TVOS)
-#ifdef _WIN32
-    // If the output stream has been redirected, use fprintf instead of WriteConsoleW,
-    // though it means that proper Unicode output will not work
-    FILE* out = error ? stderr : stdout;
-    if (!_isatty(_fileno(out)))
-        fprintf(out, "%s", str.CString());
-    else
-    {
-        HANDLE stream = GetStdHandle(error ? STD_ERROR_HANDLE : STD_OUTPUT_HANDLE);
-        if (stream == INVALID_HANDLE_VALUE)
-            return;
-        WString strW(str);
-        DWORD charsWritten;
-        WriteConsoleW(stream, strW.CString(), strW.Length(), &charsWritten, 0);
-    }
-#else
     const char* output = str.CString();
     (error ? std::cerr : std::cout) << output;
-#endif
+//  TODO: can I remove this code ?
+//#ifdef _WIN32
+//    // If the output stream has been redirected, use fprintf instead of WriteConsoleW,
+//    // though it means that proper Unicode output will not work
+//    FILE* out = error ? stderr : stdout;
+//    if (!_isatty(_fileno(out)))
+//        fprintf(out, "%s", str.CString());
+//    else
+//    {
+//        HANDLE stream = GetStdHandle(error ? STD_ERROR_HANDLE : STD_OUTPUT_HANDLE);
+//        if (stream == INVALID_HANDLE_VALUE)
+//            return;
+//        WString strW(str);
+//        DWORD charsWritten;
+//        WriteConsoleW(stream, strW.CString(), strW.Length(), &charsWritten, 0);
+//    }
+//#else
+//    const char* output = str.CString();
+//    (error ? std::cerr : std::cout) << output;
+//#endif
 #endif
 }
 
