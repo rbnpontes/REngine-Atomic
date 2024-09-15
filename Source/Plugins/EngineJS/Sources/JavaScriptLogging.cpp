@@ -201,6 +201,20 @@ namespace REngine
 		}, DUK_VARARGS);
 		duk_put_prop_string(ctx, -2, "error");
 
+		duk_push_c_function(ctx, [](duk_context* ctx)
+		{
+			js__log(ctx, Atomic::LOG_SUCCESS);
+			return 0;
+		}, DUK_VARARGS);
+		duk_put_prop_string(ctx, -2, "success");
+
+		duk_push_c_function(ctx, [](duk_context* ctx)
+		{
+			js__log(ctx, Atomic::LOG_RAW);
+			return 0;
+		}, DUK_VARARGS);
+		duk_put_prop_string(ctx, -2, "raw");
+
 		duk_push_c_lightfunc(ctx, [](duk_context* ctx)
 		{
 #ifdef ENGINE_PLATFORM_WINDOWS
