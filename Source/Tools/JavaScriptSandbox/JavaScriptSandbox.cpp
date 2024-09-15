@@ -67,10 +67,11 @@ int main(int argc, char** argv)
 
 	signal(SIGINT, on_signal_handler);
 
+	const auto js_system = js_plugin->GetJavaScriptSystem(context);
 	// If argument is set, probably is a js file
+	ea::string js_file_path;
 	if(arguments.Size() > 0)
 	{
-		ea::string js_file_path;
 		for(const auto& arg : arguments)
 		{
 			if(arg.EndsWith(".js"))
@@ -83,7 +84,12 @@ int main(int argc, char** argv)
 		if(js_file_path.empty())
 			ATOMIC_LOGERROR("Not found a javascript file.");
 		else
-			js_plugin->GetJavaScriptSystem(context)->EvalFromFilePath(js_file_path);
+		{
+			js_system->EvalFromFilePath(js_file_path);
+			// execute timers until there's no timer alive.
+			while (js_system->HasPendingTimers())
+				js_system->ExecutePendingTimers();
+		}
 	}
 	else
 	{
@@ -99,7 +105,8 @@ int main(int argc, char** argv)
 			if(code.empty())
 				continue;
 
-			js_plugin->GetJavaScriptSystem(context)->Eval(code.c_str());
+			js_system->Eval(code.c_str());
+			js_system->ExecutePendingTimers();
 		}
 	}
 

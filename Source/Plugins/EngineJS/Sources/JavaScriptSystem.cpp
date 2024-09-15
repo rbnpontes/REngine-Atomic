@@ -4,9 +4,11 @@
 #include <EngineCore/IO/Log.h>
 #include <EngineCore/Math/MathDefs.h>
 #include <EngineCore/Resource/ResourceCache.h>
+#include <EngineCore/Core/CoreEvents.h>
 
 #include "./JavaScriptLogging.h"
 #include "./JavaScriptModuleLoader.h"
+#include "./JavaScriptTimers.h"
 #include "./JavaScriptAssert.h"
 #include "EngineCore/IO/FileSystem.h"
 
@@ -25,6 +27,7 @@ namespace REngine
 		memory_usage_(0),
 		memory_blocks_(0)
 	{
+		SubscribeToEvent(E_BEGINFRAME, ATOMIC_HANDLER(JavaScriptSystem, OnBeginFrame));
 	}
 
 	void JavaScriptSystem::Initialize()
@@ -37,6 +40,7 @@ namespace REngine
 		// Setup default bindings
 		js_logging_setup(js_context_);
 		js_module_loader_setup(js_context_);
+		js_timers_setup(js_context_);
 	}
 
 	bool JavaScriptSystem::Eval(const ea::string& js_code)
@@ -146,6 +150,25 @@ namespace REngine
 		return success;
 	}
 
+	void JavaScriptSystem::ExecutePendingTimers()
+	{
+		assert_context(js_context_);
+		js_timers_exec_pending_timers(js_context_);
+	}
+
+	void JavaScriptSystem::ClearAllTimers()
+	{
+		assert_context(js_context_);
+		js_timers_clear_timers(js_context_);
+	}
+
+	bool JavaScriptSystem::HasPendingTimers()
+	{
+		if (!js_context_)
+			return false;
+		return js_timers_has_pending_timers(js_context_);
+	}
+
 	Context* JavaScriptSystem::GetEngineContext(duk_context* ctx)
 	{
 		JS_ASSERT_HEAP(ctx);
@@ -159,6 +182,15 @@ namespace REngine
 
 		duk_pop_2(ctx);
 		return engine_ctx;
+	}
+
+	void JavaScriptSystem::OnBeginFrame(StringHash event_type, VariantMap& event_args)
+	{
+		if (js_context_)
+			return;
+
+		if (HasPendingTimers())
+			ExecutePendingTimers();
 	}
 
 	void JavaScriptSystem::SetupEngineContext() const
