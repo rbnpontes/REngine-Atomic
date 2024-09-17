@@ -27,6 +27,7 @@
 #include "../Core/CoreEvents.h"
 // ATOMIC BEGIN
 #include "../Core/Profiler.h"
+#include "../Core/PluginSystem.h"
 #include "../Engine/EngineDefs.h"
 // ATOMIC END
 #include "../Core/ProcessUtils.h"
@@ -82,6 +83,7 @@
     #include <emscripten/emscripten.h>
 #endif
 
+#include "EngineEvents.h"
 #include "../DebugNew.h"
 
 // ATOMIC BEGIN
@@ -143,6 +145,8 @@ Engine::Engine(Context* context) :
     // Register self as a subsystem
     context_->RegisterSubsystem(this);
 
+    // Plugin System must register at first.
+    context_->RegisterSubsystem(new REngine::PluginSystem(context_));
     // Create subsystems which do not depend on engine initialization or startup parameters
     context_->RegisterSubsystem(new Time(context_));
     context_->RegisterSubsystem(new WorkQueue(context_));
@@ -192,30 +196,7 @@ Engine::Engine(Context* context) :
     SubscribeToEvent(E_PAUSERESUMEREQUESTED, ATOMIC_HANDLER(Engine, HandlePauseResumeRequested));
     SubscribeToEvent(E_PAUSESTEPREQUESTED, ATOMIC_HANDLER(Engine, HandlePauseStepRequested));
 
-    context_->engine_ = context_->GetSubsystem<Engine>();
-    context_->time_ = context_->GetSubsystem<Time>();
-    context_->workQueue_ = context_->GetSubsystem<WorkQueue>();
-#ifdef ENGINE_PROFILING
-    context_->profiler_ = context_->GetSubsystem<Profiler>();
-#endif
-    context_->fileSystem_ = context_->GetSubsystem<FileSystem>();
-#ifdef ENGINE_LOGGING
-    context_->log_ = context_->GetSubsystem<Log>();
-#endif
-    context_->cache_ = context_->GetSubsystem<ResourceCache>();
-    context_->l18n_ = context_->GetSubsystem<Localization>();
-#ifdef ENGINE_NETWORK
-    context_->network_ = context_->GetSubsystem<Network>();
-#endif
-#ifdef ENGINE_WEB
-    //context_->web_ = context_->GetSubsystem<Web>();
-#endif
-#ifdef ENGINE_DATABASE
-    context_->db_ = context_->GetSubsystem<Database>();
-#endif
-    context_->input_ = context_->GetSubsystem<Input>();
-    context_->audio_ = context_->GetSubsystem<Audio>();
-    context_->ui_ = context_->GetSubsystem<UI>();
+    context->InitSubsystemCache();
     // ATOMIC END
 }
 
@@ -298,6 +279,12 @@ bool Engine::Initialize(const VariantMap& parameters)
 
     ResourceCache* cache = GetSubsystem<ResourceCache>();
     FileSystem* fileSystem = GetSubsystem<FileSystem>();
+
+    // Load default plugins
+    if (const auto plugin_sys = GetSubsystem<REngine::PluginSystem>())
+        plugin_sys->Initialize();
+    else
+        ATOMIC_LOGWARNING("PluginSystem is not registered. PluginSystem initialization will be skipped!");
 
     // Initialize graphics & audio output
     if (!headless_)
@@ -423,7 +410,9 @@ bool Engine::InitializeResourceCache(const VariantMap& parameters, bool removeOl
     }
 
     // Add resource paths
-    Vector<String> resourcePrefixPaths = GetParameter(parameters, EP_RESOURCE_PREFIX_PATHS, String::EMPTY).GetString().Split(';', true);
+    auto resourcePrefixPaths = GetParameter(parameters, EP_RESOURCE_PREFIX_PATHS, String::EMPTY)
+        .GetString()
+        .Split(';', true);
     for (unsigned i = 0; i < resourcePrefixPaths.Size(); ++i)
         resourcePrefixPaths[i] = AddTrailingSlash(
             IsAbsolutePath(resourcePrefixPaths[i]) ? resourcePrefixPaths[i] : fileSystem->GetProgramDir() + resourcePrefixPaths[i]);
@@ -1124,6 +1113,10 @@ void Engine::DoExit()
 #if defined(__EMSCRIPTEN__) && defined(ATOMIC_TESTING)
     emscripten_force_exit(EXIT_SUCCESS);    // Some how this is required to signal emrun to stop
 #endif
+
+    VariantMap& event_data = GetEventDataMap();
+    event_data[EngineExit::P_ENGINE] = this;
+    SendEvent(E_ENGINE_EXIT, event_data);
 }
 
 // ATOMIC BEGIN

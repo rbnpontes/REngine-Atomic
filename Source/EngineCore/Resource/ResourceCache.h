@@ -176,7 +176,7 @@ public:
     const HashMap<StringHash, ResourceGroup>& GetAllResources() const { return resourceGroups_; }
 
     /// Return added resource load directories.
-    const Vector<String>& GetResourceDirs() const { return resourceDirs_; }
+    const Vector<String>& GetResourceDirs() const { return Vector(resourceDirs_.data(), resourceDirs_.size()); }
 
     /// Return added package files.
     const Vector<SharedPtr<PackageFile> >& GetPackageFiles() const { return packages_; }
@@ -236,9 +236,9 @@ public:
     // ATOMIC BEGIN
     
     /// Get the number of resource directories
-    unsigned GetNumResourceDirs() const { return resourceDirs_.Size(); }
+    unsigned GetNumResourceDirs() const { return resourceDirs_.size(); }
     /// Get resource directory at a given index
-    const String& GetResourceDir(unsigned index) const { return index < resourceDirs_.Size() ? resourceDirs_[index] : String::EMPTY; }
+    const String& GetResourceDir(unsigned index) const { return index < resourceDirs_.size() ? resourceDirs_[index] : String::EMPTY; }
     
     /// Scan for specified files.
     void Scan(Vector<String>& result, const String& pathName, const String& filter, unsigned flags, bool recursive) const;
@@ -271,7 +271,7 @@ private:
     /// Resources by type.
     HashMap<StringHash, ResourceGroup> resourceGroups_;
     /// Resource load directories.
-    Vector<String> resourceDirs_;
+    ea::vector<String> resourceDirs_;
     /// File watchers for resource directories, if automatic reloading enabled.
     Vector<SharedPtr<FileWatcher> > fileWatchers_;
     /// Package files.

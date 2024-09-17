@@ -115,16 +115,16 @@ bool ResourceCache::AddResourceDir(const String& pathName, unsigned priority)
     String fixedPath = SanitateResourceDirName(pathName);
 
     // Check that the same path does not already exist
-    for (unsigned i = 0; i < resourceDirs_.Size(); ++i)
+    for (unsigned i = 0; i < resourceDirs_.size(); ++i)
     {
         if (!resourceDirs_[i].Compare(fixedPath, false))
             return true;
     }
 
-    if (priority < resourceDirs_.Size())
-        resourceDirs_.Insert(priority, fixedPath);
+    if (priority < resourceDirs_.size())
+        resourceDirs_.insert(resourceDirs_.begin() + priority, fixedPath);
     else
-        resourceDirs_.Push(fixedPath);
+        resourceDirs_.push_back(fixedPath);
 
     // If resource auto-reloading active, create a file watcher for the directory
     if (autoReloadResources_)
@@ -191,11 +191,11 @@ void ResourceCache::RemoveResourceDir(const String& pathName)
 
     String fixedPath = SanitateResourceDirName(pathName);
 
-    for (unsigned i = 0; i < resourceDirs_.Size(); ++i)
+    for (unsigned i = 0; i < resourceDirs_.size(); ++i)
     {
         if (!resourceDirs_[i].Compare(fixedPath, false))
         {
-            resourceDirs_.Erase(i);
+            resourceDirs_.erase(resourceDirs_.begin() + i);
             // Remove the filewatcher with the matching path
             for (unsigned j = 0; j < fileWatchers_.Size(); ++j)
             {
@@ -473,7 +473,7 @@ void ResourceCache::SetAutoReloadResources(bool enable)
     {
         if (enable)
         {
-            for (unsigned i = 0; i < resourceDirs_.Size(); ++i)
+            for (unsigned i = 0; i < resourceDirs_.size(); ++i)
             {
                 SharedPtr<FileWatcher> watcher(new FileWatcher(context_));
                 watcher->StartWatching(resourceDirs_[i], true);
@@ -810,7 +810,7 @@ bool ResourceCache::Exists(const String& nameIn) const
     }
 
     FileSystem* fileSystem = GetSubsystem<FileSystem>();
-    for (unsigned i = 0; i < resourceDirs_.Size(); ++i)
+    for (unsigned i = 0; i < resourceDirs_.size(); ++i)
     {
         if (fileSystem->FileExists(resourceDirs_[i] + name))
             return true;
@@ -845,7 +845,7 @@ String ResourceCache::GetResourceFileName(const String& name) const
     MutexLock lock(resourceMutex_);
 
     FileSystem* fileSystem = GetSubsystem<FileSystem>();
-    for (unsigned i = 0; i < resourceDirs_.Size(); ++i)
+    for (unsigned i = 0; i < resourceDirs_.size(); ++i)
     {
         if (fileSystem->FileExists(resourceDirs_[i] + name))
             return resourceDirs_[i] + name;
@@ -904,11 +904,11 @@ String ResourceCache::SanitateResourceName(const String& nameIn) const
 
     // If the path refers to one of the resource directories, normalize the resource name
     FileSystem* fileSystem = GetSubsystem<FileSystem>();
-    if (resourceDirs_.Size())
+    if (resourceDirs_.size())
     {
         String namePath = GetPath(name);
         String exePath = fileSystem->GetProgramDir().Replaced("/./", "/");
-        for (unsigned i = 0; i < resourceDirs_.Size(); ++i)
+        for (unsigned i = 0; i < resourceDirs_.size(); ++i)
         {
             String relativeResourcePath = resourceDirs_[i];
             if (relativeResourcePath.StartsWith(exePath))
@@ -1158,7 +1158,7 @@ void ResourceCache::HandleBeginFrame(StringHash eventType, VariantMap& eventData
 File* ResourceCache::SearchResourceDirs(const String& nameIn)
 {
     FileSystem* fileSystem = GetSubsystem<FileSystem>();
-    for (unsigned i = 0; i < resourceDirs_.Size(); ++i)
+    for (unsigned i = 0; i < resourceDirs_.size(); ++i)
     {
         if (fileSystem->FileExists(resourceDirs_[i] + nameIn))
         {
@@ -1230,7 +1230,7 @@ void ResourceCache::Scan(Vector<String>& result, const String& pathName, const S
     }
 
     FileSystem* fileSystem = GetSubsystem<FileSystem>();
-    for (unsigned i = 0; i < resourceDirs_.Size(); ++i)
+    for (unsigned i = 0; i < resourceDirs_.size(); ++i)
     {
         fileSystem->ScanDir(interimResult, resourceDirs_[i] + pathName, filter, flags, recursive);
         result.Insert(result.End(), interimResult);

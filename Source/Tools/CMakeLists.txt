@@ -1,6 +1,5 @@
-
-
 add_subdirectory(PackageTool)
+add_subdirectory(JavaScriptSandbox)
 
 if (WIN32)
     include_external_msproject(

@@ -166,5 +166,9 @@ template <class T> T FromString(const String& source) { return FromString<T>(sou
 // ATOMIC BEGIN
 ATOMIC_API String ToStringVariadic(const char* formatString, va_list args);
 // ATOMIC END
-
+ATOMIC_API void string_tolower(ea::string& str);
+ATOMIC_API bool string_starts_with(ea::string str, ea::string test, bool ignore_case = false);
+ATOMIC_API bool string_ends_with(ea::string str, ea::string test, bool ignore_case = false);
+ATOMIC_API void string_split(const ea::string& str, const char delimiter, ea::vector<ea::string>& tokens);
+ATOMIC_API void string_replace(ea::string& str, const ea::string& search, const ea::string& replace, bool ignore_case = false);
 }

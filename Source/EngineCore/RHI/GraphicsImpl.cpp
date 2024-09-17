@@ -50,7 +50,7 @@
 #if WIN32
 #include <Windows.h>
 #include <shellscalingapi.h>
-
+#pragma comment(lib, "Shcore.lib")
 // Prefer the high-performance GPU on switchable GPU systems
 extern "C" {
 	__declspec(dllexport) DWORD NvOptimusEnablement = 1;
