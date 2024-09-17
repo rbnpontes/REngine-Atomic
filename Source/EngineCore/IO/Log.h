@@ -148,12 +148,25 @@ namespace Atomic
 #define ATOMIC_LOGERROR(message) Atomic::Log::Write(Atomic::LOG_ERROR, message)
 #define ATOMIC_LOGSUCCESS(message) Atomic::Log::Write(Atomic::LOG_SUCCESS, message)
 #define ATOMIC_LOGRAW(message) Atomic::Log::WriteRaw(message)
+
 #define ATOMIC_LOGDEBUGF(format, ...) Atomic::Log::Write(Atomic::LOG_DEBUG, Atomic::ToString(format, ##__VA_ARGS__))
 #define ATOMIC_LOGINFOF(format, ...) Atomic::Log::Write(Atomic::LOG_INFO, Atomic::ToString(format, ##__VA_ARGS__))
 #define ATOMIC_LOGWARNINGF(format, ...) Atomic::Log::Write(Atomic::LOG_WARNING, Atomic::ToString(format, ##__VA_ARGS__))
 #define ATOMIC_LOGERRORF(format, ...) Atomic::Log::Write(Atomic::LOG_ERROR, Atomic::ToString(format, ##__VA_ARGS__))
 #define ATOMIC_LOGSUCCESSF(format, ...) Atomic::Log::Write(Atomic::LOG_SUCCESS, Atomic::ToString(format, ##__VA_ARGS__))
 #define ATOMIC_LOGRAWF(format, ...) Atomic::Log::WriteRaw(Atomic::ToString(format, ##__VA_ARGS__))
+
+#define ATOMIC_CLASS_LOGDEBUG(klass, message) ATOMIC_LOGDEBUGF("[%s]: %s", #klass, message)
+#define ATOMIC_CLASS_LOGINFO(klass, message) ATOMIC_LOGINFOF("[%s]: %s", #klass, message)
+#define ATOMIC_CLASS_LOGWARNING(klass, message) ATOMIC_LOGWARNINGF("[%s]: %s", #klass, message)
+#define ATOMIC_CLASS_LOGERROR(klass, message) ATOMIC_LOGERRORF("[%s]: %s", #klass, message)
+#define ATOMIC_CLASS_LOGRAW(klass, message) ATOMIC_LOGRAWF("[%s]: %s", #klass, message)
+
+#define ATOMIC_CLASS_LOGDEBUGF(klass, format, ...) Atomic::Log::Write(Atomic::LOG_DEBUG, Atomic::ToString("[%s]:", #klass) + Atomic::ToString(format, ##__VA_ARGS__))
+#define ATOMIC_CLASS_LOGINFOF(klass, format, ...) Atomic::Log::Write(Atomic::LOG_INFO, Atomic::ToString("[%s]:", #klass) + Atomic::ToString(format, ##__VA_ARGS__))
+#define ATOMIC_CLASS_LOGWARNINGF(klass, format, ...) Atomic::Log::Write(Atomic::LOG_WARNING, Atomic::ToString("[%s]:", #klass) + Atomic::ToString(format, ##__VA_ARGS__))
+#define ATOMIC_CLASS_LOGERRORF(klass, format, ...) Atomic::Log::Write(Atomic::LOG_ERROR, Atomic::ToString("[%s]:", #klass) + Atomic::ToString(format, ##__VA_ARGS__))
+#define ATOMIC_CLASS_LOGRAWF(klass, format, ...) Atomic::Log::WriteRaw(Atomic::ToString("[%s]:", #klass) + Atomic::ToString(format, ##__VA_ARGS__))
 #else
 #define ATOMIC_LOGDEBUG(message) ((void)0)
 #define ATOMIC_LOGINFO(message) ((void)0)
@@ -161,12 +174,25 @@ namespace Atomic
 #define ATOMIC_LOGERROR(message) ((void)0)
 #define ATOMIC_LOGSUCCESS(message) ((void)0)
 #define ATOMIC_LOGRAW(message) ((void)0)
+
 #define ATOMIC_LOGDEBUGF(...) ((void)0)
 #define ATOMIC_LOGINFOF(...) ((void)0)
 #define ATOMIC_LOGWARNINGF(...) ((void)0)
 #define ATOMIC_LOGERRORF(...) ((void)0)
 #define ATOMIC_LOGSUCCESSF(...) ((void)0)
 #define ATOMIC_LOGRAWF(...) ((void)0)
+
+#define ATOMIC_CLASS_LOGDEBUG(klass, message) ((void)0)
+#define ATOMIC_CLASS_LOGINFO(klass, message) ((void)0)
+#define ATOMIC_CLASS_LOGWARNING(klass, message) ((void)0)
+#define ATOMIC_CLASS_LOGERROR(klass, message) ((void)0)
+#define ATOMIC_CLASS_LOGRAW(klass, message) ((void)0)
+
+#define ATOMIC_CLASS_LOGDEBUGF(...) ((void)0)
+#define ATOMIC_CLASS_LOGINFOF(...) ((void)0)
+#define ATOMIC_CLASS_LOGWARNINGF(...) ((void)0)
+#define ATOMIC_CLASS_LOGERRORF(...) ((void)0)
+#define ATOMIC_CLASS_LOGRAWF(...) ((void)0)
 #endif
 
 }
