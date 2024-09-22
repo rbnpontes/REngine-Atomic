@@ -17,10 +17,10 @@ public static class CodeUtils
     {
         var output = new StringBuilder();
 
-        bool isUpper = false;
-        for(int i =0;i < input.Length; ++i)
+        var isUpper = false;
+        for(var i = 0; i < input.Length; ++i)
         {
-            if (char.IsUpper(input[i]) && !isUpper)
+            if ((char.IsUpper(input[i]) ||char.IsNumber(input[i])) && !isUpper)
             {
                 if(i > 0)
                     output.Append('_');
