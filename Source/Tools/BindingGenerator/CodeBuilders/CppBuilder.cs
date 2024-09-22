@@ -99,7 +99,6 @@ namespace BindingGenerator.CodeBuilders
 		public CppBuilder Closure(Action<CppBuilder> closureBody)
 		{
 			var closure = new CppBuilder(indentation + 1);
-			closure.Comment("Closure");
 			closureBody(closure);
 			
 			pChunk.Add("{");

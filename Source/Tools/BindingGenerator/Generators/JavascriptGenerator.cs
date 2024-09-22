@@ -72,13 +72,13 @@ namespace BindingGenerator.Generators
 			if (ns == mGlobalNamespace)
 				nsDecl = string.Empty;
 			
-			foreach (var @enum in ns.Enums)
+			foreach (var @enum in ns.Enums.NonRepeated(x => x.Name))
 				builder.MethodCall(nsDecl + CodeUtils.ToSnakeCase(@enum.Name) + "_enum_setup", ["ctx"]);
-			foreach (var @method in ns.Structs)
+			foreach (var @method in ns.Structs.NonRepeated(x => x.Name))
 				builder.MethodCall(nsDecl + CodeUtils.ToSnakeCase(@method.Name) + "_struct_setup", ["ctx"]);
-			foreach (var @class in ns.Classes)
+			foreach (var @class in ns.Classes.NonRepeated(x => x.Name))
 				builder.MethodCall(nsDecl + CodeUtils.ToSnakeCase(@class.Name) + "_class_setup", ["ctx"]);
-			foreach (var @method in ns.Methods)
+			foreach (var @method in ns.Methods.NonRepeated(x => x.Name))
 				builder.MethodCall(nsDecl + CodeUtils.ToSnakeCase(@method.Name) + "_method_setup", ["ctx"]);
 
 			foreach (var childNs in ns.Namespaces)
