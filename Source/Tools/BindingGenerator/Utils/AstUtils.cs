@@ -21,7 +21,7 @@ public static class AstUtils
     };
     public static bool IsOperatorMethod(CppFunction function)
     {
-        var expectedOp = function.Name.Replace("operator", string.Empty);
+        var expectedOp = function.Name.Replace("operator", string.Empty).Trim();
         return pOperators.Contains(expectedOp);
     }
 

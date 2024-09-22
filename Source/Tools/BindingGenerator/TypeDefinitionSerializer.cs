@@ -198,9 +198,9 @@ public class TypeDefinitionSerializer(NamespaceDefinition rootNamespace)
                 var type = new TypeDefSerializeData()
                 {
                     Id = pTypes.Count,
-                    Name = ns.Name,
-                    Comment = ns.Comment,
-                    HeaderFilePath = ns.HeaderFilePath,
+                    Name = method.Name,
+                    Comment = method.Comment,
+                    HeaderFilePath = method.HeaderFilePath,
                     Kind = TypeDefKind.StaticMethod,
                     MethodData = new MethodSerializeData()
                     {

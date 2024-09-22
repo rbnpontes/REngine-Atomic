@@ -76,13 +76,12 @@ namespace BindingGenerator.CodeBuilders
 
 		public void Add(ICodeChunk chunk)
 		{
-			chunk.Indentation = Indentation + 1;
 			pChunks.Add(chunk);
 		}
 
 		public void Add(string code)
 		{
-			Add(new CodeChunk(code));
+			Add(new CodeChunk(code, Indentation));
 		}
 
 		public void Add(IEnumerable<ICodeChunk> chunks)
@@ -99,11 +98,13 @@ namespace BindingGenerator.CodeBuilders
 		public override string GetString()
 		{
 			StringBuilder sb = new();
+			var idx = 0;
 			pChunks.ForEach(x =>
 			{
-				sb.Append(GetIndentation());
 				sb.Append(x.GetString());
-				sb.AppendLine();
+				if (idx < pChunks.Count - 1)
+					sb.Append('\n');
+				++idx;
 			});
 
 			return sb.ToString();
