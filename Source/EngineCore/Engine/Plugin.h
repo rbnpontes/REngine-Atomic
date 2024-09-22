@@ -9,4 +9,4 @@ class IEnginePlugin {
         virtual void OnPluginSetup() = 0;
         virtual void OnPluginStop() = 0;
         virtual u32 GetPluginId() = 0;
-}
+};

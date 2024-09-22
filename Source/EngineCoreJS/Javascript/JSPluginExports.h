@@ -23,7 +23,6 @@
 #pragma once
 
 #include <Duktape/duktape.h>
-#include <Duktape/duk_logging.h>
 
 namespace Atomic
 {
