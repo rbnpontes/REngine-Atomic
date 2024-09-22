@@ -43,6 +43,8 @@ public class TypeCollector(TypeCollectorCreateDesc createDesc)
         // Otherwise, null references will occur
         CollectStaticMethods(compilation.Functions, allowedSrcFiles, Namespace);
         CollectStaticMethodsFromNamespaces(Namespace.Namespaces, allowedSrcFiles);
+        
+        CollectClassInheritance(Namespace);
         CollectClassMethods(Namespace);
         
         CollectClassFields(Namespace);
@@ -199,6 +201,33 @@ public class TypeCollector(TypeCollectorCreateDesc createDesc)
         @namespace.Structs = structsResult.ToArray();
     }
 
+    private void CollectClassInheritance(NamespaceDefinition @namespace)
+    {
+        var classes = @namespace.Classes;
+        foreach (var @class in classes)
+        {
+            var (_, classElement) = pTypes[@class.GetUniqueName()];
+            var klass = (CppClass)classElement;
+            if(klass.BaseTypes.Count == 0)
+                continue;
+            if (klass.BaseTypes.Count() > 1)
+                Console.WriteLine($"Multiple Inheritance is not supported at {klass.Name}. Only first of base will be used!");
+
+            var parent = klass.BaseTypes.First().Type as CppClass;
+            if(parent is null)
+                continue;
+            
+            if(!pCppTypes.TryGetValue(parent, out var targetType))
+                continue;
+
+            if (targetType is ClassDefinition targetClass)
+                @class.Parent = targetClass;
+        }
+        
+        foreach(var nextNamespace in @namespace.Namespaces)
+            CollectClassInheritance(nextNamespace);
+    }
+    
     private void CollectClassMethods(NamespaceDefinition @namespace)
     {
         var classes = @namespace.Classes;

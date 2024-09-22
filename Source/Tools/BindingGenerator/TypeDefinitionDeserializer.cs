@@ -95,6 +95,8 @@ public class TypeDefinitionDeserializer
         pTypesMap[classDef] = klass;
         
         klass.IsAbstract = classDef.ClassData.IsAbstract;
+        if (classDef.ClassData.Parent != -1)
+            klass.Parent = BuildClass(pTypes[classDef.ClassData.Parent]);
         klass.Constructors = classDef.ClassData.Constructors
             .Select(ctorId => BuildConstructor(pTypes[ctorId]))
             .ToArray();

@@ -25,11 +25,12 @@ public class EnumSerializeData
 
 public class ClassSerializeData
 {
-    public bool IsAbstract { get; set; } = false;
+    public bool IsAbstract { get; set; }
     public int Namespace { get; set; }
     public int[] Methods { get; set; } = [];
     public int[] Constructors { get; set; } = [];
     public int[] Fields { get; set; } = [];
+    public int Parent { get; set; } = -1;
 }
 
 public class StructSerializeData

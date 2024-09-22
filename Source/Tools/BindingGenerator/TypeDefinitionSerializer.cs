@@ -35,6 +35,7 @@ public class TypeDefinitionSerializer(NamespaceDefinition rootNamespace)
         CollectStructs(namespaces);
         CollectStaticMethods(namespaces);
         
+        CollectClassInheritance(namespaces);
         CollectClassMethods(namespaces);
         CollectStructMethods(namespaces);
         
@@ -221,6 +222,25 @@ public class TypeDefinitionSerializer(NamespaceDefinition rootNamespace)
             CollectStaticMethods(ns.Namespaces);
     }
 
+    private void CollectClassInheritance(NamespaceDefinition[] namespaceDefs)
+    {
+        foreach (var ns in namespaceDefs)
+        {
+            foreach (var klass in ns.Classes)
+            {
+                if(klass.Parent is null)
+                    continue;
+                
+                var classType = pLookupTbl[klass];
+                var parentType = pLookupTbl[klass.Parent];
+                
+                classType.ClassData!.Parent = parentType.Id;
+            }
+        }
+        
+        foreach (var ns in namespaceDefs)
+            CollectClassInheritance(ns.Namespaces);
+    }
     private void CollectClassMethods(NamespaceDefinition[] namespaceDefs)
     {
         foreach (var ns in namespaceDefs)
