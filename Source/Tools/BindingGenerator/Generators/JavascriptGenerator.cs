@@ -24,6 +24,10 @@ namespace BindingGenerator.Generators
 				return;
 			
 			GenerateEnumBindings(mGlobalNamespace);
+			GenerateStructBindings(mGlobalNamespace);
+			
+			GenerateIndexHeader(Path.Join(mArguments.OutputDir, "Enums"));
+			GenerateIndexHeader(Path.Join(mArguments.OutputDir, "Structs"));
 		}
 
 		private void GenerateModuleBootstrapHeader()
@@ -56,7 +60,13 @@ namespace BindingGenerator.Generators
 			};
 			
 			DuktapeBuilder builder = new();
-			builder.Include("\"Bootstrap.h\"");
+			builder
+				.IncludeLiteral("Bootstrap.h")
+				.IncludeLiteral("./Enums/Index.h")
+				.IncludeLiteral("./Structs/Index.h")
+				.IncludeLiteral("./Classes/Index.h")
+				.IncludeLiteral("./StaticMethods/Index.h");
+			
 			builder.Namespace(builder =>
 			{
 				builder.Method(setupMethodBody, new FunctionDesc()
@@ -71,6 +81,26 @@ namespace BindingGenerator.Generators
 			CodeUtils.WriteCode(outputPath, builder);
 		}
 
+		private void GenerateIndexHeader(string outputPath)
+		{
+			var indexPath = Path.Join(outputPath, "Index.h");
+			
+			if(File.Exists(indexPath))
+				File.Delete(indexPath);
+
+			var includes = Directory.GetFiles(outputPath)
+				.Where(x => x.EndsWith(".h"))
+				.Select(x => $"./{Path.GetFileName(x)}");
+			
+			var builder = new CppBuilder();
+			builder.SetTopComment(BindingFileUtils.GeneratedFileComment);
+			builder.SetPragmaOnce();
+			foreach (var include in includes)
+				builder.IncludeLiteral(include);
+			
+			CodeUtils.WriteCode(indexPath, builder);
+		}
+		
 		private void GenerateSetupTypesNamespaceCalls(CppBuilder builder, NamespaceDefinition ns)
 		{
 			var nsDecl = CodeUtils.GetSnakeCaseNamespaceChain(ns);
@@ -134,7 +164,7 @@ namespace BindingGenerator.Generators
 				
 				builder.PushObject();
 				foreach (var entry in @enum.Entries)
-					builder.PushInt(entry.Value).PutPropStringLiteral(-2, entry.Name);
+					builder.PushInt(CodeUtils.GetEnumEntryAccessor(@enum, entry)).PutPropStringLiteral(-2, entry.Name);
 				builder.PutGlobalStringLiteral(@enum.Name);
 			};
 			
@@ -155,6 +185,32 @@ namespace BindingGenerator.Generators
 			var sourcePath = Path.Join(mArguments.OutputDir, "Enums",
 				BindingFileUtils.GetFileName(@enum.Namespace, @enum) + ".cpp");
 			CodeUtils.WriteCode(sourcePath, builder);
+		}
+		
+		private void GenerateStructBindings(NamespaceDefinition ns)
+		{
+			foreach (var @struct in ns.Structs)
+			{
+				GenerateStructHeader(@struct);
+				GenerateStructSource(@struct);
+			}
+
+			foreach (var childNs in ns.Namespaces)
+				GenerateStructBindings(childNs);
+		}
+
+		private void GenerateStructHeader(StructDefinition @struct)
+		{
+			var headerPath = Path.Join(mArguments.OutputDir, "Structs",
+				BindingFileUtils.GetFileName(@struct.Namespace, @struct))+".h";
+			var builder = new DuktapeBuilder();
+			
+			CodeUtils.WriteCode(headerPath, builder);
+		}
+
+		private void GenerateStructSource(StructDefinition @struct)
+		{
+			
 		}
 	}
 }

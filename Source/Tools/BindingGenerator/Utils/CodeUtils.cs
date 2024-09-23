@@ -6,13 +6,13 @@ namespace BindingGenerator.Utils;
 
 public static class CodeUtils
 {
-    private static string BuildNamespaceChain(NamespaceDefinition? ns, Func<string, string> transform)
+    private static string BuildNamespaceChain(NamespaceDefinition? ns, Func<string, string> transform, string separator)
     {
         var result = string.Empty;
         while (!string.IsNullOrEmpty(ns?.Name))
         {
             if (!string.IsNullOrEmpty(result))
-                result = "_" + result;
+                result = separator + result;
             result = transform(ns?.Name ?? string.Empty) + result;
             ns = ns?.Owner;
         }
@@ -22,20 +22,38 @@ public static class CodeUtils
     
     public static string GetNamespaceChain(NamespaceDefinition? ns)
     {
-        return BuildNamespaceChain(ns, (x) => x);
+        return BuildNamespaceChain(ns, (x) => x, "_");
     }
 
     public static string GetSnakeCaseNamespaceChain(NamespaceDefinition? ns)
     {
-        return BuildNamespaceChain(ns, (x) => CodeUtils.ToSnakeCase(x));
+        return BuildNamespaceChain(ns, (x) => CodeUtils.ToSnakeCase(x), "_");
     }
 
+    public static string GetCppNamespaceChain(NamespaceDefinition? ns)
+    {
+        return BuildNamespaceChain(ns, (x) => x, "::");
+    }
+    
     public static string GetMethodDeclName(NamespaceDefinition? ns, TypeDefinition typeDef)
     {
         var nsChain = GetSnakeCaseNamespaceChain(ns);
         if (!string.IsNullOrEmpty(nsChain))
             nsChain += '_';
         return nsChain + ToSnakeCase(typeDef.Name);
+    }
+
+    public static string GetEnumAccessor(EnumDefinition @enum)
+    {
+        var nsChain = GetCppNamespaceChain(@enum.Namespace);
+        if (!string.IsNullOrEmpty(nsChain))
+            nsChain += "::";
+        return nsChain + @enum.Name;
+    }
+
+    public static string GetEnumEntryAccessor(EnumDefinition @enum, EnumEntry entry)
+    {
+        return GetEnumAccessor(@enum) + "::" + entry.Name;
     }
     
     public static string ToCamelCase(string input)

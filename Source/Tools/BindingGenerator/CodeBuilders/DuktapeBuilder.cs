@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using BindingGenerator.Utils;
 
 namespace BindingGenerator.CodeBuilders
 {
@@ -10,7 +11,7 @@ namespace BindingGenerator.CodeBuilders
 	{
 		public DuktapeBuilder() : base()
 		{
-			SetTopComment("Don't touch on this file, the file is generated automatically\nby the binding generator.");
+			SetTopComment(BindingFileUtils.GeneratedFileComment);
 			Include("<Duktape/duktape.h>");
 		}
 

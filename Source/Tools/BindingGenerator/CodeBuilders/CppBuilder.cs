@@ -36,6 +36,11 @@ namespace BindingGenerator.CodeBuilders
 			pHeaders.Add(includeName);
 			return this;
 		}
+
+		public CppBuilder IncludeLiteral(string includeName)
+		{
+			return Include($"\"{includeName}\"");
+		}
 		public CppBuilder Namespace(Action<CppBuilder> namespaceBody, string ns)
 		{
 			pChunk.Add($"namespace {ns}");
