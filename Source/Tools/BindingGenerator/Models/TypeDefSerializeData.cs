@@ -8,6 +8,7 @@ public class NamespaceSerializeData
     public int[] Structs { get; set; } = [];
     public int[] Methods { get; set; } = [];
     public int[] Namespaces { get; set; } = [];
+    public int Parent { get; set; } = -1;
 }
 
 public class EnumSerializeData

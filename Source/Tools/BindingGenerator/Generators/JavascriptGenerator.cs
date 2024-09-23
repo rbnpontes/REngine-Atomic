@@ -19,6 +19,11 @@ namespace BindingGenerator.Generators
 			Console.WriteLine("- Generating JavaScript Bindings");
 			GenerateModuleBootstrapHeader();
 			GenerateModuleBootstrapSource();
+
+			if (mGlobalNamespace is null)
+				return;
+			
+			GenerateEnumBindings(mGlobalNamespace);
 		}
 
 		private void GenerateModuleBootstrapHeader()
@@ -47,7 +52,7 @@ namespace BindingGenerator.Generators
 				methodBuilder.Comment("types setup");
 				if (mGlobalNamespace is null)
 					return;
-				GenerateSetupTypesNamespaceCalls(methodBuilder, mGlobalNamespace, string.Empty);
+				GenerateSetupTypesNamespaceCalls(methodBuilder, mGlobalNamespace);
 			};
 			
 			DuktapeBuilder builder = new();
@@ -66,11 +71,11 @@ namespace BindingGenerator.Generators
 			CodeUtils.WriteCode(outputPath, builder);
 		}
 
-		private void GenerateSetupTypesNamespaceCalls(CppBuilder builder, NamespaceDefinition ns, string prevNamespaceDecl)
+		private void GenerateSetupTypesNamespaceCalls(CppBuilder builder, NamespaceDefinition ns)
 		{
-			var nsDecl = prevNamespaceDecl + CodeUtils.ToSnakeCase(ns.Name)+"_";
-			if (ns == mGlobalNamespace)
-				nsDecl = string.Empty;
+			var nsDecl = CodeUtils.GetSnakeCaseNamespaceChain(ns);
+			if (!string.IsNullOrEmpty(nsDecl))
+				nsDecl += "_";
 			
 			foreach (var @enum in ns.Enums.NonRepeated(x => x.Name))
 				builder.MethodCall(nsDecl + CodeUtils.ToSnakeCase(@enum.Name) + "_enum_setup", ["ctx"]);
@@ -82,7 +87,74 @@ namespace BindingGenerator.Generators
 				builder.MethodCall(nsDecl + CodeUtils.ToSnakeCase(@method.Name) + "_method_setup", ["ctx"]);
 
 			foreach (var childNs in ns.Namespaces)
-				GenerateSetupTypesNamespaceCalls(builder, childNs, nsDecl);
+				GenerateSetupTypesNamespaceCalls(builder, childNs);
+		}
+
+		private void GenerateEnumBindings(NamespaceDefinition ns)
+		{
+			foreach (var @enum in ns.Enums)
+			{
+				GenerateEnumHeader(@enum);
+				GenerateEnumSource(@enum);
+			}
+
+			foreach (var nsChild in ns.Namespaces)
+				GenerateEnumBindings(nsChild);
+		}
+
+		private void GenerateEnumHeader(EnumDefinition @enum)
+		{
+			DuktapeBuilder builder = new();
+			builder
+				.SetPragmaOnce()
+				.Include($"\"{@enum.HeaderFilePath}\"")
+				.Namespace((builder) =>
+				{
+					builder.MethodDecl(new FunctionDesc()
+					{
+						Name = CodeUtils.GetMethodDeclName(@enum.Namespace, @enum)+"_enum_setup",
+						ReturnType = "void",
+						Arguments = ["duk_context* ctx"]
+					});
+				}, "REngine");
+
+			
+			var headerPath = Path.Join(mArguments.OutputDir, "Enums",
+				BindingFileUtils.GetFileName(@enum.Namespace, @enum))+".h";
+			CodeUtils.WriteCode(headerPath, builder);
+		}
+
+		private void GenerateEnumSource(EnumDefinition @enum)
+		{
+			var headerName = BindingFileUtils.GetFileName(@enum.Namespace, @enum)+".h";
+			var setupMethodBody = (CppBuilder bodyBuilder)=>
+			{
+				// bodyBuilder hahahaha. Sorry!
+				var builder = DuktapeBuilder.From(bodyBuilder);
+				
+				builder.PushObject();
+				foreach (var entry in @enum.Entries)
+					builder.PushInt(entry.Value).PutPropStringLiteral(-2, entry.Name);
+				builder.PutGlobalStringLiteral(@enum.Name);
+			};
+			
+			DuktapeBuilder builder = new();
+			builder
+				.SetPragmaOnce()
+				.Include($"\"{headerName}\"")
+				.Namespace((builder) =>
+				{
+					builder.Method(setupMethodBody, new FunctionDesc()
+					{
+						Name = CodeUtils.GetMethodDeclName(@enum.Namespace, @enum) + "_enum_setup",
+						ReturnType = "void",
+						Arguments = ["duk_context* ctx"]
+					});
+				}, "REngine");
+
+			var sourcePath = Path.Join(mArguments.OutputDir, "Enums",
+				BindingFileUtils.GetFileName(@enum.Namespace, @enum) + ".cpp");
+			CodeUtils.WriteCode(sourcePath, builder);
 		}
 	}
 }

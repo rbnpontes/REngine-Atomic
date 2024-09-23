@@ -149,5 +149,13 @@ namespace BindingGenerator.CodeBuilders
 			sb.AppendLine(pChunk.GetString());
 			return sb.ToString();
 		}
+
+		protected static void Assign(CppBuilder from, CppBuilder to)
+		{
+			to.pChunk = from.pChunk;
+			to.pHeaders = from.pHeaders;
+			to.pTopComment = from.pTopComment;
+			to.pPragmaOnce = from.pPragmaOnce;
+		}
 	}
 }

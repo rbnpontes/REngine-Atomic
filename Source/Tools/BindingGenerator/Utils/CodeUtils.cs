@@ -1,10 +1,43 @@
 using System.Text;
 using BindingGenerator.CodeBuilders;
+using BindingGenerator.Models;
 
 namespace BindingGenerator.Utils;
 
 public static class CodeUtils
 {
+    private static string BuildNamespaceChain(NamespaceDefinition? ns, Func<string, string> transform)
+    {
+        var result = string.Empty;
+        while (!string.IsNullOrEmpty(ns?.Name))
+        {
+            if (!string.IsNullOrEmpty(result))
+                result = "_" + result;
+            result = transform(ns?.Name ?? string.Empty) + result;
+            ns = ns?.Owner;
+        }
+
+        return result;
+    }
+    
+    public static string GetNamespaceChain(NamespaceDefinition? ns)
+    {
+        return BuildNamespaceChain(ns, (x) => x);
+    }
+
+    public static string GetSnakeCaseNamespaceChain(NamespaceDefinition? ns)
+    {
+        return BuildNamespaceChain(ns, (x) => CodeUtils.ToSnakeCase(x));
+    }
+
+    public static string GetMethodDeclName(NamespaceDefinition? ns, TypeDefinition typeDef)
+    {
+        var nsChain = GetSnakeCaseNamespaceChain(ns);
+        if (!string.IsNullOrEmpty(nsChain))
+            nsChain += '_';
+        return nsChain + ToSnakeCase(typeDef.Name);
+    }
+    
     public static string ToCamelCase(string input)
     {
         if (input.Length == 0)
@@ -39,9 +72,13 @@ public static class CodeUtils
 
     public static void WriteCode(string path, string code)
     {
+        var dir = Path.GetDirectoryName(path);
+        if (!Directory.Exists(dir) && dir is not null)
+            Directory.CreateDirectory(dir);
         if(File.Exists(path))
             File.Delete(path);
-			
+        
+        
         File.WriteAllText(path, code);
     }
 

@@ -61,7 +61,7 @@ public class TypeDefinitionSerializer(NamespaceDefinition rootNamespace)
                 Comment = ns.Comment,
                 HeaderFilePath = ns.HeaderFilePath,
                 Kind = TypeDefKind.Namespace,
-                NamespaceData = new NamespaceSerializeData()
+                NamespaceData = new NamespaceSerializeData() { Parent = parentNamespace.Id }
             };
             
             pTypes.Add(type);
