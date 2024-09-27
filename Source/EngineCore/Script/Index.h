@@ -1,0 +1,9 @@
+#pragma once
+#include "./ScriptComponent.h"
+#include "./ScriptComponentFile.h"
+#include "./ScriptPhysics.h"
+#include "./ScriptRenderPathCommand.h"
+#include "./ScriptSystem.h"
+#include "./ScriptVariant.h"
+#include "./ScriptVariantMap.h"
+#include "./ScriptVector.h"

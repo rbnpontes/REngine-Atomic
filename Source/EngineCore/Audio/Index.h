@@ -1,0 +1,11 @@
+#pragma once
+#include <EngineCore/Audio/AudioDefs.h>
+#include <EngineCore/Audio/AudioEvents.h>
+#include <EngineCore/Audio/Audio.h>
+#include <EngineCore/Audio/BufferedSoundStream.h>
+#include <EngineCore/Audio/OggVorbisSoundStream.h>
+#include <EngineCore/Audio/Sound.h>
+#include <EngineCore/Audio/SoundListener.h>
+#include <EngineCore/Audio/SoundSource.h>
+#include <EngineCore/Audio/SoundSource3D.h>
+#include <EngineCore/Audio/SoundStream.h>

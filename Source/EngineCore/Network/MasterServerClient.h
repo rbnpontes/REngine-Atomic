@@ -4,9 +4,12 @@
 //
 
 #pragma once
-
-#include <ThirdParty/kNet/include/kNet.h>
 #include "../Core/Object.h"
+
+namespace kNet
+{
+    class Socket;
+}
 
 namespace Atomic
 {
