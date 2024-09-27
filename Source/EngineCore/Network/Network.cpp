@@ -41,6 +41,7 @@
 // ATOMIC BEGIN
 #include <kNet/include/kNet.h>
 #include <kNet/include/kNet/EndPoint.h>
+#include <kNet/Socket.h>
 // ATOMIC END
 
 #include "../DebugNew.h"
@@ -206,7 +207,7 @@ void Network::ClientDisconnected(kNet::MessageConnection* connection)
     }
 }
 
-bool Network::Connect(const String& address, unsigned short port, kNet::SocketTransportLayer transport, Scene* scene, const VariantMap& identity)
+bool Network::Connect(const String& address, unsigned short port, u8 transport, Scene* scene, const VariantMap& identity)
 {
     ATOMIC_PROFILE(Connect);
 
@@ -217,7 +218,7 @@ bool Network::Connect(const String& address, unsigned short port, kNet::SocketTr
         OnServerDisconnected();
     }
 
-    kNet::SharedPtr<kNet::MessageConnection> connection = network_->Connect(address.CString(), port, transport, this);
+    kNet::SharedPtr<kNet::MessageConnection> connection = network_->Connect(address.CString(), port, static_cast<kNet::SocketTransportLayer>(transport), this);
     if (connection)
     {
         serverConnection_ = new Connection(context_, false, connection);
@@ -246,7 +247,7 @@ void Network::Disconnect(int waitMSec)
     serverConnection_->Disconnect(waitMSec);
 }
 
-bool Network::StartServer(unsigned short port, kNet::SocketTransportLayer transport)
+bool Network::StartServer(unsigned short port, u8 transport)
 {
     if (IsServerRunning())
         return true;
@@ -257,7 +258,7 @@ bool Network::StartServer(unsigned short port, kNet::SocketTransportLayer transp
     serverPort_ = port;
 // ATOMIC END
 
-    if (network_->StartServer(port, transport, this, true) != 0)
+    if (network_->StartServer(port, static_cast<kNet::SocketTransportLayer>(transport), this, true) != 0)
     {
         ATOMIC_LOGINFOF("Started %s server on port %i", (transport == kNet::SocketOverTCP ? "TCP" : "UDP"), port);
         return true;

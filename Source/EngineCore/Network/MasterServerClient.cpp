@@ -11,6 +11,8 @@
 #include "../Core/CoreEvents.h"
 #include "../Network/NetworkEvents.h"
 
+#include <kNet/include/kNet.h>
+
 #include <rapidjson/document.h>
 #include <rapidjson/stringbuffer.h>
 #include <rapidjson/prettywriter.h>

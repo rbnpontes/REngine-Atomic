@@ -11,6 +11,7 @@ file (GLOB SCRIPT_SOURCE Script/*.cpp Script/*.h)
 file (GLOB METRICS_SOURCE Metrics/*.cpp Metrics/*.h)
 if (NOT WEB AND NOT IOS AND NOT ANDROID)
     file (GLOB IPC_SOURCE IPC/*.cpp IPC/*.h)
+    set (ENGINE_IPC 1)
 endif()
 if(ENGINE_2D OR ENGINE_2D_ONLY)
     file (GLOB _2D_SOURCE 2D/*.cpp 2D/*.h)
@@ -55,6 +56,7 @@ set (SOURCE_FILES ${CONTAINER_SOURCE} ${CORE_SOURCE} ${ENGINE_SOURCE} ${INPUT_SO
                   ${PLATFORM_SOURCE} ${DATABASE_SOURCE} ${IK_SOURCE} 
                   ${NAVIGATION_SOURCE} ${RHI_SOURCE})
 if (NOT WEB)
+  set (ENGINE_NETWORK 1)
   set (SOURCE_FILES ${SOURCE_FILES} ${NETWORK_SOURCE})
 endif()
 
@@ -100,6 +102,12 @@ target_compile_definitions ("${ENGINE_CORE_LIB_TARGET}"
     PRIVATE -DENGINE_EXPORTS=1 
 )
 
+if(ENGINE_IPC)
+    target_compile_definitions("${ENGINE_CORE_LIB_TARGET}" PUBLIC -DENGINE_IPC=1)
+endif()
+if(ENGINE_NETWORK)
+    target_compile_definitions("${ENGINE_CORE_LIB_TARGET}" PUBLIC -DENGINE_NETWORK=1)
+endif()
 if(ENGINE_SSE)
     target_compile_definitions("${ENGINE_CORE_LIB_TARGET}" PUBLIC -DENGINE_SSE=1)
 endif ()
