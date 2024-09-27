@@ -10,9 +10,7 @@
 #include "./ProcessUtils.h"
 #include "./Plugin.h"
 #include "./PluginSystem.h"
-#if defined(ENGINE_PROFILING)
-    #include "./Profiler.h"
-#endif
+#include "./Profiler.h"
 #include "./Spline.h"
 #include "./StringUtils.h"
 #include "./Timer.h"
