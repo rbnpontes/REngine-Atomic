@@ -30,7 +30,6 @@
 #undef u64
 #include <kNet/IMessageHandler.h>
 #include <kNet/INetworkServerListener.h>
-#include <kNet/Socket.h>
 
 #ifdef SendMessage
 #undef SendMessage
@@ -71,11 +70,11 @@ public:
     virtual void ClientDisconnected(kNet::MessageConnection* connection);
 
     /// Connect to a server using specified protocol. Return true if connection process successfully started.
-    bool Connect(const String& address, unsigned short port, kNet::SocketTransportLayer transport, Scene* scene, const VariantMap& identity = Variant::emptyVariantMap);
+    bool Connect(const String& address, unsigned short port, u8 transport, Scene* scene, const VariantMap& identity = Variant::emptyVariantMap);
     /// Disconnect the connection to the server. If wait time is non-zero, will block while waiting for disconnect to finish.
     void Disconnect(int waitMSec = 0);
     /// Start a server on a port using specified protocol. Return true if successful.
-    bool StartServer(unsigned short port, kNet::SocketTransportLayer transport);
+    bool StartServer(unsigned short port, u8 transport);
     /// Stop the server.
     void StopServer();
     /// Broadcast a message with content ID to all client connections.
