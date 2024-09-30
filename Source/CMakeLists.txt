@@ -13,14 +13,16 @@ if (ENGINE_WEBVIEW)
     add_subdirectory(EngineWebView)
 endif ()
 
+add_subdirectory(Plugins)
+
 if (ENGINE_JAVASCRIPT OR ENGINE_DOTNET)
     add_subdirectory(EngineApp)
     if (ENGINE_DOTNET)
         add_subdirectory(EngineNET)
     endif()
+    add_subdirectory(Bindings)
 endif ()
 
-add_subdirectory(Plugins)
 
 if (ENGINE_DESKTOP)
     add_subdirectory(EngineTool)

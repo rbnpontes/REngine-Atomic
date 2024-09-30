@@ -12,6 +12,30 @@ check_cxx_source_runs("
     }
 " ENGINE_SSE)
 
+macro(group_sources base_path cur_dir)
+    # Get the list of files and directories in the current directory
+    file(GLOB children RELATIVE ${base_path}/${cur_dir} ${base_path}/${cur_dir}/*)
+    
+    foreach (child ${children})
+        # Check if the child is a directory
+        if (IS_DIRECTORY ${base_path}/${cur_dir}/${child})
+            # If cur_dir is empty (root), call with the child directory directly
+            if ("${cur_dir}" STREQUAL "")
+                group_sources(${base_path} ${child})
+            else()
+                # Recursively call for subdirectories, updating cur_dir
+                group_sources(${base_path} ${cur_dir}/${child})
+            endif ()
+        else ()
+            # Replace "/" with "\\" to make it compatible with Visual Studio filters
+            string(REPLACE "/" "\\" groupname ${cur_dir})
+            
+            # Add the file to the appropriate source group
+            source_group(${groupname} FILES ${base_path}/${cur_dir}/${child})
+        endif ()
+    endforeach ()
+endmacro()
+
 macro(GroupSources curdir)
     if (WIN32)
         file(GLOB children RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}/${curdir} ${CMAKE_CURRENT_SOURCE_DIR}/${curdir}/*)

@@ -11,6 +11,8 @@ namespace BindingGenerator.Models
 	{
 		[JsonPropertyName("name")]
 		public string Name { get; set; } = string.Empty;
+		[JsonPropertyName("source")]
+		public string Source { get; set; } = string.Empty;
 		[JsonPropertyName("namespace")]
 		public string Namespace { get; set; } = string.Empty;
 		[JsonPropertyName("modules")]

@@ -89,6 +89,8 @@ namespace BindingGenerator.Generators
         {
             var moduleData = File.ReadAllText(arguments.InputDir);
             mModule = JsonSerializer.Deserialize<Module>(moduleData) ?? throw new NullReferenceException();
+            if (string.IsNullOrEmpty(mModule.Source))
+                throw new Exception("Module source path is required.");
         }
 
         protected virtual void LoadModules()

@@ -67,6 +67,16 @@ namespace BindingGenerator.CodeBuilders
 			Line($"duk_put_global_string(ctx, {propNameAccessor});");
 			return this;
 		}
+
+		public DuktapeBuilder PushFunction(string accessor, int argsCount)
+		{
+			return PushFunction(accessor, argsCount.ToString());
+		}
+		public DuktapeBuilder PushFunction(string accessor, string argsAccessor)
+		{
+			Line($"duk_push_c_function(ctx, {accessor}, {argsAccessor});");
+			return this;
+		}
 		public static DuktapeBuilder From(CppBuilder builder)
 		{
 			var duktapeBuilder = new DuktapeBuilder();

@@ -30,6 +30,10 @@ namespace BindingGenerator.Generators
 			GenerateIndexHeader(Path.Join(mArguments.OutputDir, "Structs"));
 		}
 
+		private string GetModuleBindingIndex()
+		{
+			return $"<{mModule.Name}/Index.h>";
+		}
 		private void GenerateModuleBootstrapHeader()
 		{
 			DuktapeBuilder rootBuilder = new();
@@ -137,7 +141,6 @@ namespace BindingGenerator.Generators
 			DuktapeBuilder builder = new();
 			builder
 				.SetPragmaOnce()
-				.Include($"\"{@enum.HeaderFilePath}\"")
 				.Namespace((builder) =>
 				{
 					builder.MethodDecl(new FunctionDesc()
@@ -164,14 +167,14 @@ namespace BindingGenerator.Generators
 				
 				builder.PushObject();
 				foreach (var entry in @enum.Entries)
-					builder.PushInt(CodeUtils.GetEnumEntryAccessor(@enum, entry)).PutPropStringLiteral(-2, entry.Name);
+					builder.PushInt($"static_cast<duk_int_t>({CodeUtils.GetEnumEntryAccessor(@enum, entry)})").PutPropStringLiteral(-2, entry.Name);
 				builder.PutGlobalStringLiteral(@enum.Name);
 			};
 			
 			DuktapeBuilder builder = new();
 			builder
-				.SetPragmaOnce()
-				.Include($"\"{headerName}\"")
+				.IncludeLiteral(headerName)
+				.Include(GetModuleBindingIndex())
 				.Namespace((builder) =>
 				{
 					builder.Method(setupMethodBody, new FunctionDesc()
@@ -204,13 +207,59 @@ namespace BindingGenerator.Generators
 			var headerPath = Path.Join(mArguments.OutputDir, "Structs",
 				BindingFileUtils.GetFileName(@struct.Namespace, @struct))+".h";
 			var builder = new DuktapeBuilder();
-			
+			builder
+				.SetPragmaOnce()
+				.Namespace((builder) =>
+				{
+					builder.MethodDecl(new FunctionDesc()
+					{
+						Name = CodeUtils.GetMethodDeclName(@struct.Namespace, @struct)+"_struct_setup",
+						ReturnType = "void",
+						Arguments = ["duk_context* ctx"]
+					});
+				}, "REngine");
 			CodeUtils.WriteCode(headerPath, builder);
 		}
 
 		private void GenerateStructSource(StructDefinition @struct)
 		{
+			var headerName = BindingFileUtils.GetFileName(@struct.Namespace, @struct) + ".h";
+			var sourcePath = Path.Join(mArguments.OutputDir, "Structs",
+				BindingFileUtils.GetFileName(@struct.Namespace, @struct))+".cpp";
+
+			var baseMethodSignature = CodeUtils.GetMethodDeclName(@struct.Namespace, @struct);
+			var ctorBody = (CppBuilder builder) =>
+			{
+				builder.Return("0");
+			};
+			var functionBody = (CppBuilder funcBuilder) =>
+			{
+				var builder = DuktapeBuilder.From(funcBuilder);
+				builder
+					.PushFunction($"{baseMethodSignature}_struct_ctor", 0)
+					.PutGlobalStringLiteral(@struct.Name);
+			};
 			
+			var builder = new DuktapeBuilder();
+			builder
+				.IncludeLiteral(headerName)
+				.Include(GetModuleBindingIndex())
+				.Namespace((builder) =>
+				{
+					builder.Method(ctorBody, new FunctionDesc()
+					{
+						Name = baseMethodSignature+"_struct_ctor",
+						ReturnType = "duk_idx_t",
+						Arguments = ["duk_context* ctx"]
+					});
+					builder.Method(functionBody, new FunctionDesc()
+					{
+						Name = baseMethodSignature+"_struct_setup",
+						ReturnType = "void",
+						Arguments = ["duk_context* ctx"]
+					});
+				}, "REngine");
+			CodeUtils.WriteCode(sourcePath, builder);
 		}
 	}
 }
