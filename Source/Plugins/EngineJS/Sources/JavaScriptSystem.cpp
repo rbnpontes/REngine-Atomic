@@ -289,4 +289,8 @@ namespace REngine
 		);
 	}
 
+	duk_context* JavaScriptSystem::GetHeap() const
+	{
+		return js_context_;
+	}
 }

@@ -96,7 +96,7 @@ namespace REngine
 		{
 			JS_ASSERT_HEAP(ctx);
 
-			const auto script_sys = engine_ctx->GetSubsystem<JavaScriptSystem>();
+			const auto script_sys = engine_ctx->GetSubsystem<IJavaScriptSystem>();
 			if(!script_sys->Eval(file))
 			{
 				const auto err = ToString("Failed to load module %s", file_path.CString());
