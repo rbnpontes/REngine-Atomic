@@ -1,5 +1,6 @@
 #pragma once
 #include <EngineCore/Container/TypeTraits.h>
+#include <EngineCore/IO/File.h>
 #include <Duktape/duktape.h>
 
 namespace REngine
@@ -13,6 +14,12 @@ namespace REngine
 		 * \return success state
 		 */
 		virtual bool Eval(const ea::string& js_code) = 0;
+		/**
+		 * \brief Execute an arbitrary javascript file.
+		 * \param script_file JavaScript File Code
+		 * \return success state
+		 */
+		virtual bool Eval(Atomic::SharedPtr<Atomic::File> script_file) const = 0;
 		/**
 		 * \brief Execute JavaScript from a given path
 		 * \param file_path Path to JavaScript file

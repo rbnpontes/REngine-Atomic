@@ -7,17 +7,24 @@ namespace REngine
 	class JavaScriptPluginImpl : public IJavaScriptPlugin
 	{
 	public:
+		JavaScriptPluginImpl() : js_system_(nullptr)
+		{
+		}
+
 		void OnPluginLoad(Context* context) override
 		{
 			const auto js_sys = new JavaScriptSystem(context);
-			context->RegisterSubsystem(js_sys);
+			context->RegisterSubsystem<IJavaScriptSystem>(js_sys);
 
 			js_sys->Initialize();
+
+			js_system_ = js_sys;
 		}
 
 		void OnPluginUnload(Context* context) override
 		{
-			context->RemoveSubsystem<JavaScriptSystem>();
+			context->RemoveSubsystem<IJavaScriptSystem>();
+			js_system_ = nullptr;
 		}
 
 		void OnPluginSetup(Context* context) override
@@ -37,8 +44,10 @@ namespace REngine
 
 		IJavaScriptSystem* GetJavaScriptSystem(Context* context) override
 		{
-			return context->GetSubsystem<JavaScriptSystem>();
+			return js_system_;
 		}
+	private:
+		IJavaScriptSystem* js_system_;
 	};
 
 	ENGINE_DEFINE_PLUGIN(JavaScriptPluginImpl);
