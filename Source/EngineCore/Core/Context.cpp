@@ -235,13 +235,19 @@ void Context::RegisterFactory(ObjectFactory* factory, const char* category)
         objectCategories_[category].Push(factory->GetType());
 }
 
-void Context::RegisterSubsystem(Object* object)
+void Context::RegisterSubsystem(Object* subsystem)
 {
-    if (!object)
+    RegisterSubsystem(subsystem->GetType(), subsystem);
+}
+
+void Context::RegisterSubsystem(StringHash objectType, Object* subsystem)
+{
+    if (!subsystem)
         return;
 
-    subsystems_[object->GetType()] = object;
+    subsystems_[objectType] = subsystem;
 }
+
 
 void Context::RemoveSubsystem(StringHash objectType)
 {

@@ -12,6 +12,7 @@
 #include <EASTL/functional.h>
 #include <EASTL/stack.h>
 #include <stdint.h>
+#include <typeinfo>
 
 namespace ea = eastl;
 
@@ -34,3 +35,5 @@ inline void* operator new[](size_t size, size_t alignment, size_t alignmentOffse
 {
     return ::operator new(size);
 }
+
+#define type_name(type) typeid(type).name()
