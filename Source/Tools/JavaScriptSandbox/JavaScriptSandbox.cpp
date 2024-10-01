@@ -62,6 +62,9 @@ int main(int argc, char** argv)
 	const auto js_plugin = static_cast<IJavaScriptPlugin*>(plugin_system->LoadPlugin(ENGINE_PLUGIN_JS_TARGET));
 	plugin_system->Initialize();
 
+	// load engine core js bindings
+	plugin_system->LoadPlugin("EngineCoreModule");
+
 	// Register Global JS methods
 	register_js_methods(js_plugin->GetJavaScriptSystem(context)->GetHeap());
 

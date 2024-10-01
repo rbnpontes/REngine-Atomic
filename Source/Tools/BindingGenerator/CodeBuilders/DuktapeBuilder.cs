@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using BindingGenerator.Models;
 using BindingGenerator.Utils;
 
 namespace BindingGenerator.CodeBuilders
@@ -75,6 +76,34 @@ namespace BindingGenerator.CodeBuilders
 		public DuktapeBuilder PushFunction(string accessor, string argsAccessor)
 		{
 			Line($"duk_push_c_function(ctx, {accessor}, {argsAccessor});");
+			return this;
+		}
+
+		public DuktapeBuilder AssertHeap()
+		{
+			Line($"assert_heap(ctx);");
+			return this;
+		}
+		public DuktapeBuilder UsingNamespace(NamespaceDefinition ns)
+		{
+			List<NamespaceDefinition> namespaces = new();
+			var currNs = ns;
+			while (currNs is not null)
+			{
+				namespaces.Add(currNs);
+				currNs = currNs.Owner;
+			}
+
+			for (var i = 0; i < namespaces.Count; ++i)
+			{
+				if (i == 0)
+				{
+					Line("using_global_namespace(ctx);");
+					continue;
+				}
+
+				Line($"using_namespace(ctx, {namespaces[i - (namespaces.Count - 1)].Name});");
+			}
 			return this;
 		}
 		public static DuktapeBuilder From(CppBuilder builder)

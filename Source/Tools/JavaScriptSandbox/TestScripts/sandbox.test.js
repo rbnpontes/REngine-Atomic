@@ -213,6 +213,8 @@ describe('Timers', function () {
     });
 });
 
-
+describe('EngineCore', function() {
+    require('engine-core.test.js');
+});
 // execute tests.
 runTests();

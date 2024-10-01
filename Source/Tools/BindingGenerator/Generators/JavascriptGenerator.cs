@@ -65,6 +65,7 @@ namespace BindingGenerator.Generators
 			
 			DuktapeBuilder builder = new();
 			builder
+				.IncludeLiteral("Export.h")
 				.IncludeLiteral("Bootstrap.h")
 				.IncludeLiteral("./Enums/Index.h")
 				.IncludeLiteral("./Structs/Index.h")
@@ -73,12 +74,21 @@ namespace BindingGenerator.Generators
 			
 			builder.Namespace(builder =>
 			{
+				var setupFnName = CodeUtils.ToSnakeCase(mModule.Name) + "_module_setup";
+				var unloadFnName = CodeUtils.ToCamelCase(mModule.Name) + "_module_unload";
 				builder.Method(setupMethodBody, new FunctionDesc()
 				{
 					Arguments = ["duk_context* ctx"],
 					ReturnType = "void",
-					Name = CodeUtils.ToSnakeCase(mModule.Name) + "_module_setup"
+					Name = setupFnName
 				});
+				builder.Method((_) => { }, new FunctionDesc()
+				{
+					Arguments = ["duk_context* ctx"],
+					ReturnType = "void",
+					Name = unloadFnName
+				});
+				builder.Line($"export_module({mModule.Name}, {setupFnName}, {unloadFnName});");
 			}, "REngine");
 
 			var outputPath = Path.Join(arguments.OutputDir, "Bootstrap.cpp");
@@ -164,16 +174,18 @@ namespace BindingGenerator.Generators
 			{
 				// bodyBuilder hahahaha. Sorry!
 				var builder = DuktapeBuilder.From(bodyBuilder);
+				builder.AssertHeap().UsingNamespace(@enum.Namespace).Line();
 				
 				builder.PushObject();
 				foreach (var entry in @enum.Entries)
 					builder.PushInt($"static_cast<duk_int_t>({CodeUtils.GetEnumEntryAccessor(@enum, entry)})").PutPropStringLiteral(-2, entry.Name);
-				builder.PutGlobalStringLiteral(@enum.Name);
+				builder.PutPropStringLiteral(-2, @enum.Name);
 			};
 			
 			DuktapeBuilder builder = new();
 			builder
 				.IncludeLiteral(headerName)
+				.IncludeLiteral("Utils.h")
 				.Include(GetModuleBindingIndex())
 				.Namespace((builder) =>
 				{

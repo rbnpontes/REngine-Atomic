@@ -888,8 +888,7 @@ String ToStringVariadic(const char* formatString, va_list args)
             string_tolower(test);
 	    }
 
-	    auto it = str.find_last_of(test);
-        return it != ea::string::npos;
+	    return str.compare(str.length() - test.length(), test.length(), test) == 0;
     }
 
     void string_split(const ea::string& str, const char delimiter, ea::vector<ea::string>& tokens)

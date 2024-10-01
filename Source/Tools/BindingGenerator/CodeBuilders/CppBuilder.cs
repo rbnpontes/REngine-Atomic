@@ -51,6 +51,11 @@ namespace BindingGenerator.CodeBuilders
 		{
 			return Line("//" + comment);
 		}
+
+		public CppBuilder Line()
+		{
+			return Line(string.Empty);
+		}
 		public CppBuilder Line(string line)
 		{
 			pChunk.Add(line);
