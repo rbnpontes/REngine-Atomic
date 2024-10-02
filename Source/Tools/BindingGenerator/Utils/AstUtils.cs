@@ -30,4 +30,16 @@ public static class AstUtils
         var arg = attributeContainer.MetaAttributes.QueryArgument("engine_bind_ignore");
         return arg != null;
     }
+
+    public static bool CanBeConstructable(CppClass klass)
+    {
+        // if class has dllimport attribute and has constructor
+        // then can be constructable
+        var hasDllImport = klass.Attributes.Find(x => string.Equals(x.Name, "dllimport")) is not null;
+        if (hasDllImport && klass.Constructors.Count > 0)
+            return true;
+        // but if class doesn't have constructor but has a inline constructor, then it can be constructable.
+        var inlineCtors = klass.Constructors.Where(x => (x.Flags & CppFunctionFlags.Inline) != 0);
+        return inlineCtors.Any();
+    }
 }

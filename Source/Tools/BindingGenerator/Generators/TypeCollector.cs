@@ -152,6 +152,9 @@ public class TypeCollector(TypeCollectorCreateDesc createDesc)
             
             if(AstUtils.IsIgnoredType(@class))
                 continue;
+            // skip if class can't be constructable.
+            if(!AstUtils.CanBeConstructable(@class))
+                continue;
             
             if (@class.TemplateKind != CppTemplateKind.NormalClass)
                 throw new NotImplementedException();

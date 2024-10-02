@@ -55,6 +55,14 @@ public static class CodeUtils
     {
         return GetEnumAccessor(@enum) + "::" + entry.Name;
     }
+
+    public static string GetStructAccessor(StructDefinition @struct)
+    {
+        var nsChain = GetCppNamespaceChain(@struct.Namespace);
+        if (!string.IsNullOrEmpty(nsChain))
+            nsChain += "::";
+        return nsChain + @struct.Name;
+    }
     
     public static string ToCamelCase(string input)
     {

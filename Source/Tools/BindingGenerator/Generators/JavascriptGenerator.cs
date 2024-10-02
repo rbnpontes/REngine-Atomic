@@ -68,14 +68,14 @@ namespace BindingGenerator.Generators
 				.IncludeLiteral("Export.h")
 				.IncludeLiteral("Bootstrap.h")
 				.IncludeLiteral("./Enums/Index.h")
-				.IncludeLiteral("./Structs/Index.h")
-				.IncludeLiteral("./Classes/Index.h")
-				.IncludeLiteral("./StaticMethods/Index.h");
+				.IncludeLiteral("./Structs/Index.h");
+				// .IncludeLiteral("./Classes/Index.h")
+				// .IncludeLiteral("./StaticMethods/Index.h");
 			
 			builder.Namespace(builder =>
 			{
 				var setupFnName = CodeUtils.ToSnakeCase(mModule.Name) + "_module_setup";
-				var unloadFnName = CodeUtils.ToCamelCase(mModule.Name) + "_module_unload";
+				var unloadFnName = CodeUtils.ToSnakeCase(mModule.Name) + "_module_unload";
 				builder.Method(setupMethodBody, new FunctionDesc()
 				{
 					Arguments = ["duk_context* ctx"],
@@ -123,12 +123,12 @@ namespace BindingGenerator.Generators
 			
 			foreach (var @enum in ns.Enums.NonRepeated(x => x.Name))
 				builder.MethodCall(nsDecl + CodeUtils.ToSnakeCase(@enum.Name) + "_enum_setup", ["ctx"]);
-			foreach (var @method in ns.Structs.NonRepeated(x => x.Name))
-				builder.MethodCall(nsDecl + CodeUtils.ToSnakeCase(@method.Name) + "_struct_setup", ["ctx"]);
-			foreach (var @class in ns.Classes.NonRepeated(x => x.Name))
-				builder.MethodCall(nsDecl + CodeUtils.ToSnakeCase(@class.Name) + "_class_setup", ["ctx"]);
-			foreach (var @method in ns.Methods.NonRepeated(x => x.Name))
-				builder.MethodCall(nsDecl + CodeUtils.ToSnakeCase(@method.Name) + "_method_setup", ["ctx"]);
+			foreach (var @struct in ns.Structs.NonRepeated(x => x.Name))
+				builder.MethodCall(nsDecl + CodeUtils.ToSnakeCase(@struct.Name) + "_struct_setup", ["ctx"]);
+			// foreach (var @class in ns.Classes.NonRepeated(x => x.Name))
+			// 	builder.MethodCall(nsDecl + CodeUtils.ToSnakeCase(@class.Name) + "_class_setup", ["ctx"]);
+			// foreach (var @method in ns.Methods.NonRepeated(x => x.Name))
+			// 	builder.MethodCall(nsDecl + CodeUtils.ToSnakeCase(@method.Name) + "_method_setup", ["ctx"]);
 
 			foreach (var childNs in ns.Namespaces)
 				GenerateSetupTypesNamespaceCalls(builder, childNs);
@@ -189,9 +189,10 @@ namespace BindingGenerator.Generators
 				.Include(GetModuleBindingIndex())
 				.Namespace((builder) =>
 				{
+					var methodDecl = CodeUtils.GetMethodDeclName(@enum.Namespace, @enum);
 					builder.Method(setupMethodBody, new FunctionDesc()
 					{
-						Name = CodeUtils.GetMethodDeclName(@enum.Namespace, @enum) + "_enum_setup",
+						Name = methodDecl + "_enum_setup",
 						ReturnType = "void",
 						Arguments = ["duk_context* ctx"]
 					});
@@ -218,6 +219,7 @@ namespace BindingGenerator.Generators
 		{
 			var headerPath = Path.Join(mArguments.OutputDir, "Structs",
 				BindingFileUtils.GetFileName(@struct.Namespace, @struct))+".h";
+			var baseMethodSignature = CodeUtils.GetMethodDeclName(@struct.Namespace, @struct);
 			var builder = new DuktapeBuilder();
 			builder
 				.SetPragmaOnce()
@@ -225,7 +227,13 @@ namespace BindingGenerator.Generators
 				{
 					builder.MethodDecl(new FunctionDesc()
 					{
-						Name = CodeUtils.GetMethodDeclName(@struct.Namespace, @struct)+"_struct_setup",
+						Name = baseMethodSignature + "_struct_from",
+						ReturnType = "duk_idx_t",
+						Arguments = ["duk_context* ctx", "void* ptr"]
+					});
+					builder.MethodDecl(new FunctionDesc()
+					{
+						Name = baseMethodSignature + "_struct_setup",
 						ReturnType = "void",
 						Arguments = ["duk_context* ctx"]
 					});
@@ -242,22 +250,54 @@ namespace BindingGenerator.Generators
 			var baseMethodSignature = CodeUtils.GetMethodDeclName(@struct.Namespace, @struct);
 			var ctorBody = (CppBuilder builder) =>
 			{
-				builder.Return("0");
+				GenerateStructCtor(@struct, DuktapeBuilder.From(builder));
+			};
+			var fromBody = (CppBuilder builder) =>
+			{
+				GenerateStructFromCall(@struct, DuktapeBuilder.From(builder));
+			};
+			var finalizerBody = (CppBuilder builder) =>
+			{
+				GenerateStructFinalizerCall(@struct, DuktapeBuilder.From(builder));
 			};
 			var functionBody = (CppBuilder funcBuilder) =>
 			{
 				var builder = DuktapeBuilder.From(funcBuilder);
+				builder.AssertHeap().UsingNamespace(@struct.Namespace).Line();
+				
 				builder
 					.PushFunction($"{baseMethodSignature}_struct_ctor", 0)
-					.PutGlobalStringLiteral(@struct.Name);
+					.PutPropStringLiteral(-2, @struct.Name);
 			};
 			
 			var builder = new DuktapeBuilder();
 			builder
 				.IncludeLiteral(headerName)
+				.IncludeLiteral("Utils.h")
+				.IncludeLiteral("Bookkeeper.h")
 				.Include(GetModuleBindingIndex())
 				.Namespace((builder) =>
 				{
+					builder.MethodDecl(new FunctionDesc()
+					{
+						Name = baseMethodSignature + "_struct_define",
+						ReturnType = "void",
+						Arguments = ["duk_context* ctx", $"{CodeUtils.GetStructAccessor(@struct)}* instance"]
+					});
+					builder.Method(fromBody, new FunctionDesc()
+					{
+						Name = baseMethodSignature + "_struct_from",
+						ReturnType = "duk_idx_t",
+						Arguments = ["duk_context* ctx", "void* ptr"]
+					});
+
+					builder.Method(finalizerBody, new FunctionDesc()
+					{
+						Name = baseMethodSignature + "_struct_finalizer",
+						ReturnType = "duk_idx_t",
+						Arguments = ["duk_context* ctx"]
+					});
+					
 					builder.Method(ctorBody, new FunctionDesc()
 					{
 						Name = baseMethodSignature+"_struct_ctor",
@@ -272,6 +312,48 @@ namespace BindingGenerator.Generators
 					});
 				}, "REngine");
 			CodeUtils.WriteCode(sourcePath, builder);
+		}
+
+		private void GenerateStructCtor(StructDefinition @struct, DuktapeBuilder builder)
+		{
+			var baseMethodSignature = CodeUtils.GetMethodDeclName(@struct.Namespace, @struct);
+
+			builder.Line($"auto instance = new {CodeUtils.GetStructAccessor(@struct)}();");
+			builder.PushThis().NativeStorePointer(-1, "instance");
+			builder.Line("bookkeeper_store(ctx, -1, instance);");
+			// set sinalizer
+			builder.Comment("setup finalizer");
+			builder
+				.PushFunction(baseMethodSignature + "_struct_finalizer", 0)
+				.NativeStorePointer(-1, "instance")
+				.SetFinalizer(-2);
+			builder.Return("1");
+		}
+
+		private void GenerateStructFromCall(StructDefinition @struct, DuktapeBuilder builder)
+		{
+			builder.AssertHeap(1);
+			builder.Line("if (bookkeeper_restore(ctx, ptr))");
+			builder.Line("\treturn 1;");
+			builder.Line();
+			builder.TypeGet(@struct);
+			builder.New(0);
+			builder.Return("1");
+		}
+
+		private void GenerateStructFinalizerCall(StructDefinition @struct, DuktapeBuilder builder)
+		{
+			builder
+				.PushCurrentFunction()
+				.NativeGetPointer("void* ptr", -1)
+				.Pop();
+			builder.Line("if (ptr)");
+			builder.Closure(x =>
+			{
+				x.Line("bookkeeper_remove(ctx, ptr);");
+				x.Line($"delete static_cast<{CodeUtils.GetStructAccessor(@struct)}*>(ptr);");
+			});
+			builder.Return("0");
 		}
 	}
 }

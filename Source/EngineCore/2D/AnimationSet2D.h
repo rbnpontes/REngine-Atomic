@@ -76,7 +76,7 @@ public:
 #endif
 
     /// Return spriter data.
-    Spriter::SpriterData* GetSpriterData() const { return spriterData_.Get(); }
+    ENGINE_BIND_IGNORE Spriter::SpriterData* GetSpriterData() const { return spriterData_.Get(); }
     /// Return spriter file sprite.
     Sprite2D* GetSpriterFileSprite(int folderId, int fileId) const;
 

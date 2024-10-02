@@ -89,6 +89,7 @@ namespace BindingGenerator.CodeBuilders
 		{
 			pChunk.Add($"{GetMethodDeclaration(functionDesc)}");
 			Closure(methodBody);
+			Line();
 			return this;
 		}
 		public CppBuilder MethodCall(string name, string[] args)
@@ -108,7 +109,7 @@ namespace BindingGenerator.CodeBuilders
 		}
 		public CppBuilder Closure(Action<CppBuilder> closureBody)
 		{
-			var closure = new CppBuilder(indentation + 1);
+			var closure = new CppBuilder(pChunk.Indentation + 1);
 			closureBody(closure);
 			
 			pChunk.Add("{");

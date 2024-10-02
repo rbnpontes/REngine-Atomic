@@ -177,7 +177,7 @@ namespace BindingGenerator.Generators
             parserOptions.Defines.AddRange(mModule.Defines);
             parserOptions.Defines.Add("ENGINE_BINDING_TOOL=1");
 
-            var items = mSourceFiles.Select(x => x.Item2);
+            var items = mSourceFiles.Select(x => x.Item2).Where(x => !x.EndsWith("Index.h"));
             var compilation = CppParser.ParseFiles(items.ToList(), parserOptions);
 
             var messages = compilation.Diagnostics.Messages.OrderBy(x => x.Type);

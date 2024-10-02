@@ -81,7 +81,7 @@ struct Folder
 };
 
 /// File.
-struct File
+struct ENGINE_BIND_IGNORE File
 {
     File(Folder* folder);
     ~File();
