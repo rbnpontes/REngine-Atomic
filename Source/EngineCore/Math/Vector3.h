@@ -171,6 +171,7 @@ public:
 /// Three-dimensional vector.
 class ATOMIC_API Vector3
 {
+    ENGINE_OBJECT()
 public:
     /// Construct a zero vector.
     Vector3() :

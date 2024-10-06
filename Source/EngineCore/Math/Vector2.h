@@ -164,6 +164,7 @@ public:
 /// Two-dimensional vector.
 class ATOMIC_API Vector2
 {
+    ENGINE_OBJECT()
 public:
     /// Construct a zero vector.
     Vector2() :
