@@ -105,14 +105,15 @@ private:
         virtual Atomic::StringHash GetBaseType() const { return GetBaseTypeStatic(); } \
         virtual Atomic::ClassID GetClassID() const { return GetClassIDStatic(); } \
         static Atomic::ClassID GetClassIDStatic() { static const int typeID = 0; return (Atomic::ClassID) &typeID; } \
-        static Atomic::StringHash GetBaseTypeStatic() { static const Atomic::StringHash baseTypeStatic(type_name(baseTypeName)); return baseTypeStatic; }
+        static Atomic::StringHash GetBaseTypeStatic() { static const Atomic::StringHash baseTypeStatic(type_name(baseTypeName)); return baseTypeStatic; } \
+        ENGINE_OBJECT_DEF_TYPE_ID();
 
 
 /// Base class for objects with type identification, subsystem access and event sending/receiving capability.
 class ATOMIC_API Object : public RefCounted
 {
     friend class Context;
-
+    ENGINE_OBJECT()
 public:
     /// Construct.
     Object(Context* context);

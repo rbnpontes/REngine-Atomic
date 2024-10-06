@@ -118,6 +118,7 @@ typedef Vector<float> FloatVector;
 /// Typed resource reference.
 struct ATOMIC_API ResourceRef
 {
+    ENGINE_STRUCT()
     /// Construct.
     ResourceRef()
     {

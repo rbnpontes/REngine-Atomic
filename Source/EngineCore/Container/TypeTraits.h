@@ -26,6 +26,8 @@ typedef int16_t i16;
 typedef int32_t i32;
 typedef int64_t i64;
 
+typedef uintptr_t type_id;
+
 inline void* operator new[](size_t size, const char* pName, int flags, unsigned debugFlags, const char* file, int line)
 {
     return ::operator new(size);
@@ -35,5 +37,3 @@ inline void* operator new[](size_t size, size_t alignment, size_t alignmentOffse
 {
     return ::operator new(size);
 }
-
-#define type_name(type) typeid(type).name()

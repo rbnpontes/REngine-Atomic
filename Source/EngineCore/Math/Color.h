@@ -35,6 +35,7 @@ class String;
 /// RGBA color.
 class ATOMIC_API Color
 {
+    ENGINE_OBJECT()
 public:
     /// Construct with default values (opaque white.)
     Color() :

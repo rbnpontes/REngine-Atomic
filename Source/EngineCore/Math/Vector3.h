@@ -31,6 +31,7 @@ namespace Atomic
 /// Three-dimensional vector with integer values.
 class ATOMIC_API IntVector3
 {
+    ENGINE_OBJECT()
 public:
     /// Construct a zero vector.
     IntVector3() :
