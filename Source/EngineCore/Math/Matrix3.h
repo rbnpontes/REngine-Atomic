@@ -30,6 +30,7 @@ namespace Atomic
 /// 3x3 matrix for rotation and scaling.
 class ATOMIC_API Matrix3
 {
+    ENGINE_OBJECT()
 public:
     /// Construct an identity matrix.
     Matrix3() :

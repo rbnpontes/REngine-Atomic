@@ -36,6 +36,7 @@ class Plane;
 /// A convex volume built from polygon faces.
 class ATOMIC_API Polyhedron
 {
+    ENGINE_OBJECT()
 public:
     /// Construct empty.
     Polyhedron()

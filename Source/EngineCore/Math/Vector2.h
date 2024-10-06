@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include "../Core/RTTI.h"
 #include "../Container/Str.h"
 #include "../Math/MathDefs.h"
 
@@ -31,6 +32,7 @@ namespace Atomic
 /// Two-dimensional vector with integer values.
 class ATOMIC_API IntVector2
 {
+    ENGINE_OBJECT()
 public:
     /// Construct a zero vector.
     IntVector2() :

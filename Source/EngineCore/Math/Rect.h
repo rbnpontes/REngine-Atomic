@@ -30,6 +30,7 @@ namespace Atomic
 /// Two-dimensional bounding rectangle.
 class ATOMIC_API Rect
 {
+    ENGINE_OBJECT()
 public:
     /// Construct an undefined rect.
     Rect() :

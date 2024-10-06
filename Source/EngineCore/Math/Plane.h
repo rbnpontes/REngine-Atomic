@@ -30,6 +30,7 @@ namespace Atomic
 /// Surface in three-dimensional space.
 class ATOMIC_API Plane
 {
+    ENGINE_OBJECT()
 public:
     /// Construct a degenerate plane with zero normal and parameter.
     Plane() :

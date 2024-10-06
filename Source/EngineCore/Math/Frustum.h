@@ -48,6 +48,7 @@ static const unsigned NUM_FRUSTUM_VERTICES = 8;
 /// Convex constructed of 6 planes.
 class ATOMIC_API Frustum
 {
+    ENGINE_OBJECT()
 public:
     /// Construct a degenerate frustum with all points at origin.
     Frustum();

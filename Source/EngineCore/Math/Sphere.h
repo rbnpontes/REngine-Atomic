@@ -34,6 +34,7 @@ class Frustum;
 /// %Sphere in three-dimensional space.
 class ATOMIC_API Sphere
 {
+    ENGINE_OBJECT()
 public:
     /// Construct undefined.
     Sphere() :

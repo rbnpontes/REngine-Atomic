@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include "../Core/RTTI.h"
 #include "../EngineCore.h"
 #include "Vector.h"
 
@@ -64,7 +65,8 @@ typedef const void* ClassID;
         virtual Atomic::ClassID GetClassID() const { return GetClassIDStatic(); } \
         static Atomic::ClassID GetClassIDStatic() { static const int typeID = 0; return (Atomic::ClassID) &typeID; } \
         virtual const Atomic::String& GetTypeName() const { return GetTypeNameStatic(); } \
-        static const Atomic::String& GetTypeNameStatic() { static const Atomic::String _typeName(#typeName); return _typeName; }
+        static const Atomic::String& GetTypeNameStatic() { static const Atomic::String _typeName(#typeName); return _typeName; } \
+        ENGINE_OBJECT_DEF_TYPE_ID();
 
 // ATOMIC END
 
@@ -95,6 +97,7 @@ struct RefCount
 /// Base class for intrusively reference-counted objects. These are noncopyable and non-assignable.
 class ATOMIC_API RefCounted
 {
+    ENGINE_OBJECT()
 public:
     /// Construct. Allocate the reference count structure and set an initial self weak reference.
     RefCounted();
