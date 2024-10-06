@@ -1,4 +1,5 @@
 #pragma once
+#include "./RTTI.h"
 #include "./Attribute.h"
 #include "./Main.h"
 #include "./MiniDump.h"

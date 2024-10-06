@@ -24,8 +24,9 @@
 
 #include "../Math/Rect.h"
 #include "../Math/Vector3.h"
+#include "../Core/RTTI.h"
 
-#ifdef ATOMIC_SSE
+#ifdef ENGINE_SSE
 #include <xmmintrin.h>
 #endif
 
@@ -42,6 +43,7 @@ class Sphere;
 /// Three-dimensional axis-aligned bounding box.
 class ATOMIC_API BoundingBox
 {
+    ENGINE_OBJECT()
 public:
     /// Construct with zero size.
     BoundingBox() :
@@ -78,7 +80,7 @@ public:
     {
     }
 
-#ifdef ATOMIC_SSE
+#ifdef ENGINE_SSE
     BoundingBox(__m128 min, __m128 max)
     {
         _mm_storeu_ps(&min_.x_, min);
@@ -175,7 +177,7 @@ public:
     /// Merge a point.
     void Merge(const Vector3& point)
     {
-#ifdef ATOMIC_SSE
+#ifdef ENGINE_SSE
         __m128 vec = _mm_set_ps(1.f, point.z_, point.y_, point.x_);
         _mm_storeu_ps(&min_.x_, _mm_min_ps(_mm_loadu_ps(&min_.x_), vec));
         _mm_storeu_ps(&max_.x_, _mm_max_ps(_mm_loadu_ps(&max_.x_), vec));
@@ -198,7 +200,7 @@ public:
     /// Merge another bounding box.
     void Merge(const BoundingBox& box)
     {
-#ifdef ATOMIC_SSE
+#ifdef ENGINE_SSE
         _mm_storeu_ps(&min_.x_, _mm_min_ps(_mm_loadu_ps(&min_.x_), _mm_loadu_ps(&box.min_.x_)));
         _mm_storeu_ps(&max_.x_, _mm_max_ps(_mm_loadu_ps(&max_.x_), _mm_loadu_ps(&box.max_.x_)));
 #else
@@ -243,7 +245,7 @@ public:
     /// Clear to undefined state.
     void Clear()
     {
-#ifdef ATOMIC_SSE
+#ifdef ENGINE_SSE
         _mm_storeu_ps(&min_.x_, _mm_set1_ps(M_INFINITY));
         _mm_storeu_ps(&max_.x_, _mm_set1_ps(-M_INFINITY));
 #else

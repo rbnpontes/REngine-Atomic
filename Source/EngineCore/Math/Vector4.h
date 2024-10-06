@@ -30,6 +30,7 @@ namespace Atomic
 /// Four-dimensional vector.
 class ATOMIC_API Vector4
 {
+    ENGINE_OBJECT()
 public:
     /// Construct a zero vector.
     Vector4() :

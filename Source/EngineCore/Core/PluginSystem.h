@@ -20,7 +20,6 @@ namespace REngine {
     };
     class ATOMIC_API PluginSystem : public Object {
         ATOMIC_OBJECT(REngine::PluginSystem, Object)
-
     public:
         PluginSystem(Context* context);
         IEnginePlugin* LoadPlugin(const ea::string& plugin_path);

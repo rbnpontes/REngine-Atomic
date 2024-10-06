@@ -30,6 +30,7 @@ namespace Atomic
 /// 2x2 matrix for rotation and scaling.
 class ATOMIC_API Matrix2
 {
+    ENGINE_OBJECT()
 public:
     /// Construct an identity matrix.
     Matrix2() :

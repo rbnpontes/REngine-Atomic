@@ -36,6 +36,7 @@ class Sphere;
 /// Infinite straight line in three-dimensional space.
 class ATOMIC_API Ray
 {
+    ENGINE_OBJECT()
 public:
     /// Construct a degenerate ray with zero origin and direction.
     Ray()

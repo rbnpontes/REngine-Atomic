@@ -30,6 +30,7 @@ namespace Atomic
 /// Rectangular area allocator.
 class ATOMIC_API AreaAllocator
 {
+    ENGINE_OBJECT()
 public:
     /// Default construct with empty size.
     AreaAllocator();

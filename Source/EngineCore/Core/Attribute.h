@@ -66,6 +66,7 @@ public:
 /// Description of an automatically serializable variable.
 struct AttributeInfo
 {
+    ENGINE_STRUCT()
     /// Construct empty.
     AttributeInfo() :
         type_(VAR_NONE),
