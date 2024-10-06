@@ -13,7 +13,7 @@ namespace REngine
 	{
 		const auto top = duk_get_top(ctx_);
 		const auto diff = top - curr_top_;
-			assert(diff == num_ && "Invalid heap size. Check your implementation! Probably you forget to do some duk_pop call.");
+		assert(diff == num_ && "Invalid heap size. Check your implementation! Probably you forget to do some duk_pop call.");
 	}
 
 	namespace_usage::namespace_usage(duk_context* ctx) : ctx_(ctx)

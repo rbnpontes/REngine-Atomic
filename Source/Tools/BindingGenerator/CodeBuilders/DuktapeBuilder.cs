@@ -244,5 +244,50 @@ namespace BindingGenerator.CodeBuilders
 			Line($"duk_new(ctx, {accessor});");
 			return this;
 		}
+
+		public DuktapeBuilder PushType(TypeDefinition type, string objAccessor)
+		{
+			switch (type )
+			{
+				case TypeDefKind.Primitive:
+				{
+					var primitive = (PrimitiveTypeDefinition)type;
+					switch (primitive.PrimitiveKind)
+					{
+						case PrimitiveKind.Bool:
+							Line($"duk_push_bool(ctx, {objAccessor});");
+							break;
+						case PrimitiveKind.Char:
+						case PrimitiveKind.Short:
+						case PrimitiveKind.Int:
+						case PrimitiveKind.Long:
+						case PrimitiveKind.LongLong:
+							Line($"duk_push_int(ctx, {objAccessor});");
+							break;
+						case PrimitiveKind.UChar:
+						case PrimitiveKind.UShort:
+						case PrimitiveKind.UInt:
+						case PrimitiveKind.ULong:
+						case PrimitiveKind.ULongLong:
+							Line($"duk_push_uint(ctx, {objAccessor});");
+							break;
+						case PrimitiveKind.Float:
+						case PrimitiveKind.Double:
+						case PrimitiveKind.LongDouble:
+							Line($"duk_push_number(ctx, {objAccessor});");
+							break;
+						case PrimitiveKind.String:
+							Line($"duk_push_string(ctx, {objAccessor});");
+							break;
+						default:
+							throw new NotImplementedException();
+					}
+				}
+					break;
+				default:
+					throw new NotImplementedException();
+			}
+			return this;
+		}
 	}
 }

@@ -1,5 +1,7 @@
 #pragma once
 #include <Duktape/duktape.h>
+#include <EngineCore/Core/Variant.h>
+#include <EngineCore/Math/StringHash.h>
 
 namespace REngine
 {

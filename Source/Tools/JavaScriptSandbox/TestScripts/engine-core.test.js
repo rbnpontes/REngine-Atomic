@@ -8,3 +8,23 @@ describe('Enums', function() {
         console.log('CullMode:', Atomic.CullMode);
     });
 });
+describe('Structs', function () {
+    it('should instantiate struct.', function () {
+        const data = new Atomic.ResourceRef();
+        console.log('Resource Ref:', data);
+    });
+    it('should crash if instatiation is without new keyword.', function () {
+        const instantiate = function () {
+            try {
+                Atomic.ResourceRef();
+                return true;
+            } catch (e) {
+                console.error(e);
+                return false;
+            }
+        };
+
+        if (instantiate())
+            throw new Error('test failed');
+    });
+});

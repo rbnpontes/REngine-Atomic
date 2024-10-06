@@ -297,13 +297,39 @@ namespace BindingGenerator.Generators
 						ReturnType = "duk_idx_t",
 						Arguments = ["duk_context* ctx"]
 					});
-					
+
+					builder.Comment("property accessors definitions");
+					foreach (var field in @struct.Fields)
+					{
+						var fieldMethodBaseName = baseMethodSignature + "_" + CodeUtils.ToSnakeCase(field.Name);
+						builder.Method(
+							x => GenerateStructGetterCall(@struct, field, DuktapeBuilder.From(x)),
+							new FunctionDesc()
+							{
+								Name = $"{fieldMethodBaseName}_getter",
+								ReturnType = "duk_idx_t",
+								Arguments = ["duk_context* ctx"]
+							}
+						);
+						builder.Method(
+							x => GenerateStructSetterCall(@struct, field, DuktapeBuilder.From(x)),
+							new FunctionDesc()
+							{
+								Name = $"{fieldMethodBaseName}_setter",
+								ReturnType = "duk_idx_t",
+								Arguments = ["duk_context* ctx"]
+							}
+						);
+					}
+
+					builder.Comment("constructor definition");
 					builder.Method(ctorBody, new FunctionDesc()
 					{
 						Name = baseMethodSignature+"_struct_ctor",
 						ReturnType = "duk_idx_t",
 						Arguments = ["duk_context* ctx"]
 					});
+					builder.Comment("setup definition");
 					builder.Method(functionBody, new FunctionDesc()
 					{
 						Name = baseMethodSignature+"_struct_setup",
@@ -318,6 +344,13 @@ namespace BindingGenerator.Generators
 		{
 			var baseMethodSignature = CodeUtils.GetMethodDeclName(@struct.Namespace, @struct);
 
+			builder.Line("if (!duk_is_constructor_call(ctx))");
+			builder.Closure(x =>
+			{
+				DuktapeBuilder.From(x)
+					.Return(
+						$"duk_error(ctx, DUK_ERR_TYPE_ERROR, \"Class constructor %s cannot be invoked without 'new'\", \"{@struct.Name}\")");
+			}).Line();
 			builder.Line($"auto instance = new {CodeUtils.GetStructAccessor(@struct)}();");
 			builder.PushThis().NativeStorePointer(-1, "instance");
 			builder.Line("bookkeeper_store(ctx, -1, instance);");
@@ -327,6 +360,7 @@ namespace BindingGenerator.Generators
 				.PushFunction(baseMethodSignature + "_struct_finalizer", 0)
 				.NativeStorePointer(-1, "instance")
 				.SetFinalizer(-2);
+			builder.Comment("setup properties");
 			builder.Return("1");
 		}
 
@@ -336,8 +370,13 @@ namespace BindingGenerator.Generators
 			builder.Line("if (bookkeeper_restore(ctx, ptr))");
 			builder.Line("\treturn 1;");
 			builder.Line();
+			
 			builder.TypeGet(@struct);
 			builder.New(0);
+			builder.NativeGetPointer("void* dst_ptr", -1);
+
+			var structAccessor = CodeUtils.GetStructAccessor(@struct);
+			builder.Line($"*static_cast<{structAccessor}*>(dst_ptr) = *static_cast<{structAccessor}*>(ptr);");
 			builder.Return("1");
 		}
 
@@ -353,6 +392,19 @@ namespace BindingGenerator.Generators
 				x.Line("bookkeeper_remove(ctx, ptr);");
 				x.Line($"delete static_cast<{CodeUtils.GetStructAccessor(@struct)}*>(ptr);");
 			});
+			builder.Return("0");
+		}
+
+		private void GenerateStructGetterCall(StructDefinition @struct, StructFieldTypeDefinition field,
+			DuktapeBuilder builder)
+		{
+			builder.AssertHeap(1);
+			
+			builder.Return("1");
+		}
+		private void GenerateStructSetterCall(StructDefinition @struct, StructFieldTypeDefinition field,
+			DuktapeBuilder builder)
+		{
 			builder.Return("0");
 		}
 	}
